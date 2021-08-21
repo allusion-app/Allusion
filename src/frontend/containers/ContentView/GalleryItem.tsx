@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ellipsize, encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
@@ -174,12 +174,12 @@ export class GalleryEventHandler {
   onDoubleClick() {
     this.submitCommand({ selector: GallerySelector.DoubleClick, payload: this.file });
   }
-  onContextMenu(e: React.MouseEvent<HTMLElement>) {
+  onContextMenu(e: React.MouseEvent<HTMLElement>, tag?: ClientTag) {
     e.stopPropagation();
     e.preventDefault();
     this.submitCommand({
       selector: GallerySelector.ContextMenu,
-      payload: [this.file, e.clientX, e.clientY],
+      payload: [this.file, e.clientX, e.clientY, tag],
     });
   }
   onDragStart(e: React.MouseEvent<HTMLElement>) {
@@ -269,7 +269,7 @@ const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => 
   // This will check whether a thumbnail exists, generate it if needed
   useEffect(() => {
     let isMounted = true;
-    if (!mounted && isBroken === true) {
+    if ((!mounted && isBroken === true) || forceNoThumbnail) {
       return;
     }
     ensureThumbnail(file, thumbnailDirectory)
@@ -287,7 +287,7 @@ const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => 
     return () => {
       isMounted = false;
     };
-  }, [file, isBroken, mounted, thumbnailDirectory]);
+  }, [file, forceNoThumbnail, isBroken, mounted, thumbnailDirectory]);
 
   // The thumbnailPath of an image is always set, but may not exist yet.
   // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`,
@@ -309,6 +309,7 @@ const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => 
         src={encodeFilePath(forceNoThumbnail ? file.absolutePath : thumbnailPath)}
         onError={handleImageError}
         alt=""
+        data-file-id={file.id}
       />
     );
   } else if (state === ThumbnailState.Loading) {
@@ -345,22 +346,35 @@ const ThumbnailTags = observer(
         onDoubleClick={eventHandlers?.onDoubleClick}
       >
         {Array.from(file.tags, (tag) => (
-          <TagWithHint key={tag.id} tag={tag} />
+          <TagWithHint key={tag.id} tag={tag} onContextMenu={eventHandlers?.onContextMenu} />
         ))}
       </span>
     );
   },
 );
 
-const TagWithHint = observer(({ tag }: { tag: ClientTag }) => {
-  return (
-    <Tag
-      text={tag.name}
-      color={tag.viewColor}
-      tooltip={tag.treePath.map((t) => t.name).join(' › ')}
-    />
-  );
-});
+const TagWithHint = observer(
+  ({
+    tag,
+    onContextMenu,
+  }: {
+    tag: ClientTag;
+    onContextMenu?: (e: React.MouseEvent<HTMLElement>, tag?: ClientTag | undefined) => void;
+  }) => {
+    const handleContextMenu = useCallback(
+      (e: React.MouseEvent<HTMLElement>) => onContextMenu?.(e, tag),
+      [onContextMenu, tag],
+    );
+    return (
+      <Tag
+        text={tag.name}
+        color={tag.viewColor}
+        tooltip={tag.treePath.map((t) => t.name).join(' › ')}
+        onContextMenu={handleContextMenu}
+      />
+    );
+  },
+);
 
 const ThumbnailFilename = ({ file }: { file: ClientFile }) => {
   const title = `${ellipsize(file.absolutePath, 80, 'middle')}, ${file.width}x${
@@ -393,7 +407,7 @@ export interface ICommand<S, P> {
 export type GalleryCommand =
   | ICommand<GallerySelector.Click, [file: ClientFile, metaKey: boolean, shiftKey: boolean]>
   | ICommand<GallerySelector.DoubleClick, ClientFile>
-  | ICommand<GallerySelector.ContextMenu, [file: ClientFile, x: number, y: number]>
+  | ICommand<GallerySelector.ContextMenu, [file: ClientFile, x: number, y: number, tag?: ClientTag]>
   | ICommand<GallerySelector.ContextMenuSlide, [file: ClientFile, x: number, y: number]>
   | ICommand<GallerySelector.DragStart, ClientFile>
   | ICommand<GallerySelector.DragOver, ClientFile>

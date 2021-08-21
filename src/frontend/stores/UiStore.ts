@@ -6,6 +6,7 @@ import { ID } from 'src/entities/ID';
 import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
+import { IS_PREVIEW_WINDOW } from 'src/renderer';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, debounce } from '../utils';
 import RootStore from './RootStore';
@@ -140,7 +141,10 @@ class UiStore {
   @observable thumbnailShape: ThumbnailShape = 'square';
 
   @observable isToolbarTagPopoverOpen: boolean = false;
+  /** Dialog for removing unlinked files from Allusion's database */
   @observable isToolbarFileRemoverOpen: boolean = false;
+  /** Dialog for moving files to the system's trash bin, and removing from Allusion's database */
+  @observable isMoveFilesToTrashOpen: boolean = false;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
@@ -160,8 +164,10 @@ class UiStore {
     makeObservable(this);
 
     // Store preferences immediately when anything is changed
-    const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
-    PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
+    if (!IS_PREVIEW_WINDOW) {
+      const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
+      PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
+    }
   }
 
   @action.bound init() {
@@ -209,6 +215,10 @@ class UiStore {
     if (isFinite(index)) {
       this.firstItem = index;
     }
+  }
+
+  @action setMethod(method: ViewMethod) {
+    this.method = method;
   }
 
   @action.bound setMethodList() {
@@ -285,6 +295,7 @@ class UiStore {
       ids: previewFiles.map((file) => file.id),
       activeImgId: this.getFirstSelectedFileId(),
       thumbnailDirectory: this.thumbnailDirectory,
+      viewMethod: this.method,
     });
 
     this.isPreviewOpen = true;
@@ -336,6 +347,14 @@ class UiStore {
 
   @action.bound closeToolbarFileRemover() {
     this.isToolbarFileRemoverOpen = false;
+  }
+
+  @action.bound openMoveFilesToTrash() {
+    this.isMoveFilesToTrashOpen = true;
+  }
+
+  @action.bound closeMoveFilesToTrash() {
+    this.isMoveFilesToTrashOpen = false;
   }
 
   @action.bound toggleToolbarTagPopover() {
@@ -702,14 +721,14 @@ class UiStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        this.setTheme(prefs.theme);
+        if (prefs.theme) this.setTheme(prefs.theme);
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.isInspectorOpen = Boolean(prefs.isInspectorOpen);
-        this.setThumbnailDirectory(prefs.thumbnailDirectory);
-        this.setImportDirectory(prefs.importDirectory);
-        this.setMethod(prefs.method);
-        this.setThumbnailSize(prefs.thumbnailSize);
-        this.setThumbnailShape(prefs.thumbnailShape);
+        if (prefs.thumbnailDirectory) this.setThumbnailDirectory(prefs.thumbnailDirectory);
+        if (prefs.importDirectory) this.setImportDirectory(prefs.importDirectory);
+        if (prefs.method) this.setMethod(prefs.method);
+        if (prefs.thumbnailSize) this.setThumbnailSize(prefs.thumbnailSize);
+        if (prefs.thumbnailShape) this.setThumbnailShape(prefs.thumbnailShape);
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
         this.isThumbnailFilenameOverlayEnabled = Boolean(
           prefs.isThumbnailFilenameOverlayEnabled ?? false,
@@ -775,10 +794,6 @@ class UiStore {
 
   @action private setIsOutlinerOpen(value: boolean = true) {
     this.isOutlinerOpen = value;
-  }
-
-  @action private setMethod(method: ViewMethod = ViewMethod.Grid) {
-    this.method = method;
   }
 
   @action private setThumbnailSize(size: ThumbnailSize = 'medium') {

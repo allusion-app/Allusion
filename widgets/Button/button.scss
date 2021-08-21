@@ -1,6 +1,6 @@
 .btn-group {
   display: flex;
-  align-items: center;
+  justify-content: center;
   margin: 0 -0.25rem;
 
   .btn {
@@ -23,17 +23,18 @@
   outline: none;
   border-radius: 0.25rem;
 
-  &:hover {
-    color: var(--text-color-strong);
-    background: var(--hover-color);
-  }
+  --intent-color: var(--accent-color-blue);
+
   &:focus {
     color: var(--text-color-strong);
-    background: var(--hover-color);
+  }
+  &:hover {
+    color: var(--text-color-strong);
+    filter: brightness(90%);
   }
   &:active {
     color: var(--text-color-strong);
-    background: var(--hover-color-alt);
+    filter: brightness(80%);
   }
   &[aria-checked='true'] {
     color: var(--text-color-strong);
@@ -49,14 +50,29 @@
   }
 }
 
+.btn-info {
+  --intent-color: var(--accent-color-blue);
+}
+.btn-success {
+  --intent-color: var(--accent-color-green);
+}
+.btn-warning {
+  --intent-color: var(--accent-color-yellow);
+  --text-color: rgb(64, 64, 64); // it's too yellow, needs light theme text color
+  --text-color-strong: rgb(0, 0, 0);
+}
+.btn-danger {
+  --intent-color: var(--accent-color-red);
+}
+
 .btn-filled {
-  background-color: var(--accent-color-blue);
-  color: white;
+  background-color: var(--intent-color);
+  color: var(--text-color);
 }
 
 .btn-outlined {
   border: 1px solid currentColor;
-  color: var(--accent-color-blue);
+  color: var(--intent-color);
 }
 
 .btn-minimal,

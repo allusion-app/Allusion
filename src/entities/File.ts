@@ -17,7 +17,17 @@ import { ClientTag } from './Tag';
 
 const sizeOf = promisify(ImageSize);
 
-export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tif', 'tiff', 'bmp'] as const;
+export const IMG_EXTENSIONS = [
+  'gif',
+  'png',
+  'jpg',
+  'jpeg',
+  'jfif',
+  'webp',
+  'tif',
+  'tiff',
+  'bmp',
+] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 
 /** Retrieved file meta data information */
@@ -120,21 +130,32 @@ export class ClientFile implements ISerializable<IFile> {
   }
 
   @action.bound addTag(tag: ClientTag): void {
-    if (!this.tags.has(tag) && this.tags.size === 0) {
-      this.store.decrementNumUntaggedFiles();
+    const hasTag = this.tags.has(tag);
+    if (!hasTag) {
+      this.tags.add(tag);
+      tag.incrementFileCount();
+
+      if (this.tags.size === 0) {
+        this.store.decrementNumUntaggedFiles();
+      }
     }
-    this.tags.add(tag);
   }
 
   @action.bound removeTag(tag: ClientTag): void {
-    if (this.tags.delete(tag) && this.tags.size === 0) {
-      this.store.incrementNumUntaggedFiles();
+    const hadTag = this.tags.delete(tag);
+    if (hadTag) {
+      tag.decrementFileCount();
+
+      if (this.tags.size === 0) {
+        this.store.incrementNumUntaggedFiles();
+      }
     }
   }
 
   @action.bound clearTags(): void {
     if (this.tags.size > 0) {
       this.store.incrementNumUntaggedFiles();
+      this.tags.forEach((tag) => tag.decrementFileCount());
       this.tags.clear();
     }
   }

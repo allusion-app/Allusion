@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
 import { Button } from 'widgets';
+import { Intent } from 'widgets/Button';
 
 export interface IDialog {
   open: boolean;
@@ -90,6 +91,8 @@ export const Alert = (props: IAlert) => {
           primaryButtonText={props.primaryButtonText}
           defaultButton={props.defaultButton}
           onClick={onClick}
+          primaryButtonIntent={props.primaryButtonIntent}
+          secondaryButtonIntent={props.secondaryButtonIntent}
         />
       </div>
     </Dialog>
@@ -108,6 +111,8 @@ export interface IDialogActions {
   primaryButtonText?: string;
   secondaryButtonText?: string;
   defaultButton?: DialogButton;
+  primaryButtonIntent?: Intent;
+  secondaryButtonIntent?: Intent;
 }
 
 export const DialogActions = (props: IDialogActions) => {
@@ -117,6 +122,7 @@ export const DialogActions = (props: IDialogActions) => {
         <Button
           styling={props.defaultButton === DialogButton.PrimaryButton ? 'filled' : 'outlined'}
           text={props.primaryButtonText}
+          intent={props.primaryButtonIntent}
           onClick={() => props.onClick(DialogButton.PrimaryButton)}
         />
       ) : undefined}
@@ -124,6 +130,7 @@ export const DialogActions = (props: IDialogActions) => {
         <Button
           styling={props.defaultButton === DialogButton.SecondaryButton ? 'filled' : 'outlined'}
           text={props.secondaryButtonText}
+          intent={props.secondaryButtonIntent}
           onClick={() => props.onClick(DialogButton.SecondaryButton)}
         />
       ) : undefined}

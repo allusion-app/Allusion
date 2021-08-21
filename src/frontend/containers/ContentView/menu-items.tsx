@@ -2,9 +2,12 @@ import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { ClientFile } from 'src/entities/File';
+import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet } from 'widgets';
 import { MenuItem } from 'widgets/menus';
+import { LocationTreeItemRevealer } from '../Outliner/LocationsPanel';
+import { TagsTreeItemRevealer } from '../Outliner/TagsPanel/TagsTree';
 
 export const MissingFileMenuItems = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -26,7 +29,7 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
 
   const handleViewFullSize = () => {
     uiStore.selectFile(file, true);
-    uiStore.toggleSlideMode();
+    uiStore.enableSlideMode();
   };
 
   const handlePreviewWindow = () => {
@@ -73,18 +76,49 @@ export const SlideFileViewerMenuItems = ({ file }: { file: ClientFile }) => {
   );
 };
 
-export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) => (
+export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) => {
+  const { uiStore } = useStore();
+  return (
+    <>
+      <MenuItem
+        onClick={() => shell.openExternal(`file://${file.absolutePath}`).catch(console.error)}
+        text="Open External"
+        icon={IconSet.OPEN_EXTERNAL}
+        disabled={file.isBroken}
+      />
+      <MenuItem
+        onClick={() =>
+          LocationTreeItemRevealer.instance.revealSubLocation(file.locationId, file.absolutePath)
+        }
+        text="Reveal in Locations Panel"
+        icon={IconSet.TREE_LIST}
+      />
+      <MenuItem
+        onClick={() => shell.showItemInFolder(file.absolutePath)}
+        text="Reveal in File Browser"
+        icon={IconSet.FOLDER_CLOSE}
+      />
+      <MenuItem
+        onClick={uiStore.openMoveFilesToTrash}
+        text={`Delete file${uiStore.fileSelection.size > 1 ? 's' : ''}`}
+        icon={IconSet.DELETE}
+      />
+    </>
+  );
+});
+
+export const FileTagMenuItems = observer(({ file, tag }: { file: ClientFile; tag: ClientTag }) => (
   <>
     <MenuItem
-      onClick={() => shell.openExternal(`file://${file.absolutePath}`).catch(console.error)}
-      text="Open External"
-      icon={IconSet.OPEN_EXTERNAL}
+      onClick={() => TagsTreeItemRevealer.instance.revealTag(tag)}
+      text="Reveal in Tags Panel"
+      icon={IconSet.TREE_LIST}
       disabled={file.isBroken}
     />
     <MenuItem
-      onClick={() => shell.showItemInFolder(file.absolutePath)}
-      text="Reveal in File Browser"
-      icon={IconSet.FOLDER_CLOSE}
+      onClick={() => file.removeTag(tag)}
+      text="Unassign Tag from File"
+      icon={IconSet.TAG_BLANCO}
     />
   </>
 ));

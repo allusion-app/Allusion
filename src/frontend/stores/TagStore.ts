@@ -7,6 +7,7 @@ import { ClientTag, ITag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 
 import RootStore from './RootStore';
+import { ClientFile } from 'src/entities/File';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -31,6 +32,14 @@ class TagStore {
       this.createTagGraph(fetchedTags);
     } catch (err) {
       console.log('Could not load tags', err);
+    }
+  }
+
+  @action.bound initializeFileCounts(files: ClientFile[]): void {
+    for (const file of files) {
+      for (const fileTag of file.tags) {
+        fileTag.incrementFileCount();
+      }
     }
   }
 
@@ -153,16 +162,20 @@ class TagStore {
     });
   }
 
+  @action.bound refetchFiles() {
+    this.rootStore.fileStore.refetch();
+  }
+
   save(tag: ITag) {
     this.backend.saveTag(tag);
   }
 
   @action private createTagGraph(backendTags: ITag[]) {
     // Create tags
-    for (const { id, name, dateAdded, color } of backendTags) {
+    for (const { id, name, dateAdded, color, isHidden } of backendTags) {
       // Create entity and set properties
       // We have to do this because JavaScript does not allow multiple constructor.
-      const tag = new ClientTag(this, id, name, dateAdded, color);
+      const tag = new ClientTag(this, id, name, dateAdded, color, isHidden);
       // Add to index
       this.tagGraph.set(tag.id, tag);
     }

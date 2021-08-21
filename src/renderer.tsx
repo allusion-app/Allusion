@@ -43,13 +43,16 @@ backend
   .catch((err) => console.error('Could not initialize backend!', err));
 
 if (IS_PREVIEW_WINDOW) {
-  RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory, activeImgId }) => {
-    rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
-    rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
-    rootStore.uiStore.enableSlideMode();
-    rootStore.uiStore.isInspectorOpen && rootStore.uiStore.toggleInspector();
-    rootStore.fileStore.fetchFilesByIDs(ids);
-  });
+  RendererMessenger.onReceivePreviewFiles(
+    ({ ids, thumbnailDirectory, viewMethod, activeImgId }) => {
+      rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
+      rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
+      rootStore.uiStore.setMethod(viewMethod);
+      rootStore.uiStore.enableSlideMode();
+      rootStore.uiStore.isInspectorOpen && rootStore.uiStore.toggleInspector();
+      rootStore.fileStore.fetchFilesByIDs(ids);
+    },
+  );
 
   // Close preview with space
   window.addEventListener('keydown', (e: KeyboardEvent) => {

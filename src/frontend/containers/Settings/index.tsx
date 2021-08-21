@@ -141,18 +141,18 @@ const Zoom = () => {
 
   return (
     <fieldset>
-      <legend>Zoom</legend>
+      <legend>UI Scale (zoom)</legend>
       <span className="zoom-input">
         <IconButton
           icon={<span>-</span>}
           onClick={() => setLocalZoomFactor(localZoomFactor - 0.1)}
-          text="Zoom out"
+          text="Decrease"
         />
         <span>{Math.round(100 * localZoomFactor)}%</span>
         <IconButton
           icon={<span>+</span>}
           onClick={() => setLocalZoomFactor(localZoomFactor + 0.1)}
-          text="Zoom in"
+          text="Increase"
         />
       </span>
     </fieldset>
@@ -424,16 +424,18 @@ const BackgroundProcesses = observer(() => {
   );
 });
 
-const Shortcuts = () => (
-  <>
-    <h2>Keyboard shortcuts</h2>
-    <p>
-      Click on a key combination to modify it. After typing your new combination, press Enter to
-      confirm or Escape to cancel.
-    </p>
-    <HotkeyMapper />
-  </>
-);
+const Shortcuts = observer(() => {
+  return (
+    <>
+      <h2>Keyboard shortcuts</h2>
+      <p>
+        Click on a key combination to modify it. After typing your new combination, press Enter to
+        confirm or Escape to cancel.
+      </p>
+      <HotkeyMapper />
+    </>
+  );
+});
 
 const Advanced = observer(() => {
   const { uiStore, fileStore } = useStore();

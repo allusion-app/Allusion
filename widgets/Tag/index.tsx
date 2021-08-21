@@ -15,6 +15,7 @@ interface ITag {
   onClick?: () => void;
   onRemove?: () => void;
   tooltip?: string;
+  onContextMenu?: React.MouseEventHandler<HTMLSpanElement>;
 }
 
 const Tag = (props: ITag) => {
@@ -26,7 +27,13 @@ const Tag = (props: ITag) => {
   );
 
   return (
-    <span className={`tag ${className}`} data-tooltip={tooltip} onClick={onClick} style={style}>
+    <span
+      className={`tag ${className}`}
+      data-tooltip={tooltip}
+      onClick={onClick}
+      style={style}
+      onContextMenu={props.onContextMenu}
+    >
       {text}
       {onRemove ? (
         <IconButton

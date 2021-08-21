@@ -1,15 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-   <title>search-any</title>
-   <circle
-      r="7"
-      cy="12"
-      cx="8"
-      id="path3753"
-      style="fill:#222221;fill-opacity:0.99790794;opacity:1;stroke:none;stroke-opacity:1;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none" />
-   <circle
-      style="fill:#222221;fill-opacity:0.99790794;opacity:1;stroke:none;stroke-opacity:1;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none"
-      id="circle3755"
-      cx="16"
-      cy="12"
-      r="7" />
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="8" cy="12" r="7"/><circle cx="16" cy="12" r="7"/></svg>
