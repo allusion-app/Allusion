@@ -18,7 +18,7 @@ const enum Tooltip {
 export const SortCommand = () => {
   return (
     <MenuButton
-      icon={IconSet.SORT}
+      icon={IconSet.SORT_ALT}
       text="Sort"
       tooltip={Tooltip.Filter}
       id="__sort-menu"

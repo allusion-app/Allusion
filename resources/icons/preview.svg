@@ -1,8 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Generator: Adobe Illustrator 25.4.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;" xml:space="preserve">
-<circle id="Iris" cx="12" cy="12" r="3"/>
-<path id="Eye" d="M12,4C7.3,4,3.4,8.6,1.8,10.8c-0.5,0.7-0.5,1.6,0,2.3C3.4,15.4,7.3,20,12,20s8.6-4.6,10.2-6.8
-	c0.5-0.7,0.5-1.6,0-2.3C20.6,8.6,16.7,4,12,4z M12,17c-2.8,0-5-2.2-5-5s2.2-5,5-5s5,2.2,5,5S14.8,17,12,17z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<circle cx="12" cy="12" r="3"/>
+<path d="M12,4C7.279,4,3.384,8.615,1.784,10.835c-0.502,0.696-0.501,1.633,0.004,2.327C3.398,15.38,7.314,20,12,20
+	s8.602-4.62,10.213-6.838c0.504-0.695,0.506-1.631,0.004-2.327C20.616,8.615,16.721,4,12,4z M12,17c-2.761,0-5-2.239-5-5
+	s2.239-5,5-5s5,2.239,5,5S14.761,17,12,17z"/>
 </svg>
