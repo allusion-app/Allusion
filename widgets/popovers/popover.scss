@@ -9,7 +9,6 @@ dialog {
   top: 0;
   bottom: 0;
   min-width: min(50ch, 80vw);
-  max-width: max(80vw, 80ch);
   max-height: 80vh;
 
   &[open] {
