@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 
@@ -7,7 +7,6 @@ import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
-import { TagSelector } from './TagSelector';
 import { shell } from 'electron';
 
 interface IRemovalProps<T> {
@@ -28,18 +27,26 @@ export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
   />
 );
 
-export const SubLocationExclusion = (props: IRemovalProps<ClientSubLocation>) => (
-  <ExcludeAlert
-    open
-    title={`Are you sure you want to exclude the directory "${props.object.name}"?`}
-    information="Any tags saved on images in that directory will be lost."
-    onCancel={props.onClose}
-    onConfirm={() => {
-      props.onClose();
-      props.object.toggleExcluded();
-    }}
-  />
-);
+export const SubLocationExclusion = (props: IRemovalProps<ClientSubLocation>) => {
+  return (
+    <Alert
+      open
+      title={`Are you sure you want to exclude the directory "${props.object.name}"?`}
+      icon={IconSet.WARNING}
+      type="warning"
+      primaryButtonText="Exclude"
+      defaultButton={DialogButton.PrimaryButton}
+      onClick={(button) => {
+        if (button !== DialogButton.CloseButton) {
+          props.object.toggleExcluded();
+        }
+        props.onClose();
+      }}
+    >
+      <p>Any tags saved on images in that directory will be lost.</p>
+    </Alert>
+  );
+};
 
 export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
   const { uiStore } = useStore();
@@ -70,52 +77,6 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
         props.onClose();
         object.isSelected ? uiStore.removeSelectedTags() : props.object.delete();
       }}
-    />
-  );
-});
-
-export const TagMerge = observer((props: IRemovalProps<ClientTag>) => {
-  const { tagStore } = useStore();
-  const { object: tag } = props;
-
-  const text = `Select the tag you want to merge "${tag.name}" with`;
-
-  const [selectedTag, setSelectedTag] = useState<ClientTag>();
-  const clearSelection = () => setSelectedTag(undefined);
-
-  return (
-    <MergeAlert
-      open
-      title={text}
-      information={
-        tag.subTags.length > 0
-          ? 'Merging a tag with sub-tags is currently not supported.'
-          : `This will replace all uses of ${tag.name} with ${
-              selectedTag?.name || 'the tag you select'
-            }. Choose the merge option on the other tag to merge the other way around!`
-      }
-      body={
-        <div>
-          <TagSelector
-            multiselectable={false}
-            selection={selectedTag ? [selectedTag] : []}
-            onSelect={setSelectedTag}
-            onDeselect={clearSelection}
-            onClear={clearSelection}
-          />
-        </div>
-      }
-      onCancel={props.onClose}
-      onConfirm={
-        tag.subTags.length > 0
-          ? () => null
-          : () => {
-              if (selectedTag) {
-                tagStore.merge(tag, selectedTag);
-                props.onClose();
-              }
-            }
-      }
     />
   );
 });
@@ -210,49 +171,15 @@ const RemovalAlert = (props: IRemovalAlertProps) => (
   <Alert
     open={props.open}
     title={props.title}
-    information={props.information}
-    view={props.body}
     icon={IconSet.WARNING}
-    closeButtonText="Cancel"
+    type="danger"
     primaryButtonText="Delete"
-    primaryButtonIntent="danger"
     defaultButton={DialogButton.PrimaryButton}
     onClick={(button) =>
       button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
     }
-  />
-);
-
-const MergeAlert = (props: IRemovalAlertProps) => (
-  <Alert
-    open={props.open}
-    title={props.title}
-    information={props.information}
-    view={props.body}
-    icon={IconSet.WARNING}
-    closeButtonText="Cancel"
-    primaryButtonText="Merge"
-    primaryButtonIntent="warning"
-    defaultButton={DialogButton.PrimaryButton}
-    onClick={(button) =>
-      button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
-    }
-  />
-);
-
-const ExcludeAlert = (props: IRemovalAlertProps) => (
-  <Alert
-    open={props.open}
-    title={props.title}
-    information={props.information}
-    view={props.body}
-    icon={IconSet.WARNING}
-    closeButtonText="Cancel"
-    primaryButtonText="Exclude"
-    primaryButtonIntent="warning"
-    defaultButton={DialogButton.PrimaryButton}
-    onClick={(button) =>
-      button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
-    }
-  />
+  >
+    <p>{props.information}</p>
+    {props.body}
+  </Alert>
 );

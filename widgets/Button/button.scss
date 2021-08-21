@@ -1,40 +1,40 @@
 .btn-group {
   display: flex;
-  justify-content: center;
-  margin: 0 -0.25rem;
 
-  .btn {
-    margin: 0 0.25rem;
+  button {
+    margin-inline-start: 0.5rem;
+
+    &:first-child {
+      margin-inline-start: 0;
+    }
   }
 }
 
-.btn {
+button {
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 20px;
-  min-width: 20px;
+  min-height: 24px;
+  min-width: 24px;
   padding: 0;
   margin: 0;
   color: var(--text-color);
   background: transparent;
   border: none;
   outline: none;
-  border-radius: 0.25rem;
 
-  --intent-color: var(--accent-color-blue);
-
-  &:focus {
-    color: var(--text-color-strong);
-  }
   &:hover {
     color: var(--text-color-strong);
-    filter: brightness(90%);
+    background: var(--hover-color);
+  }
+  &:focus {
+    color: var(--text-color-strong);
+    background: var(--hover-color);
   }
   &:active {
     color: var(--text-color-strong);
-    filter: brightness(80%);
+    background: var(--hover-color-alt);
   }
   &[aria-checked='true'] {
     color: var(--text-color-strong);
@@ -50,53 +50,52 @@
   }
 }
 
-.btn-info {
-  --intent-color: var(--accent-color-blue);
-}
-.btn-success {
-  --intent-color: var(--accent-color-green);
-}
-.btn-warning {
-  --intent-color: var(--accent-color-yellow);
-  --text-color: rgb(64, 64, 64); // it's too yellow, needs light theme text color
-  --text-color-strong: rgb(0, 0, 0);
-}
-.btn-danger {
-  --intent-color: var(--accent-color-red);
-}
-
 .btn-filled {
-  background-color: var(--intent-color);
-  color: var(--text-color);
+  background: var(--accent-color) !important;
+  --text-color: #e2e2e2;
+  --text-color-strong: white;
+  --text-color-muted: var(--text-color);
 }
 
 .btn-outlined {
-  border: 1px solid currentColor;
-  color: var(--intent-color);
+  border: 1px solid var(--accent-color);
+  --text-color: var(--accent-color);
+  --text-color-strong: var(--accent-color);
+}
+
+.btn-filled,
+.btn-outlined {
+  &:hover {
+    filter: brightness(90%);
+  }
+  &:active {
+    filter: brightness(80%);
+  }
+  &[aria-disabled='true'],
+  &:disabled {
+    filter: grayscale(50%);
+  }
 }
 
 .btn-minimal,
 .btn-filled,
 .btn-outlined {
-  height: 2rem;
+  border-radius: 0.25rem;
+  min-height: 2rem;
+  min-width: 2rem;
   padding: 0 0.75rem;
 }
 
 .btn-icon {
+  border-radius: 0.25rem;
   color: currentColor;
+  height: fit-content;
+  width: fit-content;
 }
 
-.btn-content-icon,
-.btn-content-text {
+.btn-content-icon {
   display: inline-flex;
 }
 .btn-content-text {
-  margin-left: 0.25rem;
-}
-
-.btn-content-text.hidden {
-  margin: 0;
-  text-indent: -100vw;
-  white-space: nowrap;
-  overflow: hidden;
+  margin-inline-start: 0.25rem;
 }

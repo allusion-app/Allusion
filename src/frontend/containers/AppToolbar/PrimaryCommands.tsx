@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { useStore } from '../../contexts/StoreContext';
 
 import { IconSet } from 'widgets';
-import { ToolbarButton, ToolbarToggleButton } from 'widgets/menus';
+import { ToolbarButton } from 'widgets/menus';
 import { FileRemoval } from 'src/frontend/components/RemovalAlert';
 import FileTagEditor from 'src/frontend/containers/AppToolbar/FileTagEditor';
 import Searchbar from './Searchbar';
@@ -22,20 +22,15 @@ const OutlinerToggle = observer(() => {
   const { uiStore } = useStore();
 
   return (
-    <button
-      autoFocus
+    <ToolbarButton
       id="outliner-toggle"
-      className="btn toolbar-button"
-      aria-controls="outliner"
-      aria-pressed={uiStore.isOutlinerOpen}
+      text="Toggle Outliner"
+      icon={uiStore.isOutlinerOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
+      controls="outliner"
+      pressed={uiStore.isOutlinerOpen}
       onClick={uiStore.toggleOutliner}
       tabIndex={0}
-    >
-      <span className="btn-content-icon" aria-hidden="true">
-        {uiStore.isOutlinerOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
-      </span>
-      <span className="btn-content-text hidden">Toggle Outliner</span>
-    </button>
+    />
   );
 });
 
@@ -72,7 +67,7 @@ export const SlideModeCommand = observer(() => {
   return (
     <>
       <ToolbarButton
-        showLabel="always"
+        isCollapsible={false}
         icon={IconSet.ARROW_LEFT}
         onClick={uiStore.disableSlideMode}
         text="Back"
@@ -84,7 +79,6 @@ export const SlideModeCommand = observer(() => {
       <FileTagEditor />
 
       <ToolbarButton
-        showLabel="never"
         icon={IconSet.INFO}
         onClick={uiStore.toggleInspector}
         checked={uiStore.isInspectorOpen}
@@ -107,8 +101,8 @@ const FileSelectionCommand = observer(() => {
   };
 
   return (
-    <ToolbarToggleButton
-      showLabel="always"
+    <ToolbarButton
+      isCollapsible={false}
       icon={allFilesSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
       onClick={handleToggleSelect}
       pressed={allFilesSelected}

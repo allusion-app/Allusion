@@ -15,7 +15,7 @@ const AppToolbar = observer(() => {
   const { uiStore } = useStore();
 
   return (
-    <Toolbar id="toolbar" label="App Toolbar" controls="layout-container">
+    <Toolbar id="toolbar" label="App Toolbar" controls="layout-container" isCompact>
       {/* Primary Commands depending on current mode */}
       {uiStore.isSlideMode ? <SlideModeCommand /> : <PrimaryCommands />}
 

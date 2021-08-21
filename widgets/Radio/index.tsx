@@ -1,7 +1,7 @@
 import './radio.scss';
 import React, { useEffect, useRef } from 'react';
 
-interface IRadio {
+interface RadioProps {
   label: string;
   defaultChecked?: boolean;
   checked?: boolean;
@@ -9,7 +9,7 @@ interface IRadio {
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const Radio = (props: IRadio) => {
+const Radio = (props: RadioProps) => {
   const { label, value, defaultChecked, checked, onChange } = props;
   return (
     <label>
@@ -25,12 +25,13 @@ const Radio = (props: IRadio) => {
   );
 };
 
-interface IRadioGroup {
+interface RadioGroupProps {
   name: string;
-  children: React.ReactElement<IRadio>[];
+  children: React.ReactElement<RadioProps>[];
+  orientation?: 'horizontal' | 'vertical';
 }
 
-const RadioGroup = ({ name, children }: IRadioGroup) => {
+const RadioGroup = ({ name, orientation = 'vertical', children }: RadioGroupProps) => {
   const group = useRef<HTMLFieldSetElement>(null);
   useEffect(() => {
     if (group.current) {
@@ -40,12 +41,9 @@ const RadioGroup = ({ name, children }: IRadioGroup) => {
   }, [name, children.length]);
 
   return (
-    // CHROME BUG: Cannot set flex on fieldset, instead use the inner div as flex container!
-    <fieldset ref={group} role="radiogroup">
-      <div>
-        <legend>{name}</legend>
-        {children}
-      </div>
+    <fieldset ref={group} role="radiogroup" aria-orientation={orientation}>
+      <legend>{name}</legend>
+      {children}
     </fieldset>
   );
 };

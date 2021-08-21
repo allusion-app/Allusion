@@ -1,15 +1,14 @@
 import './button.scss';
+import 'widgets/utility/utility.scss';
 import React from 'react';
 
-export type Intent = 'info' | 'success' | 'warning' | 'danger';
-interface IButton {
+interface ButtonProps {
   text: React.ReactText;
   icon?: JSX.Element;
   onClick: (event: React.MouseEvent) => void;
   styling?: 'minimal' | 'outlined' | 'filled';
   disabled?: boolean;
-  type?: 'button' | 'submit';
-  intent?: Intent;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 const Button = ({
@@ -19,15 +18,9 @@ const Button = ({
   styling = 'minimal',
   disabled,
   type = 'button',
-  intent = 'info',
-}: IButton) => {
+}: ButtonProps) => {
   return (
-    <button
-      className={`btn btn-${styling} btn-${intent}`}
-      onClick={onClick}
-      disabled={disabled}
-      type={type}
-    >
+    <button className={`btn-${styling}`} onClick={onClick} disabled={disabled} type={type}>
       {icon && (
         <span className="btn-content-icon" aria-hidden="true">
           {icon}
@@ -38,12 +31,12 @@ const Button = ({
   );
 };
 
-interface IButtonGroup {
+interface ButtonGroupProps {
   id?: string;
   children: (React.ReactElement | undefined)[] | React.ReactElement;
 }
 
-const ButtonGroup = ({ id, children }: IButtonGroup) => {
+const ButtonGroup = ({ id, children }: ButtonGroupProps) => {
   return (
     <div id={id} className="btn-group">
       {children}
@@ -51,7 +44,7 @@ const ButtonGroup = ({ id, children }: IButtonGroup) => {
   );
 };
 
-interface IIconButton {
+interface IconButtonProps {
   text: string;
   icon: JSX.Element;
   onClick: (event: React.MouseEvent) => void;
@@ -59,10 +52,10 @@ interface IIconButton {
   disabled?: boolean;
 }
 
-const IconButton = ({ text, icon, onClick, disabled, className }: IIconButton) => {
+const IconButton = ({ text, icon, onClick, disabled, className }: IconButtonProps) => {
   return (
     <button
-      className={`${className !== undefined ? className : ''} btn btn-icon`}
+      className={`${className !== undefined ? className : ''} btn-icon`}
       onClick={onClick}
       disabled={disabled}
       type="button"
@@ -71,7 +64,7 @@ const IconButton = ({ text, icon, onClick, disabled, className }: IIconButton) =
       <span className="btn-content-icon" aria-hidden="true">
         {icon}
       </span>
-      <span className="btn-content-text hidden">{text}</span>
+      <span className="visually-hidden">{text}</span>
     </button>
   );
 };

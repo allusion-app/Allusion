@@ -259,16 +259,19 @@ const ImportExport = observer(() => {
         <Alert
           open={isConfirmingMetadataExport}
           title="Are you sure you want to overwrite your files' tags?"
-          information="This will overwrite any existing tags ('keywords') in those files with Allusion's tags. It is recommended to import all tags before writing new tags."
           primaryButtonText="Export"
-          closeButtonText="Cancel"
           onClick={(button) => {
             if (button === DialogButton.PrimaryButton) {
               fileStore.writeTagsToFiles();
             }
             setConfirmingMetadataExport(false);
           }}
-        />
+        >
+          <p>
+            This will overwrite any existing tags (a.k.a. keywords) in those files with
+            Allusion&#39;s tags. It is recommended to import all tags before writing new tags.
+          </p>
+        </Alert>
       </ButtonGroup>
 
       <h3>Backup Database as File</h3>
@@ -304,9 +307,7 @@ const ImportExport = observer(() => {
         <Alert
           open={Boolean(isConfirmingFileImport)}
           title="Are you sure you want to restore the database from a backup?"
-          information={`This will replace your current tag hierarchy and any tags assigned to images, so it is recommended you create a backup first.\n${isConfirmingFileImport?.info}`}
           primaryButtonText="Import"
-          closeButtonText="Cancel"
           onClick={async (button) => {
             if (isConfirmingFileImport && button === DialogButton.PrimaryButton) {
               AppToaster.show({
@@ -326,7 +327,13 @@ const ImportExport = observer(() => {
             }
             setConfirmingFileImport(undefined);
           }}
-        />
+        >
+          <p>
+            This will replace your current tag hierarchy and any tags assigned to images, so it is
+            recommended you create a backup first.
+          </p>
+          <p>{isConfirmingFileImport?.info}</p>
+        </Alert>
       </ButtonGroup>
     </>
   );

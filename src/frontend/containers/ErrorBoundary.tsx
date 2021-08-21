@@ -8,56 +8,41 @@ import { githubUrl } from 'src/config';
 import { useStore } from '../contexts/StoreContext';
 
 import { Button, ButtonGroup, IconSet } from 'widgets';
-import { DialogActions, DialogButton, Flyout } from 'widgets/popovers';
+import { Alert, DialogButton } from 'widgets/popovers';
 
 export const ClearDbButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const rootStore = useStore();
 
   return (
-    <Flyout
-      isOpen={isOpen}
-      cancel={() => setIsOpen(false)}
-      placement="top"
-      target={
-        <Button
-          styling="outlined"
-          icon={IconSet.CLEAR_DATABASE}
-          text="Clear Database"
-          onClick={() => setIsOpen(!isOpen)}
-        />
-      }
-    >
-      <div
-        role="alertdialog"
-        className="dialog-content"
-        style={{ padding: '8px', maxWidth: '45ch' }}
+    <>
+      <Button
+        styling="outlined"
+        icon={IconSet.CLEAR_DATABASE}
+        text="Clear Database"
+        onClick={() => setIsOpen(!isOpen)}
+      />
+      <Alert
+        open={isOpen}
+        icon={IconSet.CLEAR_DATABASE}
+        title="Are you sure you want to clear the database?"
+        primaryButtonText="Clear"
+        onClick={async (button) => {
+          if (button === DialogButton.CloseButton) {
+            setIsOpen(false);
+          } else {
+            await rootStore.clearDatabase();
+            rootStore.uiStore.closeSettings();
+          }
+        }}
       >
-        <h2 className="dialog-title">Are you sure you want to clear the database?</h2>
-        <div className="dialog-information">
-          <p>
-            This is intended as a last resort. All imported images and created tags will be
-            permanently removed.
-          </p>
-          <p>This will not delete your images on your system!</p>
-        </div>
-        <div className="dialog-footer">
-          <DialogActions
-            primaryButtonText="Clear"
-            closeButtonText="Cancel"
-            defaultButton={DialogButton.PrimaryButton}
-            onClick={async (button) => {
-              if (button === DialogButton.CloseButton) {
-                setIsOpen(false);
-              } else {
-                await rootStore.clearDatabase();
-                rootStore.uiStore.closeSettings();
-              }
-            }}
-          />
-        </div>
-      </div>
-    </Flyout>
+        <p>
+          This is intended as a last resort. All imported images and created tags will be
+          permanently removed.
+        </p>
+        <p>This will not delete your images on your system!</p>
+      </Alert>
+    </>
   );
 };
 

@@ -26,7 +26,6 @@ const FileTagEditor = observer(() => {
   return (
     <>
       <ToolbarButton
-        showLabel="never"
         icon={IconSet.TAG_LINE}
         disabled={uiStore.fileSelection.size === 0 && !uiStore.isToolbarTagPopoverOpen}
         onClick={uiStore.toggleToolbarTagPopover}

@@ -10,9 +10,10 @@
     z-index: 1;
     transition: background-color 0.2s ease;
 
-    &:hover, &.active {
+    &:hover,
+    &.active {
       transition-delay: 400ms;
-      background-color: var(--accent-color-blue);
+      background-color: var(--accent-color);
     }
 
     &[aria-orientation='vertical'] {

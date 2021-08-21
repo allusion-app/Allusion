@@ -10,7 +10,6 @@ const SecondaryCommands = observer(() => {
   const { uiStore } = useStore();
   return (
     <MenuButton
-      showLabel="never"
       icon={IconSet.MORE}
       text="More"
       tooltip="See more"

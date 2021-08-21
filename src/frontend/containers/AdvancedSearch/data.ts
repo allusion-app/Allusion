@@ -1,4 +1,4 @@
-import { generateId, ID } from 'src/entities/ID';
+import { ID } from 'src/entities/ID';
 import { IFile, IMG_EXTENSIONS } from 'src/entities/File';
 import {
   OperatorType,
@@ -16,29 +16,34 @@ import {
   ClientNumberSearchCriteria,
 } from 'src/entities/SearchCriteria';
 import TagStore from 'src/frontend/stores/TagStore';
+import { generateWidgetId } from 'widgets/utility';
 
-export type Query =
-  | IQuery<'name' | 'absolutePath', StringOperatorType, string>
-  | IQuery<'tags', TagOperatorType, TagValue>
-  | IQuery<'extension', BinaryOperatorType, string>
-  | IQuery<'size', NumberOperatorType, number>
-  | IQuery<'dateAdded', NumberOperatorType, Date>;
+export function generateCriteriaId() {
+  return generateWidgetId('__criteria');
+}
 
-interface IQuery<K extends QueryKey, O extends QueryOperator, V extends QueryValue> {
+export type Criteria =
+  | Field<'name' | 'absolutePath', StringOperatorType, string>
+  | Field<'tags', TagOperatorType, TagValue>
+  | Field<'extension', BinaryOperatorType, string>
+  | Field<'size', NumberOperatorType, number>
+  | Field<'dateAdded', NumberOperatorType, Date>;
+
+interface Field<K extends Key, O extends Operator, V extends Value> {
   key: K;
   operator: O;
   value: V;
 }
 
-export type QueryKey = keyof Pick<
+export type Key = keyof Pick<
   IFile,
   'name' | 'absolutePath' | 'tags' | 'extension' | 'size' | 'dateAdded'
 >;
-export type QueryOperator = OperatorType;
-export type QueryValue = string | number | Date | TagValue;
-export type TagValue = { id?: ID; label: string } | undefined;
+export type Operator = OperatorType;
+export type Value = string | number | Date | TagValue;
+export type TagValue = ID | undefined;
 
-export function defaultQuery(key: QueryKey): Query {
+export function defaultQuery(key: Key): Criteria {
   if (key === 'name' || key === 'absolutePath') {
     return { key, operator: 'contains', value: '' };
   } else if (key === 'tags') {
@@ -62,7 +67,7 @@ export function defaultQuery(key: QueryKey): Query {
 
 const BYTES_IN_MB = 1024 * 1024;
 
-export function fromCriteria(criteria: FileSearchCriteria): [ID, Query] {
+export function fromCriteria(criteria: FileSearchCriteria): [ID, Criteria] {
   const query = defaultQuery('tags');
   if (
     criteria instanceof ClientStringSearchCriteria &&
@@ -74,16 +79,17 @@ export function fromCriteria(criteria: FileSearchCriteria): [ID, Query] {
   } else if (criteria instanceof ClientNumberSearchCriteria && criteria.key === 'size') {
     query.value = criteria.value / BYTES_IN_MB;
   } else if (criteria instanceof ClientTagSearchCriteria && criteria.key === 'tags') {
-    query.value = { id: criteria.value[0], label: criteria.label };
+    const id = criteria.value.length > 0 ? criteria.value[0] : undefined;
+    query.value = id;
   } else {
-    return [generateId(), query];
+    return [generateCriteriaId(), query];
   }
   query.key = criteria.key;
   query.operator = criteria.operator;
-  return [generateId(), query];
+  return [generateCriteriaId(), query];
 }
 
-export function intoCriteria(query: Query, tagStore: TagStore): FileSearchCriteria {
+export function intoCriteria(query: Criteria, tagStore: TagStore): FileSearchCriteria {
   if (query.key === 'name' || query.key === 'absolutePath' || query.key === 'extension') {
     return new ClientStringSearchCriteria(query.key, query.value, query.operator, CustomKeyDict);
   } else if (query.key === 'dateAdded') {
@@ -95,15 +101,20 @@ export function intoCriteria(query: Query, tagStore: TagStore): FileSearchCriter
       query.operator,
       CustomKeyDict,
     );
-  } else if (query.key === 'tags' && query.value !== undefined) {
-    return new ClientTagSearchCriteria(
-      tagStore,
-      query.key,
-      query.value.id,
-      query.value.label,
-      query.operator,
-      CustomKeyDict,
-    );
+  } else if (query.key === 'tags') {
+    const tag = query.value !== undefined ? tagStore.get(query.value) : undefined;
+    if (tag !== undefined) {
+      return new ClientTagSearchCriteria(
+        tagStore,
+        query.key,
+        tag.id,
+        tag.name,
+        query.operator,
+        CustomKeyDict,
+      );
+    } else {
+      return new ClientTagSearchCriteria(tagStore, 'tags');
+    }
   } else {
     return new ClientTagSearchCriteria(tagStore, 'tags');
   }

@@ -4,7 +4,8 @@ import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } 
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { Collapse } from 'src/frontend/components/Collapse';
-import { TagMerge, TagRemoval } from 'src/frontend/components/RemovalAlert';
+import { TagRemoval } from 'src/frontend/components/RemovalAlert';
+import { TagMerge } from 'src/frontend/containers/Outliner/TagsPanel/TagMerge';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDAttribute, DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
@@ -52,7 +53,6 @@ const Label = (props: ILabelProps) =>
       className="input"
       autoFocus
       type="text"
-      placeholder="Enter a new name"
       defaultValue={props.text}
       onBlur={(e) => {
         const value = e.currentTarget.value.trim();
@@ -341,7 +341,7 @@ const TagItem = observer((props: ITagItemProps) => {
         tooltip={`${nodeData.treePath.map((t) => t.name).join(' › ')} (${nodeData.fileCount})`}
       />
       {!isEditing && (
-        <button onClick={handleSelect} className="btn btn-icon">
+        <button onClick={handleSelect} className="btn-icon">
           {uiStore.tagSelection.has(nodeData) ? IconSet.SELECT_CHECKED : IconSet.SELECT}
         </button>
       )}
@@ -591,10 +591,9 @@ const TagsTree = observer(() => {
         onDrop={handleDrop}
       >
         <h2 onClick={() => setIsCollapsed(!isCollapsed)}>Tags</h2>
-        <Toolbar controls="tag-hierarchy">
+        <Toolbar controls="tag-hierarchy" isCompact>
           {uiStore.tagSelection.size > 0 ? (
             <ToolbarButton
-              showLabel="never"
               icon={IconSet.CLOSE}
               text="Clear"
               onClick={uiStore.clearTagSelection}
@@ -602,7 +601,6 @@ const TagsTree = observer(() => {
             />
           ) : (
             <ToolbarButton
-              showLabel="never"
               icon={IconSet.PLUS}
               text="New Tag"
               onClick={handleRootAddTag}
@@ -650,7 +648,7 @@ const TagsTree = observer(() => {
       )}
 
       {state.mergableNode && (
-        <TagMerge object={state.mergableNode} onClose={() => dispatch(Factory.abortMerge())} />
+        <TagMerge tag={state.mergableNode} onClose={() => dispatch(Factory.abortMerge())} />
       )}
 
       <ContextMenu

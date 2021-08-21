@@ -74,9 +74,7 @@ export const MenuSubItem = ({ text, icon, disabled, children }: IMenuSubItem) =>
       if (first !== null) {
         e.stopPropagation();
         setIsOpen(true);
-        requestAnimationFrame(() => {
-          first.focus();
-        });
+        requestAnimationFrame(() => requestAnimationFrame(() => first.focus()));
       }
     } else {
       handleMenuKeyDown(e);

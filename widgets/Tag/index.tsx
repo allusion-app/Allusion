@@ -7,7 +7,7 @@ import { IconSet } from '../Icons';
 
 import { getColorFromBackground } from 'src/frontend/utils';
 
-interface ITag {
+interface TagProps {
   text: string;
   /** background-color in CSS */
   color?: string;
@@ -18,7 +18,7 @@ interface ITag {
   onContextMenu?: React.MouseEventHandler<HTMLSpanElement>;
 }
 
-const Tag = (props: ITag) => {
+const Tag = (props: TagProps) => {
   const { text, color, className, onClick, onRemove, tooltip } = props;
 
   const style = useMemo(

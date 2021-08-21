@@ -47,15 +47,6 @@ import {
   MenuButton,
   ToolbarSegment,
   ToolbarSegmentButton,
-  ToolbarToggleButton,
 } from '../Toolbar';
 
-export {
-  ContextMenu,
-  ToolbarButton,
-  MenuButton,
-  ToolbarSegment,
-  ToolbarSegmentButton,
-  ToolbarToggleButton,
-  Toolbar,
-};
+export { ContextMenu, ToolbarButton, MenuButton, ToolbarSegment, ToolbarSegmentButton, Toolbar };

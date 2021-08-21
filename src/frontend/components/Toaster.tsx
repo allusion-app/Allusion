@@ -2,10 +2,11 @@ import React from 'react';
 import { action, makeObservable, observable } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
-import { ID, generateId } from 'src/entities/ID';
+import { ID } from 'src/entities/ID';
 
 import { Toast } from 'widgets/notifications';
 import { Button } from 'widgets/Button';
+import { generateWidgetId } from 'widgets/utility';
 
 class ToastManager {
   readonly toastList = observable(new Array<IdentifiableToast>());
@@ -32,7 +33,7 @@ class ToastManager {
 
     const toastWithKey: IdentifiableToast = {
       ...toast,
-      id: id ?? generateId(),
+      id: id ?? generateWidgetId('__toast'),
     };
     this.toastList.push(toastWithKey);
     if (toast.timeout > 0) {
