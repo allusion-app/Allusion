@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import { usePopper } from 'react-popper';
 import { VirtualElement } from '@popperjs/core';
 import { Placement } from '@popperjs/core/lib/enums';
@@ -13,8 +13,6 @@ export interface IRawPopover extends React.HTMLAttributes<HTMLElement> {
   popoverRef: React.RefObject<HTMLElement>;
   /** The element that is used as an anchor point for the popover to decide where to position. */
   target?: React.ReactElement<HTMLElement>;
-  /** The reference to the target native element. */
-  targetRef?: React.RefObject<HTMLElement>;
   /** The actual popover content. */
   children: React.ReactNode;
   /**
@@ -44,13 +42,12 @@ export interface IRawPopover extends React.HTMLAttributes<HTMLElement> {
  * That's why instead of using this component directly, try to build a wrapper,
  * so re-renders are only triggered when the wrapper's properties are changed.
  */
-export const RawPopover = React.memo(function RawPopover(props: IRawPopover) {
+export const RawPopover = memo(function RawPopover(props: IRawPopover) {
   const {
     isOpen,
     anchorElement,
     popoverRef,
     target,
-    targetRef,
     children,
     placement,
     fallbackPlacements,
@@ -64,7 +61,7 @@ export const RawPopover = React.memo(function RawPopover(props: IRawPopover) {
   const options = useRef(createPopperOptions(placement, fallbackPlacements, allowedAutoPlacements));
 
   const { styles, attributes, update } = usePopper(
-    anchorElement ?? targetRef?.current ?? popoverRef.current?.previousElementSibling,
+    anchorElement ?? popoverRef.current?.previousElementSibling,
     popoverRef.current,
     options.current,
   );

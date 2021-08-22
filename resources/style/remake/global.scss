@@ -8,7 +8,7 @@
 }
 // Disable default outline on focused elements (e.g. clicked buttons)
 :focus {
-  outline: none !important;
+  outline: none;
 }
 
 * {
@@ -52,7 +52,7 @@ header h2 {
 
 fieldset {
   margin: 0;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   border: none;
   padding: 0;
 
@@ -148,16 +148,11 @@ details[open] > summary::-webkit-details-marker {
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--scrollbar-thumb-hover-color);
 }
+::-webkit-scrollbar-corner {
+  background-color: var(--scrollbar-track-color);
+}
 
 ///////////////////////////////// Media Queries /////////////////////////////////
-@media (max-width: 960px) {
-  .toolbar-button-text:not(.always) {
-    margin: 0;
-    text-indent: -100vw;
-    white-space: nowrap;
-    overflow: hidden;
-  }
-}
 
 ///////////////////////////////// Misc /////////////////////////////////
 // Error boundary (when app crashes)

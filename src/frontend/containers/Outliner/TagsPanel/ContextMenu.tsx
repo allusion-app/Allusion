@@ -1,12 +1,11 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { HexColorPicker } from 'react-colorful';
 
 import { formatTagCountText } from 'src/frontend/utils';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
-import StoreContext from 'src/frontend/contexts/StoreContext';
-import UiStore from 'src/frontend/stores/UiStore';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet } from 'widgets';
 import { MenuDivider, MenuItem, MenuSubItem, Menu, MenuCheckboxItem } from 'widgets/menus';
 import { Action, Factory } from './state';
@@ -25,7 +24,9 @@ const defaultColorOptions = [
   { title: 'Razzmatazz', color: '#ec125f' },
 ];
 
-const ColorPickerMenu = observer(({ tag, uiStore }: { tag: ClientTag; uiStore: UiStore }) => {
+const ColorPickerMenu = observer(({ tag }: { tag: ClientTag }) => {
+  const { uiStore } = useStore();
+
   const handleChange = (color: string) => {
     if (tag.isSelected) {
       uiStore.colorSelectedTagsAndCollections(tag.id, color);
@@ -33,17 +34,18 @@ const ColorPickerMenu = observer(({ tag, uiStore }: { tag: ClientTag; uiStore: U
       tag.setColor(color);
     }
   };
+  const color = tag.color;
 
   return (
     <>
       {/* Rainbow gradient icon? */}
       <MenuCheckboxItem
-        checked={tag.color === 'inherit'}
+        checked={color === 'inherit'}
         text="Inherit Parent Color"
-        onClick={() => handleChange(tag.color === 'inherit' ? '' : 'inherit')}
+        onClick={() => handleChange(color === 'inherit' ? '' : 'inherit')}
       />
       <MenuSubItem text="Pick Color" icon={IconSet.COLOR}>
-        <HexColorPicker color={tag.color || undefined} onChange={handleChange} />
+        <HexColorPicker color={color || undefined} onChange={handleChange} />
         <button
           key="none"
           aria-label="No Color"
@@ -83,7 +85,7 @@ interface IContextMenuProps {
 
 export const TagItemContextMenu = observer((props: IContextMenuProps) => {
   const { tag, dispatch, pos } = props;
-  const { tagStore, uiStore } = useContext(StoreContext);
+  const { tagStore, uiStore } = useStore();
   const tags = uiStore.getTagContextItems(tag.id);
   let contextText = formatTagCountText(tags.length);
   contextText = contextText && ` (${contextText})`;
@@ -105,11 +107,16 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         text="Rename"
         icon={IconSet.EDIT}
       />
-      {/* TODO: a merge option would be nice */}
+      <MenuCheckboxItem
+        checked={tag.isHidden}
+        text="Hide Tagged Images"
+        onClick={tag.toggleHidden}
+      />
       <MenuItem
         onClick={() => dispatch(Factory.confirmMerge(tag))}
-        text="Merge with..."
+        text="Merge with"
         icon={IconSet.TAG_GROUP}
+        disabled={tag.subTags.length > 0}
       />
       <MenuItem
         onClick={() => dispatch(Factory.confirmDeletion(tag))}
@@ -117,7 +124,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         icon={IconSet.DELETE}
       />
       <MenuDivider />
-      <ColorPickerMenu tag={tag} uiStore={uiStore} />
+      <ColorPickerMenu tag={tag} />
       <MenuDivider />
       <MenuItem
         onClick={() =>

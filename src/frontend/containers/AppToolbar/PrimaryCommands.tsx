@@ -1,19 +1,17 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { observer } from 'mobx-react-lite';
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 
-import UiStore from 'src/frontend/stores/UiStore';
-import FileStore from 'src/frontend/stores/FileStore';
 import { IconSet } from 'widgets';
-import { ToolbarButton, ToolbarToggleButton } from 'widgets/menus';
+import { ToolbarButton } from 'widgets/menus';
 import { FileRemoval } from 'src/frontend/components/RemovalAlert';
-import TagFilesPopover from 'src/frontend/containers/AppToolbar/TagFilesPopover';
+import FileTagEditor from 'src/frontend/containers/AppToolbar/FileTagEditor';
 import Searchbar from './Searchbar';
 import { SortCommand, ViewCommand } from './Menus';
 
 // Tooltip info
 export const enum Tooltip {
-  TagFiles = 'Quick add or delete tags to selection',
+  TagFiles = 'Add or remove tags from selected images',
   Select = 'Selects or deselects all images',
   Delete = 'Delete selected missing images from library',
   Inspector = 'Toggle the inspector panel',
@@ -21,59 +19,55 @@ export const enum Tooltip {
 }
 
 const OutlinerToggle = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   return (
-    <button
-      autoFocus
+    <ToolbarButton
       id="outliner-toggle"
-      className="btn toolbar-button"
-      aria-controls="outliner"
-      aria-pressed={uiStore.isOutlinerOpen}
+      text="Toggle Outliner"
+      icon={uiStore.isOutlinerOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
+      controls="outliner"
+      pressed={uiStore.isOutlinerOpen}
       onClick={uiStore.toggleOutliner}
       tabIndex={0}
-    >
-      <span className="btn-content-icon" aria-hidden="true">
-        {uiStore.isOutlinerOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
-      </span>
-      <span className="btn-content-text hidden">Toggle Outliner</span>
-    </button>
+    />
   );
 });
 
-const PrimaryCommands = observer((props: { uiStore: UiStore; fileStore: FileStore }) => {
-  const { uiStore, fileStore } = props;
+const PrimaryCommands = observer(() => {
+  const { fileStore } = useStore();
 
   return (
     <>
       <OutlinerToggle />
-      <FileSelectionCommand uiStore={uiStore} fileStore={fileStore} />
+      <FileSelectionCommand />
 
       <Searchbar />
 
       {/* TODO: Put back tag button (or just the T hotkey) */}
       {fileStore.showsMissingContent ? (
         // Only show option to remove selected files in toolbar when viewing missing files */}
-        <RemoveFilesPopover uiStore={uiStore} />
+        <RemoveFilesPopover />
       ) : (
         // Only show when not viewing missing files (so it is replaced by the Delete button)
-        <TagFilesPopover />
+        <FileTagEditor />
       )}
 
-      <SortCommand fileStore={fileStore} />
+      <SortCommand />
 
-      <ViewCommand uiStore={uiStore} />
+      <ViewCommand />
     </>
   );
 });
 
 export default PrimaryCommands;
 
-export const SlideModeCommand = observer(({ uiStore }: { uiStore: UiStore }) => {
+export const SlideModeCommand = observer(() => {
+  const { uiStore } = useStore();
   return (
     <>
       <ToolbarButton
-        showLabel="always"
+        isCollapsible={false}
         icon={IconSet.ARROW_LEFT}
         onClick={uiStore.disableSlideMode}
         text="Back"
@@ -82,8 +76,9 @@ export const SlideModeCommand = observer(({ uiStore }: { uiStore: UiStore }) => 
 
       <div className="spacer" />
 
+      <FileTagEditor />
+
       <ToolbarButton
-        showLabel="never"
         icon={IconSet.INFO}
         onClick={uiStore.toggleInspector}
         checked={uiStore.isInspectorOpen}
@@ -94,8 +89,8 @@ export const SlideModeCommand = observer(({ uiStore }: { uiStore: UiStore }) => 
   );
 });
 
-const FileSelectionCommand = observer((props: { uiStore: UiStore; fileStore: FileStore }) => {
-  const { uiStore, fileStore } = props;
+const FileSelectionCommand = observer(() => {
+  const { uiStore, fileStore } = useStore();
   const selectionCount = uiStore.fileSelection.size;
   const fileCount = fileStore.fileList.length;
 
@@ -106,8 +101,8 @@ const FileSelectionCommand = observer((props: { uiStore: UiStore; fileStore: Fil
   };
 
   return (
-    <ToolbarToggleButton
-      showLabel="always"
+    <ToolbarButton
+      isCollapsible={false}
       icon={allFilesSelected ? IconSet.SELECT_ALL_CHECKED : IconSet.SELECT_ALL}
       onClick={handleToggleSelect}
       pressed={allFilesSelected}
@@ -118,7 +113,8 @@ const FileSelectionCommand = observer((props: { uiStore: UiStore; fileStore: Fil
   );
 });
 
-const RemoveFilesPopover = observer(({ uiStore }: { uiStore: UiStore }) => {
+const RemoveFilesPopover = observer(() => {
+  const { uiStore } = useStore();
   return (
     <>
       <ToolbarButton

@@ -17,7 +17,17 @@ import { ClientTag } from './Tag';
 
 const sizeOf = promisify(ImageSize);
 
-export const IMG_EXTENSIONS = ['gif', 'png', 'jpg', 'jpeg', 'webp', 'tif', 'tiff', 'bmp'] as const;
+export const IMG_EXTENSIONS = [
+  'gif',
+  'png',
+  'jpg',
+  'jpeg',
+  'jfif',
+  'webp',
+  'tif',
+  'tiff',
+  'bmp',
+] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 
 /** Retrieved file meta data information */
@@ -52,7 +62,7 @@ export interface IFile extends IMetaData, IResource {
 export class ClientFile implements ISerializable<IFile> {
   private store: FileStore;
   private saveHandler: IReactionDisposer;
-  private autoSave = true;
+  private autoSave: boolean = true;
 
   readonly id: ID;
   readonly locationId: ID;
@@ -104,11 +114,12 @@ export class ClientFile implements ISerializable<IFile> {
       () => this.serialize(),
       // Then update the entity in the database
       (file) => {
+        // Remove reactive properties, since observable props are not accepted in the backend
         if (this.autoSave) {
-          // Remove reactive properties, since observable props are not accepted in the backend
           this.store.save(file);
         }
       },
+      { delay: 500 },
     );
 
     makeObservable(this);
@@ -119,34 +130,43 @@ export class ClientFile implements ISerializable<IFile> {
   }
 
   @action.bound addTag(tag: ClientTag): void {
-    if (!this.tags.has(tag) && this.tags.size === 0) {
-      this.store.decrementNumUntaggedFiles();
+    const hasTag = this.tags.has(tag);
+    if (!hasTag) {
+      this.tags.add(tag);
+      tag.incrementFileCount();
+
+      if (this.tags.size === 0) {
+        this.store.decrementNumUntaggedFiles();
+      }
     }
-    this.tags.add(tag);
   }
 
   @action.bound removeTag(tag: ClientTag): void {
-    if (this.tags.delete(tag) && this.tags.size === 0) {
-      this.store.incrementNumUntaggedFiles();
+    const hadTag = this.tags.delete(tag);
+    if (hadTag) {
+      tag.decrementFileCount();
+
+      if (this.tags.size === 0) {
+        this.store.incrementNumUntaggedFiles();
+      }
     }
   }
 
   @action.bound clearTags(): void {
     if (this.tags.size > 0) {
       this.store.incrementNumUntaggedFiles();
+      this.tags.forEach((tag) => tag.decrementFileCount());
       this.tags.clear();
     }
   }
 
-  @action.bound setBroken(state: boolean): void {
-    this.isBroken = state;
-    this.autoSave = !state;
+  @action.bound setBroken(isBroken: boolean): void {
+    this.isBroken = isBroken;
+    this.autoSave = !isBroken;
   }
 
   @action.bound updateTagsFromBackend(tags: ClientTag[]): void {
-    this.autoSave = false; // doesn't seem to help..
     this.tags.replace(tags);
-    this.autoSave = true;
   }
 
   serialize(): IFile {
@@ -168,6 +188,7 @@ export class ClientFile implements ISerializable<IFile> {
   }
 
   dispose(): void {
+    this.autoSave = false;
     // clean up the observer
     this.saveHandler();
   }

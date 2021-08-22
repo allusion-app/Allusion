@@ -1,6 +1,7 @@
 import { action, observable, makeObservable } from 'mobx';
 
 import { ID, ISerializable } from './ID';
+import { IFile } from './File';
 
 import { camelCaseToSpaced } from 'src/frontend/utils';
 import TagStore from 'src/frontend/stores/TagStore';
@@ -9,6 +10,8 @@ import TagStore from 'src/frontend/stores/TagStore';
 
 // A dictionary of labels for (some of) the keys of the type we search for
 export type SearchKeyDict<T> = { [key in keyof Partial<T>]: string };
+
+export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path', locationId: 'Location' };
 
 // Trick for converting array to type https://stackoverflow.com/a/49529930/2350481
 export const NumberOperators = [
@@ -21,7 +24,7 @@ export const NumberOperators = [
 ] as const;
 export type NumberOperatorType = typeof NumberOperators[number];
 
-export const NumberOperatorSymbols: { [key: string]: string } = {
+export const NumberOperatorSymbols: Record<NumberOperatorType, string> = {
   equals: '=',
   notEqual: '≠',
   smallerThan: '<',
@@ -31,14 +34,27 @@ export const NumberOperatorSymbols: { [key: string]: string } = {
 };
 
 export const StringOperators = [
+  'equalsIgnoreCase',
   'equals',
   'notEqual',
-  'contains',
-  'notContains',
+  'startsWithIgnoreCase',
   'startsWith',
   'notStartsWith',
+  'contains',
+  'notContains',
 ] as const;
 export type StringOperatorType = typeof StringOperators[number];
+
+export const StringOperatorLabels: Record<StringOperatorType, string> = {
+  equalsIgnoreCase: 'Equals',
+  equals: 'Equals', // not available as dropdown option to user to avoid clutter
+  notEqual: 'Not Equal',
+  startsWithIgnoreCase: 'Starts With',
+  startsWith: 'Starts With', // not available as dropdown option to user to avoid clutter
+  notStartsWith: 'Not Starts With',
+  contains: 'Contains',
+  notContains: 'Not Contains',
+};
 
 export const BinaryOperators = ['equals', 'notEqual'] as const;
 export type BinaryOperatorType = typeof BinaryOperators[number];
@@ -161,7 +177,11 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
     let op = this.operator as TagOperatorType;
     let val = this.value.toJSON();
     if (val.length > 0 && op.includes('Recursively')) {
-      val = this.tagStore.get(val[0])?.recursiveSubTags?.map((t) => t.id) || [];
+      val =
+        this.tagStore
+          .get(val[0])
+          ?.getSubTreeList()
+          ?.map((t) => t.id) || [];
     }
     if (op === 'containsNotRecursively') op = 'notContains';
     if (op === 'containsRecursively') op = 'contains';
@@ -202,9 +222,9 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
   }
 
   toString: () => string = () =>
-    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
-      this.operator,
-    )} "${this.label || this.value}"`;
+    `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${
+      StringOperatorLabels[this.operator as StringOperatorType] || camelCaseToSpaced(this.operator)
+    } "${this.label || this.value}"`;
 
   serialize = (): IStringSearchCriteria<T> => {
     return {
@@ -239,7 +259,7 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
   }
   toString: () => string = () =>
     `${camelCaseToSpaced(this.key as string)} ${
-      NumberOperatorSymbols[this.operator] || camelCaseToSpaced(this.operator)
+      NumberOperatorSymbols[this.operator as NumberOperatorType] || camelCaseToSpaced(this.operator)
     } ${this.value}`;
 
   serialize = (): INumberSearchCriteria<T> => {
@@ -277,7 +297,7 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
 
   toString: () => string = () =>
     `${this.dict[this.key] || camelCaseToSpaced(this.key as string)} ${
-      NumberOperatorSymbols[this.operator] || camelCaseToSpaced(this.operator)
+      NumberOperatorSymbols[this.operator as NumberOperatorType] || camelCaseToSpaced(this.operator)
     } ${this.value.toLocaleDateString()}`;
 
   serialize = (): IDateSearchCriteria<T> => {

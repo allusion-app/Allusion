@@ -7,6 +7,7 @@ import { ClientTag, ITag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 
 import RootStore from './RootStore';
+import { ClientFile } from 'src/entities/File';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -15,9 +16,8 @@ class TagStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
 
-  readonly tagList = observable(new Array<ClientTag>());
   /** A lookup map to speedup finding entities */
-  private readonly index = observable(new Map<ID, number>());
+  private readonly tagGraph = observable(new Map<ID, ClientTag>());
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
@@ -35,39 +35,50 @@ class TagStore {
     }
   }
 
+  @action.bound initializeFileCounts(files: ClientFile[]): void {
+    for (const file of files) {
+      for (const fileTag of file.tags) {
+        fileTag.incrementFileCount();
+      }
+    }
+  }
+
   @action get(tag: ID): ClientTag | undefined {
-    const index = this.index.get(tag);
-    return index !== undefined ? this.tagList[index] : undefined;
+    return this.tagGraph.get(tag);
   }
 
   @computed get root() {
-    const root = this.tagList.find((t) => t.id === ROOT_TAG_ID);
+    const root = this.tagGraph.get(ROOT_TAG_ID);
     if (!root) {
       throw new Error('Root tag not found. This should not happen!');
     }
     return root;
   }
 
-  @computed get tagListWithoutRoot() {
-    return this.tagList.filter((t) => t.id !== ROOT_TAG_ID);
+  @computed get tagList(): readonly ClientTag[] {
+    const tagList: ClientTag[] = [];
+    const pushTags = (tags: ClientTag[]) => {
+      for (const t of tags) {
+        tagList.push(t);
+        pushTags(t.subTags);
+      }
+    };
+    if (this.tagGraph.size > 0) {
+      pushTags(this.root.subTags);
+    }
+    return tagList;
   }
 
-  @action findFlatTagListIndex(target: ClientTag) {
-    // Iterative DFS algorithm
-    const stack: ClientTag[] = [];
-    let tag: ClientTag | undefined = this.root;
-    let index = -1;
-    do {
-      if (tag === target) {
-        break;
-      }
-      for (let i = tag.subTags.length - 1; i >= 0; i--) {
-        const subTag = tag.subTags[i];
-        stack.push(subTag);
-      }
-      tag = stack.pop();
-      index += 1;
-    } while (tag !== undefined);
+  @computed get count(): number {
+    return this.tagList.length;
+  }
+
+  @computed get isEmpty(): boolean {
+    return this.count === 0;
+  }
+
+  @action findFlatTagListIndex(target: ClientTag): number | undefined {
+    const index = this.tagList.indexOf(target);
     return index > -1 ? index : undefined;
   }
 
@@ -82,12 +93,7 @@ class TagStore {
   }
 
   @action.bound async create(parent: ClientTag, tagName: string) {
-    let id = generateId();
-    // It is very unlikely to create two identical ids but that is better
-    // than throwing an error.
-    if (this.exists(id)) {
-      id = generateId();
-    }
+    const id = generateId();
     const tag = new ClientTag(this, id, tagName, new Date());
     await this.backend.createTag(tag.serialize());
     this.add(parent, tag);
@@ -126,12 +132,15 @@ class TagStore {
     subTag.setParent(tag);
   }
 
+  @action findByName(name: string): ClientTag | undefined {
+    return this.tagList.find((t) => t.name === name);
+  }
+
   @action.bound async delete(tag: ClientTag) {
     tag.dispose();
     await this.backend.removeTag(tag.id);
     await this.deleteSubTags(tag);
     this.remove(tag);
-    this.rebuildIndex();
     this.rootStore.fileStore.refetch();
   }
 
@@ -142,17 +151,23 @@ class TagStore {
       await this.deleteSubTags(tag);
       this.remove(tag);
     }
-    this.rebuildIndex();
     this.rootStore.fileStore.refetch();
   }
 
   @action.bound merge(tagToBeRemoved: ClientTag, tagToMergeWith: ClientTag) {
-    if (tagToBeRemoved.subTags.length > 0) return; // not dealing with tags that have subtags
+    // not dealing with tags that have subtags
+    if (tagToBeRemoved.subTags.length > 0) {
+      throw new Error('Merging a tag with sub-tags is currently not supported.');
+    }
+
     this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id).then(() => {
       this.remove(tagToBeRemoved);
-      this.rebuildIndex();
       this.rootStore.fileStore.refetch();
     });
+  }
+
+  @action.bound refetchFiles() {
+    this.rootStore.fileStore.refetch();
   }
 
   save(tag: ITag) {
@@ -161,36 +176,32 @@ class TagStore {
 
   @action private createTagGraph(backendTags: ITag[]) {
     // Create tags
-    for (const { id, name, dateAdded, color } of backendTags) {
+    for (const { id, name, dateAdded, color, isHidden } of backendTags) {
       // Create entity and set properties
       // We have to do this because JavaScript does not allow multiple constructor.
-      const tag = new ClientTag(this, id, name, dateAdded, color);
+      const tag = new ClientTag(this, id, name, dateAdded, color, isHidden);
       // Add to index
-      this.index.set(tag.id, this.tagList.length);
-      this.tagList.push(tag);
+      this.tagGraph.set(tag.id, tag);
     }
 
     // Set parent and add sub tags
-    for (let i = 0; i < backendTags.length; i++) {
-      const { subTags } = backendTags[i];
-      const tag = this.tagList[i];
+    for (const { id, subTags } of backendTags) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const tag = this.tagGraph.get(id)!;
 
-      tag.update((tag) => {
-        for (const id of subTags) {
-          const subTag = this.get(id);
-          if (subTag !== undefined) {
-            subTag.setParent(tag);
-            tag.subTags.push(subTag);
-          }
+      for (const id of subTags) {
+        const subTag = this.get(id);
+        if (subTag !== undefined) {
+          subTag.setParent(tag);
+          tag.subTags.push(subTag);
         }
-      });
+      }
     }
     this.root.setParent(this.root);
   }
 
   @action private add(parent: ClientTag, tag: ClientTag) {
-    this.index.set(tag.id, this.tagList.length);
-    this.tagList.push(tag);
+    this.tagGraph.set(tag.id, tag);
     tag.setParent(parent);
     parent.subTags.push(tag);
   }
@@ -207,7 +218,6 @@ class TagStore {
         subTag.dispose();
         this.deleteSubTags(subTag);
         this.rootStore.uiStore.deselectTag(subTag);
-        this.tagList.remove(subTag);
       }
     });
   }
@@ -216,20 +226,6 @@ class TagStore {
     // Remove tag id reference from other observable objects
     this.rootStore.uiStore.deselectTag(tag);
     tag.parent.subTags.remove(tag);
-    this.tagList.remove(tag);
-  }
-
-  @action private rebuildIndex(): void {
-    this.index.clear();
-    for (let i = 0; i < this.tagList.length; i++) {
-      const tag = this.tagList[i];
-      this.index.set(tag.id, i);
-    }
-  }
-
-  /** Checks whether a tag exists with this id. */
-  private exists(id: ID): boolean {
-    return this.index.has(id);
   }
 }
 

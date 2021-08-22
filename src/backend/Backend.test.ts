@@ -14,6 +14,7 @@ const mockTag: ITag = {
   dateAdded: new Date(),
   color: '',
   subTags: [],
+  isHidden: false,
 };
 
 const mockFile: IFile = {

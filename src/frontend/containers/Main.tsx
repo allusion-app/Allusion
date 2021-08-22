@@ -1,16 +1,16 @@
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { action, observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Split } from 'widgets/Split';
-import StoreContext from '../contexts/StoreContext';
-import TagDnDContext, { DnDAttribute } from '../contexts/TagDnDContext';
+import { useStore } from '../contexts/StoreContext';
+import TagDnDProvider, { DnDAttribute } from '../contexts/TagDnDContext';
 import AppToolbar from './AppToolbar';
 import ContentView from './ContentView';
 import Outliner from './Outliner';
 
 const Main = () => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   const data = useRef(observable({ source: undefined, target: undefined }));
 
   useEffect(() => {
@@ -60,7 +60,7 @@ const Main = () => {
   );
 
   return (
-    <TagDnDContext.Provider value={data.current}>
+    <TagDnDProvider value={data.current}>
       <Split
         id="window-splitter"
         primary={<Outliner />}
@@ -76,7 +76,7 @@ const Main = () => {
         isExpanded={uiStore.isOutlinerOpen}
         onMove={uiStore.moveOutlinerSplitter}
       />
-    </TagDnDContext.Provider>
+    </TagDnDProvider>
   );
 };
 

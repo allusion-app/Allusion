@@ -4,7 +4,7 @@ import { Radio, RadioGroup } from './Radio';
 import { Checkbox, Toggle } from './Checkbox';
 import { Tag } from './Tag';
 import { IconSet, SVG } from './Icons';
-import { Listbox, Option } from './Combobox';
+import { Listbox, Option, Grid, Row, GridCell } from './Combobox';
 import { KeyCombo, keyComboToString } from './KeyCombo';
 import { Split } from './Split';
 
@@ -18,6 +18,9 @@ export {
   keyComboToString,
   Listbox,
   Option,
+  Grid,
+  Row,
+  GridCell,
   Radio,
   RadioGroup,
   Split,

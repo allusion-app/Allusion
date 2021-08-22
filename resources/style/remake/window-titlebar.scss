@@ -13,14 +13,32 @@
     align-items: center;
     justify-content: center;
     flex-grow: 1;
+    transition: margin 0.2s ease-in-out;
 
     // Center the text
-    transition: margin 0.2s ease-in-out;
-    margin-left: 108px; // same as the 3 system buttons on the right
+    // Style for Windows+Linux: overwritten in block below for data-os='darwin':
 
-    // But not for a narrow window, it would overlap with buttons
+    // same width as the 3 system buttons on the right, so text is centered
+    margin-left: 108px; 
+
+    // But not for a narrow window, it would overlap with buttons, so position it off-center
     @media only screen and (max-width: 320px) {
       margin-left: 0;
+    }
+  }
+}
+
+// Conditional based on OS:
+[data-os='darwin'] {
+  #window-titlebar {
+    span {
+      // Opposite on OSX: buttons are on the left, but don't take up space in CSS: it's overlaid by the OS
+      margin-left: 0px;
+
+      // So, only make it off-center when the window is narrow
+      @media only screen and (max-width: 320px) {
+        margin-left: 108px;
+      }
     }
   }
 }
@@ -33,7 +51,6 @@
     -webkit-app-region: none;
     height: 100%;
     width: 36px;
-    padding-top: 3px; // height: 24px. Icon: 16px. Offset for centering icon: (24/2 - 8/2)/2=3
 
     &:hover {
       background-color: #1f2224;

@@ -56,7 +56,9 @@ class RootStore {
     // files are fetched based on the file selection.
     if (!isPreviewWindow) {
       // Load the files already in the database so user instantly sees their images
-      this.fileStore.fetchAllFiles();
+      this.fileStore
+        .fetchAllFiles()
+        .then(() => this.tagStore.initializeFileCounts(this.fileStore.fileList));
       // Then, look for any new or removed images, and refetch if necessary
       this.locationStore.watchLocations().then((foundNewFiles) => {
         if (foundNewFiles) this.fileStore.refetch();

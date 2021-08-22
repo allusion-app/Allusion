@@ -54,11 +54,11 @@
   }
 
   &[aria-selected='true'] > .label {
-    color: var(--accent-color-blue);
+    color: var(--accent-color);
     background-color: transparent;
 
     [class*='custom-icon'] {
-      color: var(--accent-color-blue);
+      color: var(--accent-color);
     }
   }
 
@@ -71,7 +71,7 @@
 
     > .label {
       background-color: var(--hover-color);
-      border-color: var(--accent-color-blue);
+      border-color: var(--accent-color);
     }
   }
 }

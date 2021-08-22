@@ -1,7 +1,7 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import StoreContext from './contexts/StoreContext';
+import { useStore } from './contexts/StoreContext';
 
 import ErrorBoundary from './containers/ErrorBoundary';
 import HelpCenter from './containers/HelpCenter';
@@ -21,7 +21,7 @@ const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
 
 const App = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   // Listen to responses of Web Workers
   useWorkerListener();
@@ -59,7 +59,7 @@ const App = observer(() => {
         id="layout-container"
         className={uiStore.theme}
       >
-        {PLATFORM !== 'darwin' && !uiStore.isFullScreen && <WindowTitlebar />}
+        {!uiStore.isFullScreen && <WindowTitlebar />}
 
         <ErrorBoundary>
           <Main />

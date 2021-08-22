@@ -1,117 +1,144 @@
-import React from 'react';
+import './popup.scss';
+import React, { ForwardedRef, forwardRef, useRef, useState } from 'react';
 
-export interface IListbox {
+export interface ListboxProps {
   id?: string;
   /** When multiselectable is set to true, the click event handlers on the option elements must togggle the select state. */
   multiselectable?: boolean;
   children: ListboxChildren;
 }
 
-export type ListboxChild = React.ReactElement<IOption>;
+export type ListboxChild = React.ReactElement<OptionProps>;
 export type ListboxChildren = ListboxChild | ListboxChild[] | React.ReactFragment;
 
-export const Listbox = (props: IListbox) => {
+export const Listbox = forwardRef(function ListBox(
+  props: ListboxProps,
+  ref: ForwardedRef<HTMLUListElement>,
+) {
   const { id, multiselectable, children } = props;
 
   return (
     <ul
+      ref={ref}
       id={id}
-      tabIndex={-1}
       role="listbox"
+      className="combobox-popup"
       aria-multiselectable={multiselectable}
-      onFocus={handleFocus}
-      onKeyDown={handleKeyDown}
     >
       {children}
     </ul>
   );
-};
+});
 
-export interface IOption {
+export function useListboxFocus(
+  listRef: React.RefObject<HTMLUListElement>,
+): [focus: number, handleInput: (event: React.KeyboardEvent) => void] {
+  const focus = useRef(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleFocus = useRef((event: React.KeyboardEvent) => {
+    if (listRef.current === null || listRef.current.childElementCount === 0) {
+      return;
+    }
+
+    const scrollOpts: ScrollIntoViewOptions = { block: 'nearest' };
+    const options = listRef.current.querySelectorAll(
+      'li[role="option"]',
+    ) as NodeListOf<HTMLLIElement>;
+    const numOptions = options.length;
+    focus.current = Math.min(numOptions - 1, focus.current);
+    const activeElement = options[focus.current];
+    switch (event.key) {
+      case 'Enter':
+        event.stopPropagation();
+        activeElement.click();
+        break;
+
+      case 'ArrowUp': {
+        event.stopPropagation();
+        event.preventDefault();
+        focus.current = (focus.current - 1 + numOptions) % numOptions;
+        if (focus.current === numOptions - 1) {
+          listRef.current.scrollTop = listRef.current.scrollHeight;
+        } else {
+          const prevElement = options[focus.current];
+          prevElement.scrollIntoView(scrollOpts);
+        }
+        let previous = undefined;
+        for (let i = 0; i < options.length; i++) {
+          const element = options[i];
+          if (element.dataset['focused'] === 'true') {
+            element.dataset['focused'] = 'false';
+            previous = i;
+            break;
+          }
+        }
+        if (previous === undefined) {
+          focus.current = options.length - 1;
+        }
+        options[focus.current].dataset['focused'] = 'true';
+        setActiveIndex(focus.current);
+        break;
+      }
+
+      case 'ArrowDown': {
+        event.stopPropagation();
+        event.preventDefault();
+        focus.current = (focus.current + 1) % numOptions;
+        if (focus.current === 0) {
+          listRef.current.scrollTop = 0;
+        } else {
+          const nextElement = options[focus.current];
+          nextElement.scrollIntoView(scrollOpts);
+        }
+        let previous = undefined;
+        for (let i = 0; i < options.length; i++) {
+          const element = options[i];
+          if (element.dataset['focused'] === 'true') {
+            element.dataset['focused'] = 'false';
+            previous = i;
+            break;
+          }
+        }
+        if (previous === undefined) {
+          focus.current = 0;
+        }
+        options[focus.current].dataset['focused'] = 'true';
+        setActiveIndex(focus.current);
+        break;
+      }
+
+      // Note: no 'space' to select, since space is valid input for the input-field
+
+      default:
+        break;
+    }
+  });
+
+  return [activeIndex, handleFocus.current];
+}
+
+export interface OptionProps {
+  id?: string;
   value: string;
   selected?: boolean;
   /** The icon on the right side of the label because on the left is the checkmark already. */
   icon?: JSX.Element;
   onClick?: (event: React.MouseEvent<HTMLElement>) => void;
-  disabled?: boolean;
-  focused?: boolean;
 }
 
-export const Option = ({
-  value,
-  selected,
-  onClick,
-  icon,
-  disabled,
-  focused,
-  ...rest
-}: IOption & React.HTMLAttributes<HTMLLIElement>) => (
+export const Option = ({ id, value, selected, onClick, icon }: OptionProps) => (
   <li
+    id={id}
     role="option"
+    className="combobox-popup-option"
     aria-selected={selected}
-    aria-disabled={disabled}
-    onClick={disabled ? undefined : onClick}
-    tabIndex={-1}
-    className={focused ? 'focused' : undefined}
-    {...rest}
+    onClick={onClick}
+    tabIndex={-1} // Important for focus handling!
   >
-    <span className="item-icon" aria-hidden />
-    {value}
-    <span className="item-accelerator" aria-hidden>
+    <span className="combobox-popup-option-icon" aria-hidden>
       {icon}
     </span>
+    {value}
   </li>
 );
-
-function handleFocus(event: React.FocusEvent) {
-  const target = (event.target as HTMLElement).closest('[role="option"]') as HTMLElement | null;
-  if (target === null) {
-    return;
-  }
-
-  const previous: HTMLElement | null = event.currentTarget.querySelector(
-    '[role="option"][tabindex="0"]',
-  );
-  if (previous !== null) {
-    previous.tabIndex = -1;
-  }
-  target.tabIndex = 0;
-  target.focus();
-}
-
-function handleKeyDown(event: React.KeyboardEvent) {
-  const target = event.target as HTMLElement;
-  switch (event.key) {
-    case 'Enter':
-      event.stopPropagation();
-      target.click();
-      break;
-
-    case 'ArrowUp':
-      if (target.previousElementSibling !== null) {
-        event.stopPropagation();
-        (target.previousElementSibling as HTMLElement).focus();
-      }
-      break;
-
-    case 'ArrowDown':
-      if (target.nextElementSibling !== null) {
-        event.stopPropagation();
-        (target.nextElementSibling as HTMLElement).focus();
-      }
-      break;
-
-    case ' ':
-      // Prevents scroll behaviour
-      event.preventDefault();
-      // If the listbox allows multi selection, the click event will toggle the selection.
-      if (event.currentTarget.getAttribute('aria-multiselectable') === 'true') {
-        event.stopPropagation();
-        target.click();
-      }
-      break;
-
-    default:
-      break;
-  }
-}

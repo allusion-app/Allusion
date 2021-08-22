@@ -4,8 +4,9 @@ import { getDefaultThumbnailDirectory } from 'src/config';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientBaseCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
+import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
+import { IS_PREVIEW_WINDOW } from 'src/renderer';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, debounce } from '../utils';
 import RootStore from './RootStore';
@@ -99,6 +100,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'thumbnailShape',
   'hotkeyMap',
   'isThumbnailTagOverlayEnabled',
+  'isThumbnailFilenameOverlayEnabled',
   'outlinerWidth',
   'inspectorWidth',
 ];
@@ -131,6 +133,7 @@ class UiStore {
   @observable inspectorWidth: number = UiStore.MIN_INSPECTOR_WIDTH;
   /** Whether to show the tags on images in the content view */
   @observable isThumbnailTagOverlayEnabled: boolean = true;
+  @observable isThumbnailFilenameOverlayEnabled: boolean = false;
   /** Index of the first item in the viewport. Also acts as the current item shown in slide mode */
   // TODO: Might be better to store the ID to the file. I believe we were storing the index for performance, but we have instant conversion between index/ID now
   @observable firstItem: number = 0;
@@ -138,7 +141,10 @@ class UiStore {
   @observable thumbnailShape: ThumbnailShape = 'square';
 
   @observable isToolbarTagPopoverOpen: boolean = false;
+  /** Dialog for removing unlinked files from Allusion's database */
   @observable isToolbarFileRemoverOpen: boolean = false;
+  /** Dialog for moving files to the system's trash bin, and removing from Allusion's database */
+  @observable isMoveFilesToTrashOpen: boolean = false;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
@@ -158,8 +164,10 @@ class UiStore {
     makeObservable(this);
 
     // Store preferences immediately when anything is changed
-    const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
-    PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
+    if (!IS_PREVIEW_WINDOW) {
+      const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
+      PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
+    }
   }
 
   @action.bound init() {
@@ -213,6 +221,10 @@ class UiStore {
     }
   }
 
+  @action setMethod(method: ViewMethod) {
+    this.method = method;
+  }
+
   @action.bound setMethodList() {
     this.method = ViewMethod.List;
   }
@@ -258,6 +270,10 @@ class UiStore {
     this.isThumbnailTagOverlayEnabled = !this.isThumbnailTagOverlayEnabled;
   }
 
+  @action.bound toggleThumbnailFilenameOverlay() {
+    this.isThumbnailFilenameOverlayEnabled = !this.isThumbnailFilenameOverlayEnabled;
+  }
+
   @action.bound openOutliner() {
     this.setIsOutlinerOpen(true);
   }
@@ -283,6 +299,7 @@ class UiStore {
       ids: previewFiles.map((file) => file.id),
       activeImgId: this.getFirstSelectedFileId(),
       thumbnailDirectory: this.thumbnailDirectory,
+      viewMethod: this.method,
     });
 
     this.isPreviewOpen = true;
@@ -334,6 +351,14 @@ class UiStore {
 
   @action.bound closeToolbarFileRemover() {
     this.isToolbarFileRemoverOpen = false;
+  }
+
+  @action.bound openMoveFilesToTrash() {
+    this.isMoveFilesToTrashOpen = true;
+  }
+
+  @action.bound closeMoveFilesToTrash() {
+    this.isMoveFilesToTrashOpen = false;
   }
 
   @action.bound toggleToolbarTagPopover() {
@@ -445,31 +470,20 @@ class UiStore {
     }
   }
 
-  /** Selects a range of tags, where indices correspond to the flattened tag list, see {@link TagStore.findFlatTagListIndex} */
+  /** Selects a range of tags, where indices correspond to the flattened tag list. */
   @action.bound selectTagRange(start: number, end: number, additive?: boolean) {
+    const tagTreeList = this.rootStore.tagStore.tagList;
     if (!additive) {
-      this.tagSelection.clear();
+      this.tagSelection.replace(tagTreeList.slice(start, end + 1));
+      return;
     }
-    // Iterative DFS algorithm
-    const stack: ClientTag[] = [];
-    let tag: ClientTag | undefined = this.rootStore.tagStore.root;
-    let index = -1;
-    do {
-      if (index >= start) {
-        this.tagSelection.add(tag);
-      }
-      for (let i = tag.subTags.length - 1; i >= 0; i--) {
-        const subTag = tag.subTags[i];
-        stack.push(subTag);
-      }
-      tag = stack.pop();
-      index += 1;
-    } while (tag !== undefined && index <= end);
+    for (let i = start; i <= end; i++) {
+      this.tagSelection.add(tagTreeList[i]);
+    }
   }
 
   @action.bound selectAllTags() {
     this.tagSelection.replace(this.rootStore.tagStore.tagList);
-    this.tagSelection.delete(this.rootStore.tagStore.root);
   }
 
   @action.bound clearTagSelection() {
@@ -519,9 +533,7 @@ class UiStore {
 
     // If no id is given or when the selected tag or collection is selected, the context is the whole selection
     if (isContextTheSelection) {
-      const selectedTags = tagStore.tagList.filter((c) => c.isSelected);
-      // root tag may not be present in the context
-      contextTags.push(...selectedTags.filter((t) => t.id !== ROOT_TAG_ID));
+      contextTags.push(...this.tagSelection);
     }
 
     return contextTags;
@@ -713,15 +725,18 @@ class UiStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        this.setTheme(prefs.theme);
+        if (prefs.theme) this.setTheme(prefs.theme);
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.isInspectorOpen = Boolean(prefs.isInspectorOpen);
-        this.setThumbnailDirectory(prefs.thumbnailDirectory);
-        this.setImportDirectory(prefs.importDirectory);
-        this.setMethod(prefs.method);
-        this.setThumbnailSize(prefs.thumbnailSize);
-        this.setThumbnailShape(prefs.thumbnailShape);
+        if (prefs.thumbnailDirectory) this.setThumbnailDirectory(prefs.thumbnailDirectory);
+        if (prefs.importDirectory) this.setImportDirectory(prefs.importDirectory);
+        if (prefs.method) this.setMethod(prefs.method);
+        if (prefs.thumbnailSize) this.setThumbnailSize(prefs.thumbnailSize);
+        if (prefs.thumbnailShape) this.setThumbnailShape(prefs.thumbnailShape);
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
+        this.isThumbnailFilenameOverlayEnabled = Boolean(
+          prefs.isThumbnailFilenameOverlayEnabled ?? false,
+        );
         this.outlinerWidth = Math.max(Number(prefs.outlinerWidth), UiStore.MIN_OUTLINER_WIDTH);
         this.inspectorWidth = Math.max(Number(prefs.inspectorWidth), UiStore.MIN_INSPECTOR_WIDTH);
         Object.entries<string>(prefs.hotkeyMap).forEach(
@@ -783,10 +798,6 @@ class UiStore {
 
   @action private setIsOutlinerOpen(value: boolean = true) {
     this.isOutlinerOpen = value;
-  }
-
-  @action private setMethod(method: ViewMethod = ViewMethod.Grid) {
-    this.method = method;
   }
 
   @action private setThumbnailShape(shape: ThumbnailShape) {

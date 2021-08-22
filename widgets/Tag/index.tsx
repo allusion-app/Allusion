@@ -7,30 +7,33 @@ import { IconSet } from '../Icons';
 
 import { getColorFromBackground } from 'src/frontend/utils';
 
-interface ITag extends React.HTMLAttributes<HTMLSpanElement> {
+interface TagProps {
   text: string;
   /** background-color in CSS */
   color?: string;
+  className?: string;
+  onClick?: () => void;
   onRemove?: () => void;
+  tooltip?: string;
+  onContextMenu?: React.MouseEventHandler<HTMLSpanElement>;
 }
 
-const Tag = (props: ITag) => {
-  const { text, color, onRemove, ...restProperties } = props;
+const Tag = (props: TagProps) => {
+  const { text, color, className, onClick, onRemove, tooltip } = props;
 
   const style = useMemo(
     () => (color ? { backgroundColor: color, color: getColorFromBackground(color) } : undefined),
     [color],
   );
 
-  // Mutating those props is fine because the rest operator creates a new object.
-  const properties = {
-    ...restProperties,
-    style,
-    className: [restProperties.className, 'tag'].join(' '),
-  };
-
   return (
-    <span {...properties}>
+    <span
+      className={`tag ${className}`}
+      data-tooltip={tooltip}
+      onClick={onClick}
+      style={style}
+      onContextMenu={props.onContextMenu}
+    >
       {text}
       {onRemove ? (
         <IconButton

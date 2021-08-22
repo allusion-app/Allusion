@@ -1,91 +1,132 @@
+import { Placement, VirtualElement } from '@popperjs/core';
 import React, { useEffect, useRef, useState } from 'react';
-import { Placement } from '@popperjs/core/lib/enums';
+import { usePopper } from 'react-popper';
 
-import { RawPopover } from './RawPopover';
+export const TooltipLayer = () => {
+  const popoverElement = useRef<HTMLDivElement>(null);
+  const virtualElement = useRef<VirtualElement | null>(null);
+  const popperOptions = useRef({
+    placement: 'auto' as Placement,
+    modifiers: [
+      {
+        name: 'preventOverflow',
+        options: {
+          // Prevents dialogs from moving elements to the side
+          boundary: document.body,
+          altAxis: true,
+          padding: 8,
+        },
+      },
+      {
+        name: 'offset',
+        options: { offset: [0, 4] },
+      },
+    ],
+  }).current;
+  const { styles, attributes, forceUpdate } = usePopper(
+    virtualElement.current,
+    popoverElement.current,
+    popperOptions,
+  );
 
-export interface ITooltip {
-  /** The content of the tooltip which is displayed on hover. */
-  content: React.ReactText;
-  /** The element that triggers the tooltip when hovered over. */
-  trigger: React.ReactElement<HTMLElement>;
-  /** The reference to the native element trigger. This is necessary for the portal! */
-  portalTriggerRef: React.RefObject<HTMLElement>;
-  /** @default 100 */
-  hoverDelay?: number;
-  /** @default 'auto' */
-  placement?: Placement;
-  fallbackPlacements?: Placement[];
-  allowedAutoPlacements?: Placement[];
-}
-
-export const Tooltip = (props: ITooltip) => {
-  const {
-    content,
-    trigger,
-    // 500ms feels about right: https://ux.stackexchange.com/questions/358/how-long-should-the-delay-be-before-a-tooltip-pops-up
-    hoverDelay = 500,
-    placement = 'auto',
-    allowedAutoPlacements,
-    fallbackPlacements,
-    portalTriggerRef,
-  } = props;
   const [isOpen, setIsOpen] = useState(false);
+  const content = useRef<string>('');
   const timerID = useRef<number>();
-  const popover = useRef<HTMLDivElement>(null);
 
-  // Add event listeners to target element to show tooltip on hover
   useEffect(() => {
-    if (portalTriggerRef.current === null) {
-      return;
-    }
-    // SAFETY: It the trigger element does not exist or it is not an element,
-    // this is a developer error.
-    const target = portalTriggerRef.current;
-
-    const handleMouseOver = () => {
-      if (timerID.current === undefined) {
-        timerID.current = (setTimeout(() => setIsOpen(true), hoverDelay) as unknown) as number;
-      }
-    };
-
-    const handleMouseLeave = (e: MouseEvent) => {
-      if ((e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+    const handleShow = (e: MouseEvent | FocusEvent): HTMLElement | undefined => {
+      const target = e.target;
+      if (!(target instanceof HTMLElement) || !target.dataset['tooltip']) {
         return;
       }
-      if (timerID.current !== undefined) {
-        clearTimeout(timerID.current);
-        timerID.current = undefined;
+      const tooltip = target.dataset['tooltip'];
+      content.current = tooltip;
+      if (virtualElement.current?.contextElement !== target) {
+        window.clearTimeout(timerID.current);
+        timerID.current = window.setTimeout(() => {
+          timerID.current = undefined;
+          forceUpdate?.();
+          setIsOpen(true);
+        }, 500);
       }
+      return target;
+    };
+
+    const handleMouseover = (e: MouseEvent) => {
+      const target = handleShow(e);
+      if (target !== undefined) {
+        const x = e.clientX;
+        const y = e.clientY;
+        virtualElement.current = {
+          getBoundingClientRect: () => ({
+            width: 4,
+            height: 4,
+            top: y,
+            right: x,
+            bottom: y,
+            left: x,
+          }),
+          contextElement: target,
+        };
+      }
+    };
+
+    const handleFocus = (e: FocusEvent) => {
+      const target = handleShow(e);
+      if (target !== undefined) {
+        virtualElement.current = {
+          getBoundingClientRect: () => target.getBoundingClientRect(),
+          contextElement: target,
+        };
+      }
+    };
+
+    const handleHide = (e: MouseEvent | FocusEvent) => {
+      if (
+        virtualElement.current === null ||
+        virtualElement.current.contextElement?.contains(e.relatedTarget as Node)
+      ) {
+        return;
+      }
+      forceUpdate?.();
       setIsOpen(false);
+      virtualElement.current = null;
+      window.clearTimeout(timerID.current);
+      timerID.current = undefined;
     };
 
-    target.addEventListener('mouseover', handleMouseOver, true);
-    target.addEventListener('mouseout', handleMouseLeave, true);
-
-    // Clear timer on removing component
-    return () => {
-      if (timerID.current !== undefined) {
-        clearTimeout(timerID.current);
-        timerID.current = undefined;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+        virtualElement.current = null;
       }
-      target.removeEventListener('mouseover', handleMouseOver, true);
-      target.removeEventListener('mouseout', handleMouseLeave, true);
     };
-  }, [content, hoverDelay, portalTriggerRef, trigger]);
+
+    document.addEventListener('mouseover', handleMouseover, true);
+    document.addEventListener('mouseout', handleHide, true);
+    document.addEventListener('focus', handleFocus, true);
+    document.addEventListener('blur', handleHide, true);
+    document.addEventListener('keydown', handleEscape, true);
+
+    return () => {
+      document.removeEventListener('mouseover', handleShow, true);
+      document.removeEventListener('mouseout', handleHide, true);
+      document.removeEventListener('focus', handleShow, true);
+      document.removeEventListener('blur', handleHide, true);
+      document.removeEventListener('keydown', handleEscape, true);
+    };
+  }, [forceUpdate]);
 
   return (
-    <RawPopover
-      popoverRef={popover}
-      isOpen={isOpen}
-      target={trigger}
-      targetRef={portalTriggerRef}
+    <div
+      ref={popoverElement}
+      style={styles.popper}
+      {...attributes.popper}
       role="tooltip"
-      placement={placement}
-      fallbackPlacements={fallbackPlacements}
-      allowedAutoPlacements={allowedAutoPlacements}
-      portalId="tooltip-portal"
+      data-popover
+      data-open={isOpen}
     >
-      <div className="tooltip">{content}</div>
-    </RawPopover>
+      {content.current}
+    </div>
   );
 };

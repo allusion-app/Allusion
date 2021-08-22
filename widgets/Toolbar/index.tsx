@@ -1,18 +1,17 @@
 import './toolbar.scss';
 import React, { useEffect, useRef } from 'react';
 
-import { Tooltip } from '../popovers';
-
-interface IToolbar {
+interface ToolbarProps {
   children: React.ReactNode;
+  controls: string;
   id?: string;
   label?: string;
   labelledby?: string;
-  controls: string;
+  isCompact?: boolean;
 }
 
-const Toolbar: React.FC<IToolbar> = (props: IToolbar) => {
-  const { children, id, label, labelledby, controls } = props;
+const Toolbar: React.FC<ToolbarProps> = (props: ToolbarProps) => {
+  const { children, id, label, labelledby, isCompact = false, controls } = props;
   const toolbar = useRef<HTMLDivElement>(null);
 
   // Either the first item or last focused toolbar item needs to be part of the
@@ -39,6 +38,7 @@ const Toolbar: React.FC<IToolbar> = (props: IToolbar) => {
       ref={toolbar}
       role="toolbar"
       id={id}
+      data-compact={isCompact}
       aria-label={label}
       aria-labelledby={labelledby}
       aria-controls={controls}
@@ -50,107 +50,56 @@ const Toolbar: React.FC<IToolbar> = (props: IToolbar) => {
 
 Toolbar.displayName = 'Toolbar';
 
-interface IBaseButton {
+interface ToolbarButtonProps {
   id?: string;
   text: React.ReactText;
   icon: JSX.Element;
   onClick?: (event: React.MouseEvent) => void;
-  showLabel?: 'always' | 'never';
+  isCollapsible?: boolean;
   tooltip?: string;
   disabled?: boolean;
-}
-
-interface IToolbarButton extends IBaseButton {
-  role?: string;
-  disabled?: boolean;
+  tabIndex?: 0 | -1;
   pressed?: boolean;
   checked?: boolean;
-  expanded?: boolean;
   controls?: string;
-  haspopup?: boolean | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog';
 }
 
-const ToolbarButton = (props: IToolbarButton) => {
+const ToolbarButton = (props: ToolbarButtonProps) => {
   const {
     id,
     onClick,
     icon,
     text,
-    role,
     pressed,
     checked,
     disabled,
     tooltip,
-    showLabel,
-    expanded,
+    isCollapsible = true,
     controls,
-    haspopup,
+    tabIndex,
   } = props;
-  const portalTriggerRef = useRef<HTMLButtonElement>(null);
-
-  const toolbarButton = (
+  return (
     <button
+      data-collapsible={isCollapsible}
       id={id}
-      ref={portalTriggerRef}
-      className="btn toolbar-button"
+      className="toolbar-button"
       onClick={disabled ? undefined : onClick}
-      role={role}
       aria-pressed={pressed}
       aria-checked={checked}
       aria-disabled={disabled}
       aria-controls={controls}
-      aria-haspopup={haspopup}
-      aria-expanded={expanded}
-      tabIndex={-1}
+      tabIndex={tabIndex} // FIXME: Implement toolbar keyboard navigation.
+      data-tooltip={tooltip ?? text}
     >
-      <span className="toolbar-button-content">
-        <span className="toolbar-button-icon" aria-hidden>
-          {icon}
-        </span>
-        <span className={`toolbar-button-text ${showLabel ?? ''}`}>{text}</span>
+      <span className="btn-content-icon" aria-hidden>
+        {icon}
       </span>
+      <span className="btn-content-text">{text}</span>
     </button>
-  );
-
-  if (tooltip) {
-    return (
-      <Tooltip content={tooltip} trigger={toolbarButton} portalTriggerRef={portalTriggerRef} />
-    );
-  } else {
-    return toolbarButton;
-  }
-};
-
-interface IToolbarToggleButton extends IBaseButton {
-  controls?: string;
-  pressed: boolean;
-}
-
-const ToolbarToggleButton = (props: IToolbarToggleButton) => {
-  const { id, pressed, onClick, icon, text, tooltip, showLabel, controls, disabled } = props;
-  return (
-    <ToolbarButton
-      id={id}
-      pressed={pressed}
-      onClick={onClick}
-      icon={icon}
-      text={text}
-      showLabel={showLabel}
-      tooltip={tooltip}
-      controls={controls}
-      disabled={disabled}
-    />
   );
 };
 
 import { MenuButton } from './MenuButton';
 import { ToolbarSegment, ToolbarSegmentButton } from './ToolbarSegment';
 
-export {
-  Toolbar,
-  ToolbarButton,
-  MenuButton,
-  ToolbarSegment,
-  ToolbarSegmentButton,
-  ToolbarToggleButton,
-};
+export { Toolbar, ToolbarButton, MenuButton, ToolbarSegment, ToolbarSegmentButton };

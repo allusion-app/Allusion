@@ -1,10 +1,10 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { thumbnailMaxSize } from 'src/config';
 import { ClientFile } from 'src/entities/File';
-import StoreContext from 'src/frontend/contexts/StoreContext';
-import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
+import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import useMountState from 'src/frontend/hooks/useMountState';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { createSubmitCommand, ILayoutProps } from '../LayoutSwitcher';
@@ -39,18 +39,19 @@ const VirtualizedRenderer = observer(
     lastSelectionIndex,
     layoutUpdateDate,
   }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu' | 'lastSelectionIndex'>) => {
-    const { uiStore, fileStore } = useContext(StoreContext);
+    const { uiStore, fileStore } = useStore();
     const [, isMountedRef] = useMountState();
     const wrapperRef = useRef<HTMLDivElement>(null);
     const scrollAnchor = useRef<HTMLDivElement>(null);
     const [startRenderIndex, setStartRenderIndex] = useState(0);
     const [endRenderIndex, setEndRenderIndex] = useState(0);
-    const dndData = useContext(TagDnDContext);
+    const dndData = useTagDnD();
     const submitCommand = useMemo(
-      () => createSubmitCommand(dndData, fileStore, select, showContextMenu, uiStore),
-      [dndData, fileStore, select, showContextMenu, uiStore],
+      () => createSubmitCommand(dndData, select, showContextMenu, uiStore),
+      [dndData, select, showContextMenu, uiStore],
     );
     const numImages = images.length;
+    const { isSlideMode, firstItem } = uiStore;
 
     const determineRenderRegion = useCallback(
       (numImages: number, overdraw: number, setFirstItem = true) => {
@@ -90,10 +91,16 @@ const VirtualizedRenderer = observer(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [numImages, containerWidth, containerHeight]);
 
-    const handleScroll = useCallback(() => throttledRedetermine.current(numImages, overscan || 0), [
-      numImages,
-      overscan,
-    ]);
+    const handleScroll = useCallback(
+      () =>
+        throttledRedetermine.current(
+          numImages,
+          overscan || 0,
+          // dont't scroll set first item while in slide mode due to scrolling, since it's controlled over there
+          !isSlideMode,
+        ),
+      [numImages, overscan, isSlideMode],
+    );
 
     const scrollToIndex = useCallback(
       (index: number, block: 'nearest' | 'start' | 'end' | 'center' = 'nearest') => {
@@ -137,6 +144,14 @@ const VirtualizedRenderer = observer(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastSelIndex, fileSelectionSize]);
 
+    // While in slide mode, scroll to last shown image if not in view, for transition back to gallery
+    useLayoutEffect(() => {
+      if (isSlideMode) {
+        scrollToIndex(firstItem, 'nearest');
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSlideMode, firstItem]);
+
     return (
       // One div as the scrollable viewport
       <div className={className} onScroll={handleScroll} ref={wrapperRef}>
@@ -150,14 +165,15 @@ const VirtualizedRenderer = observer(
                 key={im.id}
                 file={fileStore.fileList[fileListIndex]}
                 mounted
-                uiStore={uiStore}
-                fileStore={fileStore}
                 transform={transform}
                 // Force to load the full resolution image when the img dimensions on screen are larger than the thumbnail image resolution
                 // Otherwise you'll see very low res images. This is usually only the case for images with extreme aspect ratios
                 // TODO: Not the best solution; could generate multiple thumbnails of other resolutions
                 forceNoThumbnail={
-                  transform.width > thumbnailMaxSize || transform.height > thumbnailMaxSize
+                  transform.width > thumbnailMaxSize ||
+                  transform.height > thumbnailMaxSize ||
+                  // Not using thumbnails for gifs, since they're mostly used for animations, which doesn't get preserved in thumbnails
+                  im.extension === 'gif'
                 }
                 submitCommand={submitCommand}
               />

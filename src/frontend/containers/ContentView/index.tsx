@@ -1,7 +1,7 @@
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 
 import useContextMenu from '../../hooks/useContextMenu';
 
@@ -12,14 +12,15 @@ import Placeholder from './Placeholder';
 import Layout from './LayoutSwitcher';
 
 import { LayoutMenuItems, SortMenuItems, ThumbnailSizeMenuItems } from '../AppToolbar/Menus';
-import TagDnDContext from 'src/frontend/contexts/TagDnDContext';
+import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { runInAction } from 'mobx';
+import { MoveFilesToTrashBin } from 'src/frontend/components/RemovalAlert';
 
 const ContentView = observer(() => {
   const {
     uiStore,
     fileStore: { fileList },
-  } = useContext(StoreContext);
+  } = useStore();
 
   return (
     <div
@@ -32,8 +33,8 @@ const ContentView = observer(() => {
 });
 
 const Content = observer(() => {
-  const { fileStore, uiStore } = useContext(StoreContext);
-  const dndData = useContext(TagDnDContext);
+  const { fileStore, uiStore } = useStore();
+  const dndData = useTagDnD();
   const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
   const { open, x, y, menu } = contextState;
   const [fileMenu, externalMenu] = menu as [MenuChild, MenuChild];
@@ -83,17 +84,14 @@ const Content = observer(() => {
     <div
       ref={container}
       id="gallery-content"
-      className={isDroppingTagOnSelection ? 'selected-file-dropping' : undefined}
+      data-show-filename={uiStore.isThumbnailFilenameOverlayEnabled}
+      data-selected-file-dropping={isDroppingTagOnSelection}
       onContextMenu={handleContextMenu}
       // Clear selection when clicking on the background, unless in slide mode: always needs an active image
       onClick={clearFileSelection}
     >
-      <Layout
-        contentRect={contentRect}
-        showContextMenu={show}
-        uiStore={uiStore}
-        fileStore={fileStore}
-      />
+      <Layout contentRect={contentRect} showContextMenu={show} />
+
       <ContextMenu isOpen={open} x={x} y={y} close={hide}>
         <Menu>
           {fileMenu}
@@ -101,13 +99,13 @@ const Content = observer(() => {
             <>
               {fileMenu && <MenuDivider />}
               <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
-                <LayoutMenuItems uiStore={uiStore} />
+                <LayoutMenuItems />
               </MenuSubItem>
               <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-                <SortMenuItems fileStore={fileStore} />
+                <SortMenuItems />
               </MenuSubItem>
               <MenuSubItem icon={IconSet.THUMB_MD} text="Thumbnail size...">
-                <ThumbnailSizeMenuItems uiStore={uiStore} />
+                <ThumbnailSizeMenuItems />
               </MenuSubItem>
             </>
           )}
@@ -115,6 +113,8 @@ const Content = observer(() => {
           {externalMenu}{' '}
         </Menu>
       </ContextMenu>
+
+      <MoveFilesToTrashBin />
     </div>
   );
 });

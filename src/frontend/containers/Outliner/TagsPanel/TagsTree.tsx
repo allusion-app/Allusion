@@ -1,12 +1,13 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useContext, useMemo, useReducer, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { Collapse } from 'src/frontend/components/Collapse';
-import { TagMerge, TagRemoval } from 'src/frontend/components/RemovalAlert';
-import StoreContext from 'src/frontend/contexts/StoreContext';
-import TagDnDContext, { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
+import { TagRemoval } from 'src/frontend/components/RemovalAlert';
+import { TagMerge } from 'src/frontend/containers/Outliner/TagsPanel/TagMerge';
+import { useStore } from 'src/frontend/contexts/StoreContext';
+import { DnDAttribute, DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import TagStore from 'src/frontend/stores/TagStore';
 import UiStore from 'src/frontend/stores/UiStore';
@@ -16,14 +17,34 @@ import { ContextMenu, Toolbar, ToolbarButton } from 'widgets/menus';
 import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem } from 'widgets/Tree';
 import { IExpansionState } from '../../types';
 import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
+import TreeItemRevealer from '../TreeItemRevealer';
 import { TagItemContextMenu } from './ContextMenu';
 import { Action, Factory, reducer, State } from './state';
+
+export class TagsTreeItemRevealer extends TreeItemRevealer {
+  public static readonly instance: TagsTreeItemRevealer = new TagsTreeItemRevealer();
+  private constructor() {
+    super();
+  }
+
+  initialize(setExpansion: React.Dispatch<React.SetStateAction<IExpansionState>>) {
+    super.initializeExpansion(setExpansion);
+  }
+
+  revealTag(tag: ClientTag) {
+    runInAction(() => {
+      const tagsToExpand = tag.treePath;
+      this.revealTreeItem([ROOT_TAG_ID, ...tagsToExpand.map((t) => t.id)]);
+    });
+  }
+}
 
 interface ILabelProps {
   text: string;
   setText: (value: string) => void;
   isEditing: boolean;
   onSubmit: (target: EventTarget & HTMLInputElement) => void;
+  tooltip?: string;
 }
 
 const Label = (props: ILabelProps) =>
@@ -32,7 +53,6 @@ const Label = (props: ILabelProps) =>
       className="input"
       autoFocus
       type="text"
-      placeholder="Enter a new name"
       defaultValue={props.text}
       onBlur={(e) => {
         const value = e.currentTarget.value.trim();
@@ -55,7 +75,7 @@ const Label = (props: ILabelProps) =>
       // Only show red outline when input field is in focus and text is invalid
     />
   ) : (
-    <div>{props.text}</div>
+    <div data-tooltip={props.tooltip}>{props.text}</div>
   );
 
 interface ITagItemProps {
@@ -99,8 +119,8 @@ document.body.appendChild(PreviewTag);
 
 const TagItem = observer((props: ITagItemProps) => {
   const { nodeData, dispatch, expansion, isEditing, submit, pos, select, showContextMenu } = props;
-  const { uiStore, tagStore } = useContext(StoreContext);
-  const dndData = useContext(TagDnDContext);
+  const { uiStore, tagStore } = useStore();
+  const dndData = useTagDnD();
 
   const handleContextMenu = useCallback(
     (e) =>
@@ -289,6 +309,15 @@ const TagItem = observer((props: ITagItemProps) => {
     nodeData.id,
   ]);
 
+  useEffect(
+    () =>
+      TagsTreeItemRevealer.instance.initialize(
+        (val: IExpansionState | ((prevState: IExpansionState) => IExpansionState)) =>
+          dispatch(Factory.setExpansion(val)),
+      ),
+    [dispatch],
+  );
+
   return (
     <div
       className="tree-content-label"
@@ -301,15 +330,18 @@ const TagItem = observer((props: ITagItemProps) => {
       onClick={handleQuickQuery}
       onDoubleClick={handleRename}
     >
-      <span style={{ color: nodeData.viewColor }}>{IconSet.TAG}</span>
+      <span style={{ color: nodeData.viewColor }}>
+        {nodeData.isHidden ? IconSet.HIDDEN : IconSet.TAG}
+      </span>
       <Label
         text={nodeData.name}
         setText={nodeData.rename}
         isEditing={isEditing}
         onSubmit={submit}
+        tooltip={`${nodeData.treePath.map((t) => t.name).join(' › ')} (${nodeData.fileCount})`}
       />
       {!isEditing && (
-        <button onClick={handleSelect} className="btn btn-icon">
+        <button onClick={handleSelect} className="btn-icon">
           {uiStore.tagSelection.has(nodeData) ? IconSet.SELECT_CHECKED : IconSet.SELECT}
         </button>
       )}
@@ -355,21 +387,20 @@ const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
 const toggleSelection = (uiStore: UiStore, nodeData: ClientTag) =>
   uiStore.toggleTagSelection(nodeData);
 
-// FIXME: React broke Element.dispatchevent(). Alternative: Pass show context menu method.
-// const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
-//   const element = event.currentTarget.querySelector('.tree-content-label');
-//   if (element) {
-//     // TODO: Auto-focus the context menu! Do this in the onContextMenu handler.
-//     // Why not trigger context menus through `ContextMenu.show()`?
-//     event.stopPropagation();
-//     element.dispatchEvent(
-//       new MouseEvent('contextmenu', {
-//         clientX: element.getBoundingClientRect().right,
-//         clientY: element.getBoundingClientRect().top,
-//       }),
-//     );
-//   }
-// };
+const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
+  const element = event.currentTarget.querySelector('.tree-content-label');
+  if (element !== null) {
+    event.stopPropagation();
+    const rect = element.getBoundingClientRect();
+    element.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        clientX: rect.right,
+        clientY: rect.top,
+        bubbles: true,
+      }),
+    );
+  }
+};
 
 const customKeys = (
   uiStore: UiStore,
@@ -384,11 +415,11 @@ const customKeys = (
       treeData.dispatch(Factory.enableEditing(nodeData.id));
       break;
 
-    // case 'F10':
-    //   if (event.shiftKey) {
-    //     triggerContextMenuEvent(event);
-    //   }
-    //   break;
+    case 'F10':
+      if (event.shiftKey) {
+        triggerContextMenuEvent(event);
+      }
+      break;
 
     case 'Enter':
       event.stopPropagation();
@@ -399,9 +430,9 @@ const customKeys = (
       treeData.dispatch(Factory.confirmDeletion(nodeData));
       break;
 
-    // case 'ContextMenu':
-    //   triggerContextMenuEvent(event);
-    //   break;
+    case 'ContextMenu':
+      triggerContextMenuEvent(event);
+      break;
 
     default:
       break;
@@ -419,7 +450,7 @@ const mapTag = (tag: ClientTag): ITreeItem => ({
 });
 
 const TagsTree = observer(() => {
-  const { tagStore, uiStore } = useContext(StoreContext);
+  const { tagStore, uiStore } = useStore();
   const root = tagStore.root;
   const [state, dispatch] = useReducer(reducer, {
     expansion: {},
@@ -428,7 +459,7 @@ const TagsTree = observer(() => {
     mergableNode: undefined,
   });
   const [contextState, { show, hide }] = useContextMenu();
-  const dndData = useContext(TagDnDContext);
+  const dndData = useTagDnD();
 
   /** Header and Footer drop zones of the root node */
   const handleDragOverAndLeave = useCallback(
@@ -521,10 +552,10 @@ const TagsTree = observer(() => {
       if (dndData.source?.isSelected) {
         uiStore.moveSelectedTagItems(ROOT_TAG_ID);
       } else if (dndData.source !== undefined) {
-        root.insertSubTag(dndData.source, tagStore.tagList.length);
+        root.insertSubTag(dndData.source, root.subTags.length);
       }
     });
-  }, [dndData, root, tagStore, uiStore]);
+  }, [dndData, root, uiStore]);
 
   const handleBranchOnKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
@@ -560,10 +591,9 @@ const TagsTree = observer(() => {
         onDrop={handleDrop}
       >
         <h2 onClick={() => setIsCollapsed(!isCollapsed)}>Tags</h2>
-        <Toolbar controls="tag-hierarchy">
+        <Toolbar controls="tag-hierarchy" isCompact>
           {uiStore.tagSelection.size > 0 ? (
             <ToolbarButton
-              showLabel="never"
               icon={IconSet.CLOSE}
               text="Clear"
               onClick={uiStore.clearTagSelection}
@@ -571,7 +601,6 @@ const TagsTree = observer(() => {
             />
           ) : (
             <ToolbarButton
-              showLabel="never"
               icon={IconSet.PLUS}
               text="New Tag"
               onClick={handleRootAddTag}
@@ -619,7 +648,7 @@ const TagsTree = observer(() => {
       )}
 
       {state.mergableNode && (
-        <TagMerge object={state.mergableNode} onClose={() => dispatch(Factory.abortMerge())} />
+        <TagMerge tag={state.mergableNode} onClose={() => dispatch(Factory.abortMerge())} />
       )}
 
       <ContextMenu

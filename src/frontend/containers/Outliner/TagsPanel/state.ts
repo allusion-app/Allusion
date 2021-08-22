@@ -21,7 +21,7 @@ export type Action =
   | IAction<Flag.EnableEditing | Flag.ToggleNode | Flag.ExpandNode, ID>
   | IAction<Flag.ConfirmDeletion | Flag.ConfirmMerge, ClientTag>
   | IAction<Flag.DisableEditing | Flag.AbortDeletion | Flag.AbortMerge, undefined>
-  | IAction<Flag.Expansion, IExpansionState>;
+  | IAction<Flag.Expansion, IExpansionState | ((prevState: IExpansionState) => IExpansionState)>;
 
 export const Factory = {
   insertNode: (parent: ID, node: ID): Action => ({
@@ -36,7 +36,9 @@ export const Factory = {
     flag: Flag.DisableEditing,
     data: undefined,
   }),
-  setExpansion: (data: IExpansionState): Action => ({
+  setExpansion: (
+    data: IExpansionState | ((prevState: IExpansionState) => IExpansionState),
+  ): Action => ({
     flag: Flag.Expansion,
     data,
   }),
@@ -93,10 +95,13 @@ export function reducer(state: State, action: Action): State {
     case Flag.Expansion:
       return {
         ...state,
-        expansion: { ...action.data },
+        expansion: {
+          ...(typeof action.data === 'function' ? action.data(state.expansion) : action.data),
+        },
       };
 
     case Flag.ToggleNode:
+      // TODO: Would be neat if ctrl+clicking would do a recursive expand/collapse. Also for the "Tags" header!
       return {
         ...state,
         expansion: { ...state.expansion, [action.data]: !state.expansion[action.data] },

@@ -2,13 +2,16 @@ import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { ClientFile } from 'src/entities/File';
-import FileStore from 'src/frontend/stores/FileStore';
-import UiStore from 'src/frontend/stores/UiStore';
+import { ClientTag } from 'src/entities/Tag';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet } from 'widgets';
 import { MenuItem } from 'widgets/menus';
+import { LocationTreeItemRevealer } from '../Outliner/LocationsPanel';
+import { TagsTreeItemRevealer } from '../Outliner/TagsPanel/TagsTree';
 
-export const MissingFileMenuItems = observer(
-  ({ uiStore, fileStore }: { uiStore: UiStore; fileStore: FileStore }) => (
+export const MissingFileMenuItems = observer(() => {
+  const { uiStore, fileStore } = useStore();
+  return (
     <>
       <MenuItem
         onClick={fileStore.fetchMissingFiles}
@@ -18,13 +21,15 @@ export const MissingFileMenuItems = observer(
       />
       <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
     </>
-  ),
-);
+  );
+});
 
-export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile; uiStore: UiStore }) => {
+export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
+  const { uiStore } = useStore();
+
   const handleViewFullSize = () => {
     uiStore.selectFile(file, true);
-    uiStore.toggleSlideMode();
+    uiStore.enableSlideMode();
   };
 
   const handlePreviewWindow = () => {
@@ -41,17 +46,20 @@ export const FileViewerMenuItems = ({ file, uiStore }: { file: ClientFile; uiSto
         text="Open In Preview Window"
         icon={IconSet.PREVIEW}
       />
+      {/* Request: "Open path in Location hierarchy" */}
+      {/* IDEA: "View similar images" > ["Same tags", "Same directory", ("Same size/resolution/colors?)")] */}
+      <MenuItem
+        onClick={uiStore.openToolbarTagPopover}
+        text="Open Tag Selector"
+        icon={IconSet.TAG}
+      />
     </>
   );
 };
 
-export const SlideFileViewerMenuItems = ({
-  file,
-  uiStore,
-}: {
-  file: ClientFile;
-  uiStore: UiStore;
-}) => {
+export const SlideFileViewerMenuItems = ({ file }: { file: ClientFile }) => {
+  const { uiStore } = useStore();
+
   const handlePreviewWindow = () => {
     uiStore.selectFile(file, true);
     uiStore.openPreviewWindow();
@@ -68,18 +76,49 @@ export const SlideFileViewerMenuItems = ({
   );
 };
 
-export const ExternalAppMenuItems = ({ file }: { file: ClientFile }) => (
+export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) => {
+  const { uiStore } = useStore();
+  return (
+    <>
+      <MenuItem
+        onClick={() => shell.openExternal(`file://${file.absolutePath}`).catch(console.error)}
+        text="Open External"
+        icon={IconSet.OPEN_EXTERNAL}
+        disabled={file.isBroken}
+      />
+      <MenuItem
+        onClick={() =>
+          LocationTreeItemRevealer.instance.revealSubLocation(file.locationId, file.absolutePath)
+        }
+        text="Reveal in Locations Panel"
+        icon={IconSet.TREE_LIST}
+      />
+      <MenuItem
+        onClick={() => shell.showItemInFolder(file.absolutePath)}
+        text="Reveal in File Browser"
+        icon={IconSet.FOLDER_CLOSE}
+      />
+      <MenuItem
+        onClick={uiStore.openMoveFilesToTrash}
+        text={`Delete file${uiStore.fileSelection.size > 1 ? 's' : ''}`}
+        icon={IconSet.DELETE}
+      />
+    </>
+  );
+});
+
+export const FileTagMenuItems = observer(({ file, tag }: { file: ClientFile; tag: ClientTag }) => (
   <>
     <MenuItem
-      onClick={() => shell.openExternal(`file://${file.absolutePath}`).catch(console.error)}
-      text="Open External"
-      icon={IconSet.OPEN_EXTERNAL}
+      onClick={() => TagsTreeItemRevealer.instance.revealTag(tag)}
+      text="Reveal in Tags Panel"
+      icon={IconSet.TREE_LIST}
       disabled={file.isBroken}
     />
     <MenuItem
-      onClick={() => shell.showItemInFolder(file.absolutePath)}
-      text="Reveal in File Browser"
-      icon={IconSet.FOLDER_CLOSE}
+      onClick={() => file.removeTag(tag)}
+      text="Unassign Tag from File"
+      icon={IconSet.TAG_BLANCO}
     />
   </>
-);
+));

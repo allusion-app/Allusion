@@ -87,9 +87,7 @@ class FileStore {
 
           const { tagStore } = this.rootStore;
           for (const tagHierarchy of tagsNameHierarchies) {
-            const match = runInAction(() =>
-              tagStore.tagList.find((t) => t.name === tagHierarchy[tagHierarchy.length - 1]),
-            );
+            const match = tagStore.findByName(tagHierarchy[tagHierarchy.length - 1]);
             if (match) {
               // If there is a match to the leaf tag, just add it to the file
               runInAction(() => this.fileList[i].addTag(match));
@@ -97,9 +95,7 @@ class FileStore {
               // If there is no direct match to the leaf, insert it in the tag hierarchy: first check if any of its parents exist
               let curTag = tagStore.root;
               for (const nodeName of tagHierarchy) {
-                const nodeMatch = runInAction(() =>
-                  tagStore.tagList.find((t) => t.name === nodeName),
-                );
+                const nodeMatch = tagStore.findByName(nodeName);
                 if (nodeMatch) {
                   curTag = nodeMatch;
                 } else {
@@ -142,7 +138,7 @@ class FileStore {
       const tagFilePairs = runInAction(() =>
         this.fileList.map((f) => ({
           absolutePath: f.absolutePath,
-          tagHierarchy: Array.from(f.tags).map((t) => t.getTagHierarchy().map((t) => t.name)),
+          tagHierarchy: Array.from(f.tags).map(action((t) => t.treePath.map((t) => t.name))),
         })),
       );
       console.log(tagFilePairs);
@@ -493,7 +489,12 @@ class FileStore {
       return this.clearFileList();
     }
 
-    const locationIds = this.rootStore.locationStore.locationList.map((l) => l.id);
+    // Filter out images with hidden tags
+    // TODO: could also do it in search query, this is simpler though (maybe also more performant)
+    const hiddenTagIds = new Set(
+      this.rootStore.tagStore.tagList.filter((t) => t.isHidden).map((t) => t.id),
+    );
+    backendFiles = backendFiles.filter((f) => !f.tags.some((t) => hiddenTagIds.has(t)));
 
     // For every new file coming in, either re-use the existing client file if it exists,
     // or construct a new client file
@@ -506,19 +507,11 @@ class FileStore {
       }
     }
 
-    // Check existence of new files asynchronously, no need to wait until they can be showed
+    // Check existence of new files asynchronously, no need to wait until they can be shown
     // we can simply check whether they exist after they start rendering
+    // TODO: We can already get this from chokidar (folder watching), pretty much for free
     const existenceCheckPromises = newClientFiles.map((clientFile) => async () => {
       clientFile.setBroken(!(await fse.pathExists(clientFile.absolutePath)));
-
-      // TODO: DEBUG CHECK. Remove this when going out for release version
-      // Check if file belongs to a location; shouldn't be needed, but useful for during development
-      if (!locationIds.includes(clientFile.locationId)) {
-        console.warn(
-          'DEBUG: Found a file that does not belong to any location! Will still show up. SHOULD NEVER HAPPEN',
-          clientFile,
-        );
-      }
     });
 
     // Run the existence check with at most N checks in parallel
@@ -562,12 +555,14 @@ class FileStore {
       if (existingFile !== undefined) {
         reusedStatus.add(existingFile.id);
         // Update tags (might have changes, e.g. removed/merged)
-        const newTags = f.tags.map((t) => this.rootStore.tagStore.get(t));
+        const newTags = f.tags
+          .map((t) => this.rootStore.tagStore.get(t))
+          .filter((t) => t !== undefined) as ClientTag[];
         if (
-          existingFile.tags.size !== f.tags.length ||
-          Array.from(existingFile.tags).some((t, i) => t?.id !== f.tags[i])
+          existingFile.tags.size !== newTags.length ||
+          Array.from(existingFile.tags).some((t, i) => t.id !== newTags[i].id)
         ) {
-          existingFile.updateTagsFromBackend(newTags as ClientTag[]);
+          existingFile.updateTagsFromBackend(newTags);
         }
         return existingFile;
       }

@@ -2,7 +2,7 @@ import { shell } from 'electron';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   chromeExtensionUrl,
   getDefaultBackupDirectory,
@@ -15,7 +15,7 @@ import { Button, ButtonGroup, IconButton, IconSet, Radio, RadioGroup, Toggle } f
 import { Callout } from 'widgets/notifications';
 import { Alert, DialogButton } from 'widgets/popovers';
 import PopupWindow from '../../components/PopupWindow';
-import StoreContext from '../../contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 import { moveThumbnailDir } from '../../ThumbnailGeneration';
 import { getFilenameFriendlyFormattedDateTime, getThumbnailPath, isDirEmpty } from '../../utils';
 import { ClearDbButton } from '../ErrorBoundary';
@@ -23,7 +23,7 @@ import HotkeyMapper from './HotkeyMapper';
 import Tabs, { TabItem } from './Tabs';
 
 const Settings = () => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   if (!uiStore.isSettingsOpen) {
     return null;
@@ -46,7 +46,7 @@ const Settings = () => {
 export default observer(Settings);
 
 const Appearance = observer(() => {
-  const { uiStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
 
   const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
     const isFullScreen = e.currentTarget.checked;
@@ -72,13 +72,25 @@ const Appearance = observer(() => {
       <Zoom />
 
       <h3>Thumbnail</h3>
-      <fieldset>
-        <legend>Show assigned tags</legend>
-        <Toggle
-          checked={uiStore.isThumbnailTagOverlayEnabled}
-          onChange={uiStore.toggleThumbnailTagOverlay}
-        />
-      </fieldset>
+
+      <div className="settings-thumbnail">
+        <fieldset>
+          <legend>Show assigned tags</legend>
+          <Toggle
+            checked={uiStore.isThumbnailTagOverlayEnabled}
+            onChange={uiStore.toggleThumbnailTagOverlay}
+          />
+        </fieldset>
+        <fieldset>
+          <legend>Show filename on thumbnail</legend>
+          <Toggle
+            checked={uiStore.isThumbnailFilenameOverlayEnabled}
+            onChange={uiStore.toggleThumbnailFilenameOverlay}
+          />
+        </fieldset>
+      </div>
+
+      <br />
 
       <div className="settings-thumbnail">
         <RadioGroup name="Size">
@@ -129,18 +141,18 @@ const Zoom = () => {
 
   return (
     <fieldset>
-      <legend>Zoom</legend>
+      <legend>UI Scale (zoom)</legend>
       <span className="zoom-input">
         <IconButton
           icon={<span>-</span>}
           onClick={() => setLocalZoomFactor(localZoomFactor - 0.1)}
-          text="Zoom out"
+          text="Decrease"
         />
         <span>{Math.round(100 * localZoomFactor)}%</span>
         <IconButton
           icon={<span>+</span>}
           onClick={() => setLocalZoomFactor(localZoomFactor + 0.1)}
-          text="Zoom in"
+          text="Increase"
         />
       </span>
     </fieldset>
@@ -148,7 +160,7 @@ const Zoom = () => {
 };
 
 const ImportExport = observer(() => {
-  const rootStore = useContext(StoreContext);
+  const rootStore = useStore();
   const { fileStore, tagStore } = rootStore;
   const [isConfirmingMetadataExport, setConfirmingMetadataExport] = useState(false);
   const [isConfirmingFileImport, setConfirmingFileImport] = useState<{
@@ -174,7 +186,7 @@ const ImportExport = observer(() => {
       const backupStats = await rootStore.peekDatabaseFile(path);
       setConfirmingFileImport({
         path,
-        info: `Backup contains ${backupStats.numTags} tags (currently ${tagStore.tagList.length}) and ${backupStats.numFiles} images (currently ${fileStore.numTotalFiles}).`,
+        info: `Backup contains ${backupStats.numTags} tags (currently ${tagStore.count}) and ${backupStats.numFiles} images (currently ${fileStore.numTotalFiles}).`,
       });
     } catch (e) {
       console.log(e);
@@ -247,16 +259,19 @@ const ImportExport = observer(() => {
         <Alert
           open={isConfirmingMetadataExport}
           title="Are you sure you want to overwrite your files' tags?"
-          information="This will overwrite any existing tags ('keywords') in those files with Allusion's tags. It is recommended to import all tags before writing new tags."
           primaryButtonText="Export"
-          closeButtonText="Cancel"
           onClick={(button) => {
             if (button === DialogButton.PrimaryButton) {
               fileStore.writeTagsToFiles();
             }
             setConfirmingMetadataExport(false);
           }}
-        />
+        >
+          <p>
+            This will overwrite any existing tags (a.k.a. keywords) in those files with
+            Allusion&#39;s tags. It is recommended to import all tags before writing new tags.
+          </p>
+        </Alert>
       </ButtonGroup>
 
       <h3>Backup Database as File</h3>
@@ -292,9 +307,7 @@ const ImportExport = observer(() => {
         <Alert
           open={Boolean(isConfirmingFileImport)}
           title="Are you sure you want to restore the database from a backup?"
-          information={`This will replace your current tag hierarchy and any tags assigned to images, so it is recommended you create a backup first.\n${isConfirmingFileImport?.info}`}
           primaryButtonText="Import"
-          closeButtonText="Cancel"
           onClick={async (button) => {
             if (isConfirmingFileImport && button === DialogButton.PrimaryButton) {
               AppToaster.show({
@@ -314,14 +327,20 @@ const ImportExport = observer(() => {
             }
             setConfirmingFileImport(undefined);
           }}
-        />
+        >
+          <p>
+            This will replace your current tag hierarchy and any tags assigned to images, so it is
+            recommended you create a backup first.
+          </p>
+          <p>{isConfirmingFileImport?.info}</p>
+        </Alert>
       </ButtonGroup>
     </>
   );
 });
 
 const BackgroundProcesses = observer(() => {
-  const { uiStore, locationStore } = useContext(StoreContext);
+  const { uiStore, locationStore } = useStore();
 
   const importDirectory = uiStore.importDirectory;
   const browseImportDirectory = async () => {
@@ -412,19 +431,21 @@ const BackgroundProcesses = observer(() => {
   );
 });
 
-const Shortcuts = () => (
-  <>
-    <h2>Keyboard shortcuts</h2>
-    <p>
-      Click on a key combination to modify it. After typing your new combination, press Enter to
-      confirm or Escape to cancel.
-    </p>
-    <HotkeyMapper />
-  </>
-);
+const Shortcuts = observer(() => {
+  return (
+    <>
+      <h2>Keyboard shortcuts</h2>
+      <p>
+        Click on a key combination to modify it. After typing your new combination, press Enter to
+        confirm or Escape to cancel.
+      </p>
+      <HotkeyMapper />
+    </>
+  );
+});
 
 const Advanced = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const { uiStore, fileStore } = useStore();
   const thumbnailDirectory = uiStore.thumbnailDirectory;
 
   const [defaultThumbnailDir, setDefaultThumbnailDir] = useState('');

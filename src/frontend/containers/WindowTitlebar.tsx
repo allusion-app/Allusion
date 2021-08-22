@@ -2,12 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { RendererMessenger, WindowSystemButtonPress } from 'src/Messaging';
 import { IconSet } from 'widgets/Icons';
 
+const PLATFORM = process.platform;
+
 const WindowsTitlebar = () => {
   return (
     <div id="window-titlebar">
       <div id="window-resize-area" />
+
       <span>Allusion</span>
-      <WindowSystemButtons />
+
+      {PLATFORM !== 'darwin' && <WindowSystemButtons />}
     </div>
   );
 };

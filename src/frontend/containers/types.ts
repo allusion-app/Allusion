@@ -1,6 +1,3 @@
-import { IFile } from 'src/entities/File';
-import { SearchKeyDict } from 'src/entities/SearchCriteria';
-
 /**
  * Enum variant with associated data for Action enums
  *
@@ -26,5 +23,3 @@ export interface IAction<F, D> {
 /** Map that keeps track of the IDs that are expanded */
 
 export type IExpansionState = { [key: string]: boolean };
-
-export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path', locationId: 'Location' };

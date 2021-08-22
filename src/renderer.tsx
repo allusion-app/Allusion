@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { observe, runInAction } from 'mobx';
+import { observe } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -14,11 +14,12 @@ import { RendererMessenger } from './Messaging';
 
 import Backend from './backend/Backend';
 
-import StoreContext from './frontend/contexts/StoreContext';
+import StoreProvider from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';
 
 import App from './frontend/App';
 import PreviewApp from './frontend/Preview';
+import Overlay from './frontend/Overlay';
 import { promiseRetry } from './frontend/utils';
 
 // Window State
@@ -42,13 +43,16 @@ backend
   .catch((err) => console.error('Could not initialize backend!', err));
 
 if (IS_PREVIEW_WINDOW) {
-  RendererMessenger.onReceivePreviewFiles(({ ids, thumbnailDirectory, activeImgId }) => {
-    rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
-    rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
-    rootStore.uiStore.enableSlideMode();
-    rootStore.uiStore.isInspectorOpen && rootStore.uiStore.toggleInspector();
-    rootStore.fileStore.fetchFilesByIDs(ids);
-  });
+  RendererMessenger.onReceivePreviewFiles(
+    ({ ids, thumbnailDirectory, viewMethod, activeImgId }) => {
+      rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
+      rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
+      rootStore.uiStore.setMethod(viewMethod);
+      rootStore.uiStore.enableSlideMode();
+      rootStore.uiStore.isInspectorOpen && rootStore.uiStore.toggleInspector();
+      rootStore.fileStore.fetchFilesByIDs(ids);
+    },
+  );
 
   // Close preview with space
   window.addEventListener('keydown', (e: KeyboardEvent) => {
@@ -118,9 +122,10 @@ window.addEventListener('beforeunload', () => {
 // Render our react components in the div with id 'app' in the html file
 // The Provider component provides the state management for the application
 ReactDOM.render(
-  <StoreContext.Provider value={rootStore}>
+  <StoreProvider value={rootStore}>
     {IS_PREVIEW_WINDOW ? <PreviewApp /> : <App />}
-  </StoreContext.Provider>,
+    <Overlay />
+  </StoreProvider>,
   document.getElementById('app'),
 );
 
@@ -139,9 +144,7 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
   if (clientFile) {
     const tags = await Promise.all(
       tagNames.map(async (tagName) => {
-        const clientTag = runInAction(() =>
-          tagStore.tagListWithoutRoot.find((tag) => tag.name === tagName),
-        );
+        const clientTag = tagStore.findByName(tagName);
         if (clientTag !== undefined) {
           return clientTag;
         } else {

@@ -1,11 +1,11 @@
-import React, { useContext } from 'react';
-import { action } from 'mobx';
+import React, { useRef } from 'react';
+import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
-import StoreContext from 'src/frontend/contexts/StoreContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
 
 const Searchbar = observer(() => {
-  const { uiStore, tagStore, fileStore } = useContext(StoreContext);
+  const { uiStore } = useStore();
   const searchCriteriaList = uiStore.searchCriteriaList;
 
   // Only show quick search bar when all criteria are tags,
@@ -21,53 +21,46 @@ const Searchbar = observer(() => {
         (crit as ClientTagSearchCriteria<any>).value.length,
     );
 
-  return (
-    <div className="searchbar">
-      {isQuickSearch ? (
-        <QuickSearchList uiStore={uiStore} tagStore={tagStore} fileStore={fileStore} />
-      ) : (
-        <CriteriaList uiStore={uiStore} tagStore={tagStore} fileStore={fileStore} />
-      )}
-    </div>
-  );
+  return <div className="searchbar">{isQuickSearch ? <QuickSearchList /> : <CriteriaList />}</div>;
 });
 
 export default Searchbar;
 
-import { ClientStringSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
+import {
+  CustomKeyDict,
+  ClientStringSearchCriteria,
+  ClientTagSearchCriteria,
+} from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 
-import UiStore from 'src/frontend/stores/UiStore';
-import TagStore from 'src/frontend/stores/TagStore';
+import { IconButton, IconSet, Tag, Row } from 'widgets';
 
-import { IconButton, IconSet, Tag } from 'widgets';
+import { TagSelector } from 'src/frontend/components/TagSelector';
+import { useAction } from 'src/frontend/hooks/useAction';
 
-import { MultiTagSelector } from 'src/frontend/components/MultiTagSelector';
-import FileStore from 'src/frontend/stores/FileStore';
-import { CustomKeyDict } from '../types';
+const QuickSearchList = observer(() => {
+  const { uiStore, tagStore } = useStore();
 
-interface ISearchListProps {
-  uiStore: UiStore;
-  tagStore: TagStore;
-  fileStore: FileStore;
-}
+  const selection = useRef(
+    computed(() => {
+      const selectedItems: ClientTag[] = [];
+      uiStore.searchCriteriaList.forEach((c) => {
+        if (c instanceof ClientTagSearchCriteria && c.value.length === 1) {
+          const item = tagStore.get(c.value[0]);
+          if (item) {
+            selectedItems.push(item);
+          }
+        }
+      });
+      return selectedItems;
+    }),
+  ).current;
 
-const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListProps) => {
-  const selectedItems: ClientTag[] = [];
-  uiStore.searchCriteriaList.forEach((c) => {
-    if (c instanceof ClientTagSearchCriteria && c.value.length === 1) {
-      const item = tagStore.get(c.value[0]);
-      if (item) {
-        selectedItems.push(item);
-      }
-    }
-  });
-
-  const handleSelect = action((item: ClientTag) =>
+  const handleSelect = useAction((item: Readonly<ClientTag>) =>
     uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', item.id, item.name)),
   );
 
-  const handleDeselect = action((item: ClientTag) => {
+  const handleDeselect = useAction((item: Readonly<ClientTag>) => {
     const crit = uiStore.searchCriteriaList.find(
       (c) => c instanceof ClientTagSearchCriteria && c.value.includes(item.id),
     );
@@ -76,51 +69,63 @@ const QuickSearchList = observer(({ uiStore, tagStore, fileStore }: ISearchListP
     }
   });
 
+  const renderCreateOption = useRef((query: string, resetTextBox: () => void) => {
+    return [
+      <Row
+        id="search-in-path-option"
+        key="search-in-path"
+        value={`Search in file paths for "${query}"`}
+        onClick={() => {
+          resetTextBox();
+          uiStore.addSearchCriteria(
+            new ClientStringSearchCriteria('absolutePath', query, undefined, CustomKeyDict),
+          );
+        }}
+      />,
+      <Row
+        id="advanced-search-option"
+        key="advanced-search"
+        value="Advanced search"
+        onClick={uiStore.toggleAdvancedSearch}
+        icon={IconSet.SEARCH_EXTENDED}
+      />,
+    ];
+  }).current;
+
   return (
-    <MultiTagSelector
-      selection={selectedItems}
+    <TagSelector
+      selection={selection.get()}
       onSelect={handleSelect}
       onDeselect={handleDeselect}
       onTagClick={uiStore.toggleAdvancedSearch}
       onClear={uiStore.clearSearchCriteriaList}
-      extraOptions={[
-        {
-          id: 'search-in-path',
-          label: (input) => `Search in file paths for "${input}"`,
-          action: (query) =>
-            uiStore.addSearchCriteria(
-              new ClientStringSearchCriteria('absolutePath', query, undefined, CustomKeyDict),
-            ),
-          resetQueryOnAction: true,
-        },
-        {
-          id: 'advanced-search',
-          label: 'Advanced search',
-          action: uiStore.toggleAdvancedSearch,
-          icon: IconSet.SEARCH_EXTENDED,
-        },
-      ]}
-      extraIconButtons={
-        selectedItems.length > 1 ? (
-          <IconButton
-            icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
-            text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
-            onClick={() => {
-              uiStore.toggleSearchMatchAny();
-              fileStore.refetch();
-            }}
-            large
-            disabled={selectedItems.length === 0}
-          />
-        ) : (
-          <> </>
-        )
-      }
+      renderCreateOption={renderCreateOption}
+      extraIconButtons={<SearchMatchButton disabled={selection.get().length < 2} />}
     />
   );
 });
 
-const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
+const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
+  const { fileStore, uiStore } = useStore();
+
+  const handleClick = useRef(() => {
+    uiStore.toggleSearchMatchAny();
+    fileStore.refetch();
+  }).current;
+
+  return (
+    <IconButton
+      icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
+      text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
+      onClick={handleClick}
+      className="btn-icon-large"
+      disabled={disabled}
+    />
+  );
+});
+
+const CriteriaList = observer(() => {
+  const { fileStore, uiStore } = useStore();
   return (
     <div className="input" onClick={uiStore.toggleAdvancedSearch}>
       <div className="multiautocomplete-input">
@@ -148,7 +153,7 @@ const CriteriaList = observer(({ uiStore, fileStore }: ISearchListProps) => {
               e.stopPropagation();
               e.preventDefault();
             }}
-            large
+            className="btn-icon-large"
           />
         ) : (
           <> </>

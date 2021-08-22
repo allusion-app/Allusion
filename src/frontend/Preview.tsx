@@ -1,7 +1,7 @@
-import React, { useContext, useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
-import StoreContext from './contexts/StoreContext';
+import { useStore } from './contexts/StoreContext';
 
 import ErrorBoundary from './containers/ErrorBoundary';
 import ContentView from './containers/ContentView';
@@ -9,9 +9,10 @@ import { IconSet, Toggle } from 'widgets';
 import { Toolbar, ToolbarButton } from 'widgets/menus';
 
 import { useWorkerListener } from './ThumbnailGeneration';
+import { Tooltip } from './containers/AppToolbar/PrimaryCommands';
 
 const PreviewApp = observer(() => {
-  const { uiStore, fileStore } = useContext(StoreContext);
+  const { uiStore, fileStore } = useStore();
 
   // Listen to responses of Web Workers
   useWorkerListener();
@@ -28,19 +29,27 @@ const PreviewApp = observer(() => {
     [fileStore.fileList.length, uiStore],
   );
 
+  // disable fade-in on initalization (when file list changes)
+  const [isInitializing, setIsInitializing] = useState(true);
+  useEffect(() => {
+    setIsInitializing(true);
+    setTimeout(() => setIsInitializing(false), 1000);
+  }, [fileStore.fileListLastModified]);
+
   return (
-    <div id="preview" className={uiStore.theme}>
+    <div
+      id="preview"
+      className={`${uiStore.theme} ${isInitializing ? 'preview-window-initializing' : ''}`}
+    >
       <ErrorBoundary>
-        <Toolbar id="toolbar" label="Preview Command Bar" controls="content-view">
+        <Toolbar id="toolbar" label="Preview Command Bar" controls="content-view" isCompact>
           <ToolbarButton
-            showLabel="never"
             icon={IconSet.ARROW_LEFT}
             text="Previous Image"
             onClick={handleLeftButton}
             disabled={uiStore.firstItem === 0}
           />
           <ToolbarButton
-            showLabel="never"
             icon={IconSet.ARROW_RIGHT}
             text="Next Image"
             onClick={handleRightButton}
@@ -50,7 +59,17 @@ const PreviewApp = observer(() => {
             onChange={uiStore.toggleSlideMode}
             checked={!uiStore.isSlideMode}
             onLabel="Overview"
-            offLabel="Details"
+            offLabel="Full size"
+          />
+
+          <div className="spacer" />
+
+          <ToolbarButton
+            icon={IconSet.INFO}
+            onClick={uiStore.toggleInspector}
+            checked={uiStore.isInspectorOpen}
+            text={Tooltip.Inspector}
+            tooltip={Tooltip.Inspector}
           />
         </Toolbar>
 
