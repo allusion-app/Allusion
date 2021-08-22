@@ -20,6 +20,7 @@ interface IRendererProps {
   /** Render images outside of the viewport within this margin (pixels) */
   overscan?: number;
   layoutUpdateDate: Date;
+  padding?: number;
 }
 
 /**
@@ -38,6 +39,7 @@ const VirtualizedRenderer = observer(
     showContextMenu,
     lastSelectionIndex,
     layoutUpdateDate,
+    padding,
   }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu' | 'lastSelectionIndex'>) => {
     const { uiStore, fileStore } = useStore();
     const [, isMountedRef] = useMountState();
@@ -105,7 +107,12 @@ const VirtualizedRenderer = observer(
     const scrollToIndex = useCallback(
       (index: number, block: 'nearest' | 'start' | 'end' | 'center' = 'nearest') => {
         if (!scrollAnchor.current) return;
-        const s = layout.getTransform(index);
+        const s = { ...layout.getTransform(index) };
+
+        // Correct for padding of .masonry element: otherwise it doesn't completely scroll to the top
+        if (s.top === 0 && padding) {
+          s.top -= padding;
+        }
         // Scroll to invisible element, positioned at selected item,
         // just for scroll automatisation with scrollIntoView
         scrollAnchor.current.style.transform = `translate(${s.left}px,${s.top}px)`;
@@ -116,7 +123,7 @@ const VirtualizedRenderer = observer(
         scrollAnchor.current?.scrollIntoView({ block, inline: 'nearest' });
         scrollAnchor.current.style.transform = ''; // reset so that the scroll position can't become stuck at bottom when amount of shown images decreases
       },
-      [layout],
+      [layout, padding],
     );
 
     // The index currently selected image, or the "last selected" image when a range is selected,
