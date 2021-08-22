@@ -449,6 +449,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   height: 100%;
+  padding: 8px; // Note: keep in sync with MasonryRenderer PADDING
 
   [data-masonrycell] {
     position: absolute;
@@ -529,7 +530,7 @@
 
 // Exception when both showing filename and tags in thumbnail overlay:
 // move the tags up by the height of the filename element (23.59px)
-#gallery-content[data-show-filename='true'] {
+#gallery-content[data-show-filename='true'] .masonry {
   [data-masonrycell] {
     &:hover .thumbnail-tags {
       max-height: calc(100% - 1.5em - 0.25rem);
