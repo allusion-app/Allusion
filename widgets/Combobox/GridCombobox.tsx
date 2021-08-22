@@ -13,8 +13,9 @@ interface GridComboboxProps {
   onChange: (value: any) => void;
   data: Options;
   colcount: number;
+  isSelected: (option: any, selection: any) => boolean;
   labelFromOption: (value: any) => string;
-  renderOption: (option: any, index: number, selection: any) => React.ReactNode;
+  renderOption: (value: any, index: number, selection: boolean) => React.ReactNode;
   autoFocus?: boolean;
   textboxId?: string;
   textboxLabelledby?: string;
@@ -25,6 +26,7 @@ export const GridCombobox = ({
   value,
   onChange,
   data,
+  isSelected,
   labelFromOption,
   renderOption,
   colcount,
@@ -42,7 +44,29 @@ export const GridCombobox = ({
   const colIndex = useRef(0);
 
   const [expanded, setExpanded] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(() => {
+    if (data.length === 0) {
+      return '';
+    }
+
+    // Option groups
+    if ('label' in data[0] && 'options' in data[0]) {
+      for (const optgroup of data as OptionGroup[]) {
+        const optionIndex = optgroup.options.findIndex((option: any) => isSelected(option, value));
+        if (optionIndex > -1) {
+          return labelFromOption(optgroup.options[optionIndex]);
+        }
+      }
+    }
+    // Options
+    else {
+      const optionIndex = data.findIndex((option: any) => isSelected(option, value));
+      if (optionIndex > -1) {
+        return labelFromOption(data[optionIndex]);
+      }
+    }
+    return '';
+  });
   const [matches, setMatches] = useState(data);
 
   const { styles, attributes, update } = usePopper(input.current, popup.current, {
@@ -237,14 +261,16 @@ export const GridCombobox = ({
         <Optgroup key={optgroup.label} label={optgroup.label}>
           {optgroup.options.map((option: any) => {
             index += 1;
-            return renderOption(option, index, value);
+            return renderOption(option, index, isSelected(option, value));
           })}
         </Optgroup>
       ));
     }
     // Options
     else {
-      return matches.map((option: any, index: number) => renderOption(option, index + 1, value));
+      return matches.map((option: any, index: number) =>
+        renderOption(option, index + 1, isSelected(option, value)),
+      );
     }
   };
 

@@ -5,7 +5,6 @@ import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Button, GridCombobox, GridOption, GridOptionCell, IconSet } from 'widgets';
 import { Dialog } from 'widgets/popovers';
 import { action } from 'mobx';
-import { ID } from 'src/entities/ID';
 
 interface TagMergeProps {
   tag: ClientTag;
@@ -38,7 +37,10 @@ export const TagMerge = observer(({ tag, onClose }: TagMergeProps) => {
           <legend>Merge {tag.name} with</legend>
           <GridCombobox
             autoFocus
-            value={selectedTag?.id}
+            isSelected={(option: ClientTag, selection: ClientTag | undefined) =>
+              option === selection
+            }
+            value={selectedTag}
             onChange={setSelectedTag}
             data={tagStore.tagList}
             labelFromOption={labelFromOption}
@@ -62,18 +64,13 @@ export const TagMerge = observer(({ tag, onClose }: TagMergeProps) => {
 
 const labelFromOption = action((t: ClientTag) => t.name);
 
-const renderTagOption = action((tag: ClientTag, index: number, selection: ID | undefined) => {
+const renderTagOption = action((tag: ClientTag, index: number, selection: boolean) => {
   const id = tag.id;
   const path = tag.treePath.map((t: ClientTag) => t.name).join(' › ') ?? [];
   const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
 
   return (
-    <GridOption
-      key={id}
-      rowIndex={index}
-      selected={selection === tag.id || undefined}
-      data-tooltip={path}
-    >
+    <GridOption key={id} rowIndex={index} selected={selection || undefined} data-tooltip={path}>
       <GridOptionCell id={id} colIndex={1}>
         <span
           className="combobox-popup-option-icon"

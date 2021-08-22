@@ -131,14 +131,14 @@ const PathInput = ({ labelledby, value, dispatch }: ValueInput<string>) => {
 const TagInput = observer(({ labelledby, value, dispatch }: ValueInput<TagValue>) => {
   const { tagStore } = useStore();
   const data: TagOptions[] = [
-    { label: 'System Tags', options: [{ id: '', name: 'Untagged' }] },
+    { label: 'System Tags', options: [{ id: undefined, name: 'Untagged' }] },
     { label: 'My Tags', options: tagStore.tagList },
   ];
 
   const handleChange = (v: TagOption) => {
     const id = v.id;
     dispatch((criteria) => {
-      criteria.value = id === '' ? undefined : id;
+      criteria.value = id;
       return { ...criteria };
     });
   };
@@ -146,6 +146,7 @@ const TagInput = observer(({ labelledby, value, dispatch }: ValueInput<TagValue>
   return (
     <GridCombobox
       value={value}
+      isSelected={(option: TagOption, selection: TagValue) => option.id === selection}
       onChange={handleChange}
       data={data}
       colcount={2}
@@ -168,7 +169,7 @@ interface TagOption {
 
 const labelFromOption = action((t: ClientTag) => t.name);
 
-const renderOption = (tag: TagOption | ClientTag, index: number, selection: TagValue) => {
+const renderOption = (tag: TagOption | ClientTag, index: number, selection: boolean) => {
   if (tag instanceof ClientTag) {
     return renderTagOption(tag, index, selection);
   } else {
@@ -176,10 +177,10 @@ const renderOption = (tag: TagOption | ClientTag, index: number, selection: TagV
   }
 };
 
-const renderSystemTag = (tag: TagOption, index: number, selection: TagValue) => {
+const renderSystemTag = (tag: TagOption, index: number, selection: boolean) => {
   const id = tag.id ?? '';
   return (
-    <GridOption key={id} rowIndex={index} selected={selection === tag.id || undefined}>
+    <GridOption key={id} rowIndex={index} selected={selection || undefined}>
       <GridOptionCell id={id} colIndex={1} colspan={2}>
         {tag.name}
       </GridOptionCell>
@@ -187,18 +188,13 @@ const renderSystemTag = (tag: TagOption, index: number, selection: TagValue) => 
   );
 };
 
-const renderTagOption = action((tag: ClientTag, index: number, selection: TagValue) => {
+const renderTagOption = action((tag: ClientTag, index: number, selection: boolean) => {
   const id = tag.id;
   const path = tag.treePath.map((t: ClientTag) => t.name).join(' › ') ?? [];
   const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
 
   return (
-    <GridOption
-      key={id}
-      rowIndex={index}
-      selected={selection === tag.id || undefined}
-      data-tooltip={path}
-    >
+    <GridOption key={id} rowIndex={index} selected={selection || undefined} data-tooltip={path}>
       <GridOptionCell id={id} colIndex={1}>
         <span
           className="combobox-popup-option-icon"
