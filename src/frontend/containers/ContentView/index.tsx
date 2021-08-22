@@ -104,9 +104,6 @@ const Content = observer(() => {
               <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
                 <SortMenuItems />
               </MenuSubItem>
-              <MenuSubItem icon={IconSet.THUMB_MD} text="Thumbnail size...">
-                <ThumbnailSizeMenuItems />
-              </MenuSubItem>
             </>
           )}
           {externalMenu && <MenuDivider />}

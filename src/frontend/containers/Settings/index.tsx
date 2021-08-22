@@ -93,26 +93,6 @@ const Appearance = observer(() => {
       <br />
 
       <div className="settings-thumbnail">
-        <RadioGroup name="Size">
-          <Radio
-            label="Small"
-            value="small"
-            checked={uiStore.thumbnailSize === 'small'}
-            onChange={uiStore.setThumbnailSmall}
-          />
-          <Radio
-            label="Medium"
-            value="medium"
-            checked={uiStore.thumbnailSize === 'medium'}
-            onChange={uiStore.setThumbnailMedium}
-          />
-          <Radio
-            label="Large"
-            value="large"
-            checked={uiStore.thumbnailSize === 'large'}
-            onChange={uiStore.setThumbnailLarge}
-          />
-        </RadioGroup>
         <RadioGroup name="Shape">
           <Radio
             label="Square"
