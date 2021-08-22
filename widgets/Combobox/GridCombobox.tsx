@@ -314,7 +314,7 @@ export const GridCombobox = ({
         aria-colcount={colcount}
         onMouseDown={handleMousedown}
       >
-        {children()}
+        {expanded ? children() : []}
       </div>
     </div>
   );
