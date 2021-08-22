@@ -420,7 +420,12 @@ const BackgroundProcesses = observer(() => {
           />
         </div>
       </fieldset>
-
+      <Callout icon={IconSet.INFO}>
+        For the browser extension to work, first enable the browser extension support toggle, then
+        choose a download folder that is in one of your locations already added to Allusion.
+        Finally, if you want the browser extension to work even when Allusion is not open, enable
+        the run in background option.
+      </Callout>
       <Button
         onClick={() => shell.openExternal(chromeExtensionUrl)}
         styling="outlined"
