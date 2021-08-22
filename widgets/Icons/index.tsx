@@ -74,6 +74,7 @@ import PREVIEW from 'resources/icons/preview.svg';
 import RELOAD from 'resources/icons/reload.svg';
 import REPLACE from 'resources/icons/replace.svg';
 import SEARCH from 'resources/icons/search.svg';
+import SEARCH_ADD from 'resources/icons/search-add.svg';
 import SEARCH_ALL from 'resources/icons/search-all.svg';
 import SEARCH_ANY from 'resources/icons/search-any.svg';
 import SEARCH_EXTENDED from 'resources/icons/search-extended.svg';
@@ -174,6 +175,7 @@ const IconSet = {
   RELOAD: toSvg(RELOAD),
   REPLACE: toSvg(REPLACE),
   SEARCH: toSvg(SEARCH),
+  SEARCH_ADD: toSvg(SEARCH_ADD),
   SEARCH_ALL: toSvg(SEARCH_ALL),
   SEARCH_ANY: toSvg(SEARCH_ANY),
   SEARCH_EXTENDED: toSvg(SEARCH_EXTENDED),
