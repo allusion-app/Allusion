@@ -503,7 +503,7 @@ const TagsTree = observer(() => {
     (e: React.MouseEvent, selectedTag: ClientTag) => {
       // Note: selection logic is copied from Gallery.tsx
       const rangeSelection = e.shiftKey;
-      const expandSelection = e.ctrlKey;
+      const expandSelection = e.ctrlKey || e.metaKey;
 
       /** The index of the active (newly selected) item */
       const i = tagStore.findFlatTagListIndex(selectedTag);
