@@ -110,6 +110,7 @@ import VIEW_MASONRY_V from 'resources/icons/view-masonry-v.svg';
 import WARNING_FILL from 'resources/icons/warning-fill.svg';
 import WARNING_BROKEN_LINK from 'resources/icons/warning-broken-link.svg';
 import WARNING from 'resources/icons/warning.svg';
+import QUESTION_MARK from 'resources/icons/questionmark.svg';
 
 const toSvg = (src: any) => <SVG src={src} className="custom-icon" />;
 
@@ -212,6 +213,7 @@ const IconSet = {
   WARNING_FILL: toSvg(WARNING_FILL),
   WARNING_BROKEN_LINK: toSvg(WARNING_BROKEN_LINK),
   WARNING: toSvg(WARNING),
+  QUESTION_MARK: toSvg(QUESTION_MARK),
 };
 
 export { IconSet, SVG };
