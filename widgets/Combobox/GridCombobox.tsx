@@ -6,7 +6,7 @@ interface OptionGroup {
   label: string;
   options: readonly any[];
 }
-type Options = any[] | OptionGroup[];
+type Options = readonly any[] | readonly OptionGroup[];
 
 interface GridComboboxProps {
   value: any;
@@ -15,6 +15,7 @@ interface GridComboboxProps {
   colcount: number;
   labelFromOption: (value: any) => string;
   renderOption: (option: any, index: number, selection: any) => React.ReactNode;
+  autoFocus?: boolean;
   textboxId?: string;
   textboxLabelledby?: string;
   popupLabelledby?: string;
@@ -24,9 +25,10 @@ export const GridCombobox = ({
   value,
   onChange,
   data,
-  labelFromOption: formatOption,
+  labelFromOption,
   renderOption,
   colcount,
+  autoFocus,
   textboxId,
   textboxLabelledby,
   popupLabelledby,
@@ -94,7 +96,7 @@ export const GridCombobox = ({
         return {
           ...optgroup,
           options: optgroup.options.filter((option) =>
-            formatOption(option).toLowerCase().includes(queryNormalized),
+            labelFromOption(option).toLowerCase().includes(queryNormalized),
           ),
         };
       });
@@ -102,12 +104,12 @@ export const GridCombobox = ({
     // Options
     else {
       options = data.filter((option: any) =>
-        formatOption(option).toLowerCase().includes(queryNormalized),
+        labelFromOption(option).toLowerCase().includes(queryNormalized),
       );
     }
     setMatches(options);
     rowCount.current = getRowCount(options);
-  }, [data, formatOption, query]);
+  }, [data, labelFromOption, query]);
 
   const close = useRef(() => setExpanded(false)).current;
 
@@ -199,16 +201,26 @@ export const GridCombobox = ({
 
   // Select option
   const handleMousedown = (e: React.MouseEvent<HTMLElement>) => {
-    if (!(e.target instanceof Element)) {
+    if (!(e.target instanceof Element) || matches.length === 0) {
       return;
     }
     const row = e.target.closest('[role="row"][aria-rowindex]') as HTMLElement | null;
     if (row !== null) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const optionIndex = parseInt(row.getAttribute('aria-rowindex')!) - 1;
-      const option = matches.flatMap((optgroup: OptionGroup) => optgroup.options)[optionIndex];
+
+      let options;
+      // Option Groups
+      if ('label' in matches[0] && 'options' in matches[0]) {
+        options = matches.flatMap((optgroup: OptionGroup) => optgroup.options);
+      }
+      // Options
+      else {
+        options = matches;
+      }
+      const option = options[optionIndex];
       // Set value
-      setQuery(formatOption(option));
+      setQuery(labelFromOption(option));
       onChange(option);
     }
   };
@@ -245,6 +257,7 @@ export const GridCombobox = ({
       className="input"
     >
       <input
+        autoFocus={autoFocus}
         ref={input}
         id={textboxId}
         type="text"
@@ -318,17 +331,18 @@ interface CellProps {
   colIndex: number;
   colspan?: number;
   children?: React.ReactNode;
+  className?: string;
 }
 
-export const GridOptionCell = ({ id, colIndex, children, colspan, ...props }: CellProps) => {
+export const GridOptionCell = ({ id, colIndex, children, colspan, className }: CellProps) => {
   return (
     <div
-      {...props}
       id={id}
       role="gridcell"
       aria-colindex={colIndex}
       aria-colspan={colspan}
       data-cell-focused={false}
+      className={className}
     >
       {children}
     </div>

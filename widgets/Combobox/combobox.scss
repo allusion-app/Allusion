@@ -33,6 +33,17 @@
     margin: 0.5rem 1rem;
   }
 
+  // Option Groups
+  [role='group'] {
+    margin-bottom: 0.5rem;
+
+    > [id] {
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+  }
+
+  // Options
   [role='row'],
   [role='option'] {
     display: flex;

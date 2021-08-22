@@ -131,14 +131,14 @@ const PathInput = ({ labelledby, value, dispatch }: ValueInput<string>) => {
 const TagInput = observer(({ labelledby, value, dispatch }: ValueInput<TagValue>) => {
   const { tagStore } = useStore();
   const data: TagOptions[] = [
-    { label: 'System Tags', options: [{ id: undefined, name: 'Untagged' }] },
+    { label: 'System Tags', options: [{ id: '', name: 'Untagged' }] },
     { label: 'My Tags', options: tagStore.tagList },
   ];
 
   const handleChange = (v: TagOption) => {
     const id = v.id;
     dispatch((criteria) => {
-      criteria.value = id;
+      criteria.value = id === '' ? undefined : id;
       return { ...criteria };
     });
   };
@@ -197,15 +197,19 @@ const renderTagOption = action((tag: ClientTag, index: number, selection: TagVal
       key={id}
       rowIndex={index}
       selected={selection === tag.id || undefined}
-      data-tooltip={hint}
+      data-tooltip={path}
     >
       <GridOptionCell id={id} colIndex={1}>
-        <span style={{ color: tag.viewColor }} aria-hidden={true}>
+        <span
+          className="combobox-popup-option-icon"
+          style={{ color: tag.viewColor }}
+          aria-hidden={true}
+        >
           {IconSet.TAG}
         </span>
         {tag.name}
       </GridOptionCell>
-      <GridOptionCell id={id + '-hint'} colIndex={2}>
+      <GridOptionCell className="tag-option-hint" id={id + '-hint'} colIndex={2}>
         {hint}
       </GridOptionCell>
     </GridOption>
