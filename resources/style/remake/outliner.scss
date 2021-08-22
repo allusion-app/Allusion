@@ -171,12 +171,13 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 2.5rem;
+  height: 2rem;
   justify-content: center;
 
   .toolbar-button {
-    margin: 0.5rem 0.25rem;
-    padding: 0.25rem;
+    margin: 0.25rem;
+    padding: 0 0.25rem;
+    min-height: 1.5rem;
 
     &:active,
     &:hover,

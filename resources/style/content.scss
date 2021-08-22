@@ -164,46 +164,48 @@
   }
 
   [role='gridcell'] {
-    max-height: 24px;
+    height: 24px;
 
     > div {
       // cell container
-      display: inline-block;
-      text-overflow: ellipsis;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
       vertical-align: middle;
+      text-overflow: ellipsis;
       white-space: nowrap;
+      padding: 0 4px;
 
       // Column widths:
-      // - base width of 120px
-      width: 120px;
+      // - base width of 140px
+      width: 140px;
+      &:nth-child(2) {
+        width: 90px;
+      }
+      &:nth-child(3) {
+        width: 150px;
+      }
+      &:nth-child(4) {
+        width: 80px;
+      }
       // - first and last column (filename and tags): fill rest of width
       &:first-child,
       &:last-child {
         // both are 50% minus half of the rest of the columns (0.5 * 3 * 120)
-        width: calc(50% - 180px);
+        width: calc(50% - 160px);
       }
 
       // Overflow is needed for the first child for allowing the thumbnail to expand on hover
       &:not(:first-child) {
         overflow: hidden;
       }
-      &:last-child {
-        padding-bottom: 2px;
-      }
-
-      &:not(:first-child):not(:last-child) {
-        height: 24px;
-        padding-top: 2px;
-      }
 
       > .filename {
-        display: inline-block;
-        vertical-align: top;
+        display: inline;
         overflow: hidden;
         text-overflow: ellipsis;
         max-width: calc(100% - 32px); // minus thumbnail and some padding
-        margin-left: 4px;
-        padding: 2px;
+        margin-left: 8px;
       }
 
       .thumbnail-broken {
@@ -226,11 +228,12 @@
   }
 
   // Force thumbnail size of 24 pixels
-  --thumbnail-size: 24px;
+  --thumbnail-size: 20px;
 
   .thumbnail {
     align-self: center;
     display: inline-block;
+    margin: 2px 0px 2px 4px;
 
     img {
       transition: transform 0.2s ease;
@@ -290,26 +293,35 @@
 .list-header {
   height: 24px;
   width: 100%;
-  border-bottom: 1px solid var(--background-color);
-  // TODO: Drop-shadow, but only when not scrolled all the way at the top
-  box-shadow: 0 4px 2px -2px rgba(0, 0, 0, 0.2);
+  border-bottom: 0.0625rem solid var(--border-color);
 
   // Same as content
   min-width: 600px;
 
   > div {
     // Column widths:
-    // - base width of 120px
-    width: 120px;
+    // - base width of 140px
+    width: 140px;
+    &:nth-child(2) {
+      width: 90px;
+    }
+    &:nth-child(3) {
+      width: 150px;
+    }
+    &:nth-child(4) {
+      width: 80px;
+    }
+    &:first-child {
+      padding-left: 8px;
+    }
     // - first and last column (filename and tags): fill rest of width
     &:first-child,
     &:last-child {
       // both are 50% minus half of the rest of the columns (0.5 * 3 * 120)
-      width: calc(50% - 180px);
+      width: calc(50% - 160px);
     }
 
-    padding: 4px 8px 4px 0px;
-    padding-left: 0;
+    padding: 4px 4px 4px 4px;
     font-weight: bold;
     overflow: hidden;
 
@@ -338,7 +350,7 @@
 // Slide mode:
 #slide-mode {
   flex-direction: row-reverse;
-  
+
   position: absolute;
   top: 0;
   left: 0;
@@ -348,13 +360,21 @@
   background: var(--background-color);
 
   @keyframes fade-in-bg {
-    from {background: rgba(var(--background-color), 0);}
-    to {background: var(--background-color);}
+    from {
+      background: rgba(var(--background-color), 0);
+    }
+    to {
+      background: var(--background-color);
+    }
   }
 
   @keyframes fade-out-bg {
-    from {opacity: 1;}
-    to {opacity: 0;}
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
   }
 
   &.fade-in {
@@ -474,7 +494,11 @@
     .thumbnail-filename {
       display: block;
       background-color: rgba(0, 0, 0, 0.5);
-      color: rgb(200, 200, 200); // can't use --text-color: black text on black background in light theme
+      color: rgb(
+        200,
+        200,
+        200
+      ); // can't use --text-color: black text on black background in light theme
       width: 100%;
       height: 1.5em;
       position: absolute;

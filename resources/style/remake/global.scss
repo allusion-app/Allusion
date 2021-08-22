@@ -138,12 +138,11 @@ details[open] > summary::-webkit-details-marker {
 ::-webkit-scrollbar-track {
   background-color: var(--scrollbar-track-color);
   border: 0.0625rem solid var(--border-color);
-  border-radius: 0.25rem;
 }
 ::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-thumb-color);
   border: 0.0625rem solid var(--border-color);
-  border-radius: 0.25rem;
+  border-radius: 0.125rem;
 }
 ::-webkit-scrollbar-thumb:hover {
   background-color: var(--scrollbar-thumb-hover-color);
