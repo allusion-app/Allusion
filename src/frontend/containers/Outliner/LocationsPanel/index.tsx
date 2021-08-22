@@ -186,7 +186,7 @@ const DirectoryMenu = ({
           // Only show alert when excluding, not when re-including
           onClick={location.isExcluded ? location.toggleExcluded : () => onExclude(location)}
           text={location.isExcluded ? 'Re-include' : 'Exclude'}
-          icon={location.isExcluded ? IconSet.HIDDEN : IconSet.PREVIEW}
+          icon={!location.isExcluded ? IconSet.HIDDEN : IconSet.PREVIEW}
         />
       )}
       <MenuItem
