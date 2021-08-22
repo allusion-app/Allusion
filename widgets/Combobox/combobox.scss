@@ -84,9 +84,16 @@
       -webkit-mask-image: url(~resources/icons/select-all-checked.svg);
     }
 
-    [role='gridcell']:first-child {
-      display: flex;
-      align-items: center;
+    [role='gridcell'] {
+      &[data-cell-focused='true'] {
+        outline: 1px solid var(--text-color);
+        outline-offset: 2;
+      }
+
+      &:first-child {
+        display: flex;
+        align-items: center;
+      }
     }
   }
 }

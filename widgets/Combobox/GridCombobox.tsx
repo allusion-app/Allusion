@@ -192,9 +192,12 @@ export const GridCombobox = ({
 
     // Popper element exists for the lifetime of this component
     const popper = e.currentTarget.nextElementSibling as HTMLElement;
-    const cell = popper.querySelector(
+    const cell = (popper.querySelector(
       `[aria-rowindex="${rowIndex.current + 1}"] > [aria-colindex="${colIndex.current + 1}"]`,
-    ) as HTMLElement | null;
+    ) ??
+      popper.querySelector(
+        `[aria-rowindex="${rowIndex.current + 1}"] > [role="gridcell"]:last-child`,
+      )) as HTMLElement | null;
     if (cell === null) {
       return;
     }
@@ -208,7 +211,7 @@ export const GridCombobox = ({
     // Visually focus next row and cell
     (cell.parentElement as HTMLElement).dataset.focused = 'true';
     cell.dataset.cellFocused = 'true';
-    cell.scrollIntoView({ block: 'nearest' });
+    cell.scrollIntoView({ block: 'center' });
 
     e.currentTarget.setAttribute('aria-activedescendant', cell.id);
     activeDescendant.current = cell;
