@@ -100,6 +100,12 @@ export const MenuSliderItem = ({
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (['ArrowLeft', 'ArrowRight'].includes(e.key)) e.stopPropagation();
   }, []);
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.valueAsNumber),
+    [onChange],
+  );
+
   return (
     <li role="menuitemslider" tabIndex={-1} onFocus={handleFocus}>
       {label && <label htmlFor={id}>{label}</label>}
@@ -110,7 +116,7 @@ export const MenuSliderItem = ({
           min={min}
           max={max}
           value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
+          onChange={handleChange}
           list={id}
           step={step}
           tabIndex={-1}

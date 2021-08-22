@@ -41,6 +41,10 @@ export const ViewCommand = () => {
       menuID="__layout-options"
     >
       <LayoutMenuItems />
+
+      <MenuDivider />
+
+      <ThumbnailSizeSliderMenuItem />
     </MenuButton>
   );
 };
@@ -120,20 +124,23 @@ export const LayoutMenuItems = observer(() => {
         text="Horizontal Masonry"
         accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewMasonryHorizontal} />}
       />
-
-      <MenuDivider />
-
-      <MenuSliderItem
-        value={getThumbnailSize(uiStore.thumbnailSize)}
-        label="Thumbnail size"
-        onChange={uiStore.setThumbnailSize}
-        id="thumbnail-sizes"
-        options={thumbnailSizeOptions}
-        min={thumbnailSizeOptions[0].value}
-        max={thumbnailSizeOptions[thumbnailSizeOptions.length - 1].value}
-        step={20}
-      />
     </MenuRadioGroup>
+  );
+});
+
+export const ThumbnailSizeSliderMenuItem = observer(() => {
+  const { uiStore } = useStore();
+  return (
+    <MenuSliderItem
+      value={getThumbnailSize(uiStore.thumbnailSize)}
+      label="Thumbnail size"
+      onChange={uiStore.setThumbnailSize}
+      id="thumbnail-sizes"
+      options={thumbnailSizeOptions}
+      min={thumbnailSizeOptions[0].value}
+      max={thumbnailSizeOptions[thumbnailSizeOptions.length - 1].value}
+      step={20}
+    />
   );
 });
 
