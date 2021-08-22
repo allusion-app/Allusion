@@ -87,7 +87,6 @@ const KeyComboEditor = observer(
           <input
             ref={inputRef}
             className="key-combo-input input"
-            placeholder="Press a key..."
             value={isChanging ? text : keyComboToString(combo)}
             readOnly={!isChanging}
             onKeyDown={onKeyDown}

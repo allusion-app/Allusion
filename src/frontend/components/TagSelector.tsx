@@ -1,11 +1,11 @@
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { ForwardedRef, ReactElement, useCallback, useMemo, useRef, useState } from 'react';
-import { generateId } from 'src/entities/ID';
 import { ClientTag } from 'src/entities/Tag';
 import { IconButton, IconSet, Tag, Grid, Row, GridCell } from 'widgets';
 import { RowProps, useGridFocus } from 'widgets/Combobox/Grid';
 import { Flyout } from 'widgets/popovers';
+import { generateWidgetId } from 'widgets/utility';
 import { useStore } from '../contexts/StoreContext';
 
 export interface TagSelectorProps {
@@ -14,11 +14,9 @@ export interface TagSelectorProps {
   onDeselect: (item: ClientTag) => void;
   onTagClick?: (item: ClientTag) => void;
   onClear: () => void;
-  multiselectable: boolean;
   disabled?: boolean;
   extraIconButtons?: ReactElement;
-  placeholder?: string;
-  renderCreateOption?: (
+  renderCreateOption: (
     inputText: string,
     resetTextBox: () => void,
   ) => ReactElement<RowProps> | ReactElement<RowProps>[];
@@ -31,13 +29,11 @@ const TagSelector = (props: TagSelectorProps) => {
     onDeselect,
     onTagClick,
     onClear,
-    multiselectable,
     disabled,
     extraIconButtons,
-    placeholder,
     renderCreateOption,
   } = props;
-  const gridId = useRef(generateId()).current;
+  const gridId = useRef(generateWidgetId('__suggestions')).current;
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -66,6 +62,7 @@ const TagSelector = (props: TagSelectorProps) => {
           onDeselect(selection[selection.length - 1]);
         }
       } else if (e.key === 'Escape') {
+        e.preventDefault();
         setQuery('');
         setIsOpen(false);
       } else {
@@ -135,7 +132,6 @@ const TagSelector = (props: TagSelectorProps) => {
                 aria-activedescendant={activeDescendant}
                 ref={inputRef}
                 onFocus={handleFocus}
-                placeholder={selection.length === 0 ? placeholder : undefined}
               />
             </div>
             {extraIconButtons}
@@ -145,7 +141,6 @@ const TagSelector = (props: TagSelectorProps) => {
       >
         <SuggestedTagsList
           ref={gridRef}
-          multiselectable={multiselectable}
           id={gridId}
           query={query}
           selection={selection}
@@ -190,8 +185,7 @@ interface SuggestedTagsListProps {
   selection: readonly ClientTag[];
   toggleSelection: (isSelected: boolean, tag: ClientTag) => void;
   resetTextBox: () => void;
-  multiselectable: boolean;
-  renderCreateOption?: (
+  renderCreateOption: (
     inputText: string,
     resetTextBox: () => void,
   ) => ReactElement<RowProps> | ReactElement<RowProps>[];
@@ -199,15 +193,7 @@ interface SuggestedTagsListProps {
 
 const SuggestedTagsList = observer(
   (props: SuggestedTagsListProps, ref: ForwardedRef<HTMLDivElement>) => {
-    const {
-      id,
-      query,
-      selection,
-      toggleSelection,
-      resetTextBox,
-      multiselectable,
-      renderCreateOption,
-    } = props;
+    const { id, query, selection, toggleSelection, resetTextBox, renderCreateOption } = props;
     const { tagStore } = useStore();
 
     const suggestions = useMemo(
@@ -224,7 +210,7 @@ const SuggestedTagsList = observer(
     ).get();
 
     return (
-      <Grid ref={ref} id={id} multiselectable={multiselectable}>
+      <Grid ref={ref} id={id} multiselectable>
         {suggestions.map((tag) => {
           const selected = selection.includes(tag);
           return (
@@ -232,12 +218,12 @@ const SuggestedTagsList = observer(
               id={`${id}${tag.id}`}
               key={tag.id}
               tag={tag}
-              selected={selected ? selected : multiselectable ? selected : undefined}
+              selected={selected}
               toggleSelection={toggleSelection}
             />
           );
         })}
-        {suggestions.length === 0 && renderCreateOption?.(query, resetTextBox)}
+        {suggestions.length === 0 && renderCreateOption(query, resetTextBox)}
       </Grid>
     );
   },

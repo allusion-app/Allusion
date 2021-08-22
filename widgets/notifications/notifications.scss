@@ -2,7 +2,7 @@
   display: grid;
   grid-template-areas: 'icon auto' 'icon body';
   grid-template-columns: min-content 1fr;
-  border-left: 0.25rem solid var(--accent-color-blue);
+  border-left: 0.25rem solid var(--accent-color);
   padding: 0.125rem 0;
   padding-left: 0.75rem;
   margin-bottom: 0.5rem;
@@ -22,7 +22,7 @@
 }
 
 .toast {
-  background: var(--accent-color-blue);
+  background: var(--accent-color);
   color: white;
   width: 22.5rem;
   margin-bottom: 1rem;

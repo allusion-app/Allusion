@@ -107,15 +107,16 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         text="Rename"
         icon={IconSet.EDIT}
       />
-      <MenuItem
+      <MenuCheckboxItem
+        checked={tag.isHidden}
+        text="Hide Tagged Images"
         onClick={tag.toggleHidden}
-        text={`${tag.isHidden ? 'Show' : 'Hide'} tagged images`}
-        icon={tag.isHidden ? IconSet.PREVIEW : IconSet.HIDDEN}
       />
       <MenuItem
         onClick={() => dispatch(Factory.confirmMerge(tag))}
-        text="Merge with..."
+        text="Merge with"
         icon={IconSet.TAG_GROUP}
+        disabled={tag.subTags.length > 0}
       />
       <MenuItem
         onClick={() => dispatch(Factory.confirmDeletion(tag))}

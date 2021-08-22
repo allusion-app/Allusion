@@ -152,7 +152,7 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
   }, [location, onClose]);
 
   useEffect(() => {
-    autorun(() => {
+    return autorun(() => {
       if (location.subLocations.length === 0 && !location.isInitialized) {
         location.refreshSublocations().then(() => setSublocationsLoaded(true));
       }
@@ -160,12 +160,16 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
   }, [location]);
 
   return (
-    <Dialog open={Boolean(location)} labelledby="dialog-title" describedby="dialog-information">
-      <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
-      <h2 id="dialog-title" className="dialog-title">
-        Configure Location &quot;{location.name}&quot;
-      </h2>
-      <div id="dialog-information" className="dialog-information">
+    <Dialog
+      open
+      title={`Add Location ${location.name}`}
+      icon={IconSet.FOLDER_CLOSE}
+      describedby="location-add-info"
+      onCancel={handleCancel}
+    >
+      <p id="location-add-info">
+        You can configure the location {location.name} by including only certain subdirectories from
+        the directory.
         {/* TODO: Switch for importing folder structure as tags */}
         {/* <p>Would you like to create tags from the folder structure of this Location?</p>
         <div style={{ marginLeft: '1rem' }}>
@@ -175,23 +179,23 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
             checked={importFolderHierarchyAsTags}
           />
         </div> */}
-
         {/* Show folder, exclude directories */}
-        <p>Optionally, choose any folders to exclude:</p>
-        <div style={{ maxHeight: '400px', overflow: 'auto' }}>
+      </p>
+      <form method="dialog" onSubmit={(e) => e.preventDefault()}>
+        <fieldset>
+          <legend>Included Subdirectories of {location.name}</legend>
           {!sublocationsLoaded ? (
             <i>{IconSet.LOADING} loading...</i>
           ) : (
             <SubLocationInclusionTree location={location} />
           )}
-        </div>
-      </div>
-      <div className="dialog-footer">
-        <div className="btn-group dialog-actions">
-          <Button styling="filled" onClick={handleSubmit} text="Confirm" />
+        </fieldset>
+
+        <fieldset className="dialog-actions">
+          <Button styling="filled" text="Confirm" onClick={handleSubmit} />
           <Button styling="outlined" onClick={handleCancel} text="Cancel" />
-        </div>
-      </div>
+        </fieldset>
+      </form>
     </Dialog>
   );
 };

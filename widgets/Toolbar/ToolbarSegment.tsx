@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { ToolbarButton } from './index';
-
 export interface IToolbarSegment {
   id?: string;
   children: React.ReactElement<IToolbarSegment>;
@@ -16,28 +14,32 @@ export const ToolbarSegment = ({ id, label, children }: IToolbarSegment) => {
   );
 };
 
-interface IToolbarSegmentButton {
+interface ToolbarSegmentButtonProps {
   id?: string;
   text: React.ReactText;
   icon: JSX.Element;
   onClick?: (event: React.MouseEvent) => void;
-  showLabel?: 'always' | 'never';
+  isCollapsible?: boolean;
   tooltip?: string;
   checked: boolean;
 }
 
-export const ToolbarSegmentButton = (props: IToolbarSegmentButton) => {
-  const { id, checked, onClick, icon, text, tooltip, showLabel } = props;
+export const ToolbarSegmentButton = (props: ToolbarSegmentButtonProps) => {
+  const { id, checked, onClick, icon, text, tooltip, isCollapsible } = props;
   return (
-    <ToolbarButton
+    <button
       id={id}
       role="radio"
-      checked={checked}
+      className="toolbar-button"
+      aria-checked={checked}
       onClick={onClick}
-      icon={icon}
-      text={text}
-      tooltip={tooltip}
-      showLabel={showLabel}
-    />
+      data-tooltip={tooltip ?? text}
+      data-collapsible={isCollapsible}
+    >
+      <span className="btn-content-icon" aria-hidden>
+        {icon}
+      </span>
+      <span className="btn-content-text">{text}</span>
+    </button>
   );
 };

@@ -155,7 +155,11 @@ class TagStore {
   }
 
   @action.bound merge(tagToBeRemoved: ClientTag, tagToMergeWith: ClientTag) {
-    if (tagToBeRemoved.subTags.length > 0) return; // not dealing with tags that have subtags
+    // not dealing with tags that have subtags
+    if (tagToBeRemoved.subTags.length > 0) {
+      throw new Error('Merging a tag with sub-tags is currently not supported.');
+    }
+
     this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id).then(() => {
       this.remove(tagToBeRemoved);
       this.rootStore.fileStore.refetch();

@@ -32,7 +32,6 @@ const FileTags = observer(({ file }: IFileTagProp) => {
 
   return (
     <TagSelector
-      multiselectable
       disabled={file.isBroken}
       selection={Array.from(file.tags)}
       onClear={file.clearTags}

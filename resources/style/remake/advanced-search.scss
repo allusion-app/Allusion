@@ -1,0 +1,52 @@
+#search-form {
+  display: flex;
+  flex-direction: column;
+  min-width: min(80ch, 80vw);
+  max-height: calc(80vh - 3rem);
+
+  .criteria-input {
+    max-width: 175px;
+    min-width: 175px;
+    min-height: 28px;
+  }
+}
+
+#criteria-builder {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr min-content;
+  gap: 0.25rem 0.5rem;
+  align-items: center;
+
+  label {
+    text-transform: uppercase;
+    font-size: smaller;
+  }
+}
+
+#query-editor-container {
+  overflow-y: auto;
+  padding: 2px 0;
+}
+
+#query-editor {
+  width: 100%;
+  border-spacing: 0;
+
+  tr {
+    margin-bottom: 0.25rem;
+  }
+
+  td,
+  th {
+    padding: 0;
+    padding-bottom: 0.25rem;
+  }
+
+  td {
+    padding-inline-start: 0.5rem;
+  }
+
+  .criteria-input {
+    width: 100%;
+  }
+}

@@ -8,6 +8,7 @@ import { useStore } from '../contexts/StoreContext';
 import PopupWindow from '../components/PopupWindow';
 import { shell } from 'electron';
 import { chromeExtensionUrl } from 'src/config';
+import { ToolbarButton } from 'widgets/Toolbar';
 
 const HelpCenter = observer(() => {
   const { uiStore } = useStore();
@@ -168,19 +169,15 @@ interface IPageToolbar {
 
 const PageToolbar = ({ isIndexOpen, toggleIndex, controls }: IPageToolbar) => {
   return (
-    <div className="doc-page-toolbar">
-      <button
-        className="btn toolbar-button"
-        aria-pressed={isIndexOpen}
-        aria-controls={controls}
+    <div role="toolbar" className="doc-page-toolbar" data-compact>
+      <ToolbarButton
+        text="Toggle Index"
+        icon={isIndexOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
+        pressed={isIndexOpen}
+        controls={controls}
         onClick={() => toggleIndex((value) => !value)}
         tabIndex={0}
-      >
-        <span className="btn-content-icon" aria-hidden="true">
-          {isIndexOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
-        </span>
-        <span className="btn-content-text hidden">Toggle Index</span>
-      </button>
+      />
     </div>
   );
 };

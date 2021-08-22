@@ -597,10 +597,9 @@ const LocationsPanel = observer(() => {
     >
       <header>
         <h2 onClick={() => setCollapsed(!isCollapsed)}>Locations</h2>
-        <Toolbar controls="location-list">
+        <Toolbar controls="location-list" isCompact>
           {locationStore.locationList.length > 0 && (
             <ToolbarButton
-              showLabel="never"
               icon={IconSet.RELOAD}
               text="Refresh"
               onClick={action(() =>
@@ -612,7 +611,6 @@ const LocationsPanel = observer(() => {
             />
           )}
           <ToolbarButton
-            showLabel="never"
             icon={IconSet.PLUS}
             text="New Location"
             onClick={handleChooseWatchedDir}

@@ -91,12 +91,12 @@ const RecoveryInfo = observer(({ location, status, match }: IRecoveryInfoProps) 
   switch (status) {
     case Status.Ok:
       return (
-        <div>The location has been recovered, all files were found in the specified directory!</div>
+        <p>The location has been recovered, all files were found in the specified directory!</p>
       );
 
     case Status.InvalidPath:
       return (
-        <div>
+        <>
           <p>The location {location.name} could not be found on your system.</p>
           <p>
             If it has been moved to a different directory, you can relocate the location by choosing
@@ -104,26 +104,26 @@ const RecoveryInfo = observer(({ location, status, match }: IRecoveryInfoProps) 
           </p>
           <p>Original path:</p>
           <pre>{location.path}</pre>
-        </div>
+        </>
       );
 
     case Status.NoMatches:
       return (
-        <div>
+        <p>
           The location could not be recovered since no images of this location were found in the
           specified directory.
-        </div>
+        </p>
       );
 
     // TODO: Should also warn about new images in the folder that were not in the location before (status.directoryImageCount)
     case Status.PartialRecovery:
       if (match) {
         return (
-          <div>
+          <p>
             Only {match.matchCount} out of {match.locationImageCount} images were found in the
             specified directory. By recovering the location, the missing files would be lost. Do you
             still want to recover the location using this directory?
-          </div>
+          </p>
         );
       }
       return null;
@@ -146,43 +146,57 @@ const RecoveryActions = observer(
     const { uiStore } = useStore();
 
     switch (status) {
-      case Status.Ok:
-        return (
-          <div className="btn-group dialog-actions">
-            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Close" />
-          </div>
-        );
-
       case Status.InvalidPath:
         return (
-          <div className="btn-group dialog-actions">
-            <Button styling="filled" onClick={locate} text="Locate" />
+          <>
+            <Button key="locate" styling="filled" onClick={locate} text="Locate" />
             {/* Re-scan option, e.g. for when you mount a drive */}
-            <Button styling="outlined" onClick={rescan} text="Re-Scan" />
-            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Cancel" />
-          </div>
+            <Button key="rescan" styling="outlined" onClick={rescan} text="Re-Scan" />
+            <Button
+              key="cancel"
+              styling="outlined"
+              onClick={uiStore.closeLocationRecovery}
+              text="Cancel"
+            />
+          </>
         );
 
       case Status.NoMatches:
         return (
-          <div className="btn-group dialog-actions">
-            <Button styling="outlined" onClick={retry} text="Retry" />
-          </div>
+          <>
+            <Button key="retry" styling="outlined" onClick={retry} text="Retry" />
+            <Button
+              key="cancel"
+              styling="filled"
+              onClick={uiStore.closeLocationRecovery}
+              text="Cancel"
+            />
+          </>
         );
 
       case Status.PartialRecovery:
         return (
-          <div className="btn-group dialog-actions">
-            <Button styling="outlined" onClick={retry} text="Retry" />
-            <Button styling="outlined" onClick={save} text="Recover" />
-          </div>
+          <>
+            <Button key="retry" styling="outlined" onClick={retry} text="Retry" />
+            <Button key="recover" styling="outlined" onClick={save} text="Recover" />
+            <Button
+              key="cancel"
+              styling="filled"
+              onClick={uiStore.closeLocationRecovery}
+              text="Cancel"
+            />
+          </>
         );
 
+      case Status.Ok:
       default:
         return (
-          <div className="btn-group dialog-actions">
-            <Button styling="outlined" onClick={uiStore.closeLocationRecovery} text="Close" />
-          </div>
+          <Button
+            key="close"
+            styling="filled"
+            onClick={uiStore.closeLocationRecovery}
+            text="Close"
+          />
         );
     }
   },
@@ -197,7 +211,9 @@ const LocationRecoveryDialog = () => {
 
   const location = isLocationRecoveryOpen ? locationStore.get(isLocationRecoveryOpen) : undefined;
 
-  if (!location) return null;
+  if (!location) {
+    return null;
+  }
 
   const status = statusFromMatch(match);
 
@@ -246,23 +262,27 @@ const LocationRecoveryDialog = () => {
   };
 
   return (
-    <Dialog open={Boolean(location)} labelledby="dialog-title" describedby="dialog-information">
-      <span className="dialog-icon">{IconSet.FOLDER_CLOSE}</span>
-      <h2 id="dialog-title" className="dialog-title">
-        Location &quot;{location.name}&quot; could not be found
-      </h2>
-      <div id="dialog-information" className="dialog-information">
+    <Dialog
+      open
+      title={`Recover Location ${location.name}`}
+      icon={IconSet.FOLDER_CLOSE}
+      describedby="location-recovery-info"
+      onCancel={uiStore.closeLocationRecovery}
+    >
+      <div id="location-recovery-info">
         <RecoveryInfo location={location} status={status} match={match} />
       </div>
-      <div className="dialog-footer">
+      <div className="dialog-actions">
         <RecoveryActions
           status={status}
           locate={handleLocate}
           rescan={handleRescan}
           retry={() => setMatch(undefined)}
           save={() => {
-            handleChangeLocationPath(location, pickedDir!);
-            uiStore.closeLocationRecovery();
+            if (pickedDir) {
+              handleChangeLocationPath(location, pickedDir);
+              uiStore.closeLocationRecovery();
+            }
           }}
         />
       </div>

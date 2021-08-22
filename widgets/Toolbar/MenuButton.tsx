@@ -1,21 +1,29 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { ToolbarButton } from './index';
 import { Menu, MenuChildren } from '../menus';
 import { RawPopover } from '../popovers/RawPopover';
 
-export interface IMenuButton {
+export interface MenuButtonProps {
   id: string;
   text: React.ReactText;
   icon: JSX.Element;
-  showLabel?: 'always' | 'never';
+  isCollapsible?: boolean;
   tooltip?: string;
   menuID: string;
   children: MenuChildren;
   disabled?: boolean;
 }
 
-export const MenuButton = (props: IMenuButton) => {
+export const MenuButton = ({
+  id,
+  icon,
+  text,
+  tooltip,
+  isCollapsible,
+  disabled,
+  menuID,
+  children,
+}: MenuButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const container = useRef<HTMLDivElement>(null);
 
@@ -58,26 +66,30 @@ export const MenuButton = (props: IMenuButton) => {
       popoverRef={container}
       isOpen={isOpen}
       target={
-        <ToolbarButton
-          id={props.id}
-          icon={props.icon}
-          text={props.text}
-          disabled={props.disabled}
-          showLabel={props.showLabel}
-          tooltip={props.tooltip}
-          onClick={() => setIsOpen(!isOpen)}
-          expanded={isOpen}
-          controls={props.menuID}
-          haspopup="menu"
-        />
+        <button
+          id={id}
+          className="toolbar-button"
+          aria-disabled={disabled}
+          data-collapsible={isCollapsible ?? true}
+          data-tooltip={tooltip ?? text}
+          onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
+          aria-expanded={isOpen}
+          aria-controls={menuID}
+          aria-haspopup="menu"
+        >
+          <span className="btn-content-icon" aria-hidden>
+            {icon}
+          </span>
+          <span className="btn-content-text">{text}</span>
+        </button>
       }
       placement="bottom"
       onBlur={handleBlur}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
     >
-      <Menu id={props.menuID} labelledby={props.id}>
-        {props.children}
+      <Menu id={menuID} labelledby={id}>
+        {children}
       </Menu>
     </RawPopover>
   );
