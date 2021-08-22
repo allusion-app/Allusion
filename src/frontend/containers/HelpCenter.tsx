@@ -268,8 +268,11 @@ const PAGE_DATA: () => IPageData[] = () => [
               To add a new location, open the outliner and hover with your mouse over the location's
               header. You will see a small plus icon to the right. Once you click the icon, go ahead
               and browse the folder that contains images. Confirm your selection and select your
-              location preferences in the following popup. Once you confirm, your images will show
-              up in the content area.
+              location preferences in the following popup. You have the option to exclude subfolders
+              during this process. Excluding subfolders later is also possible but keep in mind that
+              Allusion does not store tag data for excluded folders. Any existing tag data will be
+              removed when you choose to exclude a subfolder. Once you confirm, your images will
+              show up in the content area.
             </p>
             <p>
               To remove a location, open the outliner and right click on a location. A context menu
@@ -289,7 +292,7 @@ const PAGE_DATA: () => IPageData[] = () => [
               Another way of quickly importing images is by dragging them into your list of
               locations in the the application window. You can drag them from your file explorer,
               but also from any other sources like a web browser. When dropping those images, they
-              will be copied in into the (sub)folder you chose. that location.
+              will be copied in into the (sub)folder you chose.
             </p>
           </>
         ),
@@ -343,20 +346,18 @@ const PAGE_DATA: () => IPageData[] = () => [
         content: (
           <>
             <p>
-              Although it is possible to create tags on the fly, it is recommended to set up a
-              useful tags in advance to take full advantage of the organized tag structures that can
-              be set up in the outliner. The outliner has a tag related section below your
-              locations. In this section you are able to create, edit and organize your tags.
+              Although it is possible to create tags on the fly, it is recommended to set up useful
+              tags in advance to take full advantage of the organized tag structures that can be
+              created in the outliner. The outliner has a tag related section below your locations.
+              In this section you are able to create, edit and organize your tags.
             </p>
             <p>
-              To create a new tag, simply press the icon next to the header. You have to hover the
-              mouse over the region for the icon to become visible. Similarly, you can create a tag
-              category by pressing the icon next to it. A tag is used to label images while a tag
-              category can be thought of as a folder for tags.
+              To create a new tag, simply press the plus icon next to the header. You have to hover
+              the mouse over the region for the icon to become visible.
             </p>
             <p>
-              To organize your tags, simply drag the list items across the outliner. You can drop an
-              item onto a tag category to place it inside. In this way you can turn a list of many
+              To organize your tags, simply drag the list items across the outliner. You can drop
+              items onto one another to create a hierarchy. In this way you can turn a list of many
               tags into a structured shape, so that it is easy for you to find the specific tags you
               were looking for.
             </p>
@@ -399,15 +400,20 @@ const PAGE_DATA: () => IPageData[] = () => [
           <>
             <p>
               In Allusion there are several ways to find specific images. By default, the search bar
-              lets you look for images based on their tags. The advanced search can be accessed from
-              within the quick search and allows for more advanced search queries.
+              lets you look for images based on their tags. You can press Ctrl-F to focus on the
+              searchbar quickly. The advanced search can be accessed from the three dots icon in the
+              upper right corner of Allusion.
             </p>
             <p>
-              To open the quick search, click on the magnifying glass icon in the toolbar, or use
-              the shortcut Ctrl-F. A search bar will gain focus near the top of the window. Once you
-              start typing, Allusion will make suggestions with an indication of where the item is a
-              tag or a collection. Select the item from the list to add it to your search. You can
-              narrow down an image by searching for several tags at once.
+              The searchbar that is always visible in the toolbar is the quickest way to search.
+              Once you start typing, Allusion will make suggestions with an indication of any parent
+              tags. Select the item from the list to add it to your search. You can narrow down an
+              image by searching for several tags at once. If you search for two tags, by default,
+              Allusion will return all images that have both tags assigned. You can change this
+              behavior with the two circles icon on the right side of the search bar to return all
+              images that have any of the two tags assigned instead. Finally keep in mind that
+              Allusion will search for child tags recursivly by default. You can use the advanced
+              search to exclude child tags from the result.
             </p>
           </>
         ),
@@ -417,15 +423,22 @@ const PAGE_DATA: () => IPageData[] = () => [
         content: (
           <>
             <p>
-              The advanced search can be opened by pressing on the icon on the far left side of the
-              quick search bar, or by the Ctrl-Shift-F shortcut. In that window you are able to
-              create as many search criteria as you wish by listing them up. Each row in the
-              interface represents one criteria and consists of three input fields. First select the
-              type of information you want to look for. You can search for tags and file properties
-              such as their name, size, type and creation date. You can then select an operator such
-              as &quote;equals&quote;, &quote;greater than&quote;, &quote;includes&quote; etc.
-              Finally you can enter the value of the selected property you wish to look for. Adding
-              multiple criteria will again help you narrow down a search result.
+              The advanced search can be opened by pressing the three dots icon in the upper right
+              corner of Allusion, or by using the Ctrl-Shift-F shortcut. In that window you are able
+              to create as many search criteria as you wish by listing them up. Enter your criteria
+              in the criteria builder section of the advanced search. Then use the plus icon on the
+              right side to add the finished criteria to the query editor below. Clicking on search
+              will return all images that match with the criteria in the query editor, not with
+              anything that is entered in the criteria builder.
+            </p>
+            <p>
+              To take a closer look, each row in the interface represents one criteria and consists
+              of three input fields. First select the type of information you want to look for. You
+              can search for tags and file properties such as their name, size, type and creation
+              date. You can then select an operator such as &quote;equals&quote;, &quote;greater
+              than&quote;, &quote;includes&quote; etc. Finally you can enter the value of the
+              selected property you wish to look for. Adding multiple criteria will again help you
+              narrow down a search result.
             </p>
             <p>
               To provide some extra control when searching with multiple queries, you can swap
@@ -468,7 +481,8 @@ const PAGE_DATA: () => IPageData[] = () => [
               is a panel that is shown when viewing the image at full size, which can be performed
               by choosing said option in the context menu of an image, or simply by double clicking
               on it. This panel will allow you to see relevant meta-data of the file as well as the
-              list of tags assigned to the image.
+              list of tags assigned to the image. If the inspector is not visible in the full size
+              view, find the information icon in the toolbar.
             </p>
           </>
         ),
@@ -482,7 +496,7 @@ const PAGE_DATA: () => IPageData[] = () => [
               the spacebar. The preview window will open and display your images. It is however
               important to take note that the preview window will only allow you to cycle through
               images in your selection. You can therefore select multiple images and preview just
-              those in the new window. Press spacebar again to close the window again.
+              those in the new window. Press spacebar again to close the window.
             </p>
           </>
         ),
