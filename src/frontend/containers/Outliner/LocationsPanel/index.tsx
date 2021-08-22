@@ -370,7 +370,7 @@ const SubLocation = ({
         : IconSet.HIDDEN}
       <div>{nodeData.name}</div>
       <button onClick={handleClick} className="btn btn-icon" aria-hidden={!isSearched}>
-        {isSearched ? IconSet.SEARCH : IconSet.ADD}
+        {isSearched ? IconSet.SEARCH : IconSet.SEARCH_ADD}
       </button>
     </div>
   );
@@ -437,7 +437,7 @@ const Location = observer(
           <span onClick={() => uiStore.openLocationRecovery(nodeData.id)}>{IconSet.WARNING}</span>
         ) : (
           <button onClick={handleClick} className="btn btn-icon" aria-hidden={!isSearched}>
-            {isSearched ? IconSet.SEARCH : IconSet.ADD}
+            {isSearched ? IconSet.SEARCH : IconSet.SEARCH_ADD}
           </button>
         )}
       </div>
