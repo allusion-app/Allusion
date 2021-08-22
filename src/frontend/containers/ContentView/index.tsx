@@ -11,7 +11,7 @@ import { ContextMenu, MenuSubItem, Menu, MenuChild, MenuDivider } from 'widgets/
 import Placeholder from './Placeholder';
 import Layout from './LayoutSwitcher';
 
-import { LayoutMenuItems, SortMenuItems, ThumbnailSizeMenuItems } from '../AppToolbar/Menus';
+import { LayoutMenuItems, SortMenuItems } from '../AppToolbar/Menus';
 import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { runInAction } from 'mobx';
 import { MoveFilesToTrashBin } from 'src/frontend/components/RemovalAlert';
