@@ -1,4 +1,3 @@
-import './popup.scss';
 import React, { ForwardedRef, forwardRef, ReactElement, ReactNode, useRef, useState } from 'react';
 
 export interface GridProps {
@@ -15,13 +14,7 @@ export const Grid = forwardRef(function Grid(props: GridProps, ref: ForwardedRef
   const { id, multiselectable, children } = props;
 
   return (
-    <div
-      ref={ref}
-      id={id}
-      role="grid"
-      className="combobox-popup"
-      aria-multiselectable={multiselectable}
-    >
+    <div ref={ref} id={id} role="grid" aria-multiselectable={multiselectable}>
       {children}
     </div>
   );
@@ -130,7 +123,6 @@ export const Row = ({ id, value, selected, onClick, icon, tooltip, children }: R
   <div
     id={id}
     role="row"
-    className="combobox-popup-option"
     aria-selected={selected}
     onClick={onClick}
     tabIndex={-1} // Important for focus handling!

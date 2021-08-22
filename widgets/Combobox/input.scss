@@ -1,0 +1,78 @@
+.multiautocomplete-input {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+
+  > .input-wrapper {
+    display: flex;
+    flex-grow: 1;
+    flex-wrap: wrap;
+  }
+
+  input {
+    width: 15ch;
+    flex-grow: 1;
+  }
+
+  > .btn-icon {
+    min-width: 1.5rem;
+    min-height: 1.5rem;
+
+    .custom-icon {
+      height: 1rem;
+      width: 1rem;
+    }
+  }
+}
+
+.input {
+  height: 28px;
+  background: var(--input-color);
+  border: 0.0625rem solid var(--border-color);
+  outline: none;
+  border-radius: 0.25rem;
+  cursor: text;
+
+  &:hover {
+    background: var(--input-color-hover);
+  }
+
+  &:focus-within {
+    background: var(--input-color);
+    box-shadow: 0 0 0 0.125rem var(--accent-color);
+  }
+}
+
+/** We cannot use <input type="file" /> as we want to pick directories. However,
+      I am too lazy to create an additional React component + SASS file. This
+      seems even more overkill than having a Toggle component. At least there is
+      some complex CSS going on. So, you have to use this class.
+  
+      # Example in React
+      ```ts
+      const { path, browseDirectory, placeholder } = props;
+  
+      <div className="input-file">
+        <span className="input input-file-value">{path ?? placeholder}</span>
+        <Button styling="filled" text="Browse" onClick={browseDirectory} />
+      </div>
+      ```
+  */
+.input-file {
+  display: flex;
+  align-items: center;
+
+  .input-file-value {
+    margin-right: 0.25rem;
+    padding: 0 0.5rem;
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.8125rem;
+
+    &:hover {
+      background: var(--input-color-hover);
+    }
+  }
+}

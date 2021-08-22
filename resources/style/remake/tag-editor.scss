@@ -15,11 +15,13 @@
   overflow: auto;
   resize: vertical;
 
-  > input:first-child {
+  > input {
     margin: 0.5rem;
+    width: auto;
+    height: auto;
   }
 
-  .combobox-popup {
+  [role='grid'] {
     flex: 1;
     border-top: 0.0625rem solid var(--border-color);
     border-bottom: 0.0625rem solid var(--border-color);

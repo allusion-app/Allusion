@@ -1,4 +1,4 @@
-import { computed, IComputedValue, runInAction } from 'mobx';
+import { autorun, computed, IComputedValue, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, {
   ForwardedRef,
@@ -20,6 +20,8 @@ import { IconSet } from 'widgets/Icons';
 import { ToolbarButton } from 'widgets/menus';
 import { useStore } from '../../contexts/StoreContext';
 import { Tooltip } from './PrimaryCommands';
+
+const POPUP_ID = 'tag-editor-popup';
 
 const FileTagEditor = observer(() => {
   const { uiStore } = useStore();
@@ -44,6 +46,7 @@ export default FileTagEditor;
 const TagEditor = () => {
   const { uiStore } = useStore();
   const [inputText, setInputText] = useState('');
+
   const counter = useRef(
     computed(() => {
       // Count how often tags are used
@@ -59,6 +62,15 @@ const TagEditor = () => {
   ).current;
 
   const inputRef = useRef<HTMLInputElement>(null);
+  // Autofocus
+  useEffect(() => {
+    return autorun(() => {
+      if (uiStore.isToolbarTagPopoverOpen) {
+        requestAnimationFrame(() => requestAnimationFrame(() => inputRef.current?.focus()));
+      }
+    });
+  }, [uiStore]);
+
   const handleInput = useRef((e: React.ChangeEvent<HTMLInputElement>) =>
     setInputText(e.target.value),
   ).current;
@@ -102,16 +114,24 @@ const TagEditor = () => {
   });
 
   return (
-    <div id="tag-editor" ref={panelRef} style={{ height: storedHeight ?? undefined }}>
+    <div
+      ref={panelRef}
+      id="tag-editor"
+      style={{ height: storedHeight ?? undefined }}
+      role="combobox"
+      aria-haspopup="grid"
+      aria-expanded="true"
+      aria-owns={POPUP_ID}
+    >
       <input
-        autoFocus
         type="text"
+        spellCheck={false}
         value={inputText}
         aria-autocomplete="list"
         onChange={handleInput}
         onKeyDown={handleGridFocus}
         className="input"
-        aria-controls="tag-editor-popup"
+        aria-controls={POPUP_ID}
         aria-activedescendant={activeDescendant}
         ref={inputRef}
       />
@@ -161,13 +181,13 @@ const MatchingTagsList = observer(
     });
 
     return (
-      <Grid ref={ref} id="tag-editor-popup" multiselectable>
+      <Grid ref={ref} id={POPUP_ID} multiselectable>
         {matches.map((tag) => {
           const selected = counter.get().get(tag) !== undefined;
           return (
             <TagOption
               key={tag.id}
-              id={`tag-editor-popup-${tag.id}`}
+              id={`${POPUP_ID}-${tag.id}`}
               tag={tag}
               selected={selected}
               toggleSelection={toggleSelection}
