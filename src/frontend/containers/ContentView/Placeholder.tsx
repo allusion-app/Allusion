@@ -71,7 +71,7 @@ const NoQueryContent = () => {
   return (
     <ContentPlaceholder title="No images found" icon={IconSet.SEARCH}>
       <p>Try searching for something else.</p>
-      <ButtonGroup>
+      <ButtonGroup align="center">
         <Button
           text="All images"
           icon={IconSet.MEDIA}
@@ -109,7 +109,7 @@ const NoMissingContent = () => {
   return (
     <ContentPlaceholder title="No missing images" icon={IconSet.WARNING_BROKEN_LINK}>
       <p>Try searching for something else.</p>
-      <ButtonGroup>
+      <ButtonGroup align="center">
         <Button
           text="All images"
           icon={IconSet.MEDIA}

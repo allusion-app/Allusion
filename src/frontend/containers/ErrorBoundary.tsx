@@ -118,7 +118,7 @@ ${this.state.error}
           <span className="custom-icon-64">{IconSet.DB_ERROR}</span>
           <h2>Something went wrong</h2>
           <p>You can try one of the following options or contact the maintainers.</p>
-          <ButtonGroup>
+          <ButtonGroup align="center">
             <Button
               onClick={this.reloadApplication}
               styling="outlined"

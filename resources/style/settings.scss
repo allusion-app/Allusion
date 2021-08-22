@@ -1,5 +1,14 @@
 #settings {
   background-color: var(--background-color);
+
+  .input-group {
+    display: flex;
+
+    > * {
+      flex-grow: 1;
+      flex-basis: 0;
+    }
+  }
 }
 
 .key-combo-editor {
@@ -23,14 +32,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.settings-thumbnail {
-  display: flex;
-
-  > * {
-    flex-grow: 1;
-  }
 }
 
 .tabs {
