@@ -72,31 +72,6 @@ body {
   background: var(--background-color);
 }
 
-// Conditional
-
-[data-os='darwin'] {
-  // Mac has traffic light buttons integrated in the AppToolbar
-  --window-titlebar-height: 0;
-
-  // Since the toolbar is acting as the frame, it should be draggable to move the window around
-  #outliner-toggle,
-  #toolbar {
-    -webkit-app-region: drag;
-    button {
-      // But all of the buttons should not be draggable, else not clickable
-      -webkit-app-region: none;
-    }
-  }
-
-  // On Macs, the traffic lights take up the space of the toolbar. For other platform, extend outliner to the top
-  #outliner[aria-expanded='false'] ~ main #toolbar {
-    padding-left: var(--mac-system-buttons-width);
-  }
-  #outliner-content {
-    top: var(--toolbar-height);
-  }
-}
-
 // Main window layout definition
 [data-fullscreen='true'] {
   // Hide the system toolbar on fullscreen

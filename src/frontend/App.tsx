@@ -59,7 +59,7 @@ const App = observer(() => {
         id="layout-container"
         className={uiStore.theme}
       >
-        {PLATFORM !== 'darwin' && !uiStore.isFullScreen && <WindowTitlebar />}
+        {!uiStore.isFullScreen && <WindowTitlebar />}
 
         <ErrorBoundary>
           <Main />
