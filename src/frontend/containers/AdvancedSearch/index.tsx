@@ -8,6 +8,7 @@ import { IconSet, RadioGroup, Radio, Button, IconButton } from 'widgets';
 import { KeySelector, OperatorSelector, ValueInput } from './Inputs';
 import { Criteria, defaultQuery, fromCriteria, generateCriteriaId, intoCriteria } from './data';
 import { Dialog } from 'widgets/popovers';
+import { InfoButton } from 'widgets/notifications';
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore, tagStore } = useStore();
@@ -85,8 +86,11 @@ const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: Qu
   };
 
   return (
-    <fieldset>
-      <legend>Criteria Builder</legend>
+    <fieldset aria-labelledby="criteria-builder-label">
+      <div style={{ display: 'flex' }}>
+        <legend id="criteria-builder-label">Criteria Builder</legend>
+        <InfoButton>[PLACEHOLDER]</InfoButton>
+      </div>
       <div id="criteria-builder">
         <label id="builder-key">Key</label>
         <label id="builder-operator">Operator</label>
@@ -127,24 +131,35 @@ interface QueryEditorProps {
 
 const QueryEditor = memo(function QueryEditor({ query, setQuery }: QueryEditorProps) {
   return (
-    <fieldset id="query-editor-container">
-      <legend>Query Editor</legend>
-      <table id="query-editor">
-        <thead className="visually-hidden">
-          <tr>
-            <td></td>
-            <th id="col-key">Key</th>
-            <th id="col-operator">Operator</th>
-            <th id="col-value">Value</th>
-            <th id="col-remove">Remove</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Array.from(query.entries(), ([id, query], index) => (
-            <EditableCriteria key={id} index={index} id={id} criteria={query} dispatch={setQuery} />
-          ))}
-        </tbody>
-      </table>
+    <fieldset aria-labelledby="query-editor-container-label">
+      <div style={{ display: 'flex' }}>
+        <legend id="query-editor-container-label">Query Editor</legend>
+        <InfoButton>[PLACEHOLDER]</InfoButton>
+      </div>
+      <div id="query-editor-container">
+        <table id="query-editor">
+          <thead className="visually-hidden">
+            <tr>
+              <td></td>
+              <th id="col-key">Key</th>
+              <th id="col-operator">Operator</th>
+              <th id="col-value">Value</th>
+              <th id="col-remove">Remove</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from(query.entries(), ([id, query], index) => (
+              <EditableCriteria
+                key={id}
+                index={index}
+                id={id}
+                criteria={query}
+                dispatch={setQuery}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
     </fieldset>
   );
 });

@@ -1,0 +1,20 @@
+.info-button {
+  position: relative;
+  display: inline-flex;
+
+  summary {
+    padding: 0;
+    margin-inline-start: 0.5rem;
+
+    &::-webkit-details-marker {
+      transform: none;
+      margin: 0;
+      mask-image: url(~resources/icons/questionmark.svg);
+      -webkit-mask-image: url(~resources/icons/questionmark.svg);
+    }
+  }
+  > div {
+    position: absolute;
+    padding: 0.5rem;
+  }
+}
