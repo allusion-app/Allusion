@@ -116,6 +116,7 @@ summary {
     mask-image: url(~resources/icons/small-arrow-down.svg);
     -webkit-mask-image: url(~resources/icons/small-arrow-down.svg);
     background-color: currentColor;
+    background-repeat: no-repeat;
   }
 
   &::-webkit-details-marker,

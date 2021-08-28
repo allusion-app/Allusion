@@ -109,7 +109,7 @@ const TagSelector = (props: TagSelectorProps) => {
       aria-expanded={isOpen}
       aria-haspopup="grid"
       aria-owns={gridId}
-      className="input"
+      className="input multiautocomplete"
       onBlur={handleBlur}
     >
       <Flyout

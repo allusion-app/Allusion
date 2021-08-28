@@ -8,6 +8,7 @@ import { IconSet, RadioGroup, Radio, Button, IconButton } from 'widgets';
 import { KeySelector, OperatorSelector, ValueInput } from './Inputs';
 import { Criteria, defaultQuery, fromCriteria, generateCriteriaId, intoCriteria } from './data';
 import { Dialog } from 'widgets/popovers';
+import { Callout, InfoButton } from 'widgets/notifications';
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore, tagStore } = useStore();
@@ -85,8 +86,33 @@ const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: Qu
   };
 
   return (
-    <fieldset>
-      <legend>Criteria Builder</legend>
+    <fieldset aria-labelledby="criteria-builder-label">
+      <div style={{ display: 'flex' }}>
+        <legend id="criteria-builder-label">Criteria Builder</legend>
+        <InfoButton>
+          A criteria is made of three components:
+          <ul>
+            <li>
+              <b>key</b> (meta data of a file),
+            </li>
+            <li>
+              <b>operator</b> (decides how the meta data value is compared) and
+            </li>
+            <li>
+              the matching <b>value</b>.
+            </li>
+          </ul>
+          Every file that matches the criteria is shown.
+          <br />
+          <br />
+          You can edit the inputs for each component and add the criteria to the query by pressing
+          the{' '}
+          <span aria-label="add criteria" style={{ verticalAlign: 'middle' }}>
+            {IconSet.ADD}
+          </span>{' '}
+          icon button next to the inputs.
+        </InfoButton>
+      </div>
       <div id="criteria-builder">
         <label id="builder-key">Key</label>
         <label id="builder-operator">Operator</label>
@@ -127,24 +153,54 @@ interface QueryEditorProps {
 
 const QueryEditor = memo(function QueryEditor({ query, setQuery }: QueryEditorProps) {
   return (
-    <fieldset id="query-editor-container">
-      <legend>Query Editor</legend>
-      <table id="query-editor">
-        <thead className="visually-hidden">
-          <tr>
-            <td></td>
-            <th id="col-key">Key</th>
-            <th id="col-operator">Operator</th>
-            <th id="col-value">Value</th>
-            <th id="col-remove">Remove</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Array.from(query.entries(), ([id, query], index) => (
-            <EditableCriteria key={id} index={index} id={id} criteria={query} dispatch={setQuery} />
-          ))}
-        </tbody>
-      </table>
+    <fieldset aria-labelledby="query-editor-container-label">
+      <div style={{ display: 'flex' }}>
+        <legend id="query-editor-container-label">Query Editor</legend>
+        <InfoButton>
+          A query is a list of criterias.
+          <br />
+          <br />
+          In the editor you can edit already added criterias by changing the inputs or delete one by
+          pressing the{' '}
+          <span aria-label="remove criteria" style={{ verticalAlign: 'middle' }}>
+            {IconSet.DELETE}
+          </span>{' '}
+          icon button next to the inputs.
+          <br />
+          <br />
+          Additionally, there is <b>Match</b> option that decides whether all criterias must match
+          or just one.
+        </InfoButton>
+      </div>
+      {query.size === 0 ? (
+        <Callout icon={IconSet.INFO} header="Empty Query">
+          Your query is currently empty. Add a criteria to enable the <b>Search</b> button.
+        </Callout>
+      ) : undefined}
+      <div id="query-editor-container">
+        <table id="query-editor">
+          <thead className="visually-hidden">
+            <tr>
+              <td></td>
+              <th id="col-key">Key</th>
+              <th id="col-operator">Operator</th>
+              <th id="col-value">Value</th>
+              <th id="col-remove">Remove</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from(query.entries(), ([id, query], index) => (
+              <EditableCriteria
+                key={id}
+                index={index}
+                id={id}
+                criteria={query}
+                dispatch={setQuery}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
     </fieldset>
   );
 });
