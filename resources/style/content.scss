@@ -511,12 +511,13 @@
       text-overflow: ellipsis;
 
       opacity: 0.75;
-      transition: opacity 0.25s $pt-transition-cubic2;
+      transition: opacity 0.25s $pt-transition-cubic2, background-color 0.25s $pt-transition-cubic2;
     }
 
     &:hover {
       .thumbnail-filename {
         opacity: 1;
+        background-color: rgba(0, 0, 0, 0.75);
       }
     }
   }

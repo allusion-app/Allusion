@@ -136,8 +136,10 @@ export const MenuRadioGroup = ({ children, label }: IMenuRadioGroup) => (
 );
 
 function handleFocus(event: React.FocusEvent) {
-  const target = event.target.closest('[role^="menuitem"]') as HTMLElement | null;
-  if (target === null) {
+  const liTarget = event.target.closest('[role^="menuitem"]') as HTMLElement | null;
+  // If no target found, or target is an input element, ignore
+  // (needed for input elements inside of menu items, e.g. sliders)
+  if (liTarget === null || document.activeElement?.tagName === 'INPUT') {
     return;
   }
 
@@ -147,9 +149,9 @@ function handleFocus(event: React.FocusEvent) {
   if (previous !== null) {
     previous.tabIndex = -1;
   }
-  target.tabIndex = 0;
+  liTarget.tabIndex = 0;
   // target.focus({ preventScroll: true }); // CHROME BUG: Option is ignored, probably fixed in Electron 9.
-  target.focus();
+  liTarget.focus();
 }
 
 function handleMenuKeyDown(event: React.KeyboardEvent) {
@@ -190,6 +192,7 @@ function handleMenuKeyDown(event: React.KeyboardEvent) {
         last[last.length - 1].focus();
       }
     }
+    event.preventDefault();
   } else if (event.key === 'ArrowDown') {
     let listItem = (event.target as HTMLElement).closest('li') as HTMLElement | null;
     if (listItem === null) {
@@ -219,5 +222,6 @@ function handleMenuKeyDown(event: React.KeyboardEvent) {
         first.focus();
       }
     }
+    event.preventDefault();
   }
 }
