@@ -47,8 +47,10 @@ export const MenuButton = ({
   };
 
   const handleClick = (e: React.MouseEvent) => {
-    const target = (e.target as HTMLElement).closest('[role^="menuitem"]') as HTMLElement | null;
-    if (target !== null) {
+    const menuItem = (e.target as HTMLElement).closest('[role^="menuitem"]') as HTMLElement | null;
+    // Don't close when using slider
+    const isSlider = (e.target as HTMLInputElement).type === 'range';
+    if (menuItem !== null && !isSlider) {
       setIsOpen(false);
     }
   };

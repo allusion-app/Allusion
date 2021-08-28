@@ -55,7 +55,8 @@
   color: var(--text-color);
   padding: 0.5rem 1.25rem;
   width: 100%;
-  text-align: start;
+  text-align: left;
+  justify-content: flex-start;
 
   &[aria-selected='true'] {
     color: var(--text-color-strong);

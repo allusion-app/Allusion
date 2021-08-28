@@ -7,6 +7,8 @@ import { IFile } from 'src/entities/File';
 
 import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
+import { getThumbnailSize } from '../ContentView/LayoutSwitcher';
+import { MenuDivider, MenuSliderItem } from 'widgets/menus/menu-items';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 
 // Tooltip info
@@ -39,6 +41,10 @@ export const ViewCommand = () => {
       menuID="__layout-options"
     >
       <LayoutMenuItems />
+
+      <MenuDivider />
+
+      <ThumbnailSizeSliderMenuItem />
     </MenuButton>
   );
 };
@@ -75,6 +81,16 @@ export const SortMenuItems = observer(() => {
   );
 });
 
+const thumbnailSizeOptions = [
+  { value: 128 },
+  { value: 208, label: 'Small' },
+  { value: 288 },
+  { value: 368, label: 'Medium' },
+  { value: 448 },
+  { value: 528, label: 'Large' },
+  { value: 608 },
+];
+
 export const LayoutMenuItems = observer(() => {
   const { uiStore } = useStore();
   return (
@@ -109,6 +125,22 @@ export const LayoutMenuItems = observer(() => {
         accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewMasonryHorizontal} />}
       />
     </MenuRadioGroup>
+  );
+});
+
+export const ThumbnailSizeSliderMenuItem = observer(() => {
+  const { uiStore } = useStore();
+  return (
+    <MenuSliderItem
+      value={getThumbnailSize(uiStore.thumbnailSize)}
+      label="Thumbnail size"
+      onChange={uiStore.setThumbnailSize}
+      id="thumbnail-sizes"
+      options={thumbnailSizeOptions}
+      min={thumbnailSizeOptions[0].value}
+      max={thumbnailSizeOptions[thumbnailSizeOptions.length - 1].value}
+      step={20}
+    />
   );
 });
 

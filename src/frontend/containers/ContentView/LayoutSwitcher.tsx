@@ -7,7 +7,7 @@ import FocusManager from 'src/frontend/FocusManager';
 import { RendererMessenger } from 'src/Messaging';
 import { MenuDivider } from 'widgets/menus';
 import { ClientFile } from '../../../entities/File';
-import UiStore, { ViewMethod } from '../../stores/UiStore';
+import UiStore, { ThumbnailSize, ViewMethod } from '../../stores/UiStore';
 import { throttle } from '../../utils';
 import { GalleryCommand, GallerySelector } from './GalleryItem';
 import ListGallery from './ListGallery';
@@ -184,7 +184,8 @@ const CELL_SIZE_SMALL = 160 + PADDING;
 const CELL_SIZE_MEDIUM = 240 + PADDING;
 const CELL_SIZE_LARGE = 320 + PADDING;
 
-export function getThumbnailSize(sizeType: 'small' | 'medium' | 'large') {
+export function getThumbnailSize(sizeType: ThumbnailSize) {
+  if (typeof sizeType === 'number') return sizeType;
   if (sizeType === 'small') {
     return CELL_SIZE_SMALL;
   } else if (sizeType === 'medium') {

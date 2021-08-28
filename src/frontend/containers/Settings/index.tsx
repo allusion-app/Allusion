@@ -96,26 +96,6 @@ const Appearance = observer(() => {
       <br />
 
       <div className="input-group">
-        <RadioGroup name="Size">
-          <Radio
-            label="Small"
-            value="small"
-            checked={uiStore.thumbnailSize === 'small'}
-            onChange={uiStore.setThumbnailSmall}
-          />
-          <Radio
-            label="Medium"
-            value="medium"
-            checked={uiStore.thumbnailSize === 'medium'}
-            onChange={uiStore.setThumbnailMedium}
-          />
-          <Radio
-            label="Large"
-            value="large"
-            checked={uiStore.thumbnailSize === 'large'}
-            onChange={uiStore.setThumbnailLarge}
-          />
-        </RadioGroup>
         <RadioGroup name="Shape">
           <Radio
             label="Square"
@@ -389,6 +369,23 @@ const BackgroundProcesses = observer(() => {
       </fieldset>
 
       <fieldset>
+        <legend>Browser extension download directory (must be in a Location)</legend>
+        <div className="input-file">
+          <input
+            readOnly
+            className="input input-file-value"
+            value={uiStore.importDirectory || 'Not set'}
+          />
+          <Button
+            styling="minimal"
+            icon={IconSet.FOLDER_CLOSE}
+            text="Browse"
+            onClick={browseImportDirectory}
+          />
+        </div>
+      </fieldset>
+
+      <fieldset>
         <legend>Browser extension support</legend>
         <Toggle
           checked={isClipEnabled}
@@ -407,23 +404,12 @@ const BackgroundProcesses = observer(() => {
         />
       </fieldset>
 
-      <fieldset>
-        <legend>Browser extension download directory (must be in a Location)</legend>
-        <div className="input-file">
-          <input
-            readOnly
-            className="input input-file-value"
-            value={uiStore.importDirectory || 'Not set'}
-          />
-          <Button
-            styling="minimal"
-            icon={IconSet.FOLDER_CLOSE}
-            text="Browse"
-            onClick={browseImportDirectory}
-          />
-        </div>
-      </fieldset>
-
+      <Callout icon={IconSet.INFO}>
+        For the browser extension to work, first choose a download folder that is in one of your
+        locations already added to Allusion, then enable the browser extension support toggle.
+        Finally, if you want the browser extension to work even when Allusion is not open, enable
+        the run in background option.
+      </Callout>
       <Button
         onClick={() => shell.openExternal(chromeExtensionUrl)}
         styling="outlined"

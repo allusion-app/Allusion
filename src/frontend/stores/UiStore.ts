@@ -18,7 +18,7 @@ export const enum ViewMethod {
   MasonryVertical,
   MasonryHorizontal,
 }
-type ThumbnailSize = 'small' | 'medium' | 'large';
+export type ThumbnailSize = 'small' | 'medium' | 'large' | number;
 type ThumbnailShape = 'square' | 'letterbox';
 const PREFERENCES_STORAGE_KEY = 'preferences';
 
@@ -137,7 +137,7 @@ class UiStore {
   /** Index of the first item in the viewport. Also acts as the current item shown in slide mode */
   // TODO: Might be better to store the ID to the file. I believe we were storing the index for performance, but we have instant conversion between index/ID now
   @observable firstItem: number = 0;
-  @observable thumbnailSize: ThumbnailSize = 'medium';
+  @observable thumbnailSize: ThumbnailSize | number = 'medium';
   @observable thumbnailShape: ThumbnailShape = 'square';
 
   @observable isToolbarTagPopoverOpen: boolean = false;
@@ -189,6 +189,10 @@ class UiStore {
 
   @computed get isMasonryHorizontal(): boolean {
     return this.method === ViewMethod.MasonryHorizontal;
+  }
+
+  @action.bound setThumbnailSize(size: ThumbnailSize) {
+    this.thumbnailSize = size;
   }
 
   @action.bound setThumbnailSmall() {
@@ -699,7 +703,7 @@ class UiStore {
       const w = clamp(x, UiStore.MIN_OUTLINER_WIDTH, width * 0.75);
       this.outlinerWidth = w;
 
-      // TODO: Automatically collapse if less than 3/4 of min-width?
+      // Automatically collapse if less than 3/4 of min-width?
       if (x < UiStore.MIN_OUTLINER_WIDTH * 0.75) {
         this.isOutlinerOpen = false;
       }
@@ -802,10 +806,6 @@ class UiStore {
 
   @action private setIsOutlinerOpen(value: boolean = true) {
     this.isOutlinerOpen = value;
-  }
-
-  @action private setThumbnailSize(size: ThumbnailSize = 'medium') {
-    this.thumbnailSize = size;
   }
 
   @action private setThumbnailShape(shape: ThumbnailShape) {

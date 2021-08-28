@@ -24,6 +24,7 @@ import DropContext from 'src/frontend/contexts/DropContext';
 import LocationCreationDialog from './LocationCreationDialog';
 import LocationStore from 'src/frontend/stores/LocationStore';
 import TreeItemRevealer from '../TreeItemRevealer';
+import { Callout } from 'widgets/notifications';
 
 export class LocationTreeItemRevealer extends TreeItemRevealer {
   private locationStore?: LocationStore;
@@ -624,7 +625,7 @@ const LocationsPanel = observer(() => {
           onDelete={setDeletableLocation}
           onExclude={setExcludableSubLocation}
         />
-        {isEmpty && <i>Click + to choose a Location</i>}
+        {isEmpty && <Callout icon={IconSet.INFO}>Click + to choose a location.</Callout>}
       </Collapse>
       <LocationRecoveryDialog />
 
