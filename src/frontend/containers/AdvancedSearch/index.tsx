@@ -156,11 +156,25 @@ const QueryEditor = memo(function QueryEditor({ query, setQuery }: QueryEditorPr
     <fieldset aria-labelledby="query-editor-container-label">
       <div style={{ display: 'flex' }}>
         <legend id="query-editor-container-label">Query Editor</legend>
-        <InfoButton>[PLACEHOLDER]</InfoButton>
+        <InfoButton>
+          A query is a list of criterias.
+          <br />
+          <br />
+          In the editor you can edit already added criterias by changing the inputs or delete one by
+          pressing the{' '}
+          <span aria-label="remove criteria" style={{ verticalAlign: 'middle' }}>
+            {IconSet.DELETE}
+          </span>{' '}
+          icon button next to the inputs.
+          <br />
+          <br />
+          If you select the <b>All</b> option in the <b>Match</b> field, all criterias must match,
+          otherwise if you select the <b>Any</b> option, only one criteria must match.
+        </InfoButton>
       </div>
       {query.size === 0 ? (
         <Callout icon={IconSet.INFO} header="Empty Query">
-          Your query is currently empty. Add a criteria to enable the <em>Search</em> button.
+          Your query is currently empty. Add a criteria to enable the <b>Search</b> button.
         </Callout>
       ) : undefined}
       <div id="query-editor-container">
