@@ -110,7 +110,7 @@ export const LayoutMenuItems = observer(() => {
         accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewGrid} />}
       />
       <MenuRadioItem
-        icon={IconSet.VIEW_MASONRY}
+        icon={IconSet.VIEW_MASONRY_V}
         onClick={uiStore.setMethodMasonryVertical}
         checked={uiStore.isMasonryVertical}
         // TODO: "masonry" might not ring a bell to some people. Suggestions for a better name? "Flow", "Stream"?
@@ -118,7 +118,7 @@ export const LayoutMenuItems = observer(() => {
         accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewMasonryVertical} />}
       />
       <MenuRadioItem
-        icon={IconSet.VIEW_MASONRY}
+        icon={IconSet.VIEW_MASONRY_H}
         onClick={uiStore.setMethodMasonryHorizontal}
         checked={uiStore.isMasonryHorizontal}
         text="Horizontal Masonry"
