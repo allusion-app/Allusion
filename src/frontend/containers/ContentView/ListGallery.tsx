@@ -1,15 +1,15 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useMemo, useRef, useCallback, useEffect, useState, useLayoutEffect } from 'react';
+import React, { useMemo, useRef, useCallback, useEffect, useLayoutEffect } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { FileOrder } from 'src/backend/DBRepository';
-import { ClientFile } from 'src/entities/File';
+import { ClientFile, IFile } from 'src/entities/File';
 import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { debouncedThrottle } from 'src/frontend/utils';
-import { IconSet } from 'widgets';
 import { ILayoutProps, createSubmitCommand } from './LayoutSwitcher';
-import { listColumns, GalleryCommand, ListCell } from './GalleryItem';
+import { GalleryCommand } from './GalleryItem';
 import { useStore } from 'src/frontend/contexts/StoreContext';
+import { ListItem } from './ListItem';
 
 /** Generates a unique key for an element in the fileList */
 const getItemKey = action((index: number, data: ClientFile[]): string => {
@@ -100,53 +100,34 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
   );
 
   return (
-    <>
-      <div className="list-header" style={{ width: `${contentRect.width}px` }}>
-        {listColumns.map((col) => (
-          <div
-            key={col.title}
-            className={col.sortKey ? 'sortable' : ''}
-            // Click to sort by this key. If already sorting by this key, swap order around.
-            onClick={
-              col.sortKey
-                ? fileStore.orderBy === col.sortKey
-                  ? fileStore.switchFileOrder
-                  : () => fileStore.orderFilesBy(col.sortKey)
-                : undefined
-            }
-          >
-            <span>{col.title}</span>
-            {fileStore.orderBy === col.sortKey && (
-              <span>
-                {fileStore.fileOrder === FileOrder.Desc ? IconSet.ARROW_DOWN : IconSet.ARROW_UP}
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
-      <div className="list" role="grid" aria-rowcount={fileStore.fileList.length}>
-        <FixedSizeList
-          useIsScrolling
-          // Subtract 24 for header
-          // TODO: Also subtract scroll bar width if visible
-          height={contentRect.height - 24}
-          width={contentRect.width}
-          itemSize={cellSize}
-          itemCount={fileStore.fileList.length}
-          itemData={fileStore.fileList}
-          itemKey={getItemKey}
-          overscanCount={8}
-          children={Row}
-          onScroll={handleScroll}
-          initialScrollOffset={uiStore.firstItem * cellSize}
-          ref={ref}
-        />
-      </div>
-    </>
+    <div
+      role="grid"
+      aria-rowcount={fileStore.fileList.length}
+      style={{ width: `${contentRect.width}px` }}
+    >
+      <Header />
+      <FixedSizeList
+        className="list"
+        useIsScrolling
+        // Subtract 24 for header
+        // TODO: Also subtract scroll bar width if visible
+        height={contentRect.height - 24}
+        width={contentRect.width}
+        itemSize={cellSize}
+        itemCount={fileStore.fileList.length}
+        itemData={fileStore.fileList}
+        itemKey={getItemKey}
+        overscanCount={8}
+        children={Row}
+        onScroll={handleScroll}
+        initialScrollOffset={uiStore.firstItem * cellSize}
+        ref={ref}
+      />
+    </div>
   );
 });
 
-interface IListItem {
+export interface IListItem {
   index: number;
   data: ClientFile[];
   style: React.CSSProperties;
@@ -156,24 +137,64 @@ interface IListItem {
   submitCommand: (command: GalleryCommand) => void;
 }
 
-const ListItem = observer((props: IListItem) => {
-  const { index, data, style, isScrolling, submitCommand } = props;
-  const row = useRef<HTMLDivElement>(null);
-  const [isMounted, setIsMounted] = useState(false);
-  const file = data[index];
+export default ListGallery;
 
-  useEffect(() => {
-    const element = row.current;
-    if (element !== null && !isMounted && !isScrolling) {
-      setIsMounted(true);
-    }
-  }, [isMounted, isScrolling]);
+interface IListColumn {
+  title: string;
+  // Also indicates whether this column _can_ be sorted on
+  sortKey?: keyof IFile;
+  // cellContent: (props: ICellContentProps) => ReactNode;
+}
+
+const COLUMN_HEADERS: IListColumn[] = [
+  { title: 'Name', sortKey: 'name' },
+  { title: 'Dimensions' },
+  { title: 'Date added', sortKey: 'dateAdded' },
+  { title: 'Size', sortKey: 'size' },
+  { title: 'Tags' },
+];
+
+const Header = () => {
+  return (
+    <div role="rowgroup" className="list-header">
+      <div role="row">
+        {COLUMN_HEADERS.map(({ sortKey, title }) => {
+          if (sortKey !== undefined) {
+            return <SortableHeader key={title} sortKey={sortKey} title={title} />;
+          } else {
+            return (
+              <div role="columnheader" key={title}>
+                {title}
+              </div>
+            );
+          }
+        })}
+      </div>
+    </div>
+  );
+};
+
+interface SortableHeaderProps {
+  title: string;
+  sortKey: keyof IFile;
+}
+
+const SortableHeader = observer(({ title, sortKey }: SortableHeaderProps) => {
+  const { fileStore } = useStore();
+  const isSortedBy = fileStore.orderBy === sortKey;
+  const sortOrder = isSortedBy
+    ? fileStore.fileOrder === FileOrder.Desc
+      ? 'descending'
+      : 'ascending'
+    : undefined;
+
+  const handleClick = isSortedBy
+    ? fileStore.switchFileOrder
+    : () => fileStore.orderFilesBy(sortKey);
 
   return (
-    <div ref={row} role="row" aria-rowindex={index + 1} style={style}>
-      <ListCell mounted={isMounted} file={file} submitCommand={submitCommand} />
+    <div role="columnheader" aria-sort={sortOrder}>
+      <button onClick={handleClick}>{title}</button>
     </div>
   );
 });
-
-export default ListGallery;
