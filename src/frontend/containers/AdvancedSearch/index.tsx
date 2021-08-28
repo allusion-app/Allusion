@@ -89,7 +89,29 @@ const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: Qu
     <fieldset aria-labelledby="criteria-builder-label">
       <div style={{ display: 'flex' }}>
         <legend id="criteria-builder-label">Criteria Builder</legend>
-        <InfoButton>[PLACEHOLDER]</InfoButton>
+        <InfoButton>
+          A criteria is made of three components:
+          <ul>
+            <li>
+              <b>key</b> (meta data of a file),
+            </li>
+            <li>
+              <b>operator</b> (decides how the meta data value is compared) and
+            </li>
+            <li>
+              the matching <b>value</b>.
+            </li>
+          </ul>
+          Every file that matches the criteria is shown.
+          <br />
+          <br />
+          You can edit the inputs for each component and add the criteria to the query by pressing
+          the{' '}
+          <span aria-label="add criteria" style={{ verticalAlign: 'middle' }}>
+            {IconSet.ADD}
+          </span>{' '}
+          icon button next to the inputs.
+        </InfoButton>
       </div>
       <div id="criteria-builder">
         <label id="builder-key">Key</label>
@@ -138,7 +160,7 @@ const QueryEditor = memo(function QueryEditor({ query, setQuery }: QueryEditorPr
       </div>
       {query.size === 0 ? (
         <Callout icon={IconSet.INFO} header="Empty Query">
-          Your query is currently empty. Add a criteria to enable the <em>Search</em> button!
+          Your query is currently empty. Add a criteria to enable the <em>Search</em> button.
         </Callout>
       ) : undefined}
       <div id="query-editor-container">
