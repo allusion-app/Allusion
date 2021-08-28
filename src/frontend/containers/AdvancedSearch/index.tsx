@@ -168,8 +168,8 @@ const QueryEditor = memo(function QueryEditor({ query, setQuery }: QueryEditorPr
           icon button next to the inputs.
           <br />
           <br />
-          If you select the <b>All</b> option in the <b>Match</b> field, all criterias must match,
-          otherwise if you select the <b>Any</b> option, only one criteria must match.
+          Additionally, there is <b>Match</b> option that decides whether all criterias must match
+          or just one.
         </InfoButton>
       </div>
       {query.size === 0 ? (
