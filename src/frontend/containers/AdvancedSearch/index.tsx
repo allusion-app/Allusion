@@ -8,7 +8,7 @@ import { IconSet, RadioGroup, Radio, Button, IconButton } from 'widgets';
 import { KeySelector, OperatorSelector, ValueInput } from './Inputs';
 import { Criteria, defaultQuery, fromCriteria, generateCriteriaId, intoCriteria } from './data';
 import { Dialog } from 'widgets/popovers';
-import { InfoButton } from 'widgets/notifications';
+import { Callout, InfoButton } from 'widgets/notifications';
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore, tagStore } = useStore();
@@ -136,6 +136,11 @@ const QueryEditor = memo(function QueryEditor({ query, setQuery }: QueryEditorPr
         <legend id="query-editor-container-label">Query Editor</legend>
         <InfoButton>[PLACEHOLDER]</InfoButton>
       </div>
+      {query.size === 0 ? (
+        <Callout icon={IconSet.INFO} header="Empty Query">
+          Your query is currently empty. Add a criteria to enable the <em>Search</em> button!
+        </Callout>
+      ) : undefined}
       <div id="query-editor-container">
         <table id="query-editor">
           <thead className="visually-hidden">
