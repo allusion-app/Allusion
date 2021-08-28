@@ -41,6 +41,11 @@
     background: var(--input-color);
     box-shadow: 0 0 0 0.125rem var(--accent-color);
   }
+
+  &.multiautocomplete {
+    max-height: 1.75rem;
+    overflow: hidden auto;
+  }
 }
 
 /** We cannot use <input type="file" /> as we want to pick directories. However,
