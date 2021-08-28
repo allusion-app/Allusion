@@ -14,14 +14,9 @@
 }
 
 .searchbar {
-  padding: 0.25rem;
+  padding: 0.25rem 0.5rem;
   flex-grow: 1;
   min-width: 3rem;
-
-  > .input {
-    max-height: 2rem;
-    overflow: hidden auto;
-  }
 
   .btn-icon-large {
     color: var(--text-color-muted);

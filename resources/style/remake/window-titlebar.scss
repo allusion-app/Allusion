@@ -7,6 +7,8 @@
   background-color: #14181a;
   color: #888;
 
+  border-bottom: 0.0625rem solid var(--border-color);
+
   span {
     height: 100%;
     display: inline-flex;
@@ -19,7 +21,7 @@
     // Style for Windows+Linux: overwritten in block below for data-os='darwin':
 
     // same width as the 3 system buttons on the right, so text is centered
-    margin-left: 108px; 
+    margin-left: 108px;
 
     // But not for a narrow window, it would overlap with buttons, so position it off-center
     @media only screen and (max-width: 320px) {

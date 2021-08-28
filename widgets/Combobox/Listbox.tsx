@@ -1,4 +1,3 @@
-import './popup.scss';
 import React, { ForwardedRef, forwardRef, useRef, useState } from 'react';
 
 export interface ListboxProps {
@@ -18,13 +17,7 @@ export const Listbox = forwardRef(function ListBox(
   const { id, multiselectable, children } = props;
 
   return (
-    <ul
-      ref={ref}
-      id={id}
-      role="listbox"
-      className="combobox-popup"
-      aria-multiselectable={multiselectable}
-    >
+    <ul ref={ref} id={id} role="listbox" aria-multiselectable={multiselectable}>
       {children}
     </ul>
   );
@@ -131,7 +124,6 @@ export const Option = ({ id, value, selected, onClick, icon }: OptionProps) => (
   <li
     id={id}
     role="option"
-    className="combobox-popup-option"
     aria-selected={selected}
     onClick={onClick}
     tabIndex={-1} // Important for focus handling!
