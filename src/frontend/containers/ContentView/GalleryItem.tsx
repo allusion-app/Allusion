@@ -57,12 +57,7 @@ export const ListCell = observer(({ file, mounted, submitCommand }: ICell) => {
     submitCommand,
   ]);
   return (
-    <div
-      role="gridcell"
-      tabIndex={-1}
-      aria-selected={uiStore.fileSelection.has(file)}
-      {...eventHandlers}
-    >
+    <div role="gridcell" aria-selected={uiStore.fileSelection.has(file)} {...eventHandlers}>
       {/* Filename */}
       <div key={`${file.id}-name`}>
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
@@ -113,12 +108,7 @@ export const MasonryCell = observer(
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
 
     return (
-      <div
-        data-masonrycell
-        tabIndex={-1}
-        aria-selected={uiStore.fileSelection.has(file)}
-        style={style}
-      >
+      <div data-masonrycell aria-selected={uiStore.fileSelection.has(file)} style={style}>
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
           <Thumbnail mounted={!mounted} file={file} forceNoThumbnail={forceNoThumbnail} />
         </ThumbnailContainer>
