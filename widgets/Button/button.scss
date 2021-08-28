@@ -1,6 +1,10 @@
 .btn-group {
   display: flex;
 
+  &.align-center {
+    justify-content: center;
+  }
+
   button {
     margin-inline-start: 0.5rem;
 
@@ -23,6 +27,10 @@ button {
   background: transparent;
   border: none;
   outline: none;
+
+  &.align-left {
+    justify-content: start;
+  }
 
   &:hover {
     color: var(--text-color-strong);

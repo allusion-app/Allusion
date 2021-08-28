@@ -1,3 +1,4 @@
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { ForwardedRef, forwardRef } from 'react';
 import { IMG_EXTENSIONS } from 'src/entities/File';
@@ -9,8 +10,11 @@ import {
   StringOperatorType,
   TagOperators,
 } from 'src/entities/SearchCriteria';
+import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { camelCaseToSpaced } from 'src/frontend/utils';
+import { GridOptionCell, GridCombobox, GridOption } from 'widgets';
+import { IconSet } from 'widgets/Icons';
 import { defaultQuery, Criteria, Key, Operator, Value, TagValue } from './data';
 
 type SetCriteria = (fn: (criteria: Criteria) => Criteria) => void;
@@ -124,12 +128,15 @@ const PathInput = ({ labelledby, value, dispatch }: ValueInput<string>) => {
     />
   );
 };
-
 const TagInput = observer(({ labelledby, value, dispatch }: ValueInput<TagValue>) => {
   const { tagStore } = useStore();
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    const id = (value === '' ? undefined : value) as TagValue;
+  const data: TagOptions[] = [
+    { label: 'System Tags', options: [{ id: undefined, name: 'Untagged' }] },
+    { label: 'My Tags', options: tagStore.tagList },
+  ];
+
+  const handleChange = (v: TagOption) => {
+    const id = v.id;
     dispatch((criteria) => {
       criteria.value = id;
       return { ...criteria };
@@ -137,34 +144,71 @@ const TagInput = observer(({ labelledby, value, dispatch }: ValueInput<TagValue>
   };
 
   return (
-    <select
-      className="criteria-input"
-      aria-labelledby={labelledby}
+    <GridCombobox
+      value={value}
+      isSelected={(option: TagOption, selection: TagValue) => option.id === selection}
       onChange={handleChange}
-      value={value ?? ''}
-    >
-      <optgroup label="System Tags">
-        <option value="">Untagged Images</option>
-      </optgroup>
-      <optgroup label="My Tags">
-        {tagStore.tagList.map((tag) => {
-          const hint =
-            tag.treePath.length < 2
-              ? ''
-              : ` (${tag.treePath
-                  .slice(0, -1)
-                  .map((t) => t.name)
-                  .join(' › ')})`;
+      data={data}
+      colcount={2}
+      labelFromOption={labelFromOption}
+      renderOption={renderOption}
+      textboxLabelledby={labelledby}
+    />
+  );
+});
 
-          return (
-            <option key={tag.id} value={tag.id}>
-              {tag.name}
-              {hint}
-            </option>
-          );
-        })}
-      </optgroup>
-    </select>
+interface TagOptions {
+  label: string;
+  options: readonly TagOption[];
+}
+
+interface TagOption {
+  id: TagValue;
+  name: string;
+}
+
+const labelFromOption = action((t: ClientTag) => t.name);
+
+const renderOption = (tag: TagOption | ClientTag, index: number, selection: boolean) => {
+  if (tag instanceof ClientTag) {
+    return renderTagOption(tag, index, selection);
+  } else {
+    return renderSystemTag(tag, index, selection);
+  }
+};
+
+const renderSystemTag = (tag: TagOption, index: number, selection: boolean) => {
+  const id = tag.id ?? '';
+  return (
+    <GridOption key={id} rowIndex={index} selected={selection || undefined}>
+      <GridOptionCell id={id} colIndex={1} colspan={2}>
+        {tag.name}
+      </GridOptionCell>
+    </GridOption>
+  );
+};
+
+const renderTagOption = action((tag: ClientTag, index: number, selection: boolean) => {
+  const id = tag.id;
+  const path = tag.treePath.map((t: ClientTag) => t.name).join(' › ') ?? [];
+  const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
+
+  return (
+    <GridOption key={id} rowIndex={index} selected={selection || undefined} data-tooltip={path}>
+      <GridOptionCell id={id} colIndex={1}>
+        <span
+          className="combobox-popup-option-icon"
+          style={{ color: tag.viewColor }}
+          aria-hidden={true}
+        >
+          {IconSet.TAG}
+        </span>
+        {tag.name}
+      </GridOptionCell>
+      <GridOptionCell className="tag-option-hint" id={id + '-hint'} colIndex={2}>
+        {hint}
+      </GridOptionCell>
+    </GridOption>
   );
 });
 

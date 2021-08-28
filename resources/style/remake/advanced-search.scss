@@ -2,12 +2,10 @@
   display: flex;
   flex-direction: column;
   min-width: min(80ch, 80vw);
-  max-height: calc(80vh - 3rem);
 
-  .criteria-input {
-    max-width: 175px;
-    min-width: 175px;
-    min-height: 28px;
+  .criteria-input,
+  [role='combobox'] {
+    height: 1.75rem;
   }
 }
 
@@ -26,6 +24,8 @@
 #query-editor-container {
   overflow-y: auto;
   padding: 2px 0;
+  // dialog height - height of basically everything except the container
+  max-height: calc(80vh - 17.25rem);
 }
 
 #query-editor {
@@ -46,7 +46,9 @@
     padding-inline-start: 0.5rem;
   }
 
-  .criteria-input {
+  .criteria-input,
+  [role='combobox'] {
+    min-width: 175px;
     width: 100%;
   }
 }
