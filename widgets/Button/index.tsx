@@ -7,6 +7,7 @@ interface ButtonProps {
   icon?: JSX.Element;
   onClick: (event: React.MouseEvent) => void;
   styling?: 'minimal' | 'outlined' | 'filled';
+  align?: 'center' | 'left';
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
 }
@@ -16,11 +17,17 @@ const Button = ({
   icon,
   onClick,
   styling = 'minimal',
+  align = 'center',
   disabled,
   type = 'button',
 }: ButtonProps) => {
   return (
-    <button className={`btn-${styling}`} onClick={onClick} disabled={disabled} type={type}>
+    <button
+      className={`btn-${styling} align-${align}`}
+      onClick={onClick}
+      disabled={disabled}
+      type={type}
+    >
       {icon && (
         <span className="btn-content-icon" aria-hidden="true">
           {icon}
@@ -34,11 +41,12 @@ const Button = ({
 interface ButtonGroupProps {
   id?: string;
   children: (React.ReactElement | undefined)[] | React.ReactElement;
+  align?: 'left' | 'center';
 }
 
-const ButtonGroup = ({ id, children }: ButtonGroupProps) => {
+const ButtonGroup = ({ id, children, align = 'left' }: ButtonGroupProps) => {
   return (
-    <div id={id} className="btn-group">
+    <div id={id} className={`btn-group align-${align}`}>
       {children}
     </div>
   );

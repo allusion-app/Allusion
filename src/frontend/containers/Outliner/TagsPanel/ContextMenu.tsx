@@ -107,8 +107,8 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         text="Rename"
         icon={IconSet.EDIT}
       />
-      <MenuCheckboxItem
-        checked={tag.isHidden}
+      <MenuItem
+        icon={!tag.isHidden ? IconSet.HIDDEN : IconSet.PREVIEW}
         text="Hide Tagged Images"
         onClick={tag.toggleHidden}
       />

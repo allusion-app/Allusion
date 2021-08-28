@@ -74,6 +74,7 @@ import PREVIEW from 'resources/icons/preview.svg';
 import RELOAD from 'resources/icons/reload.svg';
 import REPLACE from 'resources/icons/replace.svg';
 import SEARCH from 'resources/icons/search.svg';
+import SEARCH_ADD from 'resources/icons/search-add.svg';
 import SEARCH_ALL from 'resources/icons/search-all.svg';
 import SEARCH_ANY from 'resources/icons/search-any.svg';
 import SEARCH_EXTENDED from 'resources/icons/search-extended.svg';
@@ -89,6 +90,7 @@ import SETTINGS from 'resources/icons/settings.svg';
 // import SMALL_ARROW_DOWN from 'resources/icons/small-arrow-down.svg';
 // import SMALL_ARROW_RIGHT from 'resources/icons/small-arrow-right.svg';
 import SORT from 'resources/icons/sort.svg';
+import SORT_ALT from 'resources/icons/sort-alt.svg';
 import TAG_ADD from 'resources/icons/tag-add.svg';
 // import TAG_ADD_COLLECTION from 'resources/icons/tag-add-collection.svg';
 import TAG_BLANCO from 'resources/icons/tag-blanco.svg';
@@ -102,11 +104,13 @@ import THUMB_BG from 'resources/icons/thumb-bg.svg';
 import TREE_LIST from 'resources/icons/tree-list.svg';
 import VIEW_GRID from 'resources/icons/view-grid.svg';
 import VIEW_LIST from 'resources/icons/view-list.svg';
-import VIEW_MASONRY from 'resources/icons/view-masonry.svg';
+import VIEW_MASONRY_H from 'resources/icons/view-masonry-h.svg';
+import VIEW_MASONRY_V from 'resources/icons/view-masonry-v.svg';
 // import VIEW_PRESENT from 'resources/icons/view-present.svg';
 import WARNING_FILL from 'resources/icons/warning-fill.svg';
 import WARNING_BROKEN_LINK from 'resources/icons/warning-broken-link.svg';
 import WARNING from 'resources/icons/warning.svg';
+import QUESTION_MARK from 'resources/icons/questionmark.svg';
 
 const toSvg = (src: any) => <SVG src={src} className="custom-icon" />;
 
@@ -172,6 +176,7 @@ const IconSet = {
   RELOAD: toSvg(RELOAD),
   REPLACE: toSvg(REPLACE),
   SEARCH: toSvg(SEARCH),
+  SEARCH_ADD: toSvg(SEARCH_ADD),
   SEARCH_ALL: toSvg(SEARCH_ALL),
   SEARCH_ANY: toSvg(SEARCH_ANY),
   SEARCH_EXTENDED: toSvg(SEARCH_EXTENDED),
@@ -187,6 +192,7 @@ const IconSet = {
   // SMALL_ARROW_DOWN: toSvg(SMALL_ARROW_DOWN),
   // SMALL_ARROW_RIGHT: toSvg(SMALL_ARROW_RIGHT),
   SORT: toSvg(SORT),
+  SORT_ALT: toSvg(SORT_ALT),
   // SPACER: toSvg(SPACER),
   TAG_ADD: toSvg(TAG_ADD),
   // TAG_ADD_COLLECTION: toSvg(TAG_ADD_COLLECTION),
@@ -201,11 +207,13 @@ const IconSet = {
   TREE_LIST: toSvg(TREE_LIST),
   VIEW_GRID: toSvg(VIEW_GRID),
   VIEW_LIST: toSvg(VIEW_LIST),
-  VIEW_MASONRY: toSvg(VIEW_MASONRY),
+  VIEW_MASONRY_V: toSvg(VIEW_MASONRY_V),
+  VIEW_MASONRY_H: toSvg(VIEW_MASONRY_H),
   // VIEW_PRESENT: toSvg(VIEW_PRESENT),
   WARNING_FILL: toSvg(WARNING_FILL),
   WARNING_BROKEN_LINK: toSvg(WARNING_BROKEN_LINK),
   WARNING: toSvg(WARNING),
+  QUESTION_MARK: toSvg(QUESTION_MARK),
 };
 
 export { IconSet, SVG };

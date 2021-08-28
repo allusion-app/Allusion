@@ -22,6 +22,7 @@ const Tabs = ({ initTabItems }: ITabs) => {
             key={item.label}
             aria-selected={index === selection}
             onClick={() => setSelection(index)}
+            className="align-left"
           >
             {item.label}
           </button>

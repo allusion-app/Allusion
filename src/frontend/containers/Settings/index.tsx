@@ -59,21 +59,24 @@ const Appearance = observer(() => {
       <h2>Appearance</h2>
 
       <h3>Interface</h3>
-      <fieldset>
-        <legend>Dark theme</legend>
-        <Toggle checked={uiStore.theme === 'dark'} onChange={uiStore.toggleTheme} />
-      </fieldset>
 
-      <fieldset>
-        <legend>Full screen</legend>
-        <Toggle checked={uiStore.isFullScreen} onChange={toggleFullScreen} />
-      </fieldset>
+      <div className="input-group">
+        <fieldset>
+          <legend>Dark theme</legend>
+          <Toggle checked={uiStore.theme === 'dark'} onChange={uiStore.toggleTheme} />
+        </fieldset>
+
+        <fieldset>
+          <legend>Full screen</legend>
+          <Toggle checked={uiStore.isFullScreen} onChange={toggleFullScreen} />
+        </fieldset>
+      </div>
 
       <Zoom />
 
       <h3>Thumbnail</h3>
 
-      <div className="settings-thumbnail">
+      <div className="input-group">
         <fieldset>
           <legend>Show assigned tags</legend>
           <Toggle
@@ -92,7 +95,7 @@ const Appearance = observer(() => {
 
       <br />
 
-      <div className="settings-thumbnail">
+      <div className="input-group">
         <RadioGroup name="Size">
           <Radio
             label="Small"
