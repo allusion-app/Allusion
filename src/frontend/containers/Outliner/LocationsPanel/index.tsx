@@ -308,13 +308,8 @@ const useFileDropHandling = (
   };
 };
 
-const SubLocation = ({
-  nodeData,
-  treeData,
-}: {
-  nodeData: ClientSubLocation;
-  treeData: ITreeData;
-}) => {
+const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: ITreeData }) => {
+  const { nodeData, treeData } = props;
   const { uiStore } = useStore();
   const { showContextMenu, expansion, setExpansion } = treeData;
   const handleContextMenu = useCallback(
@@ -375,7 +370,7 @@ const SubLocation = ({
       </button>
     </div>
   );
-};
+});
 
 const Location = observer(
   ({ nodeData, treeData }: { nodeData: ClientLocation; treeData: ITreeData }) => {
