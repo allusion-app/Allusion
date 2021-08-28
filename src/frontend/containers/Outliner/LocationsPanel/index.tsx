@@ -322,8 +322,6 @@ const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: IT
     [nodeData, showContextMenu, treeData.exclude],
   );
 
-  // TODO: get rid of mobx warnings. Tried getting it through uiStore.getCriteriaByValue, runInAction and other ways
-  // but they all don't trigger a rerender
   const existingSearchCrit = uiStore.searchCriteriaList.find(
     (c: any) => c.value === pathAsSearchPath(nodeData.path),
   );
