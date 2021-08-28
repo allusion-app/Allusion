@@ -54,25 +54,21 @@
   }
 
   &[aria-selected='true'] > .label {
-    color: var(--accent-color);
-    background-color: transparent;
+    background-color: var(--background-color-selected);
+    color: var(--text-color-strong);
 
-    [class*='custom-icon'] {
-      color: var(--accent-color);
+    &:hover {
+      // TODO: proper background color change for hover
+      // This also changes text color
+      filter: brightness(0.95);
     }
   }
 
-  &:focus {
-    outline: none;
-
-    &[aria-selected='true'] > .label {
-      background-color: transparent;
-    }
-
-    > .label {
-      background-color: var(--hover-color);
-      border-color: var(--accent-color);
-    }
+  &:focus  > .label {
+    // If focused, show an outline
+    // If selected as well: do nothing special: keep the selected background color    
+    border: 2px solid var(--accent-color-blue);
+    // TODO: proper background color change for hover
   }
 }
 

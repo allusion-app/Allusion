@@ -70,7 +70,7 @@ const Content = observer(() => {
     dndData.target !== undefined && uiStore.fileSelection.has(dndData.target);
 
   const clearFileSelection = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.MouseEvent | React.KeyboardEvent) => {
       const isSlideMode = runInAction(() => uiStore.isSlideMode);
       const isLayout = e.currentTarget.firstElementChild?.contains(e.target as Node);
       if (!isSlideMode && isLayout) {
@@ -80,15 +80,30 @@ const Content = observer(() => {
     [uiStore],
   );
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        const isSlideMode = runInAction(() => uiStore.isSlideMode);
+        if (!isSlideMode) {
+          uiStore.clearFileSelection();
+          e.stopPropagation();
+        }
+      }
+    },
+    [uiStore],
+  );
+
   return (
     <div
       ref={container}
       id="gallery-content"
+      tabIndex={-1}
       data-show-filename={uiStore.isThumbnailFilenameOverlayEnabled}
       data-selected-file-dropping={isDroppingTagOnSelection}
       onContextMenu={handleContextMenu}
       // Clear selection when clicking on the background, unless in slide mode: always needs an active image
       onClick={clearFileSelection}
+      onKeyDown={handleKeyDown}
     >
       <Layout contentRect={contentRect} showContextMenu={show} />
 

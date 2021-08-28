@@ -61,12 +61,9 @@ export class LocationTreeItemRevealer extends TreeItemRevealer {
       };
 
       const subLocationsToExpand = getSubLocationsToFile(location);
-      if (subLocationsToExpand.length === 0) {
-        console.error('No sublocations found for revealing', absolutePath, location.subLocations);
-      } else {
-        // Location's dataId is its ID, subLocation's dataId's are their paths
-        this.revealTreeItem([location.id, ...subLocationsToExpand.map((l) => l.path)]);
-      }
+
+      // Location's dataId is its ID, subLocation's dataId's are their paths
+      this.revealTreeItem([location.id, ...subLocationsToExpand.map((l) => l.path)]);
     });
   }
 }
@@ -112,11 +109,13 @@ const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
   }
 };
 
+/** Add an additional / or \ in order to enforce files only in the specific directory are found, not in those starting with same name */
+const pathAsSearchPath = (path: string) => `${path}${SysPath.sep}`;
+
 const pathCriteria = (path: string) =>
   new ClientStringSearchCriteria<IFile>(
     'absolutePath',
-    // Add an additional / or \ in order to enforce files only in the specific directory are found, not in those starting with same name
-    `${path}${SysPath.sep}`,
+    pathAsSearchPath(path),
     'startsWith',
     CustomKeyDict,
   );
@@ -309,13 +308,8 @@ const useFileDropHandling = (
   };
 };
 
-const SubLocation = ({
-  nodeData,
-  treeData,
-}: {
-  nodeData: ClientSubLocation;
-  treeData: ITreeData;
-}) => {
+const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: ITreeData }) => {
+  const { nodeData, treeData } = props;
   const { uiStore } = useStore();
   const { showContextMenu, expansion, setExpansion } = treeData;
   const handleContextMenu = useCallback(
@@ -328,14 +322,20 @@ const SubLocation = ({
     [nodeData, showContextMenu, treeData.exclude],
   );
 
+  const existingSearchCrit = uiStore.searchCriteriaList.find(
+    (c: any) => c.value === pathAsSearchPath(nodeData.path),
+  );
+  const isSearched = Boolean(existingSearchCrit);
+
   const handleClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-      // TODO: Mark searched nodes as selected?
-      event.ctrlKey
+    (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+      existingSearchCrit // toggle search
+        ? uiStore.removeSearchCriteria(existingSearchCrit)
+        : event.ctrlKey // otherwise add/replace depending on ctrl
         ? uiStore.addSearchCriteria(pathCriteria(nodeData.path))
         : uiStore.replaceSearchCriteria(pathCriteria(nodeData.path));
     },
-    [nodeData.path, uiStore],
+    [existingSearchCrit, nodeData.path, uiStore],
   );
 
   const { handleDragEnter, handleDragLeave, handleDrop } = useFileDropHandling(
@@ -349,7 +349,7 @@ const SubLocation = ({
     <div
       className="tree-content-label"
       aria-disabled={nodeData.isExcluded}
-      onClick={handleClick}
+      // onClick={handleClick}
       onContextMenu={handleContextMenu}
       onDragEnter={handleDragEnter}
       onDrop={handleDrop}
@@ -362,10 +362,13 @@ const SubLocation = ({
           ? IconSet.FOLDER_OPEN
           : IconSet.FOLDER_CLOSE
         : IconSet.HIDDEN}
-      {nodeData.name}
+      <div>{nodeData.name}</div>
+      <button onClick={handleClick} className="btn btn-icon" aria-hidden={!isSearched}>
+        {isSearched ? IconSet.SEARCH : IconSet.SEARCH_ADD}
+      </button>
     </div>
   );
-};
+});
 
 const Location = observer(
   ({ nodeData, treeData }: { nodeData: ClientLocation; treeData: ITreeData }) => {
@@ -386,14 +389,21 @@ const Location = observer(
       [showContextMenu, nodeData, onDelete, treeData.exclude],
     );
 
+    // TODO: idem
+    const existingSearchCrit = uiStore.searchCriteriaList.find(
+      (c: any) => c.value === pathAsSearchPath(nodeData.path),
+    );
+    const isSearched = Boolean(existingSearchCrit);
+
     const handleClick = useCallback(
-      (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        // TODO: Mark searched nodes as selected?
-        event.ctrlKey
+      (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        existingSearchCrit // toggle search
+          ? uiStore.removeSearchCriteria(existingSearchCrit)
+          : event.ctrlKey
           ? uiStore.addSearchCriteria(pathCriteria(nodeData.path))
           : uiStore.replaceSearchCriteria(pathCriteria(nodeData.path));
       },
-      [nodeData, uiStore],
+      [existingSearchCrit, nodeData.path, uiStore],
     );
 
     const { handleDragEnter, handleDragLeave, handleDrop } = useFileDropHandling(
@@ -406,7 +416,6 @@ const Location = observer(
     return (
       <div
         className="tree-content-label"
-        onClick={handleClick}
         onContextMenu={handleContextMenu}
         onDragEnter={handleDragEnter}
         onDrop={handleDrop}
@@ -418,8 +427,12 @@ const Location = observer(
             : IconSet.FOLDER_CLOSE
           : IconSet.LOADING}
         <div>{nodeData.name}</div>
-        {nodeData.isBroken && (
+        {nodeData.isBroken ? (
           <span onClick={() => uiStore.openLocationRecovery(nodeData.id)}>{IconSet.WARNING}</span>
+        ) : (
+          <button onClick={handleClick} className="btn btn-icon" aria-hidden={!isSearched}>
+            {isSearched ? IconSet.SEARCH : IconSet.SEARCH_ADD}
+          </button>
         )}
       </div>
     );

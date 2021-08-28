@@ -366,7 +366,9 @@ class UiStore {
   }
 
   @action.bound openToolbarTagPopover() {
-    this.isToolbarTagPopoverOpen = true;
+    if (this.fileSelection.size > 0) {
+      this.isToolbarTagPopoverOpen = true;
+    }
   }
 
   @action.bound closeToolbarTagPopover() {
@@ -632,6 +634,12 @@ class UiStore {
       this.searchCriteriaList[index] = crit;
       this.viewQueryContent();
     }
+  }
+
+  @action.bound getCriteriaByValue(value: any) {
+    return this.searchCriteriaList.find(
+      (c: any) => c.value === value || c.value?.includes?.(value),
+    );
   }
 
   @action.bound remapHotkey(action: keyof IHotkeyMap, combo: string) {

@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useEffect, useRef, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { useStore } from 'src/frontend/contexts/StoreContext';
+import FocusManager from 'src/frontend/FocusManager';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
 import { debounce, throttle } from 'src/frontend/utils';
 import { MasonryType } from 'wasm/masonry/pkg/masonry';
@@ -57,6 +58,7 @@ const MasonryRenderer = observer(
     const numImages = fileStore.fileList.length;
 
     // Vertical keyboard navigation with lastSelectionIndex
+    // note: horizontal keyboard navigation is handled elsewhere: LayoutSwitcher
     useEffect(() => {
       const onKeyDown = (e: KeyboardEvent) => {
         runInAction(() => {
@@ -91,6 +93,7 @@ const MasonryRenderer = observer(
           }
           e.preventDefault();
           handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+          FocusManager.focusGallery();
         });
       };
 

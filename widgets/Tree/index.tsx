@@ -7,14 +7,14 @@ import { ID } from 'src/entities/ID';
 
 // --- Helper function for tree items ---
 
-const setTabFocus = (element: HTMLElement) => {
+const setTabFocus = (element: HTMLElement, preventScroll = true) => {
   element.setAttribute('tabIndex', '0');
-  element.focus({ preventScroll: true }); // CHROME BUG: Option is ignored, probably fixed in Electron 9.
+  element.focus({ preventScroll }); // CHROME BUG: Option is ignored, probably fixed in Electron 9.
 };
 
 const refocus = (previousTarget: Element, nextTarget: HTMLElement) => {
   previousTarget.setAttribute('tabIndex', '-1');
-  setTabFocus(nextTarget);
+  setTabFocus(nextTarget, false); // scroll is nice to have here: otherwise elements might go out of view
 };
 
 const isGroup = (element: Element | null) => element?.matches('[role="group"]');
@@ -101,11 +101,13 @@ export const createLeafOnKeyDown = (
 
     case 'ArrowDown':
       event.stopPropagation();
+      event.preventDefault(); // prevent scroll
       shiftKeyFocus(event.shiftKey, getNextSibling(leaf) as HTMLElement, leaf);
       break;
 
     case 'ArrowUp': {
       event.stopPropagation();
+      event.preventDefault(); // prevent scroll
       const prev = leaf.previousElementSibling
         ? getLastDescendant(leaf.previousElementSibling)
         : getParent(leaf);
@@ -182,6 +184,7 @@ export const createBranchOnKeyDown = (
 
     case 'ArrowDown': {
       event.stopPropagation();
+      event.preventDefault(); // prevent scroll
       const next = getFirstChild(branch) ?? getNextSibling(branch);
       shiftKeyFocus(event.shiftKey, next as HTMLElement, branch);
       break;
@@ -189,6 +192,7 @@ export const createBranchOnKeyDown = (
 
     case 'ArrowUp': {
       event.stopPropagation();
+      event.preventDefault(); // prevent scroll
       const prev = branch.previousElementSibling
         ? getLastDescendant(branch.previousElementSibling)
         : getParent(branch);

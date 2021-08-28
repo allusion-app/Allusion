@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
+import FocusManager from 'src/frontend/FocusManager';
 import { RendererMessenger } from 'src/Messaging';
 import { MenuDivider } from 'widgets/menus';
 import { ClientFile } from '../../../entities/File';
@@ -98,8 +99,12 @@ const Layout = ({
         }
         if (e.key === 'ArrowLeft' && index > 0) {
           index -= 1;
+          // TODO: when the activeElement GalleryItem goes out of view, focus will be handed over to the body element:
+          // -> Gallery keyboard shortkeys stop working. So, force focus on container
+          FocusManager.focusGallery();
         } else if (e.key === 'ArrowRight' && index < fileStore.fileList.length - 1) {
           index += 1;
+          FocusManager.focusGallery();
         } else {
           return;
         }

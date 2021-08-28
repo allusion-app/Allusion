@@ -47,19 +47,14 @@
   min-height: 1rem;
 }
 
-#tag-hierarchy {
+#tag-hierarchy, #location-list {
   .btn-icon {
     display: none;
   }
 
-  .tree-content-label:hover > .btn-icon {
+  .tree-content-label:hover > .btn-icon,
+  .tree-content-label > .btn-icon[aria-hidden='false'] {
     display: flex;
-  }
-
-  &.selected {
-    .btn-icon {
-      display: flex;
-    }
   }
 }
 

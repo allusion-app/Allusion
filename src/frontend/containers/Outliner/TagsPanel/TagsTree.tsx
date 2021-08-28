@@ -291,13 +291,25 @@ const TagItem = observer((props: ITagItemProps) => {
   const handleQuickQuery = useCallback(
     (event: React.MouseEvent) => {
       runInAction(() => {
-        const query = new ClientTagSearchCriteria(tagStore, 'tags', nodeData.id, nodeData.name);
-        if (event.ctrlKey) {
-          if (!nodeData.isSearched) {
-            uiStore.addSearchCriteria(query);
+        event.stopPropagation();
+        if (nodeData.isSearched) {
+          // if already searched, un-search
+          const crit = uiStore.searchCriteriaList.find(
+            (c) => c instanceof ClientTagSearchCriteria && c.value.includes(nodeData.id),
+          );
+          if (crit) {
+            uiStore.removeSearchCriteria(crit);
           }
         } else {
-          uiStore.replaceSearchCriteria(query);
+          // otherwise, search it
+          const query = new ClientTagSearchCriteria(tagStore, 'tags', nodeData.id, nodeData.name);
+          if (event.ctrlKey) {
+            if (!nodeData.isSearched) {
+              uiStore.addSearchCriteria(query);
+            }
+          } else {
+            uiStore.replaceSearchCriteria(query);
+          }
         }
       });
     },
@@ -327,7 +339,7 @@ const TagItem = observer((props: ITagItemProps) => {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onContextMenu={handleContextMenu}
-      onClick={handleQuickQuery}
+      onClick={handleSelect}
       onDoubleClick={handleRename}
     >
       <span style={{ color: nodeData.viewColor }}>
@@ -341,8 +353,12 @@ const TagItem = observer((props: ITagItemProps) => {
         tooltip={`${nodeData.treePath.map((t) => t.name).join(' › ')} (${nodeData.fileCount})`}
       />
       {!isEditing && (
-        <button onClick={handleSelect} className="btn-icon">
-          {uiStore.tagSelection.has(nodeData) ? IconSet.SELECT_CHECKED : IconSet.SELECT}
+        <button
+          onClick={handleQuickQuery}
+          className="btn btn-icon"
+          aria-hidden={!nodeData.isSearched}
+        >
+          {nodeData.isSearched ? IconSet.SEARCH : IconSet.SEARCH_ADD}
         </button>
       )}
     </div>
@@ -487,7 +503,7 @@ const TagsTree = observer(() => {
     (e: React.MouseEvent, selectedTag: ClientTag) => {
       // Note: selection logic is copied from Gallery.tsx
       const rangeSelection = e.shiftKey;
-      const expandSelection = e.ctrlKey;
+      const expandSelection = e.ctrlKey || e.metaKey;
 
       /** The index of the active (newly selected) item */
       const i = tagStore.findFlatTagListIndex(selectedTag);
@@ -498,8 +514,6 @@ const TagsTree = observer(() => {
         lastSelectionIndex.current = i;
         uiStore.toggleTagSelection(selectedTag);
         return;
-      } else {
-        initialSelectionIndex.current = lastSelectionIndex.current;
       }
 
       // Mark this index as the last item that was selected
@@ -518,7 +532,12 @@ const TagsTree = observer(() => {
         uiStore.toggleTagSelection(selectedTag);
         initialSelectionIndex.current = i;
       } else {
-        uiStore.selectTag(selectedTag, true);
+        if (selectedTag.isSelected && uiStore.tagSelection.size === 1) {
+          uiStore.clearTagSelection();
+          (document.activeElement as HTMLElement)?.blur?.();
+        } else {
+          uiStore.selectTag(selectedTag, true);
+        }
         initialSelectionIndex.current = i;
       }
     },
@@ -583,8 +602,19 @@ const TagsTree = observer(() => {
     [tagStore, uiStore],
   );
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        uiStore.clearTagSelection();
+        (document.activeElement as HTMLElement)?.blur?.();
+        e.stopPropagation();
+      }
+    },
+    [uiStore],
+  );
+
   return (
-    <>
+    <div onKeyDown={handleKeyDown}>
       <header
         onDragOver={handleDragOverAndLeave}
         onDragLeave={handleDragOverAndLeave}
@@ -660,7 +690,7 @@ const TagsTree = observer(() => {
       >
         {contextState.menu}
       </ContextMenu>
-    </>
+    </div>
   );
 });
 
