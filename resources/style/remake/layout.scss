@@ -11,7 +11,7 @@ body {
   margin: 0;
   overflow: hidden;
 
-  --toolbar-height: 3rem;
+  --toolbar-height: 2.5625rem;
 }
 
 // Global specific styles for the main window
@@ -50,6 +50,7 @@ body {
   display: flex;
   align-items: center;
   background: var(--background-color);
+  border-bottom: 0.0625rem solid var(--border-color);
 }
 
 #outliner {
@@ -68,7 +69,6 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 0 0.5rem;
   background: var(--background-color);
 }
 

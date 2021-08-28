@@ -389,6 +389,23 @@ const BackgroundProcesses = observer(() => {
       </fieldset>
 
       <fieldset>
+        <legend>Browser extension download directory (must be in a Location)</legend>
+        <div className="input-file">
+          <input
+            readOnly
+            className="input input-file-value"
+            value={uiStore.importDirectory || 'Not set'}
+          />
+          <Button
+            styling="minimal"
+            icon={IconSet.FOLDER_CLOSE}
+            text="Browse"
+            onClick={browseImportDirectory}
+          />
+        </div>
+      </fieldset>
+
+      <fieldset>
         <legend>Browser extension support</legend>
         <Toggle
           checked={isClipEnabled}
@@ -407,23 +424,12 @@ const BackgroundProcesses = observer(() => {
         />
       </fieldset>
 
-      <fieldset>
-        <legend>Browser extension download directory (must be in a Location)</legend>
-        <div className="input-file">
-          <input
-            readOnly
-            className="input input-file-value"
-            value={uiStore.importDirectory || 'Not set'}
-          />
-          <Button
-            styling="minimal"
-            icon={IconSet.FOLDER_CLOSE}
-            text="Browse"
-            onClick={browseImportDirectory}
-          />
-        </div>
-      </fieldset>
-
+      <Callout icon={IconSet.INFO}>
+        For the browser extension to work, first choose a download folder that is in one of your
+        locations already added to Allusion, then enable the browser extension support toggle.
+        Finally, if you want the browser extension to work even when Allusion is not open, enable
+        the run in background option.
+      </Callout>
       <Button
         onClick={() => shell.openExternal(chromeExtensionUrl)}
         styling="outlined"

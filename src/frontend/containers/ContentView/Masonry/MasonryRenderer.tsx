@@ -31,6 +31,7 @@ const ViewMethodLayoutDict: Record<SupportedViewMethod, MasonryType> = {
 };
 
 const SCROLL_BAR_WIDTH = 8;
+const MASONRY_PADDING = 8; // Note: keep in sync with .masonry class padding
 
 const worker = new MasonryWorkerAdapter();
 
@@ -50,7 +51,7 @@ const MasonryRenderer = observer(
     // Doesn't seem to be necessary anymore - might cause overlapping thumbnails, but could not reproduce
     const [forceRerenderObj, setForceRerenderObj] = useState<Date>(new Date());
     const thumbnailSize = getThumbnailSize(uiStore.thumbnailSize);
-    const containerWidth = contentRect.width - SCROLL_BAR_WIDTH;
+    const containerWidth = contentRect.width - SCROLL_BAR_WIDTH - MASONRY_PADDING;
 
     const viewMethod = uiStore.method as SupportedViewMethod;
     const numImages = fileStore.fileList.length;
@@ -206,6 +207,7 @@ const MasonryRenderer = observer(
         showContextMenu={showContextMenu}
         lastSelectionIndex={lastSelectionIndex}
         layoutUpdateDate={layoutTimestamp}
+        padding={MASONRY_PADDING}
       />
     );
   },
