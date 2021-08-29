@@ -27,7 +27,7 @@
     }
   }
 
-  .list [aria-selected='true'] {
+  #list [aria-selected='true'] {
     background-color: rgba(255, 193, 47, 0.3);
   }
 }
@@ -115,10 +115,16 @@
 
 // Fallback images on loading and error
 .image-loading,
-.image-error {
+.image-error,
+.image-placeholder {
   height: 100%;
   width: 100%;
   background-color: currentColor;
+}
+
+.image-placeholder {
+  mask-image: url(~resources/icons/media.svg);
+  -webkit-mask-image: url(~resources/icons/media.svg);
 }
 
 .image-loading {
@@ -142,9 +148,17 @@
     background-color: var(--background-color-alt);
   }
 
-  .thumbnail {
+  // thumbnail
+  [role='gridcell'].col-name > :first-child {
     margin-inline-end: 0.5rem;
     flex-shrink: 0;
+    height: var(--thumbnail-size);
+    width: var(--thumbnail-size);
+  }
+
+  .col-name > img {
+    object-fit: cover;
+    padding: 2px;
   }
 
   --col-name-width: 200px;
@@ -162,6 +176,11 @@
     &[aria-selected='true'] {
       background-color: var(--accent-color-blue);
       color: white;
+    }
+
+    &[data-dnd-target='true'] {
+      // Yellow background when DnD target
+      background-color: rgba(255, 193, 47, 0.6) !important;
     }
   }
 

@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import React, { useMemo, useEffect, useState, useRef } from 'react';
 import { formatDateTime, humanFileSize } from 'src/frontend/utils';
-import { GalleryEventHandler, Thumbnail, ThumbnailContainer, ThumbnailTags } from './GalleryItem';
+import { GalleryEventHandler, Thumbnail, ThumbnailTags } from './GalleryItem';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IListItem } from './ListGallery';
 
@@ -33,13 +33,11 @@ export const ListItem = observer((props: IListItem) => {
     >
       {/* Filename */}
       <div role="gridcell" className="col-name">
-        <ThumbnailContainer file={file} submitCommand={submitCommand}>
-          {isMounted ? (
-            <Thumbnail mounted={isMounted} file={file} />
-          ) : (
-            <div className="thumbnail-placeholder" />
-          )}
-        </ThumbnailContainer>
+        {isMounted ? (
+          <Thumbnail mounted={isMounted} file={file} />
+        ) : (
+          <span className="image-placeholder" />
+        )}
         {file.name}
       </div>
 
