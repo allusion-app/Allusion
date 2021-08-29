@@ -145,7 +145,7 @@
 }
 
 /////////////////////// View methods //////////////////////////////////
-.list {
+#list {
   // Stripe pattern
   [aria-rowindex$='0'],
   [aria-rowindex$='2'],
@@ -155,182 +155,282 @@
     background-color: rgba(102, 102, 102, 0.045);
   }
 
-  // Allow horizontal scroll in list view
-  > div {
-    min-width: 600px;
-    overflow-x: auto;
+  --thumbnail-size: 1.5rem;
+  .thumbnail {
+    margin-inline-end: 0.5rem;
+    flex-shrink: 0;
   }
 
-  [role='gridcell'] {
-    height: 24px;
+  --col-name-width: min(30ch, 200px);
+  --col-dimensions-width: max(14ch, 100px);
+  --col-date-added-width: max(16ch, 100px);
+  --col-size-width: max(14ch, 100px);
+  --col-tags-width: auto;
 
-    > div {
-      // cell container
-      height: 24px;
-      display: inline-flex;
-      align-items: center;
-      vertical-align: middle;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      padding: 0 4px;
-
-      // Column widths:
-      // - base width of 140px
-      width: 140px;
-      &:nth-child(2) {
-        width: 90px;
-      }
-      &:nth-child(3) {
-        width: 150px;
-      }
-      &:nth-child(4) {
-        width: 80px;
-      }
-      // - first and last column (filename and tags): fill rest of width
-      &:first-child,
-      &:last-child {
-        // both are 50% minus half of the rest of the columns (0.5 * 3 * 120)
-        width: calc(50% - 160px);
-      }
-
-      // Overflow is needed for the first child for allowing the thumbnail to expand on hover
-      &:not(:first-child) {
-        overflow: hidden;
-      }
-
-      > .filename {
-        display: inline;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: calc(100% - 32px); // minus thumbnail and some padding
-        margin-left: 8px;
-      }
-
-      .thumbnail-broken {
-        overflow: hidden;
-      }
-      .image-error {
-        display: none;
-      }
-    }
+  [role='row'] {
+    white-space: nowrap;
 
     &[aria-selected='true'] {
       background-color: var(--accent-color-blue);
       color: white;
     }
-
-    &[data-dnd-target='true'] {
-      // Yellow background when DnD target
-      background-color: rgba(255, 193, 47, 0.6) !important;
-    }
   }
 
-  // Force thumbnail size of 24 pixels
-  --thumbnail-size: 20px;
+  // cell container
+  [role='gridcell'],
+  [role='columnheader'] {
+    height: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
 
-  .thumbnail {
-    align-self: center;
-    display: inline-block;
-    margin: 2px 0px 2px 4px;
+  [role='gridcell'],
+  [role='columnheader'].unsortable,
+  [role='columnheader'] > button {
+    padding: 0 0.5rem;
+  }
 
-    img {
-      transition: transform 0.2s ease;
-      transform-origin: top left;
-      border-radius: 0;
-    }
+  [role='columnheader'] {
+    font-weight: 600;
 
-    &:hover {
-      img {
-        z-index: 2;
-        position: relative;
-        clip-path: inset(0);
+    > button {
+      justify-content: space-between;
+      width: 100%;
 
-        // show image in original aspect ratio, aligned to the left
-        object-fit: contain;
-        object-position: left;
-        // a drop shadow might be nice too
+      &::after {
+        content: '';
+        width: 1rem;
+        height: 1rem;
+        background-color: var(--text-color-muted);
+        background-repeat: no-repeat;
+        mask-image: url(~resources/icons/item-expand.svg);
+        -webkit-mask-image: url(~resources/icons/item-expand.svg);
       }
     }
-  }
 
-  // Last 4
-  [role='row']:nth-last-child(-n + 4) .thumbnail:hover {
-    img {
-      transform: scale(10) translate(3px, -80%);
+    &[aria-sort='ascending'] > button::after {
+      mask-image: url(~resources/icons/arrow-up.svg);
+      -webkit-mask-image: url(~resources/icons/arrow-up.svg);
     }
-  }
-  // 4 > last 4
-  [role='row']:nth-last-child(n + 5) .thumbnail:hover {
-    img {
-      transform: scale(10) translate(3px, -50%);
-    }
-  }
 
-  // First 4
-  [role='row']:nth-child(-n + 5) .thumbnail:hover {
-    img {
-      transform: scale(10) translate(3px, 0%);
+    &[aria-sort='descending'] > button::after {
+      mask-image: url(~resources/icons/arrow-down.svg);
+      -webkit-mask-image: url(~resources/icons/arrow-down.svg);
+    }
+
+    &[aria-sort] > button::after {
+      background-color: var(--text-color);
     }
   }
 
-  h2 {
-    grid-area: title;
-    font-size: medium;
-    margin: 0;
-    white-space: nowrap;
-    align-self: end;
+  // Column widths:
+  .col-name {
+    width: var(--col-name-width);
   }
-
-  .thumbnail-tags {
-    min-height: 1.5rem;
-    position: unset;
-    padding: 0;
+  .col-dimensions {
+    width: var(--col-dimensions-width);
+  }
+  .col-date-added {
+    width: var(--col-date-added-width);
+  }
+  .col-size {
+    width: var(--col-size-width);
+  }
+  .col-tags {
+    width: var(--col-tags-width);
   }
 }
 
-.list-header {
-  height: 24px;
-  width: 100%;
-  border-bottom: 0.0625rem solid var(--border-color);
+// .list {
+//   // Stripe pattern
+//   [aria-rowindex$='0'],
+//   [aria-rowindex$='2'],
+//   [aria-rowindex$='4'],
+//   [aria-rowindex$='6'],
+//   [aria-rowindex$='8'] {
+//     background-color: rgba(102, 102, 102, 0.045);
+//   }
 
-  // Same as content
-  min-width: 600px;
+//   // Allow horizontal scroll in list view
+//   > div {
+//     min-width: 600px;
+//     overflow-x: auto;
+//   }
 
-  > div {
-    // Column widths:
-    // - base width of 140px
-    width: 140px;
-    &:nth-child(2) {
-      width: 90px;
-    }
-    &:nth-child(3) {
-      width: 150px;
-    }
-    &:nth-child(4) {
-      width: 80px;
-    }
-    &:first-child {
-      padding-left: 8px;
-    }
-    // - first and last column (filename and tags): fill rest of width
-    &:first-child,
-    &:last-child {
-      // both are 50% minus half of the rest of the columns (0.5 * 3 * 120)
-      width: calc(50% - 160px);
-    }
+//   [role='gridcell'] {
+//     height: 24px;
 
-    padding: 4px 4px 4px 4px;
-    font-weight: bold;
-    overflow: hidden;
+//     > div {
+//       // cell container
+//       height: 24px;
+//       display: inline-flex;
+//       align-items: center;
+//       vertical-align: middle;
+//       text-overflow: ellipsis;
+//       white-space: nowrap;
+//       padding: 0 4px;
 
-    display: inline-flex;
-    justify-content: space-between;
+//       // Column widths:
+//       // - base width of 140px
+//       width: 140px;
+//       &:nth-child(2) {
+//         width: 90px;
+//       }
+//       &:nth-child(3) {
+//         width: 150px;
+//       }
+//       &:nth-child(4) {
+//         width: 80px;
+//       }
+//       // - first and last column (filename and tags): fill rest of width
+//       &:first-child,
+//       &:last-child {
+//         // both are 50% minus half of the rest of the columns (0.5 * 3 * 120)
+//         width: calc(50% - 160px);
+//       }
 
-    &.sortable {
-      cursor: pointer;
-    }
-  }
-}
+//       // Overflow is needed for the first child for allowing the thumbnail to expand on hover
+//       &:not(:first-child) {
+//         overflow: hidden;
+//       }
+
+//       > .filename {
+//         display: inline;
+//         overflow: hidden;
+//         text-overflow: ellipsis;
+//         max-width: calc(100% - 32px); // minus thumbnail and some padding
+//         margin-left: 8px;
+//       }
+
+//       .thumbnail-broken {
+//         overflow: hidden;
+//       }
+//       .image-error {
+//         display: none;
+//       }
+//     }
+
+//     &[aria-selected='true'] {
+//       background-color: var(--accent-color-blue);
+//       color: white;
+//     }
+
+//     &[data-dnd-target='true'] {
+//       // Yellow background when DnD target
+//       background-color: rgba(255, 193, 47, 0.6) !important;
+//     }
+//   }
+
+//   // Force thumbnail size of 24 pixels
+//   --thumbnail-size: 20px;
+
+//   .thumbnail {
+//     align-self: center;
+//     display: inline-block;
+//     margin: 2px 0px 2px 4px;
+
+//     img {
+//       transition: transform 0.2s ease;
+//       transform-origin: top left;
+//       border-radius: 0;
+//     }
+
+//     &:hover {
+//       img {
+//         z-index: 2;
+//         position: relative;
+//         clip-path: inset(0);
+
+//         // show image in original aspect ratio, aligned to the left
+//         object-fit: contain;
+//         object-position: left;
+//         // a drop shadow might be nice too
+//       }
+//     }
+//   }
+
+//   // Last 4
+//   [role='row']:nth-last-child(-n + 4) .thumbnail:hover {
+//     img {
+//       transform: scale(10) translate(3px, -80%);
+//     }
+//   }
+//   // 4 > last 4
+//   [role='row']:nth-last-child(n + 5) .thumbnail:hover {
+//     img {
+//       transform: scale(10) translate(3px, -50%);
+//     }
+//   }
+
+//   // First 4
+//   [role='row']:nth-child(-n + 5) .thumbnail:hover {
+//     img {
+//       transform: scale(10) translate(3px, 0%);
+//     }
+//   }
+
+//   h2 {
+//     grid-area: title;
+//     font-size: medium;
+//     margin: 0;
+//     white-space: nowrap;
+//     align-self: end;
+//   }
+
+//   .thumbnail-tags {
+//     min-height: 1.5rem;
+//     position: unset;
+//     padding: 0;
+//   }
+// }
+
+// .list-header {
+//   height: 24px;
+//   width: 100%;
+//   border-bottom: 0.0625rem solid var(--border-color);
+
+//   // Same as content
+//   min-width: 600px;
+
+//   > div {
+//     // Column widths:
+//     // - base width of 140px
+//     width: 140px;
+//     &:nth-child(2) {
+//       width: 90px;
+//     }
+//     &:nth-child(3) {
+//       width: 150px;
+//     }
+//     &:nth-child(4) {
+//       width: 80px;
+//     }
+//     &:first-child {
+//       padding-left: 8px;
+//     }
+//     // - first and last column (filename and tags): fill rest of width
+//     &:first-child,
+//     &:last-child {
+//       // both are 50% minus half of the rest of the columns (0.5 * 3 * 120)
+//       width: calc(50% - 160px);
+//     }
+
+//     padding: 4px 4px 4px 4px;
+//     font-weight: bold;
+//     overflow: hidden;
+
+//     display: inline-flex;
+//     justify-content: space-between;
+
+//     &.sortable {
+//       cursor: pointer;
+//     }
+//   }
+// }
 
 .thumbnail-small .list .file-info {
   border-spacing: 0;

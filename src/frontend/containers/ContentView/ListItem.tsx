@@ -32,7 +32,7 @@ export const ListItem = observer((props: IListItem) => {
       {...eventHandlers}
     >
       {/* Filename */}
-      <div role="gridcell">
+      <div role="gridcell" className="col-name">
         <ThumbnailContainer file={file} submitCommand={submitCommand}>
           {isMounted ? (
             <Thumbnail mounted={isMounted} file={file} />
@@ -40,21 +40,26 @@ export const ListItem = observer((props: IListItem) => {
             <div className="thumbnail-placeholder" />
           )}
         </ThumbnailContainer>
-        <span className="filename">{file.name}</span>
+        {file.name}
       </div>
+
       {/* Dimensions */}
-      <div role="gridcell">
+      <div role="gridcell" className="col-dimensions">
         {file.width} x {file.height}
       </div>
 
       {/* Import date */}
-      <div role="gridcell">{formatDateTime(file.dateAdded)}</div>
+      <div role="gridcell" className="col-date-added">
+        {formatDateTime(file.dateAdded)}
+      </div>
 
       {/* Size */}
-      <div role="gridcell">{humanFileSize(file.size)}</div>
+      <div role="gridcell" className="col-size">
+        {humanFileSize(file.size)}
+      </div>
 
       {/* Tags */}
-      <div role="gridcell">
+      <div role="gridcell" className="col-tags">
         <ThumbnailTags file={file} />
       </div>
     </div>

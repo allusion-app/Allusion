@@ -101,13 +101,13 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
 
   return (
     <div
+      id="list"
       role="grid"
       aria-rowcount={fileStore.fileList.length}
-      style={{ width: `${contentRect.width}px` }}
+      style={{ width: `${contentRect.width}px`, height: `${contentRect.height}px` }}
     >
       <Header />
       <FixedSizeList
-        className="list"
         useIsScrolling
         // Subtract 24 for header
         // TODO: Also subtract scroll bar width if visible
@@ -163,7 +163,11 @@ const Header = () => {
             return <SortableHeader key={title} sortKey={sortKey} title={title} />;
           } else {
             return (
-              <div role="columnheader" key={title}>
+              <div
+                role="columnheader"
+                className={`col-${title.toLowerCase().replaceAll(' ', '-')} unsortable`}
+                key={title}
+              >
                 {title}
               </div>
             );
@@ -193,7 +197,11 @@ const SortableHeader = observer(({ title, sortKey }: SortableHeaderProps) => {
     : () => fileStore.orderFilesBy(sortKey);
 
   return (
-    <div role="columnheader" aria-sort={sortOrder}>
+    <div
+      role="columnheader"
+      aria-sort={sortOrder}
+      className={`col-${title.toLowerCase().replaceAll(' ', '-')}`}
+    >
       <button onClick={handleClick}>{title}</button>
     </div>
   );
