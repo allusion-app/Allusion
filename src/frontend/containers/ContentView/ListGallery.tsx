@@ -194,7 +194,7 @@ const Header = ({ setCellSize }: { setCellSize: (height: number) => void }) => {
             return (
               <div
                 role="columnheader"
-                className={`col-${title.toLowerCase().replaceAll(' ', '-')} unsortable`}
+                className={`col-${title.toLowerCase().replaceAll(' ', '-')} unsortable-header`}
                 key={title}
               >
                 {title}
@@ -231,7 +231,9 @@ const SortableHeader = observer(({ title, sortKey }: SortableHeaderProps) => {
       aria-sort={sortOrder}
       className={`col-${title.toLowerCase().replaceAll(' ', '-')}`}
     >
-      <button onClick={handleClick}>{title}</button>
+      <button className="sort-button" onClick={handleClick}>
+        {title}
+      </button>
     </div>
   );
 });
