@@ -1,6 +1,14 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useMemo, useRef, useCallback, useEffect, useLayoutEffect } from 'react';
+import React, {
+  useMemo,
+  useRef,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  CSSProperties,
+} from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { FileOrder } from 'src/backend/DBRepository';
 import { ClientFile, IFile } from 'src/entities/File';
@@ -27,7 +35,7 @@ interface IListGalleryProps {
 const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
   const { contentRect, select, lastSelectionIndex, showContextMenu, handleFileSelect } = props;
   const { fileStore, uiStore } = useStore();
-  const cellSize = 24;
+  const [cellSize, setCellSize] = useState(24);
   const dndData = useTagDnD();
   const submitCommand = useMemo(
     () => createSubmitCommand(dndData, select, showContextMenu, uiStore),
@@ -104,15 +112,19 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
       id="list"
       role="grid"
       aria-rowcount={fileStore.fileList.length}
-      style={{ width: `${contentRect.width}px`, height: `${contentRect.height}px` }}
+      style={
+        {
+          width: `${contentRect.width}px`,
+          height: `${contentRect.height}px`,
+          '--thumbnail-size': `${cellSize}px`,
+        } as CSSProperties
+      }
     >
-      <Header />
+      <Header setCellSize={setCellSize} />
       <FixedSizeList
         useIsScrolling
-        // Subtract 24 for header
-        // TODO: Also subtract scroll bar width if visible
-        height={contentRect.height - 24}
-        width={contentRect.width}
+        height={contentRect.height - cellSize}
+        width="100%"
         itemSize={cellSize}
         itemCount={fileStore.fileList.length}
         itemData={fileStore.fileList}
@@ -154,9 +166,23 @@ const COLUMN_HEADERS: IListColumn[] = [
   { title: 'Tags' },
 ];
 
-const Header = () => {
+const Header = ({ setCellSize }: { setCellSize: (height: number) => void }) => {
+  const resizeObserver = useRef(
+    new ResizeObserver((entries) => {
+      setCellSize(entries[0].contentRect.height);
+    }),
+  );
+
+  const observeHeader = useRef((header: HTMLDivElement | null) => {
+    if (header !== null) {
+      resizeObserver.current.observe(header);
+    } else {
+      resizeObserver.current.disconnect();
+    }
+  }).current;
+
   return (
-    <div role="rowgroup" className="list-header">
+    <div ref={observeHeader} role="rowgroup" className="list-header">
       <div role="row">
         {COLUMN_HEADERS.map(({ sortKey, title }) => {
           if (sortKey !== undefined) {
