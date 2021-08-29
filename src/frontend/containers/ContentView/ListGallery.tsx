@@ -44,7 +44,10 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
   const ref = useRef<FixedSizeList>(null);
 
   const throttledScrollHandler = useRef(
-    debouncedThrottle((index: number) => !uiStore.isSlideMode && uiStore.setFirstItem(index), 100),
+    debouncedThrottle(
+      action((index: number) => !uiStore.isSlideMode && uiStore.setFirstItem(index)),
+      100,
+    ),
   );
 
   const handleScroll = useCallback(
