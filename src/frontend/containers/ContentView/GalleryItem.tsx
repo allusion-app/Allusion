@@ -219,7 +219,7 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbna
     // When the thumbnail cannot be loaded, display an error
     const handleImageError = () => {
       console.log('Could not load image:', thumbnailPath);
-      setState(ThumbnailState.Error);
+      setState((state) => (state === ThumbnailState.Loading ? state : ThumbnailState.Error));
     };
     return (
       <img
@@ -230,17 +230,11 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbna
       />
     );
   } else if (state === ThumbnailState.Loading) {
-    return <div className="donut-loading" />;
+    return <span className="image-loading" />;
   } else {
-    return <MissingImageFallback />;
+    return <span className="image-error" />;
   }
 });
-
-export const MissingImageFallback = ({ style }: { style?: React.CSSProperties }) => (
-  <div style={style} className="image-error custom-icon-128">
-    {IconSet.DB_ERROR}Could not load image
-  </div>
-);
 
 export const ThumbnailTags = observer(
   ({

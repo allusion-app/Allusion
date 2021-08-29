@@ -93,11 +93,8 @@
   }
 }
 
-.thumbnail-broken {
-  > img,
-  > .image-error:not(.custom-icon-128) {
-    filter: saturate(0) brightness(0.25);
-  }
+.thumbnail-broken > img {
+  filter: saturate(0) brightness(0.25);
 }
 
 .thumbnail-broken-overlay {
@@ -116,32 +113,22 @@
   }
 }
 
+// Fallback images on loading and error
+.image-loading,
 .image-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
   height: 100%;
   width: 100%;
+  background-color: currentColor;
 }
 
-// THUMBNAIL LOADER
-.donut-loading {
-  display: inline-block;
-  width: calc(0.3 * var(--thumbnail-size));
-  height: calc(0.3 * var(--thumbnail-size));
-  margin: auto;
-  border-radius: 50%;
-  border: 0.5rem solid var(--background-color);
-  border-top-color: var(--accent-color-blue);
-  animation: 1.5s spin infinite linear;
+.image-loading {
+  mask-image: url(~resources/icons/loading.svg);
+  -webkit-mask-image: url(~resources/icons/loading.svg);
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.image-error {
+  mask-image: url(~resources/icons/media-missing.svg);
+  -webkit-mask-image: url(~resources/icons/media-missing.svg);
 }
 
 /////////////////////// View methods //////////////////////////////////
