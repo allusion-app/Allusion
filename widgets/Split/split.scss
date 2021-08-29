@@ -1,5 +1,6 @@
 .split {
   display: flex;
+  contain: layout size;
 
   > :first-child {
     flex-shrink: 0;

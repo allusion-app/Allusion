@@ -40,7 +40,7 @@
   // Allow dragging of images to elsewhere (drag-export)
   -webkit-user-drag: element;
   background-color: var(--background-color-alt);
-  border: 0.0625rem solid var(--border-dark);
+  border: 0.0625rem solid var(--border-color);
   border-radius: 0.25rem;
 
   transition: background-color 0.2s $pt-transition-cubic2;
@@ -152,7 +152,7 @@
   [aria-rowindex$='5'],
   [aria-rowindex$='7'],
   [aria-rowindex$='9'] {
-    background-color: rgba(102, 102, 102, 0.045);
+    background-color: var(--background-color-alt);
   }
 
   .thumbnail {
@@ -168,6 +168,9 @@
 
   [role='row'] {
     white-space: nowrap;
+    width: 100%;
+    height: var(--thumbnail-size);
+    contain: layout size;
 
     &[aria-selected='true'] {
       background-color: var(--accent-color-blue);
@@ -189,10 +192,6 @@
   [role='columnheader'].unsortable,
   [role='columnheader'] > button {
     padding: 0 0.5rem;
-  }
-
-  [role='gridcell'] {
-    height: var(--thumbnail-size);
   }
 
   [role='columnheader'] {
@@ -553,6 +552,7 @@
   padding: 8px; // Note: keep in sync with MasonryRenderer PADDING
 
   [data-masonrycell] {
+    contain: strict;
     position: absolute;
     transition: transform 0.2s ease;
     .thumbnail {
