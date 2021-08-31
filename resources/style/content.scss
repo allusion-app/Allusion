@@ -139,7 +139,7 @@
 
 /////////////////////// View methods //////////////////////////////////
 #list {
-  // Stripe pattern
+  // stripe pattern
   [aria-rowindex$='1'],
   [aria-rowindex$='3'],
   [aria-rowindex$='5'],
@@ -147,31 +147,6 @@
   [aria-rowindex$='9'] {
     background-color: var(--background-color-alt);
   }
-
-  // thumbnail
-  [role='gridcell'].col-name > :first-child {
-    margin-inline-end: 0.5rem;
-    flex-shrink: 0;
-    height: var(--thumbnail-size);
-    width: var(--thumbnail-size);
-  }
-
-  .col-name > img {
-    object-fit: cover;
-    padding: 2px;
-  }
-
-  --col-name-width: 200px;
-  --col-dimensions-width: 100px;
-  --col-date-added-width: 140px;
-  --col-size-width: 100px;
-  --col-tags-width: max(
-    100px,
-    calc(
-      100% - var(--col-name-width) - var(--col-dimensions-width) - var(--col-date-added-width) -
-        var(--col-size-width)
-    )
-  );
 
   [role='row'] {
     white-space: nowrap;
@@ -230,6 +205,7 @@
     }
   }
 
+  // header buttons
   .sort-button {
     justify-content: space-between;
     width: 100%;
@@ -260,7 +236,32 @@
     }
   }
 
-  // Column widths:
+  // thumbnail
+  [role='gridcell'].col-name > :first-child {
+    margin-inline-end: 0.5rem;
+    flex-shrink: 0;
+    height: var(--thumbnail-size);
+    width: var(--thumbnail-size);
+  }
+
+  .col-name > img {
+    object-fit: cover;
+    padding: 2px;
+  }
+
+  // column widths
+  --col-name-width: 200px;
+  --col-dimensions-width: 100px;
+  --col-date-added-width: 140px;
+  --col-size-width: 100px;
+  --col-tags-width: max(
+    100px,
+    calc(
+      100% - var(--col-name-width) - var(--col-dimensions-width) - var(--col-date-added-width) -
+        var(--col-size-width)
+    )
+  );
+
   .col-name {
     width: var(--col-name-width);
   }
