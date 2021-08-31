@@ -8,6 +8,7 @@ import React, {
   useLayoutEffect,
   useState,
   CSSProperties,
+  memo,
 } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { FileOrder } from 'src/backend/DBRepository';
@@ -42,6 +43,12 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
     [dndData, select, showContextMenu, uiStore],
   );
   const ref = useRef<FixedSizeList>(null);
+  const list = useRef<HTMLDivElement>(null);
+  const setColumnWidth = useRef((name: string, value: number) => {
+    if (list.current !== null) {
+      list.current.style.setProperty(`--col-${name}-width`, `${Math.max(value, 100)}px`);
+    }
+  }).current;
 
   const throttledScrollHandler = useRef(
     debouncedThrottle(
@@ -110,6 +117,7 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
 
   return (
     <div
+      ref={list}
       id="list"
       role="grid"
       aria-rowcount={fileStore.fileList.length}
@@ -121,7 +129,7 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
         } as CSSProperties
       }
     >
-      <Header setCellSize={setCellSize} />
+      <Header setCellSize={setCellSize} setColumnWidth={setColumnWidth} />
       <FixedSizeList
         useIsScrolling
         height={contentRect.height - cellSize}
@@ -167,7 +175,12 @@ const COLUMN_HEADERS: IListColumn[] = [
   { title: 'Tags' },
 ];
 
-const Header = ({ setCellSize }: { setCellSize: (height: number) => void }) => {
+interface HeaderProps {
+  setCellSize: (height: number) => void;
+  setColumnWidth: (name: string, value: number) => void;
+}
+
+const Header = ({ setCellSize, setColumnWidth }: HeaderProps) => {
   const resizeObserver = useRef(
     new ResizeObserver((entries) => {
       setCellSize(entries[0].contentRect.height);
@@ -187,17 +200,16 @@ const Header = ({ setCellSize }: { setCellSize: (height: number) => void }) => {
       <div role="row">
         {COLUMN_HEADERS.map(({ sortKey, title }) => {
           if (sortKey !== undefined) {
-            return <SortableHeader key={title} sortKey={sortKey} title={title} />;
-          } else {
             return (
-              <div
-                role="columnheader"
-                className={`col-${title.toLowerCase().replaceAll(' ', '-')} unsortable-header`}
+              <SortableHeader
                 key={title}
-              >
-                {title}
-              </div>
+                sortKey={sortKey}
+                title={title}
+                setColumnWidth={setColumnWidth}
+              />
             );
+          } else {
+            return <ColumnHeader key={title} title={title} setColumnWidth={setColumnWidth} />;
           }
         })}
       </div>
@@ -205,12 +217,31 @@ const Header = ({ setCellSize }: { setCellSize: (height: number) => void }) => {
   );
 };
 
-interface SortableHeaderProps {
+interface ColumnHeaderProps {
   title: string;
+  setColumnWidth: (name: string, value: number) => void;
+}
+
+const ColumnHeader = memo(function ColumnHeader({ title, setColumnWidth }: ColumnHeaderProps) {
+  const header = useRef<HTMLDivElement>(null);
+  const name = title.toLowerCase().replaceAll(' ', '-');
+  const handleMouseDown = useHeaderResize(header, name, setColumnWidth);
+
+  return (
+    <div ref={header} role="columnheader" className={`col-${name} unsortable-header`} key={title}>
+      {title}
+      <button className="column-resizer" onMouseDown={handleMouseDown}>
+        <span className="visually-hidden">Resize column {title}</span>
+      </button>
+    </div>
+  );
+});
+
+interface SortableHeaderProps extends ColumnHeaderProps {
   sortKey: keyof IFile;
 }
 
-const SortableHeader = observer(({ title, sortKey }: SortableHeaderProps) => {
+const SortableHeader = observer(({ title, sortKey, setColumnWidth }: SortableHeaderProps) => {
   const { fileStore } = useStore();
   const isSortedBy = fileStore.orderBy === sortKey;
   const sortOrder = isSortedBy
@@ -223,15 +254,63 @@ const SortableHeader = observer(({ title, sortKey }: SortableHeaderProps) => {
     ? fileStore.switchFileOrder
     : () => fileStore.orderFilesBy(sortKey);
 
+  const header = useRef<HTMLDivElement>(null);
+  const name = title.toLowerCase().replaceAll(' ', '-');
+  const handleMouseDown = useHeaderResize(header, name, setColumnWidth);
+
   return (
-    <div
-      role="columnheader"
-      aria-sort={sortOrder}
-      className={`col-${title.toLowerCase().replaceAll(' ', '-')}`}
-    >
+    <div ref={header} role="columnheader" aria-sort={sortOrder} className={`col-${name}`}>
       <button className="sort-button" onClick={handleClick}>
         {title}
+      </button>
+      <button className="column-resizer" onMouseDown={handleMouseDown}>
+        <span className="visually-hidden">Resize column {title}</span>
       </button>
     </div>
   );
 });
+
+function useHeaderResize(
+  header: React.RefObject<HTMLDivElement>,
+  name: string,
+  setColumnWidth: (name: string, value: number) => void,
+) {
+  const isDragging = useRef(false);
+  const onResize = useCallback((value: number) => setColumnWidth(name, value), [
+    name,
+    setColumnWidth,
+  ]);
+
+  useEffect(() => {
+    if (header.current === null) {
+      return;
+    }
+
+    const handleMouseUp = () => {
+      isDragging.current = false;
+    };
+
+    // Do it for list reference
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging.current || header.current === null) {
+        return;
+      }
+
+      const boundingRect = header.current.getBoundingClientRect();
+
+      onResize(boundingRect.width + (e.screenX - boundingRect.right));
+    };
+
+    window.addEventListener('mouseup', handleMouseUp, true);
+    window.addEventListener('mousemove', handleMouseMove, true);
+
+    return () => {
+      window.removeEventListener('mouseup', handleMouseUp, true);
+      window.removeEventListener('mousemove', handleMouseMove, true);
+    };
+  }, [header, onResize]);
+
+  return useRef(() => {
+    isDragging.current = true;
+  }).current;
+}
