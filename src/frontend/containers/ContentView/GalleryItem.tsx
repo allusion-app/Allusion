@@ -207,7 +207,7 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbna
     // When the thumbnail cannot be loaded, display an error
     const handleImageError = () => {
       console.log('Could not load image:', thumbnailPath);
-      setState((state) => (state === ThumbnailState.Loading ? state : ThumbnailState.Error));
+      setState(ThumbnailState.Error);
     };
     return (
       <img
