@@ -11,7 +11,7 @@ export const ListItem = observer((props: IListItem) => {
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const file = data[index];
-  const eventHandlers = useMemo(() => new GalleryEventHandler(file, submitCommand).handlers, [
+  const eventManager = useMemo(() => new GalleryEventHandler(file, submitCommand), [
     file,
     submitCommand,
   ]);
@@ -29,7 +29,7 @@ export const ListItem = observer((props: IListItem) => {
       aria-rowindex={index + 1}
       aria-selected={uiStore.fileSelection.has(file)}
       style={style}
-      {...eventHandlers}
+      {...eventManager.handlers}
     >
       {/* Filename */}
       <div role="gridcell" className="col-name">
@@ -58,7 +58,7 @@ export const ListItem = observer((props: IListItem) => {
 
       {/* Tags */}
       <div role="gridcell" className="col-tags">
-        <ThumbnailTags file={file} />
+        <ThumbnailTags eventManager={eventManager} file={file} />
       </div>
     </div>
   );
