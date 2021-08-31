@@ -270,7 +270,13 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
         // debug
       >
         {loadError ? (
-          <span className="image-error" />
+          <span
+            className="image-error"
+            style={{
+              width: `${width}px`,
+              height: `${height}px`,
+            }}
+          />
         ) : (
           <img
             src={currentImg.src}
