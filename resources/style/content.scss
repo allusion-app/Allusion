@@ -165,6 +165,10 @@
     }
   }
 
+  [role='gridcell'] {
+    height: var(--thumbnail-size);
+  }
+
   // cell container
   [role='gridcell'],
   [role='columnheader'] {
@@ -187,17 +191,13 @@
     font-weight: 600;
 
     &[aria-sort='ascending'] > .sort-button::after {
-      mask-image: url(~resources/icons/arrow-up.svg);
-      -webkit-mask-image: url(~resources/icons/arrow-up.svg);
+      mask-image: url(~resources/icons/sort-ascending.svg);
+      -webkit-mask-image: url(~resources/icons/sort-ascending.svg);
     }
 
     &[aria-sort='descending'] > .sort-button::after {
-      mask-image: url(~resources/icons/arrow-down.svg);
-      -webkit-mask-image: url(~resources/icons/arrow-down.svg);
-    }
-
-    &[aria-sort] > .sort-button::after {
-      background-color: var(--text-color);
+      mask-image: url(~resources/icons/sort-descending.svg);
+      -webkit-mask-image: url(~resources/icons/sort-descending.svg);
     }
 
     &:last-child .column-resizer {
@@ -216,9 +216,9 @@
       content: '';
       min-width: 1rem;
       min-height: 1rem;
-      background-color: var(--text-color-muted);
-      mask-image: url(~resources/icons/item-expand.svg);
-      -webkit-mask-image: url(~resources/icons/item-expand.svg);
+      background-color: currentColor;
+      mask-image: url(~resources/icons/sort.svg);
+      -webkit-mask-image: url(~resources/icons/sort.svg);
     }
   }
 
@@ -282,6 +282,7 @@
     overflow-y: auto;
     white-space: break-spaces;
     height: var(--thumbnail-size);
+    width: 100%;
   }
 }
 
