@@ -167,6 +167,7 @@
 
   [role='gridcell'] {
     height: var(--thumbnail-size);
+    contain: strict;
   }
 
   // cell container
