@@ -1,11 +1,21 @@
 import { observer } from 'mobx-react-lite';
 import React, { useMemo, useEffect, useState, useRef } from 'react';
 import { formatDateTime, humanFileSize } from 'src/frontend/utils';
-import { GalleryEventHandler, Thumbnail, ThumbnailTags } from './GalleryItem';
+import { GalleryCommand, GalleryEventHandler, Thumbnail, ThumbnailTags } from './GalleryItem';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { IListItem } from './ListGallery';
+import { ClientFile } from 'src/entities/File';
 
-export const ListItem = observer((props: IListItem) => {
+interface ListItemProps {
+  index: number;
+  data: ClientFile[];
+  style: React.CSSProperties;
+  isScrolling: true;
+  // onClick: (e: React.MouseEvent) => void;
+  // onDoubleClick: (e: React.MouseEvent) => void;
+  submitCommand: (command: GalleryCommand) => void;
+}
+
+export const ListItem = observer((props: ListItemProps) => {
   const { index, data, style, isScrolling, submitCommand } = props;
   const { uiStore } = useStore();
   const row = useRef<HTMLDivElement>(null);

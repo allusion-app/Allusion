@@ -16,7 +16,6 @@ import { ClientFile, IFile } from 'src/entities/File';
 import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { ILayoutProps, createSubmitCommand } from './LayoutSwitcher';
-import { GalleryCommand } from './GalleryItem';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { ListItem } from './ListItem';
 
@@ -148,26 +147,16 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
   );
 });
 
-export interface IListItem {
-  index: number;
-  data: ClientFile[];
-  style: React.CSSProperties;
-  isScrolling: true;
-  // onClick: (e: React.MouseEvent) => void;
-  // onDoubleClick: (e: React.MouseEvent) => void;
-  submitCommand: (command: GalleryCommand) => void;
-}
-
 export default ListGallery;
 
-interface IListColumn {
+interface ColumnHeaderData {
   title: string;
   // Also indicates whether this column _can_ be sorted on
   sortKey?: keyof IFile;
   // cellContent: (props: ICellContentProps) => ReactNode;
 }
 
-const COLUMN_HEADERS: IListColumn[] = [
+const COLUMN_HEADERS: ColumnHeaderData[] = [
   { title: 'Name', sortKey: 'name' },
   { title: 'Dimensions' },
   { title: 'Date added', sortKey: 'dateAdded' },
