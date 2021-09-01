@@ -1,4 +1,4 @@
-import { action, runInAction } from 'mobx';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useMemo, useRef, useCallback, useEffect, useState, useLayoutEffect } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
@@ -36,7 +36,10 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
   const ref = useRef<FixedSizeList>(null);
 
   const throttledScrollHandler = useRef(
-    debouncedThrottle((index: number) => !uiStore.isSlideMode && uiStore.setFirstItem(index), 100),
+    debouncedThrottle(
+      action((index: number) => !uiStore.isSlideMode && uiStore.setFirstItem(index)),
+      100,
+    ),
   );
 
   const handleScroll = useCallback(
@@ -63,23 +66,21 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
   }, [isSlideMode, firstItem]);
 
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      runInAction(() => {
-        let index = lastSelectionIndex.current;
-        if (index === undefined) {
-          return;
-        }
-        if (e.key === 'ArrowUp' && index > 0) {
-          index -= 1;
-        } else if (e.key === 'ArrowDown' && index < fileStore.fileList.length - 1) {
-          index += 1;
-        } else {
-          return;
-        }
-        e.preventDefault();
-        handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
-      });
-    };
+    const onKeyDown = action((e: KeyboardEvent) => {
+      let index = lastSelectionIndex.current;
+      if (index === undefined) {
+        return;
+      }
+      if (e.key === 'ArrowUp' && index > 0) {
+        index -= 1;
+      } else if (e.key === 'ArrowDown' && index < fileStore.fileList.length - 1) {
+        index += 1;
+      } else {
+        return;
+      }
+      e.preventDefault();
+      handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+    });
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);

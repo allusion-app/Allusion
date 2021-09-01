@@ -738,7 +738,7 @@ class UiStore {
         this.isInspectorOpen = Boolean(prefs.isInspectorOpen);
         if (prefs.thumbnailDirectory) this.setThumbnailDirectory(prefs.thumbnailDirectory);
         if (prefs.importDirectory) this.setImportDirectory(prefs.importDirectory);
-        if (prefs.method) this.setMethod(prefs.method);
+        this.setMethod(Number(prefs.method));
         if (prefs.thumbnailSize) this.setThumbnailSize(prefs.thumbnailSize);
         if (prefs.thumbnailShape) this.setThumbnailShape(prefs.thumbnailShape);
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);

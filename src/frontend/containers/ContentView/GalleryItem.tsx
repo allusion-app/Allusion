@@ -52,21 +52,23 @@ export const listColumns: IListColumn[] = [
 
 export const ListCell = observer(({ file, mounted, submitCommand }: ICell) => {
   const { uiStore } = useStore();
-  const eventHandlers = useMemo(() => new GalleryEventHandler(file, submitCommand).handlers, [
+  const eventManager = useMemo(() => new GalleryEventHandler(file, submitCommand), [
     file,
     submitCommand,
   ]);
+  const eventHandlers = eventManager.handlers;
   return (
     <div role="gridcell" aria-selected={uiStore.fileSelection.has(file)} {...eventHandlers}>
       {/* Filename */}
       <div key={`${file.id}-name`}>
-        <ThumbnailContainer file={file} submitCommand={submitCommand}>
+        <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`} {...eventHandlers}>
           {mounted ? (
             <Thumbnail mounted={mounted} file={file} />
           ) : (
             <div className="thumbnail-placeholder" />
           )}
-        </ThumbnailContainer>
+        </div>
+
         <span className="filename">{file.name}</span>
       </div>
 
@@ -83,7 +85,7 @@ export const ListCell = observer(({ file, mounted, submitCommand }: ICell) => {
 
       {/* Tags */}
       <div>
-        <ThumbnailTags file={file} />
+        <ThumbnailTags file={file} eventManager={eventManager} />
       </div>
 
       {/* TODO: Broken/missing indicator. Red/orange-ish background? */}
@@ -106,12 +108,19 @@ export const MasonryCell = observer(
   }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
     const { uiStore, fileStore } = useStore();
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
+    const eventManager = useMemo(() => new GalleryEventHandler(file, submitCommand), [
+      file,
+      submitCommand,
+    ]);
 
     return (
       <div data-masonrycell aria-selected={uiStore.fileSelection.has(file)} style={style}>
-        <ThumbnailContainer file={file} submitCommand={submitCommand}>
+        <div
+          className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}
+          {...eventManager.handlers}
+        >
           <Thumbnail mounted={!mounted} file={file} forceNoThumbnail={forceNoThumbnail} />
-        </ThumbnailContainer>
+        </div>
         {file.isBroken === true && !fileStore.showsMissingContent && (
           <IconButton
             className="thumbnail-broken-overlay"
@@ -132,7 +141,7 @@ export const MasonryCell = observer(
           (!mounted ? (
             <span className="thumbnail-tags" />
           ) : (
-            <ThumbnailTags file={file} submitCommand={submitCommand} />
+            <ThumbnailTags file={file} eventManager={eventManager} />
           ))}
       </div>
     );
@@ -210,24 +219,6 @@ export class GalleryEventHandler {
     e.currentTarget.dataset[DnDAttribute.Target] = 'false';
   }
 }
-
-interface IThumbnailContainer {
-  file: ClientFile;
-  children: React.ReactNode;
-  submitCommand: (command: GalleryCommand) => void;
-}
-
-const ThumbnailContainer = observer(({ file, children, submitCommand }: IThumbnailContainer) => {
-  const eventHandlers = useMemo(() => new GalleryEventHandler(file, submitCommand).handlers, [
-    file,
-    submitCommand,
-  ]);
-  return (
-    <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`} {...eventHandlers}>
-      {children}
-    </div>
-  );
-});
 
 function handleDragEnter(e: React.DragEvent<HTMLElement>) {
   if (e.dataTransfer.types.includes(DnDTagType)) {
@@ -315,28 +306,18 @@ export const MissingImageFallback = ({ style }: { style?: React.CSSProperties })
   </div>
 );
 
-const ThumbnailTags = observer(
-  ({
-    file,
-    submitCommand,
-  }: {
-    file: ClientFile;
-    submitCommand?: (command: GalleryCommand) => void;
-  }) => {
-    const eventHandlers = useMemo(
-      () => submitCommand && new GalleryEventHandler(file, submitCommand).handlers,
-      [file, submitCommand],
-    );
-
+export const ThumbnailTags = observer(
+  ({ file, eventManager }: { file: ClientFile; eventManager: GalleryEventHandler }) => {
+    const eventHandlers = eventManager.handlers;
     return (
       <span
         className="thumbnail-tags"
-        onClick={eventHandlers?.onClick}
-        onContextMenu={eventHandlers?.onContextMenu}
-        onDoubleClick={eventHandlers?.onDoubleClick}
+        onClick={eventHandlers.onClick}
+        onContextMenu={eventHandlers.onContextMenu}
+        onDoubleClick={eventHandlers.onDoubleClick}
       >
         {Array.from(file.tags, (tag) => (
-          <TagWithHint key={tag.id} tag={tag} onContextMenu={eventHandlers?.onContextMenu} />
+          <TagWithHint key={tag.id} tag={tag} onContextMenu={eventHandlers.onContextMenu} />
         ))}
       </span>
     );
