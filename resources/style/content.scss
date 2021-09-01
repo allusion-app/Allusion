@@ -200,10 +200,6 @@
       mask-image: url(~resources/icons/sort-descending.svg);
       -webkit-mask-image: url(~resources/icons/sort-descending.svg);
     }
-
-    &:last-child .column-resizer {
-      display: none;
-    }
   }
 
   // header buttons
@@ -230,6 +226,7 @@
     margin-inline-start: auto;
     position: absolute;
     right: -2px;
+    background-color: var(--hover-color);
 
     &:active,
     &:hover {
@@ -255,13 +252,7 @@
   --col-dimensions-width: 100px;
   --col-date-added-width: 140px;
   --col-size-width: 100px;
-  --col-tags-width: max(
-    100px,
-    calc(
-      100% - var(--col-name-width) - var(--col-dimensions-width) - var(--col-date-added-width) -
-        var(--col-size-width)
-    )
-  );
+  --col-tags-width: 200px;
 
   .col-name {
     width: var(--col-name-width);
