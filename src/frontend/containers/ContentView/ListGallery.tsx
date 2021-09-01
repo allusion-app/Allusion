@@ -24,16 +24,8 @@ const getItemKey = action((index: number, data: ClientFile[]): string => {
   return data[index].id;
 });
 
-interface IListGalleryProps {
-  handleFileSelect: (
-    selectedFile: ClientFile,
-    toggleSelection: boolean,
-    rangeSelection: boolean,
-  ) => void;
-}
-
-const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
-  const { contentRect, select, lastSelectionIndex, showContextMenu, handleFileSelect } = props;
+const ListGallery = observer((props: ILayoutProps) => {
+  const { contentRect, select, lastSelectionIndex, showContextMenu } = props;
   const { fileStore, uiStore } = useStore();
   const [cellSize, setCellSize] = useState(24);
   const dndData = useTagDnD();
@@ -93,13 +85,13 @@ const ListGallery = observer((props: ILayoutProps & IListGalleryProps) => {
         return;
       }
       e.preventDefault();
-      handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+      select(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
     });
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fileStore, handleFileSelect]);
+  }, [fileStore, select]);
 
   const Row = useCallback(
     ({ index, style, data, isScrolling }) => (
