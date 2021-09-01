@@ -1,30 +1,36 @@
 import { observer } from 'mobx-react-lite';
-import React, { useMemo, useEffect, useState, useRef } from 'react';
+import React, { useMemo, useEffect, useState, useRef, CSSProperties } from 'react';
 import { formatDateTime, humanFileSize } from 'src/frontend/utils';
-import { GalleryCommand, GalleryEventHandler, Thumbnail, ThumbnailTags } from './GalleryItem';
+import { Thumbnail, ThumbnailTags } from './GalleryItem';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { ClientFile } from 'src/entities/File';
+import { GalleryEventDispatcher } from './EventDispatcher';
+
+interface RowProps {
+  index: number;
+  style: CSSProperties;
+  data: ClientFile[];
+  isScrolling?: boolean;
+}
+
+export const Row = ({ index, style, data, isScrolling }: RowProps) => {
+  return <ListItem index={index} data={data} style={style} isScrolling={isScrolling || false} />;
+};
 
 interface ListItemProps {
   index: number;
   data: ClientFile[];
   style: React.CSSProperties;
-  isScrolling: true;
-  // onClick: (e: React.MouseEvent) => void;
-  // onDoubleClick: (e: React.MouseEvent) => void;
-  submitCommand: (command: GalleryCommand) => void;
+  isScrolling: boolean;
 }
 
 export const ListItem = observer((props: ListItemProps) => {
-  const { index, data, style, isScrolling, submitCommand } = props;
+  const { index, data, style, isScrolling } = props;
   const { uiStore } = useStore();
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const file = data[index];
-  const eventManager = useMemo(() => new GalleryEventHandler(file, submitCommand), [
-    file,
-    submitCommand,
-  ]);
+  const eventManager = useMemo(() => new GalleryEventDispatcher(file), [file]);
 
   useEffect(() => {
     if (row.current !== null && !isScrolling) {
@@ -39,7 +45,15 @@ export const ListItem = observer((props: ListItemProps) => {
       aria-rowindex={index + 1}
       aria-selected={uiStore.fileSelection.has(file)}
       style={style}
-      {...eventManager.handlers}
+      onClick={eventManager.select}
+      onDoubleClick={eventManager.preview}
+      onContextMenu={eventManager.showContextMenu}
+      onDragStart={eventManager.dragStart}
+      onDragEnter={eventManager.dragEnter}
+      onDragOver={eventManager.dragOver}
+      onDragLeave={eventManager.dragLeave}
+      onDrop={eventManager.drop}
+      onDragEnd={eventManager.dragEnd}
     >
       {/* Filename */}
       <div role="gridcell" className="col-name">

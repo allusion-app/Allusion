@@ -1,13 +1,11 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { thumbnailMaxSize } from 'src/config';
 import { ClientFile } from 'src/entities/File';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import useMountState from 'src/frontend/hooks/useMountState';
 import { debouncedThrottle } from 'src/frontend/utils';
-import { createSubmitCommand, ILayoutProps } from '../LayoutSwitcher';
 import { MasonryCell } from '../GalleryItem';
 import { findViewportEdge, Layouter } from './layout-helpers';
 
@@ -21,6 +19,8 @@ interface IRendererProps {
   overscan?: number;
   layoutUpdateDate: Date;
   padding?: number;
+  /** The index of the currently selected image, or the "last selected" image when a range is selected */
+  lastSelectionIndex: React.MutableRefObject<number | undefined>;
 }
 
 /**
@@ -35,23 +35,16 @@ const VirtualizedRenderer = observer(
     layout,
     className,
     overscan = 0,
-    select,
-    showContextMenu,
     lastSelectionIndex,
     layoutUpdateDate,
     padding,
-  }: IRendererProps & Pick<ILayoutProps, 'select' | 'showContextMenu' | 'lastSelectionIndex'>) => {
+  }: IRendererProps) => {
     const { uiStore, fileStore } = useStore();
     const [, isMountedRef] = useMountState();
     const wrapperRef = useRef<HTMLDivElement>(null);
     const scrollAnchor = useRef<HTMLDivElement>(null);
     const [startRenderIndex, setStartRenderIndex] = useState(0);
     const [endRenderIndex, setEndRenderIndex] = useState(0);
-    const dndData = useTagDnD();
-    const submitCommand = useMemo(
-      () => createSubmitCommand(dndData, select, showContextMenu, uiStore),
-      [dndData, select, showContextMenu, uiStore],
-    );
     const numImages = images.length;
     const { isSlideMode, firstItem } = uiStore;
 
@@ -182,7 +175,6 @@ const VirtualizedRenderer = observer(
                   // Not using thumbnails for gifs, since they're mostly used for animations, which doesn't get preserved in thumbnails
                   im.extension === 'gif'
                 }
-                submitCommand={submitCommand}
               />
             );
           })}
