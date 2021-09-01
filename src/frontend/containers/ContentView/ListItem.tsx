@@ -4,7 +4,7 @@ import { formatDateTime, humanFileSize } from 'src/frontend/utils';
 import { Thumbnail, ThumbnailTags } from './GalleryItem';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { ClientFile } from 'src/entities/File';
-import { GalleryEventDispatcher } from './EventDispatcher';
+import { CommandDispatcher } from './Commands';
 
 interface RowProps {
   index: number;
@@ -30,7 +30,7 @@ export const ListItem = observer((props: ListItemProps) => {
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const file = data[index];
-  const eventManager = useMemo(() => new GalleryEventDispatcher(file), [file]);
+  const eventManager = useMemo(() => new CommandDispatcher(file), [file]);
 
   useEffect(() => {
     if (row.current !== null && !isScrolling) {

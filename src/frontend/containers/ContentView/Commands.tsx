@@ -13,29 +13,9 @@ import {
   FileViewerMenuItems,
   MissingFileMenuItems,
   SlideFileViewerMenuItems,
-  // SlideFileViewerMenuItems,
 } from './menu-items';
 
-export interface DispatchEvent {
-  currentTarget: EventTarget & HTMLElement;
-  target: EventTarget;
-  stopPropagation: () => void;
-  preventDefault: () => void;
-}
-
-export interface DataTransferEvent extends DispatchEvent {
-  dataTransfer: DataTransfer;
-}
-
-export interface MousePointerEvent extends DispatchEvent {
-  clientX: number;
-  clientY: number;
-  ctrlKey: boolean;
-  shiftKey: boolean;
-  metaKey: boolean;
-}
-
-export class GalleryEventDispatcher {
+export class CommandDispatcher {
   private file: ClientFile;
 
   constructor(file: ClientFile) {
@@ -56,7 +36,7 @@ export class GalleryEventDispatcher {
   select(event: MousePointerEvent) {
     event.stopPropagation();
     dispatchCustomEvent(event, {
-      selector: GallerySelector.Select,
+      selector: Selector.Select,
       payload: {
         file: this.file,
         selectAdditive: event.ctrlKey || event.metaKey,
@@ -65,10 +45,10 @@ export class GalleryEventDispatcher {
     });
   }
 
-  preview(event: DispatchEvent) {
+  preview(event: BaseEvent) {
     event.stopPropagation();
     dispatchCustomEvent(event, {
-      selector: GallerySelector.Preview,
+      selector: Selector.Preview,
       payload: { file: this.file },
     });
   }
@@ -77,7 +57,7 @@ export class GalleryEventDispatcher {
     event.stopPropagation();
     event.preventDefault();
     dispatchCustomEvent(event, {
-      selector: GallerySelector.ContextMenu,
+      selector: Selector.ContextMenu,
       payload: { file: this.file, x: event.clientX, y: event.clientY },
     });
   }
@@ -86,7 +66,7 @@ export class GalleryEventDispatcher {
     event.stopPropagation();
     event.preventDefault();
     dispatchCustomEvent(event, {
-      selector: GallerySelector.SlideContextMenu,
+      selector: Selector.SlideContextMenu,
       payload: { file: this.file, x: event.clientX, y: event.clientY },
     });
   }
@@ -95,16 +75,16 @@ export class GalleryEventDispatcher {
     event.stopPropagation();
     event.preventDefault();
     dispatchCustomEvent(event, {
-      selector: GallerySelector.TagContextMenu,
+      selector: Selector.TagContextMenu,
       payload: { file: this.file, x: event.clientX, y: event.clientY, tag },
     });
   }
 
-  dragStart(event: DispatchEvent) {
+  dragStart(event: BaseEvent) {
     event.stopPropagation();
     event.preventDefault();
     dispatchCustomEvent(event, {
-      selector: GallerySelector.FileDragStart,
+      selector: Selector.FileDragStart,
       payload: { file: this.file },
     });
   }
@@ -124,7 +104,7 @@ export class GalleryEventDispatcher {
       event.preventDefault();
       event.currentTarget.dataset[DnDAttribute.Target] = 'true';
       dispatchCustomEvent(event, {
-        selector: GallerySelector.FileDragOver,
+        selector: Selector.FileDragOver,
         payload: { file: this.file },
       });
     }
@@ -137,7 +117,7 @@ export class GalleryEventDispatcher {
       event.dataTransfer.dropEffect = 'none';
       event.currentTarget.dataset[DnDAttribute.Target] = 'false';
       dispatchCustomEvent(event, {
-        selector: GallerySelector.FileDragLeave,
+        selector: Selector.FileDragLeave,
         payload: { file: undefined },
       });
     }
@@ -146,7 +126,7 @@ export class GalleryEventDispatcher {
   drop(event: DataTransferEvent) {
     event.stopPropagation();
     dispatchCustomEvent(event, {
-      selector: GallerySelector.FileDrop,
+      selector: Selector.FileDrop,
       payload: { file: this.file },
     });
     event.dataTransfer.dropEffect = 'none';
@@ -160,7 +140,7 @@ export class GalleryEventDispatcher {
   }
 }
 
-export function useGalleryCommands(
+export function useCommandHandler(
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void,
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void,
 ) {
@@ -170,13 +150,17 @@ export function useGalleryCommands(
   useEffect(() => {
     const handleSelect = action((event: Event) => {
       event.stopPropagation();
-      const { file, selectAdditive, selectRange } = (event as GalleryEvent<SelectPayload>).detail;
+      const {
+        file,
+        selectAdditive,
+        selectRange,
+      } = (event as CommandHandlerEvent<SelectPayload>).detail;
       select(file, selectAdditive, selectRange);
     });
 
     const handlePreview = action((event: Event) => {
       event.stopPropagation();
-      const file = (event as GalleryEvent<Payload>).detail.file;
+      const file = (event as CommandHandlerEvent<Payload>).detail.file;
       if (!file.isBroken) {
         uiStore.selectFile(file, true);
         uiStore.enableSlideMode();
@@ -185,7 +169,7 @@ export function useGalleryCommands(
 
     const handleContextMenu = action((event: Event) => {
       event.stopPropagation();
-      const { file, x, y } = (event as GalleryEvent<ContextMenuPayload>).detail;
+      const { file, x, y } = (event as CommandHandlerEvent<ContextMenuPayload>).detail;
       showContextMenu(x, y, [
         file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
         <ExternalAppMenuItems key="external" file={file} />,
@@ -198,7 +182,7 @@ export function useGalleryCommands(
 
     const handleTagContextMenu = action((event: Event) => {
       event.stopPropagation();
-      const { file, x, y, tag } = (event as GalleryEvent<TagContextMenuPayload>).detail;
+      const { file, x, y, tag } = (event as CommandHandlerEvent<TagContextMenuPayload>).detail;
       showContextMenu(x, y, [
         <>
           <FileTagMenuItems file={file} tag={tag} />
@@ -215,7 +199,7 @@ export function useGalleryCommands(
 
     const handleSlideContextMenu = action((event: Event) => {
       event.stopPropagation();
-      const { file, x, y } = (event as GalleryEvent<ContextMenuPayload>).detail;
+      const { file, x, y } = (event as CommandHandlerEvent<ContextMenuPayload>).detail;
       showContextMenu(x, y, [
         file.isBroken ? <MissingFileMenuItems /> : <SlideFileViewerMenuItems file={file} />,
         <ExternalAppMenuItems key="external" file={file} />,
@@ -228,7 +212,7 @@ export function useGalleryCommands(
 
     const handleDragStart = action((event: Event) => {
       event.stopPropagation();
-      const file = (event as GalleryEvent<Payload>).detail.file;
+      const file = (event as CommandHandlerEvent<Payload>).detail.file;
       if (!uiStore.fileSelection.has(file)) {
         return;
       }
@@ -245,20 +229,20 @@ export function useGalleryCommands(
 
     const handleDragOver = action((event: Event) => {
       event.stopPropagation();
-      const file = (event as GalleryEvent<Payload>).detail.file;
+      const file = (event as CommandHandlerEvent<Payload>).detail.file;
       dndData.target = file;
     });
 
     const handleDragLeave = action((event: Event) => {
       event.stopPropagation();
-      const file = (event as GalleryEvent<EmptyPayload>).detail.file;
+      const file = (event as CommandHandlerEvent<EmptyPayload>).detail.file;
       dndData.target = file;
     });
 
     const handleDrop = action((event: Event) => {
       event.stopPropagation();
       if (dndData.source !== undefined) {
-        const dropFile = (event as GalleryEvent<Payload>).detail.file;
+        const dropFile = (event as CommandHandlerEvent<Payload>).detail.file;
         const ctx = uiStore.getTagContextItems(dndData.source.id);
 
         // Tag all selected files - unless the file that is being tagged is not selected
@@ -275,42 +259,74 @@ export function useGalleryCommands(
     });
 
     const el = window;
-    el.addEventListener(GallerySelector.Select, handleSelect);
-    el.addEventListener(GallerySelector.Preview, handlePreview);
-    el.addEventListener(GallerySelector.ContextMenu, handleContextMenu);
-    el.addEventListener(GallerySelector.TagContextMenu, handleTagContextMenu);
-    el.addEventListener(GallerySelector.SlideContextMenu, handleSlideContextMenu);
-    el.addEventListener(GallerySelector.FileDragStart, handleDragStart);
-    el.addEventListener(GallerySelector.FileDragOver, handleDragOver);
-    el.addEventListener(GallerySelector.FileDragLeave, handleDragLeave);
-    el.addEventListener(GallerySelector.FileDrop, handleDrop);
+    el.addEventListener(Selector.Select, handleSelect);
+    el.addEventListener(Selector.Preview, handlePreview);
+    el.addEventListener(Selector.ContextMenu, handleContextMenu);
+    el.addEventListener(Selector.TagContextMenu, handleTagContextMenu);
+    el.addEventListener(Selector.SlideContextMenu, handleSlideContextMenu);
+    el.addEventListener(Selector.FileDragStart, handleDragStart);
+    el.addEventListener(Selector.FileDragOver, handleDragOver);
+    el.addEventListener(Selector.FileDragLeave, handleDragLeave);
+    el.addEventListener(Selector.FileDrop, handleDrop);
 
     return () => {
-      el.removeEventListener(GallerySelector.Select, handleSelect);
-      el.removeEventListener(GallerySelector.Preview, handlePreview);
-      el.removeEventListener(GallerySelector.ContextMenu, handleContextMenu);
-      el.removeEventListener(GallerySelector.TagContextMenu, handleTagContextMenu);
-      el.removeEventListener(GallerySelector.SlideContextMenu, handleSlideContextMenu);
-      el.removeEventListener(GallerySelector.FileDragStart, handleDragStart);
-      el.removeEventListener(GallerySelector.FileDragOver, handleDragOver);
-      el.removeEventListener(GallerySelector.FileDragLeave, handleDragLeave);
-      el.removeEventListener(GallerySelector.FileDrop, handleDrop);
+      el.removeEventListener(Selector.Select, handleSelect);
+      el.removeEventListener(Selector.Preview, handlePreview);
+      el.removeEventListener(Selector.ContextMenu, handleContextMenu);
+      el.removeEventListener(Selector.TagContextMenu, handleTagContextMenu);
+      el.removeEventListener(Selector.SlideContextMenu, handleSlideContextMenu);
+      el.removeEventListener(Selector.FileDragStart, handleDragStart);
+      el.removeEventListener(Selector.FileDragOver, handleDragOver);
+      el.removeEventListener(Selector.FileDragLeave, handleDragLeave);
+      el.removeEventListener(Selector.FileDrop, handleDrop);
     };
   }, [uiStore, dndData, select, showContextMenu]);
 }
 
-function dispatchCustomEvent(event: DispatchEvent, command: ContentViewCommand) {
-  event.currentTarget.dispatchEvent(
-    new CustomEvent(command.selector, { detail: command.payload, bubbles: true }),
-  );
+/**
+ * Event abstraction for native and synthetic React events
+ */
+
+export interface BaseEvent {
+  currentTarget: EventTarget & HTMLElement;
+  target: EventTarget;
+  stopPropagation: () => void;
+  preventDefault: () => void;
 }
+
+export interface DataTransferEvent extends BaseEvent {
+  dataTransfer: DataTransfer;
+}
+
+export interface MousePointerEvent extends BaseEvent {
+  clientX: number;
+  clientY: number;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  metaKey: boolean;
+}
+
+// Better typing in event handlers
+interface CommandHandlerEvent<T> extends Event {
+  detail: T;
+}
+
+type ContentViewCommand =
+  | Command<Selector.Select, SelectPayload>
+  | Command<Selector.Preview, Payload>
+  // Contextmenu
+  | Command<Selector.ContextMenu | Selector.SlideContextMenu, ContextMenuPayload>
+  | Command<Selector.TagContextMenu, TagContextMenuPayload>
+  // Drag and Drop
+  | Command<Selector.FileDragStart | Selector.FileDragOver | Selector.FileDrop, Payload>
+  | Command<Selector.FileDragLeave, EmptyPayload>;
 
 interface Command<S extends string, T> {
   selector: S;
   payload: T;
 }
 
-const enum GallerySelector {
+const enum Selector {
   Select = 'fileSelect',
   Preview = 'filePreview',
   ContextMenu = 'fileContextMenu',
@@ -342,19 +358,8 @@ interface TagContextMenuPayload extends ContextMenuPayload {
   tag: ClientTag;
 }
 
-type ContentViewCommand =
-  | Command<GallerySelector.Select, SelectPayload>
-  | Command<GallerySelector.Preview, Payload>
-  // Contextmenu
-  | Command<GallerySelector.ContextMenu | GallerySelector.SlideContextMenu, ContextMenuPayload>
-  | Command<GallerySelector.TagContextMenu, TagContextMenuPayload>
-  // Drag and Drop
-  | Command<
-      GallerySelector.FileDragStart | GallerySelector.FileDragOver | GallerySelector.FileDrop,
-      Payload
-    >
-  | Command<GallerySelector.FileDragLeave, EmptyPayload>;
-
-interface GalleryEvent<T> extends Event {
-  detail: T;
+function dispatchCustomEvent<E extends BaseEvent>(event: E, command: ContentViewCommand) {
+  event.currentTarget.dispatchEvent(
+    new CustomEvent(command.selector, { detail: command.payload, bubbles: true }),
+  );
 }

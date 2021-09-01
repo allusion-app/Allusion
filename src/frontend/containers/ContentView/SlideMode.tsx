@@ -7,7 +7,7 @@ import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet, Split } from 'widgets';
 import Inspector from '../Inspector';
-import { GalleryEventDispatcher, MousePointerEvent } from './EventDispatcher';
+import { CommandDispatcher, MousePointerEvent } from './Commands';
 import { ContentRect } from './LayoutSwitcher';
 
 const SlideMode = observer(({ contentRect }: { contentRect: ContentRect }) => {
@@ -52,7 +52,7 @@ const SlideView = observer((props: ISlideView) => {
   const { uiStore, fileStore, width, height } = props;
   const file = fileStore.fileList[uiStore.firstItem];
 
-  const eventManager = useMemo(() => new GalleryEventDispatcher(file), [file]);
+  const eventManager = useMemo(() => new CommandDispatcher(file), [file]);
 
   // Go to the first selected image on load
   useEffect(() => {

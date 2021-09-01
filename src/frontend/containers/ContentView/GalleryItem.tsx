@@ -7,7 +7,7 @@ import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { ITransform } from './Masonry/MasonryWorkerAdapter';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { GalleryEventDispatcher, MousePointerEvent } from './EventDispatcher';
+import { CommandDispatcher, MousePointerEvent } from './Commands';
 
 interface ItemProps {
   file: ClientFile;
@@ -30,7 +30,7 @@ export const MasonryCell = observer(
   }: MasonryItemProps) => {
     const { uiStore, fileStore } = useStore();
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
-    const eventManager = useMemo(() => new GalleryEventDispatcher(file), [file]);
+    const eventManager = useMemo(() => new CommandDispatcher(file), [file]);
 
     return (
       <div data-masonrycell aria-selected={uiStore.fileSelection.has(file)} style={style}>
@@ -145,7 +145,7 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
 });
 
 export const ThumbnailTags = observer(
-  ({ file, eventManager }: { file: ClientFile; eventManager: GalleryEventDispatcher }) => {
+  ({ file, eventManager }: { file: ClientFile; eventManager: CommandDispatcher }) => {
     return (
       <span
         className="thumbnail-tags"

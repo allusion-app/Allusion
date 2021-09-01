@@ -6,7 +6,7 @@ import FocusManager from 'src/frontend/FocusManager';
 import { ClientFile } from '../../../entities/File';
 import { ThumbnailSize, ViewMethod } from '../../stores/UiStore';
 import { throttle } from '../../utils';
-import { useGalleryCommands } from './EventDispatcher';
+import { useCommandHandler } from './Commands';
 import ListGallery from './ListGallery';
 import MasonryRenderer from './Masonry/MasonryRenderer';
 import SlideMode from './SlideMode';
@@ -121,7 +121,7 @@ const Layout = ({ contentRect, showContextMenu }: LayoutProps) => {
     }
   }, [isSlideMode]);
 
-  useGalleryCommands(handleFileSelect, showContextMenu);
+  useCommandHandler(handleFileSelect, showContextMenu);
 
   if (contentRect.width < 10) {
     return null;
