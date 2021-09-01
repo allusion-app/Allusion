@@ -259,26 +259,26 @@ export function useCommandHandler(
     });
 
     const el = window;
-    el.addEventListener(Selector.Select, handleSelect);
-    el.addEventListener(Selector.Preview, handlePreview);
-    el.addEventListener(Selector.ContextMenu, handleContextMenu);
-    el.addEventListener(Selector.TagContextMenu, handleTagContextMenu);
-    el.addEventListener(Selector.SlideContextMenu, handleSlideContextMenu);
-    el.addEventListener(Selector.FileDragStart, handleDragStart);
-    el.addEventListener(Selector.FileDragOver, handleDragOver);
-    el.addEventListener(Selector.FileDragLeave, handleDragLeave);
-    el.addEventListener(Selector.FileDrop, handleDrop);
+    el.addEventListener(Selector.Select, handleSelect, true);
+    el.addEventListener(Selector.Preview, handlePreview, true);
+    el.addEventListener(Selector.ContextMenu, handleContextMenu, true);
+    el.addEventListener(Selector.TagContextMenu, handleTagContextMenu, true);
+    el.addEventListener(Selector.SlideContextMenu, handleSlideContextMenu, true);
+    el.addEventListener(Selector.FileDragStart, handleDragStart, true);
+    el.addEventListener(Selector.FileDragOver, handleDragOver, true);
+    el.addEventListener(Selector.FileDragLeave, handleDragLeave, true);
+    el.addEventListener(Selector.FileDrop, handleDrop, true);
 
     return () => {
-      el.removeEventListener(Selector.Select, handleSelect);
-      el.removeEventListener(Selector.Preview, handlePreview);
-      el.removeEventListener(Selector.ContextMenu, handleContextMenu);
-      el.removeEventListener(Selector.TagContextMenu, handleTagContextMenu);
-      el.removeEventListener(Selector.SlideContextMenu, handleSlideContextMenu);
-      el.removeEventListener(Selector.FileDragStart, handleDragStart);
-      el.removeEventListener(Selector.FileDragOver, handleDragOver);
-      el.removeEventListener(Selector.FileDragLeave, handleDragLeave);
-      el.removeEventListener(Selector.FileDrop, handleDrop);
+      el.removeEventListener(Selector.Select, handleSelect, true);
+      el.removeEventListener(Selector.Preview, handlePreview, true);
+      el.removeEventListener(Selector.ContextMenu, handleContextMenu, true);
+      el.removeEventListener(Selector.TagContextMenu, handleTagContextMenu, true);
+      el.removeEventListener(Selector.SlideContextMenu, handleSlideContextMenu, true);
+      el.removeEventListener(Selector.FileDragStart, handleDragStart, true);
+      el.removeEventListener(Selector.FileDragOver, handleDragOver, true);
+      el.removeEventListener(Selector.FileDragLeave, handleDragLeave, true);
+      el.removeEventListener(Selector.FileDrop, handleDrop, true);
     };
   }, [uiStore, dndData, select, showContextMenu]);
 }
@@ -359,7 +359,5 @@ interface TagContextMenuPayload extends ContextMenuPayload {
 }
 
 function dispatchCustomEvent<E extends BaseEvent>(event: E, command: ContentViewCommand) {
-  event.currentTarget.dispatchEvent(
-    new CustomEvent(command.selector, { detail: command.payload, bubbles: true }),
-  );
+  event.currentTarget.dispatchEvent(new CustomEvent(command.selector, { detail: command.payload }));
 }
