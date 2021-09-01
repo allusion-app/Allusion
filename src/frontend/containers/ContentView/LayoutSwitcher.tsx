@@ -19,7 +19,7 @@ interface LayoutProps {
 }
 
 export interface GalleryProps {
-  contentRect: { width: number; height: number };
+  contentRect: ContentRect;
   /** The index of the currently selected image, or the "last selected" image when a range is selected */
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
@@ -114,11 +114,14 @@ const Layout = ({ contentRect, showContextMenu }: LayoutProps) => {
   const { isSlideMode } = uiStore;
   const [delayedSlideMode, setDelayedSlideMode] = useState(uiStore.isSlideMode);
   useEffect(() => {
+    let handle: number | undefined;
     if (isSlideMode) {
       setDelayedSlideMode(true);
     } else {
-      setTimeout(() => setDelayedSlideMode(false), 300);
+      handle = window.setTimeout(() => setDelayedSlideMode(false), 300);
     }
+
+    return () => window.clearTimeout(handle);
   }, [isSlideMode]);
 
   useCommandHandler(handleFileSelect, showContextMenu);
