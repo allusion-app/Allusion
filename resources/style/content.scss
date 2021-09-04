@@ -113,8 +113,7 @@
   }
 }
 
-// Fallback images on loading and error
-.image-loading,
+// Fallback images
 .image-error,
 .image-placeholder {
   height: 100%;
@@ -131,14 +130,25 @@
   -webkit-mask-image: url(~resources/icons/media.svg);
 }
 
-.image-loading {
-  mask-image: url(~resources/icons/loading.svg);
-  -webkit-mask-image: url(~resources/icons/loading.svg);
-}
-
 .image-error {
   mask-image: url(~resources/icons/media-missing.svg);
   -webkit-mask-image: url(~resources/icons/media-missing.svg);
+}
+
+.image-loading {
+  width: var(--thumbnail-size, 100px);
+  height: var(--thumbnail-size, 100px);
+  margin: auto;
+  border-radius: 50%;
+  border: 0.25rem solid var(--background-color);
+  border-top-color: var(--accent-color-blue);
+  animation: 1.5s spin infinite linear;
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 }
 
 /////////////////////// View methods //////////////////////////////////
@@ -253,6 +263,10 @@
   .col-name > img {
     object-fit: cover;
     padding: 2px;
+  }
+
+  .image-loading {
+    margin: 0;
   }
 
   // column widths
