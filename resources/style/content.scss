@@ -188,7 +188,7 @@
   [role='columnheader'] {
     position: relative;
     overflow: unset;
-    height: 1.5rem;
+    height: 100%;
     font-weight: 600;
 
     &[aria-sort='ascending'] > .sort-button::after {
@@ -276,6 +276,18 @@
     height: var(--thumbnail-size);
     width: 100%;
   }
+}
+
+#list-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--background-color);
+  height: 1.5rem;
+}
+
+#list-body {
+  position: relative;
 }
 
 .thumbnail-square img {

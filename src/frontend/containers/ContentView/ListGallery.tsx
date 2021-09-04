@@ -7,8 +7,9 @@ import React, {
   useEffect,
   useLayoutEffect,
   useState,
-  CSSProperties,
   memo,
+  ForwardedRef,
+  forwardRef,
 } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { FileOrder } from 'src/backend/DBRepository';
@@ -35,11 +36,21 @@ const ListGallery = observer((props: ILayoutProps) => {
   );
   const ref = useRef<FixedSizeList>(null);
   const list = useRef<HTMLDivElement>(null);
-  const setColumnWidth = useRef((name: string, value: number) => {
-    if (list.current !== null) {
-      list.current.style.setProperty(`--col-${name}-width`, `${Math.max(value, 100)}px`);
+
+  useEffect(() => {
+    const container = list.current;
+    if (container === null || container.firstElementChild === null) {
+      return;
     }
-  }).current;
+    const resizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      const cellSize = entry.contentRect.height;
+      container.style.setProperty('--thumbnail-size', `${cellSize}px`);
+      setCellSize(cellSize);
+    });
+    resizeObserver.observe(container.firstElementChild);
+    return () => resizeObserver.disconnect();
+  }, []);
 
   const throttledScrollHandler = useRef(
     debouncedThrottle(
@@ -107,39 +118,50 @@ const ListGallery = observer((props: ILayoutProps) => {
   );
 
   return (
-    <div
-      ref={list}
-      id="list"
-      role="grid"
-      aria-rowcount={fileStore.fileList.length}
-      style={
-        {
-          width: `${contentRect.width}px`,
-          height: `${contentRect.height}px`,
-          '--thumbnail-size': `${cellSize}px`,
-        } as CSSProperties
-      }
-    >
-      <Header setCellSize={setCellSize} setColumnWidth={setColumnWidth} />
-      <FixedSizeList
-        useIsScrolling
-        height={contentRect.height - cellSize}
-        width="100%"
-        itemSize={cellSize}
-        itemCount={fileStore.fileList.length}
-        itemData={fileStore.fileList}
-        itemKey={getItemKey}
-        overscanCount={8}
-        children={Row}
-        onScroll={handleScroll}
-        initialScrollOffset={uiStore.firstItem * cellSize}
-        ref={ref}
-      />
-    </div>
+    <FixedSizeList
+      useIsScrolling
+      height={contentRect.height}
+      width={contentRect.width}
+      itemSize={cellSize}
+      itemCount={fileStore.fileList.length}
+      itemData={fileStore.fileList}
+      itemKey={getItemKey}
+      children={Row}
+      onScroll={handleScroll}
+      initialScrollOffset={uiStore.firstItem * cellSize}
+      ref={ref}
+      outerElementType={Table}
+      innerElementType={Body}
+      outerRef={list}
+    />
   );
 });
 
 export default ListGallery;
+
+const Table = observer(
+  ({ children, ...props }: any, ref: ForwardedRef<HTMLDivElement>) => {
+    const { fileStore } = useStore();
+    return (
+      <div ref={ref} id="list" role="grid" aria-rowcount={fileStore.fileList.length} {...props}>
+        <Header />
+        {children}
+      </div>
+    );
+  },
+  { forwardRef: true },
+);
+
+const Body = forwardRef(function Body(
+  { children, ...props }: any,
+  ref: ForwardedRef<HTMLDivElement>,
+) {
+  return (
+    <div ref={ref} id="list-body" role="rowgroup" {...props}>
+      {children}
+    </div>
+  );
+});
 
 interface ColumnHeaderData {
   title: string;
@@ -156,28 +178,18 @@ const COLUMN_HEADERS: ColumnHeaderData[] = [
   { title: 'Tags' },
 ];
 
-interface HeaderProps {
-  setCellSize: (height: number) => void;
-  setColumnWidth: (name: string, value: number) => void;
-}
+const Header = () => {
+  const header = useRef<HTMLDivElement>(null);
 
-const Header = ({ setCellSize, setColumnWidth }: HeaderProps) => {
-  const resizeObserver = useRef(
-    new ResizeObserver((entries) => {
-      setCellSize(entries[0].contentRect.height);
-    }),
-  );
-
-  const observeHeader = useRef((header: HTMLDivElement | null) => {
-    if (header !== null) {
-      resizeObserver.current.observe(header);
-    } else {
-      resizeObserver.current.disconnect();
+  const setColumnWidth = useRef((name: string, value: number) => {
+    const list = header.current?.parentElement;
+    if (list) {
+      list.style.setProperty(`--col-${name}-width`, `${Math.max(value, 100)}px`);
     }
   }).current;
 
   return (
-    <div ref={observeHeader} role="rowgroup" className="list-header">
+    <div ref={header} id="list-header" role="rowgroup">
       <div role="row">
         {COLUMN_HEADERS.map(({ sortKey, title }) => {
           if (sortKey !== undefined) {
