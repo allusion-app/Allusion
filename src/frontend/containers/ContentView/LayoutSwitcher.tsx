@@ -2,39 +2,30 @@ import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { ITagDnDData } from 'src/frontend/contexts/TagDnDContext';
 import FocusManager from 'src/frontend/FocusManager';
-import { RendererMessenger } from 'src/Messaging';
-import { MenuDivider } from 'widgets/menus';
 import { ClientFile } from '../../../entities/File';
-import UiStore, { ThumbnailSize, ViewMethod } from '../../stores/UiStore';
+import { ThumbnailSize, ViewMethod } from '../../stores/UiStore';
 import { throttle } from '../../utils';
-import { GalleryCommand, GallerySelector } from './GalleryItem';
+import { useCommandHandler } from './Commands';
 import ListGallery from './ListGallery';
 import MasonryRenderer from './Masonry/MasonryRenderer';
-import {
-  ExternalAppMenuItems,
-  FileTagMenuItems,
-  FileViewerMenuItems,
-  MissingFileMenuItems,
-  SlideFileViewerMenuItems,
-} from './menu-items';
 import SlideMode from './SlideMode';
 
-type Dimension = { width: number; height: number };
+export type ContentRect = { width: number; height: number };
 
-export interface ILayoutProps {
-  contentRect: Dimension;
-  select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
-  /** The index of the currently selected image, or the "last selected" image when a range is selected */
-  lastSelectionIndex: React.MutableRefObject<number | undefined>;
+interface LayoutProps {
+  contentRect: ContentRect;
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
-const Layout = ({
-  contentRect,
-  showContextMenu,
-}: Omit<ILayoutProps, 'select' | 'lastSelectionIndex'>) => {
+export interface GalleryProps {
+  contentRect: ContentRect;
+  /** The index of the currently selected image, or the "last selected" image when a range is selected */
+  lastSelectionIndex: React.MutableRefObject<number | undefined>;
+  select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
+}
+
+const Layout = ({ contentRect, showContextMenu }: LayoutProps) => {
   const { fileStore, uiStore } = useStore();
 
   // Todo: Select by dragging a rectangle shape
@@ -123,12 +114,17 @@ const Layout = ({
   const { isSlideMode } = uiStore;
   const [delayedSlideMode, setDelayedSlideMode] = useState(uiStore.isSlideMode);
   useEffect(() => {
+    let handle: number | undefined;
     if (isSlideMode) {
       setDelayedSlideMode(true);
     } else {
-      setTimeout(() => setDelayedSlideMode(false), 300);
+      handle = window.setTimeout(() => setDelayedSlideMode(false), 300);
     }
+
+    return () => window.clearTimeout(handle);
   }, [isSlideMode]);
+
+  useCommandHandler(handleFileSelect, showContextMenu);
 
   if (contentRect.width < 10) {
     return null;
@@ -143,7 +139,6 @@ const Layout = ({
         <MasonryRenderer
           contentRect={contentRect}
           lastSelectionIndex={lastSelectionIndex}
-          showContextMenu={showContextMenu}
           select={handleFileSelect}
         />
       );
@@ -154,7 +149,6 @@ const Layout = ({
           contentRect={contentRect}
           select={handleFileSelect}
           lastSelectionIndex={lastSelectionIndex}
-          showContextMenu={showContextMenu}
         />
       );
       break;
@@ -165,9 +159,7 @@ const Layout = ({
   return (
     <>
       {overviewElem}
-      {delayedSlideMode && (
-        <SlideMode contentRect={contentRect} showContextMenu={showContextMenu} />
-      )}
+      {delayedSlideMode && <SlideMode contentRect={contentRect} />}
     </>
   );
 };
@@ -187,113 +179,4 @@ export function getThumbnailSize(sizeType: ThumbnailSize) {
     return CELL_SIZE_MEDIUM;
   }
   return CELL_SIZE_LARGE;
-}
-
-export function createSubmitCommand(
-  dndData: ITagDnDData,
-  select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void,
-  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void,
-  uiStore: UiStore,
-): (command: GalleryCommand) => void {
-  return action((command: GalleryCommand) => {
-    switch (command.selector) {
-      case GallerySelector.Click: {
-        const [file, metaKey, shitfKey] = command.payload;
-        select(file, metaKey, shitfKey);
-        break;
-      }
-
-      case GallerySelector.DoubleClick:
-        if (!command.payload.isBroken) {
-          uiStore.selectFile(command.payload, true);
-          uiStore.enableSlideMode();
-        }
-        break;
-
-      case GallerySelector.ContextMenu: {
-        const [file, x, y, tag] = command.payload;
-        let topMenu = file.isBroken ? (
-          <MissingFileMenuItems />
-        ) : (
-          <FileViewerMenuItems file={file} />
-        );
-        if (tag) {
-          topMenu = (
-            <>
-              <FileTagMenuItems file={file} tag={tag} />
-              <MenuDivider />
-              {topMenu}
-            </>
-          );
-        }
-        showContextMenu(x, y, [topMenu, <ExternalAppMenuItems key="external" file={file} />]);
-        if (!uiStore.fileSelection.has(file)) {
-          // replace selection with context menu, like Windows file explorer
-          select(file, false, false);
-        }
-        break;
-      }
-
-      case GallerySelector.ContextMenuSlide: {
-        const [file, x, y] = command.payload;
-        showContextMenu(x, y, [
-          file.isBroken ? <MissingFileMenuItems /> : <SlideFileViewerMenuItems file={file} />,
-          <ExternalAppMenuItems key="external" file={file} />,
-        ]);
-        break;
-      }
-
-      // If the file is selected, add all selected items to the drag event, for
-      // exporting to your file explorer or programs like PureRef.
-      // Creating an event in the main process turned out to be the most robust,
-      // did many experiments with drag event content types. Creating a drag
-      // event with multiple images did not work correctly from the browser side
-      // (e.g. only limited to thumbnails, not full images).
-      case GallerySelector.DragStart: {
-        const file = command.payload;
-        if (!uiStore.fileSelection.has(file)) {
-          return;
-        }
-        if (uiStore.fileSelection.size > 1) {
-          RendererMessenger.startDragExport(
-            Array.from(uiStore.fileSelection, (f) => f.absolutePath),
-          );
-        } else {
-          RendererMessenger.startDragExport([file.absolutePath]);
-        }
-
-        // However, from the main process, there is no way to attach some information to indicate it's an "internal event" that shouldn't trigger the drop overlay
-        // So we can store the date when the event starts... Hacky but it works :)
-        (window as any).internalDragStart = new Date();
-      }
-
-      case GallerySelector.DragOver:
-        dndData.target = command.payload;
-        break;
-
-      case GallerySelector.DragLeave:
-        dndData.target = command.payload;
-        break;
-
-      case GallerySelector.Drop:
-        if (dndData.source !== undefined) {
-          const dropFile = command.payload;
-          const ctx = uiStore.getTagContextItems(dndData.source.id);
-
-          // Tag all selected files - unless the file that is being tagged is not selected
-          const filesToTag = uiStore.fileSelection.has(dropFile)
-            ? [...uiStore.fileSelection]
-            : [dropFile];
-
-          for (const tag of ctx) {
-            for (const file of filesToTag) {
-              file.addTag(tag);
-            }
-          }
-        }
-
-      default:
-        break;
-    }
-  });
 }

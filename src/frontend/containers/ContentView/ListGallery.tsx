@@ -1,7 +1,6 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, {
-  useMemo,
   useRef,
   useCallback,
   useEffect,
@@ -14,26 +13,19 @@ import React, {
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { FileOrder } from 'src/backend/DBRepository';
 import { ClientFile, IFile } from 'src/entities/File';
-import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { debouncedThrottle } from 'src/frontend/utils';
-import { ILayoutProps, createSubmitCommand } from './LayoutSwitcher';
+import { GalleryProps } from './LayoutSwitcher';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { ListItem } from './ListItem';
+import { Row } from './ListItem';
 
 /** Generates a unique key for an element in the fileList */
 const getItemKey = action((index: number, data: ClientFile[]): string => {
   return data[index].id;
 });
 
-const ListGallery = observer((props: ILayoutProps) => {
-  const { contentRect, select, lastSelectionIndex, showContextMenu } = props;
+const ListGallery = observer(({ contentRect, select, lastSelectionIndex }: GalleryProps) => {
   const { fileStore, uiStore } = useStore();
   const [cellSize, setCellSize] = useState(24);
-  const dndData = useTagDnD();
-  const submitCommand = useMemo(
-    () => createSubmitCommand(dndData, select, showContextMenu, uiStore),
-    [dndData, select, showContextMenu, uiStore],
-  );
   const ref = useRef<FixedSizeList>(null);
   const list = useRef<HTMLDivElement>(null);
 
@@ -103,19 +95,6 @@ const ListGallery = observer((props: ILayoutProps) => {
     return () => window.removeEventListener('keydown', onKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileStore, select]);
-
-  const Row = useCallback(
-    ({ index, style, data, isScrolling }) => (
-      <ListItem
-        index={index}
-        data={data}
-        style={style}
-        isScrolling={isScrolling}
-        submitCommand={submitCommand}
-      />
-    ),
-    [submitCommand],
-  );
 
   return (
     <FixedSizeList

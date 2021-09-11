@@ -5,19 +5,18 @@ import { ellipsize, encodeFilePath, humanFileSize } from 'src/frontend/utils';
 import { IconButton, IconSet, Tag } from 'widgets';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { ITransform } from './Masonry/MasonryWorkerAdapter';
-import { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
+import { CommandDispatcher, MousePointerEvent } from './Commands';
 
-interface ICell {
+interface ItemProps {
   file: ClientFile;
   mounted: boolean;
   // Will use the original image instead of the thumbnail
   forceNoThumbnail?: boolean;
-  submitCommand: (command: GalleryCommand) => void;
 }
 
-interface IMasonryCell extends ICell {
+interface MasonryItemProps extends ItemProps {
   forceNoThumbnail: boolean;
   transform: ITransform;
 }
@@ -28,20 +27,24 @@ export const MasonryCell = observer(
     mounted,
     forceNoThumbnail,
     transform: { height, width, left, top },
-    submitCommand,
-  }: IMasonryCell & React.HTMLAttributes<HTMLDivElement>) => {
+  }: MasonryItemProps) => {
     const { uiStore, fileStore } = useStore();
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
-    const eventManager = useMemo(() => new GalleryEventHandler(file, submitCommand), [
-      file,
-      submitCommand,
-    ]);
+    const eventManager = useMemo(() => new CommandDispatcher(file), [file]);
 
     return (
       <div data-masonrycell aria-selected={uiStore.fileSelection.has(file)} style={style}>
         <div
           className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}
-          {...eventManager.handlers}
+          onClick={eventManager.select}
+          onDoubleClick={eventManager.preview}
+          onContextMenu={eventManager.showContextMenu}
+          onDragStart={eventManager.dragStart}
+          onDragEnter={eventManager.dragEnter}
+          onDragOver={eventManager.dragOver}
+          onDragLeave={eventManager.dragLeave}
+          onDrop={eventManager.drop}
+          onDragEnd={eventManager.dragEnd}
         >
           <Thumbnail mounted={!mounted} file={file} forceNoThumbnail={forceNoThumbnail} />
         </div>
@@ -72,98 +75,15 @@ export const MasonryCell = observer(
   },
 );
 
-export class GalleryEventHandler {
-  constructor(public file: ClientFile, public submitCommand: (command: GalleryCommand) => void) {}
-  get handlers() {
-    return {
-      onClick: this.onClick.bind(this),
-      onDoubleClick: this.onDoubleClick.bind(this),
-      onContextMenu: this.onContextMenu.bind(this),
-      onDragStart: this.onDragStart.bind(this),
-      onDragEnter: this.onDragEnter.bind(this),
-      onDragOver: this.onDragOver.bind(this),
-      onDragLeave: this.onDragLeave.bind(this),
-      onDrop: this.onDrop.bind(this),
-      onDragEnd: this.onDragEnd.bind(this),
-    };
-  }
-  onClick(e: React.MouseEvent<HTMLElement>) {
-    e.stopPropagation();
-    this.submitCommand({
-      selector: GallerySelector.Click,
-      payload: [this.file, e.ctrlKey || e.metaKey, e.shiftKey],
-    });
-  }
-  onDoubleClick() {
-    this.submitCommand({ selector: GallerySelector.DoubleClick, payload: this.file });
-  }
-  onContextMenu(e: React.MouseEvent<HTMLElement>, tag?: ClientTag) {
-    e.stopPropagation();
-    e.preventDefault();
-    this.submitCommand({
-      selector: GallerySelector.ContextMenu,
-      payload: [this.file, e.clientX, e.clientY, tag],
-    });
-  }
-  onDragStart(e: React.MouseEvent<HTMLElement>) {
-    e.stopPropagation();
-    e.preventDefault();
-    this.submitCommand({ selector: GallerySelector.DragStart, payload: this.file });
-  }
-  onDragEnter(e: React.DragEvent<HTMLElement>) {
-    handleDragEnter(e);
-  }
-  onDragOver(e: React.DragEvent<HTMLElement>) {
-    if (e.dataTransfer.types.includes(DnDTagType)) {
-      e.stopPropagation();
-      e.preventDefault();
-      e.currentTarget.dataset[DnDAttribute.Target] = 'true';
-      this.submitCommand({ selector: GallerySelector.DragOver, payload: this.file });
-    }
-  }
-  onDragLeave(e: React.DragEvent<HTMLElement>) {
-    if (e.dataTransfer.types.includes(DnDTagType)) {
-      e.stopPropagation();
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'none';
-      e.currentTarget.dataset[DnDAttribute.Target] = 'false';
-      this.submitCommand({ selector: GallerySelector.DragOver, payload: this.file });
-    }
-  }
-  onDrop(e: React.DragEvent<HTMLElement>) {
-    e.stopPropagation();
-    this.submitCommand({ selector: GallerySelector.Drop, payload: this.file });
-    e.dataTransfer.dropEffect = 'none';
-    e.currentTarget.dataset[DnDAttribute.Target] = 'false';
-  }
-  // TODO: Doesn't seem to every be firing. Bug: Pressing escape while dropping tag on gallery item
-  onDragEnd(e: React.DragEvent<HTMLElement>) {
-    e.stopPropagation();
-    e.dataTransfer.dropEffect = 'none';
-    e.currentTarget.dataset[DnDAttribute.Target] = 'false';
-  }
-}
-
-function handleDragEnter(e: React.DragEvent<HTMLElement>) {
-  if (e.dataTransfer.types.includes(DnDTagType)) {
-    e.preventDefault();
-    e.stopPropagation();
-    e.dataTransfer.dropEffect = 'link';
-    (e.target as HTMLElement).dataset[DnDAttribute.Target] = 'true';
-  }
-}
-
 const enum ThumbnailState {
   Ok,
   Loading,
   Error,
 }
 
-type IThumbnail = Omit<ICell, 'submitCommand'>;
-
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
-export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => {
+export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProps) => {
   const { uiStore } = useStore();
   const { thumbnailDirectory } = uiStore;
   const { thumbnailPath, isBroken } = file;
@@ -225,17 +145,16 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbna
 });
 
 export const ThumbnailTags = observer(
-  ({ file, eventManager }: { file: ClientFile; eventManager: GalleryEventHandler }) => {
-    const eventHandlers = eventManager.handlers;
+  ({ file, eventManager }: { file: ClientFile; eventManager: CommandDispatcher }) => {
     return (
       <span
         className="thumbnail-tags"
-        onClick={eventHandlers.onClick}
-        onContextMenu={eventHandlers.onContextMenu}
-        onDoubleClick={eventHandlers.onDoubleClick}
+        onClick={eventManager.select}
+        onContextMenu={eventManager.showContextMenu}
+        onDoubleClick={eventManager.preview}
       >
         {Array.from(file.tags, (tag) => (
-          <TagWithHint key={tag.id} tag={tag} onContextMenu={eventHandlers.onContextMenu} />
+          <TagWithHint key={tag.id} tag={tag} onContextMenu={eventManager.showTagContextMenu} />
         ))}
       </span>
     );
@@ -248,7 +167,7 @@ const TagWithHint = observer(
     onContextMenu,
   }: {
     tag: ClientTag;
-    onContextMenu?: (e: React.MouseEvent<HTMLElement>, tag?: ClientTag | undefined) => void;
+    onContextMenu: (e: MousePointerEvent, tag: ClientTag) => void;
   }) => {
     const handleContextMenu = useCallback(
       (e: React.MouseEvent<HTMLElement>) => onContextMenu?.(e, tag),
@@ -276,29 +195,3 @@ const ThumbnailFilename = ({ file }: { file: ClientFile }) => {
     </div>
   );
 };
-
-export const enum GallerySelector {
-  Click = 'click',
-  DoubleClick = 'doubleClick',
-  ContextMenu = 'contextMenu',
-  ContextMenuSlide = 'contextMenuSlide',
-  DragStart = 'dragStart',
-  DragOver = 'dragOver',
-  DragLeave = 'dragLeave',
-  Drop = 'drop',
-}
-
-export interface ICommand<S, P> {
-  selector: S;
-  payload: P;
-}
-
-export type GalleryCommand =
-  | ICommand<GallerySelector.Click, [file: ClientFile, metaKey: boolean, shiftKey: boolean]>
-  | ICommand<GallerySelector.DoubleClick, ClientFile>
-  | ICommand<GallerySelector.ContextMenu, [file: ClientFile, x: number, y: number, tag?: ClientTag]>
-  | ICommand<GallerySelector.ContextMenuSlide, [file: ClientFile, x: number, y: number]>
-  | ICommand<GallerySelector.DragStart, ClientFile>
-  | ICommand<GallerySelector.DragOver, ClientFile>
-  | ICommand<GallerySelector.DragLeave, undefined>
-  | ICommand<GallerySelector.Drop, ClientFile>;

@@ -3,21 +3,14 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import ZoomPan, { ISlideTransform } from './SlideMode/ZoomPan';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet, Split } from 'widgets';
 import Inspector from '../Inspector';
-import { GalleryEventHandler, GallerySelector } from './GalleryItem';
-import { createSubmitCommand } from './LayoutSwitcher';
+import { CommandDispatcher, MousePointerEvent } from './Commands';
+import { ContentRect } from './LayoutSwitcher';
 
-interface ISlideMode {
-  contentRect: { width: number; height: number };
-  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
-}
-
-const SlideMode = observer((props: ISlideMode) => {
-  const { contentRect, showContextMenu } = props;
+const SlideMode = observer(({ contentRect }: { contentRect: ContentRect }) => {
   const { uiStore, fileStore } = useStore();
   const isInspectorOpen = uiStore.isInspectorOpen;
   const inspectorWidth = uiStore.inspectorWidth;
@@ -28,7 +21,6 @@ const SlideMode = observer((props: ISlideMode) => {
     <SlideView
       uiStore={uiStore}
       fileStore={fileStore}
-      showContextMenu={showContextMenu}
       width={contentWidth}
       height={contentHeight}
     />
@@ -50,7 +42,6 @@ const SlideMode = observer((props: ISlideMode) => {
 });
 
 interface ISlideView {
-  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
   width: number;
   height: number;
   uiStore: UiStore;
@@ -58,30 +49,10 @@ interface ISlideView {
 }
 
 const SlideView = observer((props: ISlideView) => {
-  const { uiStore, fileStore, width, height, showContextMenu } = props;
+  const { uiStore, fileStore, width, height } = props;
   const file = fileStore.fileList[uiStore.firstItem];
 
-  const dndData = useTagDnD();
-  const submitCommand = useMemo(
-    () => createSubmitCommand(dndData, () => null, showContextMenu, uiStore),
-    [dndData, showContextMenu, uiStore],
-  );
-  const handleContextMenu = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      e.preventDefault();
-      submitCommand({
-        selector: GallerySelector.ContextMenuSlide,
-        payload: [file, e.clientX, e.clientY],
-      });
-    },
-    [file, submitCommand],
-  );
-
-  const eventHandlers = useMemo(
-    () => submitCommand && new GalleryEventHandler(file, submitCommand).handlers,
-    [file, submitCommand],
-  );
+  const eventManager = useMemo(() => new CommandDispatcher(file), [file]);
 
   // Go to the first selected image on load
   useEffect(() => {
@@ -178,8 +149,8 @@ const SlideView = observer((props: ISlideView) => {
       prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
       nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
       doubleClickBehavior="zoomOrReset"
-      onContextMenu={handleContextMenu}
-      onDrop={eventHandlers.onDrop}
+      onContextMenu={eventManager.showSlideContextMenu}
+      onDrop={eventManager.drop}
       onClose={uiStore.disableSlideMode}
       tabIndex={-1}
     />
@@ -197,7 +168,7 @@ interface IZoomableImageProps {
   nextImage?: () => any;
   transitionStart?: ISlideTransform;
   transitionEnd?: ISlideTransform;
-  onContextMenu: (e: React.MouseEvent) => void;
+  onContextMenu: (e: MousePointerEvent) => void;
   onClose?: () => void;
   doubleClickBehavior?: 'zoomOrReset' | 'close';
 }
