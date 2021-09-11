@@ -16,7 +16,7 @@ import { Callout } from 'widgets/notifications';
 import { Alert, DialogButton } from 'widgets/popovers';
 import PopupWindow from '../../components/PopupWindow';
 import { useStore } from '../../contexts/StoreContext';
-import { moveThumbnailDir } from '../../ThumbnailGeneration';
+import { moveThumbnailDir } from '../../image/ThumbnailGeneration';
 import { getFilenameFriendlyFormattedDateTime, getThumbnailPath, isDirEmpty } from '../../utils';
 import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';

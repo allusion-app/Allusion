@@ -20,6 +20,7 @@ const sizeOf = promisify(ImageSize);
 export const IMG_EXTENSIONS = [
   'gif',
   'png',
+  'apng', // animated png
   'jpg',
   'jpeg',
   'jfif',
@@ -27,13 +28,19 @@ export const IMG_EXTENSIONS = [
   'tif',
   'tiff',
   'bmp',
+  'svg',
+  'heic',
+  'exr', // OpenEXR
+  'psd', // Photoshop
+  'kra', // Krita
+  // 'blend', xcf, raw
 ] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 
 /** Retrieved file meta data information */
 interface IMetaData {
   name: string; // Duplicate data; also in path. Used for DB queries
-  extension: string; // in lowercase, without the dot
+  extension: IMG_EXTENSIONS_TYPE; // in lowercase, without the dot
   size: number;
   width: number;
   height: number;
@@ -76,7 +83,7 @@ export class ClientFile implements ISerializable<IFile> {
   readonly dateModified: Date;
   readonly dateCreated: Date;
   readonly name: string;
-  readonly extension: string;
+  readonly extension: IMG_EXTENSIONS_TYPE;
   /** Same as "name", but without extension */
   readonly filename: string;
 
@@ -209,7 +216,7 @@ export async function getMetaData(path: string): Promise<IMetaData> {
 
   return {
     name: Path.basename(path),
-    extension: Path.extname(path).slice(1).toLowerCase(),
+    extension: Path.extname(path).slice(1).toLowerCase() as IMG_EXTENSIONS_TYPE,
     size: stats.size,
     width: (dimensions && dimensions.width) || 0,
     height: (dimensions && dimensions.height) || 0,

@@ -3,12 +3,13 @@ import { action, computed, makeObservable, observable, observe, runInAction } fr
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
 import ExifIO from 'src/backend/ExifIO';
-import { ClientFile, IFile } from 'src/entities/File';
+import { ClientFile, IFile, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
 import { ClientTagSearchCriteria, SearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
+import ImageLoader from '../image/ImageLoader';
 import { debounce, getThumbnailPath, needsThumbnail, promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
 
@@ -47,6 +48,11 @@ class FileStore {
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
 
+  // TODO: allow users to disable certain file types. Maybe per location/sub-location?
+  enabledFileExtensions = observable(new Set<IMG_EXTENSIONS_TYPE>(IMG_EXTENSIONS));
+
+  imageLoader: ImageLoader;
+
   debouncedRefetch: () => void;
 
   constructor(backend: Backend, rootStore: RootStore) {
@@ -60,6 +66,7 @@ class FileStore {
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
 
     this.exifTool = new ExifIO();
+    this.imageLoader = new ImageLoader(this.exifTool);
   }
 
   @action.bound async readTagsFromFiles() {

@@ -8,7 +8,7 @@ import { thumbnailType } from 'src/config';
 import { ID } from 'src/entities/ID';
 import { ClientFile } from 'src/entities/File';
 
-import { useStore } from './contexts/StoreContext';
+import { useStore } from '../contexts/StoreContext';
 
 export interface IThumbnailMessage {
   filePath: string;
@@ -35,21 +35,20 @@ for (let i = 0; i < NUM_THUMBNAIL_WORKERS; i++) {
 
 let lastSubmittedWorker = 0;
 
-// Generates thumbnail if not yet exists. Will set file.thumbnailPath when it exists.
-export const ensureThumbnail = action(async (file: ClientFile, thumbnailDir: string) => {
-  const thumbnailPath = file.thumbnailPath.split('?v=1')[0]; // remove ?v=1 that might have been added by the useWorkerListener down below
-  const thumbnailExists = await fse.pathExists(thumbnailPath);
-  if (!thumbnailExists) {
-    const msg: IThumbnailMessage = {
-      filePath: file.absolutePath,
-      thumbnailDirectory: thumbnailDir,
-      thumbnailType,
-      fileId: file.id,
-    };
-    workers[lastSubmittedWorker].postMessage(msg);
-    lastSubmittedWorker = (lastSubmittedWorker + 1) % workers.length;
-  }
-  return thumbnailExists;
+/**
+ * Generates a thumbnail in a Worker: {@link ../workers/thumbnailGenerator.worker}
+ * When the worker is finished, the file.thumbnailPath will be updated with ?v=1,
+ * causing the image to update in the view where ever it is used
+ **/
+export const generateThumbnailUsingWorker = action((file: ClientFile, thumbnailDir: string) => {
+  const msg: IThumbnailMessage = {
+    filePath: file.absolutePath,
+    thumbnailDirectory: thumbnailDir,
+    thumbnailType,
+    fileId: file.id,
+  };
+  workers[lastSubmittedWorker].postMessage(msg);
+  lastSubmittedWorker = (lastSubmittedWorker + 1) % workers.length;
 });
 
 // Listens and processes events from the Workers. Should only be used once in the entire app

@@ -43,6 +43,7 @@
 // - automatically update Subject/Keywords when updating HierarchicalSubject: https://exiftool.org/forum/index.php?topic=9208.0
 // Update: only doing an export/import for all images for now, not real-time updates
 
+import fse from 'fs-extra';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import exiftool from 'node-exiftool';
 import path from 'path';
@@ -241,6 +242,35 @@ class ExifIO {
   //     console.error('Could not update file metadata', res);
   //   }
   // }
+
+  /**
+   * Extracts the embedded thumbnail of a file into its own separate image file
+   * @param input
+   * @param output
+   * @returns Whether the thumbnail could be extracted successfully
+   */
+  async extractThumbnail(input: string, output: string): Promise<boolean> {
+    // TODO: should be possible to pipe it immediately. Node-exiftool doesn't seem to allow that
+    // const manualCommand = `"${input}" -PhotoshopThumbnail -b > "${output}"`;
+    // console.log(manualCommand);
+    // const res = await ep.readMetadata(manualCommand);
+    // console.log(res);
+
+    const res = await ep.readMetadata(input, ['ThumbnailImage', 'PhotoshopThumbnail', 'b']);
+    // console.log(res);
+
+    let data = res.data?.[0]?.ThumbnailImage || res.data?.[0]?.PhotoshopThumbnail;
+    if (data) {
+      if (data.startsWith?.('base64')) {
+        data = data.replace('base64:', '');
+        await fse.writeFile(output, Buffer.from(data, 'base64'));
+      } else {
+        await fse.writeFile(output, data);
+      }
+      return true;
+    }
+    return false;
+  }
 }
 
 export default ExifIO;

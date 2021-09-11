@@ -165,9 +165,16 @@ const SlideView = observer((props: ISlideView) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file.id]);
 
+  const [imageSrc, setImageSrc] = useState(file.absolutePath);
+  useEffect(() => {
+    setImageSrc(file.absolutePath);
+    // TODO: check if same file is still open when setting imageSrc (and mounted)
+    fileStore.imageLoader.getImageSrc(file).then((src) => src && setImageSrc(src));
+  }, [file, fileStore.imageLoader]);
+
   return (
     <ZoomableImage
-      src={file.absolutePath}
+      src={imageSrc}
       thumbnailSrc={file.thumbnailPath}
       width={width}
       height={height}

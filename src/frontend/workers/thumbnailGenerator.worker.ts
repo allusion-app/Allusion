@@ -2,7 +2,7 @@ import fse from 'fs-extra';
 
 import { getThumbnailPath, needsThumbnail } from '../utils';
 import { thumbnailType, thumbnailMaxSize } from 'src/config';
-import { IThumbnailMessage, IThumbnailMessageResponse } from '../ThumbnailGeneration';
+import { IThumbnailMessage, IThumbnailMessageResponse } from '../image/ThumbnailGeneration';
 
 const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | null> => {
   const inputBuffer = await fse.readFile(filePath);

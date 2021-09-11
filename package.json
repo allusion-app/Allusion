@@ -84,6 +84,7 @@
     "@types/react": "^17.0.3",
     "@types/react-dom": "^17.0.3",
     "@types/react-window": "^1.8.2",
+    "@types/sharp": "^0.29.1",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",
@@ -130,6 +131,7 @@
     "react-popper": "^2.2.5",
     "react-window": "^1.8.6",
     "reselect": "^4.0.0",
+    "sharp": "^0.29.1",
     "sourcemapped-stacktrace": "^1.1.11",
     "uuid": "^8.3.2"
   }

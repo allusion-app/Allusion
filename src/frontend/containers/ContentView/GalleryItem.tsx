@@ -3,7 +3,6 @@ import { observer } from 'mobx-react-lite';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ellipsize, encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
 import { IconButton, IconSet, Tag } from 'widgets';
-import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { ITransform } from './Masonry/MasonryWorkerAdapter';
 import { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
 import { ClientTag } from 'src/entities/Tag';
@@ -240,7 +239,7 @@ type IThumbnail = Omit<ICell, 'submitCommand'>;
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => {
-  const { uiStore } = useStore();
+  const { uiStore, fileStore } = useStore();
   const { thumbnailDirectory } = uiStore;
   const { thumbnailPath, isBroken } = file;
 
@@ -253,22 +252,20 @@ const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => 
     if ((!mounted && isBroken === true) || forceNoThumbnail) {
       return;
     }
-    ensureThumbnail(file, thumbnailDirectory)
-      .then((exists) => {
-        if (isMounted && exists) {
-          setState(ThumbnailState.Ok);
-        } else if (isBroken !== true && isMounted) {
-          setState(ThumbnailState.Loading);
-        } else if (isMounted) {
-          setState(ThumbnailState.Error);
-        }
+    setState(ThumbnailState.Loading);
+    fileStore.imageLoader
+      .ensureThumbnail(file)
+      .then(() => {
+        if (isMounted) setState(ThumbnailState.Ok);
       })
-      .catch(() => setState(ThumbnailState.Error));
+      .catch(() => {
+        if (isMounted) setState(ThumbnailState.Error);
+      });
 
     return () => {
       isMounted = false;
     };
-  }, [file, forceNoThumbnail, isBroken, mounted, thumbnailDirectory]);
+  }, [file, fileStore.imageLoader, forceNoThumbnail, isBroken, mounted, thumbnailDirectory]);
 
   // The thumbnailPath of an image is always set, but may not exist yet.
   // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`,
@@ -279,6 +276,8 @@ const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => 
     }
   }, [thumbnailPath, mounted]);
 
+  const useThumbnail = uiStore.isList || !forceNoThumbnail;
+
   if (state === ThumbnailState.Ok) {
     // When the thumbnail cannot be loaded, display an error
     const handleImageError = () => {
@@ -287,7 +286,7 @@ const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => 
     };
     return (
       <img
-        src={encodeFilePath(forceNoThumbnail ? file.absolutePath : thumbnailPath)}
+        src={encodeFilePath(useThumbnail ? thumbnailPath : file.absolutePath)}
         onError={handleImageError}
         alt=""
         data-file-id={file.id}
