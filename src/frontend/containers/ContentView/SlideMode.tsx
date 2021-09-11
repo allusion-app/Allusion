@@ -8,7 +8,7 @@ import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet, Split } from 'widgets';
 import Inspector from '../Inspector';
-import { GalleryEventHandler, GallerySelector, MissingImageFallback } from './GalleryItem';
+import { GalleryEventHandler, GallerySelector } from './GalleryItem';
 import { createSubmitCommand } from './LayoutSwitcher';
 
 interface ISlideMode {
@@ -270,7 +270,8 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
         // debug
       >
         {loadError ? (
-          <MissingImageFallback
+          <span
+            className="image-error"
             style={{
               width: `${width}px`,
               height: `${height}px`,

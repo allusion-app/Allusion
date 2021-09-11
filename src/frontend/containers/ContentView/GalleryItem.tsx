@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { ClientFile, IFile } from 'src/entities/File';
-import { ellipsize, encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
+import { ClientFile } from 'src/entities/File';
+import { ellipsize, encodeFilePath, humanFileSize } from 'src/frontend/utils';
 import { IconButton, IconSet, Tag } from 'widgets';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
 import { ITransform } from './Masonry/MasonryWorkerAdapter';
@@ -16,82 +16,6 @@ interface ICell {
   forceNoThumbnail?: boolean;
   submitCommand: (command: GalleryCommand) => void;
 }
-
-interface IListColumn {
-  title: string;
-  // Also indicates whether this column _can_ be sorted on
-  sortKey?: keyof IFile;
-  // cellContent: (props: ICellContentProps) => ReactNode;
-}
-
-export const listColumns: IListColumn[] = [
-  {
-    title: 'Name',
-    sortKey: 'name',
-    // Placeholder for when we want dynamic table (e.g. draggable/toggleable columns)
-    // cellContent: function NameCell({ file, isMounted, uiStore }: ICellContentProps) {
-    //   return (
-    //     <div key={`${file.id}-name`}>
-    //       <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}>
-    //         {isMounted ? (
-    //           <Thumbnail uiStore={uiStore} mounted={isMounted} file={file} />
-    //         ) : (
-    //           <div className="thumbnail-placeholder" />
-    //         )}
-    //       </div>{' '}
-    //       <span className="filename">{file.name}</span>
-    //     </div>
-    //   );
-    // },
-  },
-  { title: 'Dimensions' },
-  { title: 'Date added', sortKey: 'dateAdded' },
-  { title: 'Size', sortKey: 'size' },
-  { title: 'Tags' },
-];
-
-export const ListCell = observer(({ file, mounted, submitCommand }: ICell) => {
-  const { uiStore } = useStore();
-  const eventManager = useMemo(() => new GalleryEventHandler(file, submitCommand), [
-    file,
-    submitCommand,
-  ]);
-  const eventHandlers = eventManager.handlers;
-  return (
-    <div role="gridcell" aria-selected={uiStore.fileSelection.has(file)} {...eventHandlers}>
-      {/* Filename */}
-      <div key={`${file.id}-name`}>
-        <div className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`} {...eventHandlers}>
-          {mounted ? (
-            <Thumbnail mounted={mounted} file={file} />
-          ) : (
-            <div className="thumbnail-placeholder" />
-          )}
-        </div>
-
-        <span className="filename">{file.name}</span>
-      </div>
-
-      {/* Dimensions */}
-      <div>
-        {file.width} x {file.height}
-      </div>
-
-      {/* Import date */}
-      <div>{formatDateTime(file.dateAdded)}</div>
-
-      {/* Size */}
-      <div>{humanFileSize(file.size)}</div>
-
-      {/* Tags */}
-      <div>
-        <ThumbnailTags file={file} eventManager={eventManager} />
-      </div>
-
-      {/* TODO: Broken/missing indicator. Red/orange-ish background? */}
-    </div>
-  );
-});
 
 interface IMasonryCell extends ICell {
   forceNoThumbnail: boolean;
@@ -239,7 +163,7 @@ type IThumbnail = Omit<ICell, 'submitCommand'>;
 
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
-const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => {
+export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => {
   const { uiStore } = useStore();
   const { thumbnailDirectory } = uiStore;
   const { thumbnailPath, isBroken } = file;
@@ -294,17 +218,11 @@ const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => 
       />
     );
   } else if (state === ThumbnailState.Loading) {
-    return <div className="donut-loading" />;
+    return <span className="image-loading" />;
   } else {
-    return <MissingImageFallback />;
+    return <span className="image-error" />;
   }
 });
-
-export const MissingImageFallback = ({ style }: { style?: React.CSSProperties }) => (
-  <div style={style} className="image-error custom-icon-128">
-    {IconSet.DB_ERROR}Could not load image
-  </div>
-);
 
 export const ThumbnailTags = observer(
   ({ file, eventManager }: { file: ClientFile; eventManager: GalleryEventHandler }) => {

@@ -1,7 +1,6 @@
-import { runInAction } from 'mobx';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useRef, useState } from 'react';
-import { ClientFile } from 'src/entities/File';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import FocusManager from 'src/frontend/FocusManager';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
@@ -16,15 +15,6 @@ type SupportedViewMethod =
   | ViewMethod.MasonryHorizontal
   | ViewMethod.Grid;
 
-interface IMasonryRendererProps {
-  type: SupportedViewMethod;
-  handleFileSelect: (
-    selectedFile: ClientFile,
-    toggleSelection: boolean,
-    rangeSelection: boolean,
-  ) => void;
-}
-
 const ViewMethodLayoutDict: Record<SupportedViewMethod, MasonryType> = {
   [ViewMethod.MasonryVertical]: MasonryType.Vertical,
   [ViewMethod.MasonryHorizontal]: MasonryType.Horizontal,
@@ -37,13 +27,7 @@ const MASONRY_PADDING = 8; // Note: keep in sync with .masonry class padding
 const worker = new MasonryWorkerAdapter();
 
 const MasonryRenderer = observer(
-  ({
-    contentRect,
-    select,
-    showContextMenu,
-    lastSelectionIndex,
-    handleFileSelect,
-  }: IMasonryRendererProps & ILayoutProps) => {
+  ({ contentRect, select, showContextMenu, lastSelectionIndex }: ILayoutProps) => {
     const { fileStore, uiStore } = useStore();
     const [containerHeight, setContainerHeight] = useState<number>();
     // The timestamp from when the layout was last updated
@@ -60,42 +44,40 @@ const MasonryRenderer = observer(
     // Vertical keyboard navigation with lastSelectionIndex
     // note: horizontal keyboard navigation is handled elsewhere: LayoutSwitcher
     useEffect(() => {
-      const onKeyDown = (e: KeyboardEvent) => {
-        runInAction(() => {
-          let index = lastSelectionIndex.current;
-          if (index === undefined) {
-            return;
-          }
-          // Find the image that's below/above the center of the current image
-          const curTransform = worker.getTransform(index);
-          const curTransformCenter = curTransform.left + curTransform.width / 2;
-          const maxLookAhead = 100;
-          const numFiles = fileStore.fileList.length;
+      const onKeyDown = action((e: KeyboardEvent) => {
+        let index = lastSelectionIndex.current;
+        if (index === undefined) {
+          return;
+        }
+        // Find the image that's below/above the center of the current image
+        const curTransform = worker.getTransform(index);
+        const curTransformCenter = curTransform.left + curTransform.width / 2;
+        const maxLookAhead = 100;
+        const numFiles = fileStore.fileList.length;
 
-          if (e.key === 'ArrowUp') {
-            for (let i = index - 1; i > Math.max(0, i - maxLookAhead); i--) {
-              const t = worker.getTransform(i);
-              if (t.left < curTransformCenter && t.left + t.width > curTransformCenter) {
-                index = i;
-                break;
-              }
+        if (e.key === 'ArrowUp') {
+          for (let i = index - 1; i > Math.max(0, i - maxLookAhead); i--) {
+            const t = worker.getTransform(i);
+            if (t.left < curTransformCenter && t.left + t.width > curTransformCenter) {
+              index = i;
+              break;
             }
-          } else if (e.key === 'ArrowDown' && index < numFiles - 1) {
-            for (let i = index + 1; i < Math.min(i + maxLookAhead, numFiles); i++) {
-              const t = worker.getTransform(i);
-              if (t.left < curTransformCenter && t.left + t.width > curTransformCenter) {
-                index = i;
-                break;
-              }
-            }
-          } else {
-            return;
           }
-          e.preventDefault();
-          handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
-          FocusManager.focusGallery();
-        });
-      };
+        } else if (e.key === 'ArrowDown' && index < numFiles - 1) {
+          for (let i = index + 1; i < Math.min(i + maxLookAhead, numFiles); i++) {
+            const t = worker.getTransform(i);
+            if (t.left < curTransformCenter && t.left + t.width > curTransformCenter) {
+              index = i;
+              break;
+            }
+          }
+        } else {
+          return;
+        }
+        e.preventDefault();
+        select(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+        FocusManager.focusGallery();
+      });
 
       const throttledKeyDown = throttle(onKeyDown, 50);
       window.addEventListener('keydown', throttledKeyDown);

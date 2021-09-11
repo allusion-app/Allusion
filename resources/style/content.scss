@@ -27,7 +27,7 @@
     }
   }
 
-  .list [aria-selected='true'] {
+  #list [aria-selected='true'] {
     background-color: rgba(255, 193, 47, 0.3);
   }
 }
@@ -40,7 +40,7 @@
   // Allow dragging of images to elsewhere (drag-export)
   -webkit-user-drag: element;
   background-color: var(--background-color-alt);
-  border: 0.0625rem solid var(--border-dark);
+  border: 0.0625rem solid var(--border-color);
   border-radius: 0.25rem;
 
   transition: background-color 0.2s $pt-transition-cubic2;
@@ -93,11 +93,8 @@
   }
 }
 
-.thumbnail-broken {
-  > img,
-  > .image-error:not(.custom-icon-128) {
-    filter: saturate(0) brightness(0.25);
-  }
+.thumbnail-broken > img {
+  filter: saturate(0) brightness(0.25);
 }
 
 .thumbnail-broken-overlay {
@@ -116,105 +113,60 @@
   }
 }
 
-.image-error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+// Fallback images
+.image-error,
+.image-placeholder {
   height: 100%;
   width: 100%;
+  background-color: currentColor;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
 }
 
-// THUMBNAIL LOADER
-.donut-loading {
-  display: inline-block;
-  width: calc(0.3 * var(--thumbnail-size));
-  height: calc(0.3 * var(--thumbnail-size));
+.image-placeholder {
+  mask-image: url(~resources/icons/media.svg);
+  -webkit-mask-image: url(~resources/icons/media.svg);
+}
+
+.image-error {
+  mask-image: url(~resources/icons/db-error.svg);
+  -webkit-mask-image: url(~resources/icons/db-error.svg);
+}
+
+.image-loading {
+  width: var(--thumbnail-size, 100px);
+  height: var(--thumbnail-size, 100px);
   margin: auto;
   border-radius: 50%;
-  border: 0.5rem solid var(--background-color);
+  border: 0.25rem solid var(--background-color);
   border-top-color: var(--accent-color-blue);
   animation: 1.5s spin infinite linear;
-}
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 }
 
 /////////////////////// View methods //////////////////////////////////
-.list {
-  top: 24px; // space for header
-
-  // Stripe pattern
-  [aria-rowindex$='0'],
-  [aria-rowindex$='2'],
-  [aria-rowindex$='4'],
-  [aria-rowindex$='6'],
-  [aria-rowindex$='8'] {
-    background-color: rgba(102, 102, 102, 0.045);
+#list {
+  // stripe pattern
+  [aria-rowindex$='1'],
+  [aria-rowindex$='3'],
+  [aria-rowindex$='5'],
+  [aria-rowindex$='7'],
+  [aria-rowindex$='9'] {
+    background-color: var(--background-color-alt);
   }
 
-  // Allow horizontal scroll in list view
-  > div {
-    min-width: 600px;
-    overflow-x: auto;
-  }
-
-  [role='gridcell'] {
-    height: 24px;
-
-    > div {
-      // cell container
-      height: 24px;
-      display: inline-flex;
-      align-items: center;
-      vertical-align: middle;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      padding: 0 4px;
-
-      // Column widths:
-      // - base width of 140px
-      width: 140px;
-      &:nth-child(2) {
-        width: 90px;
-      }
-      &:nth-child(3) {
-        width: 150px;
-      }
-      &:nth-child(4) {
-        width: 80px;
-      }
-      // - first and last column (filename and tags): fill rest of width
-      &:first-child,
-      &:last-child {
-        // both are 50% minus half of the rest of the columns (0.5 * 3 * 120)
-        width: calc(50% - 160px);
-      }
-
-      // Overflow is needed for the first child for allowing the thumbnail to expand on hover
-      &:not(:first-child) {
-        overflow: hidden;
-      }
-
-      > .filename {
-        display: inline;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: calc(100% - 32px); // minus thumbnail and some padding
-        margin-left: 8px;
-      }
-
-      .thumbnail-broken {
-        overflow: hidden;
-      }
-      .image-error {
-        display: none;
-      }
-    }
+  [role='row'] {
+    white-space: nowrap;
+    width: 100%;
+    height: var(--thumbnail-size);
+    contain: layout size;
 
     &[aria-selected='true'] {
       background-color: var(--accent-color-blue);
@@ -227,115 +179,137 @@
     }
   }
 
-  // Force thumbnail size of 24 pixels
-  --thumbnail-size: 20px;
-
-  .thumbnail {
-    align-self: center;
-    display: inline-block;
-    margin: 2px 0px 2px 4px;
-
-    img {
-      transition: transform 0.2s ease;
-      transform-origin: top left;
-      border-radius: 0;
-    }
-
-    &:hover {
-      img {
-        z-index: 2;
-        position: relative;
-        clip-path: inset(0);
-
-        // show image in original aspect ratio, aligned to the left
-        object-fit: contain;
-        object-position: left;
-        // a drop shadow might be nice too
-      }
-    }
+  [role='gridcell'] {
+    height: var(--thumbnail-size);
+    contain: strict;
   }
 
-  // Last 4
-  [role='row']:nth-last-child(-n + 4) .thumbnail:hover {
-    img {
-      transform: scale(10) translate(3px, -80%);
-    }
-  }
-  // 4 > last 4
-  [role='row']:nth-last-child(n + 5) .thumbnail:hover {
-    img {
-      transform: scale(10) translate(3px, -50%);
-    }
-  }
-
-  // First 4
-  [role='row']:nth-child(-n + 5) .thumbnail:hover {
-    img {
-      transform: scale(10) translate(3px, 0%);
-    }
-  }
-
-  h2 {
-    grid-area: title;
-    font-size: medium;
-    margin: 0;
+  // cell container
+  [role='gridcell'],
+  [role='columnheader'] {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
     white-space: nowrap;
-    align-self: end;
+    overflow: hidden;
+  }
+
+  [role='gridcell'],
+  .unsortable-header {
+    padding-inline-start: 0.5rem;
+  }
+
+  [role='columnheader'] {
+    position: relative;
+    overflow: unset;
+    height: 100%;
+    font-weight: 600;
+
+    &[aria-sort='ascending'] > .sort-button::after {
+      mask-image: url(~resources/icons/sort-ascending.svg);
+      -webkit-mask-image: url(~resources/icons/sort-ascending.svg);
+    }
+
+    &[aria-sort='descending'] > .sort-button::after {
+      mask-image: url(~resources/icons/sort-descending.svg);
+      -webkit-mask-image: url(~resources/icons/sort-descending.svg);
+    }
+  }
+
+  // header buttons
+  .sort-button {
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    padding: 0 0.5rem;
+
+    &::after {
+      content: '';
+      min-width: 1rem;
+      min-height: 1rem;
+      background-color: currentColor;
+      mask-image: url(~resources/icons/sort.svg);
+      -webkit-mask-image: url(~resources/icons/sort.svg);
+      mask-repeat: no-repeat;
+      -webkit-mask-repeat: no-repeat;
+      mask-position: center;
+      -webkit-mask-position: center;
+    }
+  }
+
+  .column-resizer {
+    min-width: unset;
+    width: 4px;
+    cursor: w-resize;
+    margin-inline-start: auto;
+    position: absolute;
+    right: -2px;
+    background-color: var(--hover-color);
+
+    &:active,
+    &:hover {
+      background-color: var(--accent-color-blue);
+    }
+  }
+
+  // thumbnail
+  [role='gridcell'].col-name > :first-child {
+    margin-inline-end: 0.5rem;
+    flex-shrink: 0;
+    height: var(--thumbnail-size);
+    width: var(--thumbnail-size);
+  }
+
+  .col-name > img {
+    object-fit: cover;
+    padding: 2px;
+  }
+
+  .image-loading {
+    margin: 0;
+  }
+
+  // column widths
+  --col-name-width: 200px;
+  --col-dimensions-width: 100px;
+  --col-date-added-width: 140px;
+  --col-size-width: 100px;
+  --col-tags-width: 200px;
+
+  .col-name {
+    width: var(--col-name-width);
+  }
+  .col-dimensions {
+    width: var(--col-dimensions-width);
+  }
+  .col-date-added {
+    width: var(--col-date-added-width);
+  }
+  .col-size {
+    width: var(--col-size-width);
+  }
+  .col-tags {
+    width: var(--col-tags-width);
   }
 
   .thumbnail-tags {
-    min-height: 1.5rem;
-    position: unset;
-    padding: 0;
+    overflow-y: auto;
+    white-space: break-spaces;
+    height: var(--thumbnail-size);
+    width: 100%;
   }
 }
 
-.list-header {
-  height: 24px;
-  width: 100%;
-  border-bottom: 0.0625rem solid var(--border-color);
-
-  // Same as content
-  min-width: 600px;
-
-  > div {
-    // Column widths:
-    // - base width of 140px
-    width: 140px;
-    &:nth-child(2) {
-      width: 90px;
-    }
-    &:nth-child(3) {
-      width: 150px;
-    }
-    &:nth-child(4) {
-      width: 80px;
-    }
-    &:first-child {
-      padding-left: 8px;
-    }
-    // - first and last column (filename and tags): fill rest of width
-    &:first-child,
-    &:last-child {
-      // both are 50% minus half of the rest of the columns (0.5 * 3 * 120)
-      width: calc(50% - 160px);
-    }
-
-    padding: 4px 4px 4px 4px;
-    font-weight: bold;
-    overflow: hidden;
-
-    display: inline-flex;
-    justify-content: space-between;
-
-    &.sortable {
-      cursor: pointer;
-    }
-  }
+#list-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--background-color);
+  height: 1.5rem;
 }
 
-.thumbnail-small .list .file-info {
-  border-spacing: 0;
+#list-body {
+  position: relative;
 }
 
 .thumbnail-square img {
@@ -452,6 +426,7 @@
   padding: 8px; // Note: keep in sync with MasonryRenderer PADDING
 
   [data-masonrycell] {
+    contain: strict;
     position: absolute;
     transition: transform 0.2s ease;
     .thumbnail {

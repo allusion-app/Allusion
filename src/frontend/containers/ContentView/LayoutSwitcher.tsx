@@ -1,4 +1,4 @@
-import { action, runInAction } from 'mobx';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -88,29 +88,27 @@ const Layout = ({
   }, [fileStore.fileList.length]);
 
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      runInAction(() => {
-        let index = lastSelectionIndex.current;
-        if (index === undefined) {
-          return;
-        }
-        if (runInAction(() => uiStore.isSlideMode)) {
-          return;
-        }
-        if (e.key === 'ArrowLeft' && index > 0) {
-          index -= 1;
-          // TODO: when the activeElement GalleryItem goes out of view, focus will be handed over to the body element:
-          // -> Gallery keyboard shortkeys stop working. So, force focus on container
-          FocusManager.focusGallery();
-        } else if (e.key === 'ArrowRight' && index < fileStore.fileList.length - 1) {
-          index += 1;
-          FocusManager.focusGallery();
-        } else {
-          return;
-        }
-        handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
-      });
-    };
+    const onKeyDown = action((e: KeyboardEvent) => {
+      let index = lastSelectionIndex.current;
+      if (index === undefined) {
+        return;
+      }
+      if (uiStore.isSlideMode) {
+        return;
+      }
+      if (e.key === 'ArrowLeft' && index > 0) {
+        index -= 1;
+        // TODO: when the activeElement GalleryItem goes out of view, focus will be handed over to the body element:
+        // -> Gallery keyboard shortkeys stop working. So, force focus on container
+        FocusManager.focusGallery();
+      } else if (e.key === 'ArrowRight' && index < fileStore.fileList.length - 1) {
+        index += 1;
+        FocusManager.focusGallery();
+      } else {
+        return;
+      }
+      handleFileSelect(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
+    });
 
     const throttledKeyDown = throttle(onKeyDown, 50);
 
@@ -144,11 +142,9 @@ const Layout = ({
       overviewElem = (
         <MasonryRenderer
           contentRect={contentRect}
-          type={uiStore.method}
           lastSelectionIndex={lastSelectionIndex}
           showContextMenu={showContextMenu}
           select={handleFileSelect}
-          handleFileSelect={handleFileSelect}
         />
       );
       break;
@@ -159,7 +155,6 @@ const Layout = ({
           select={handleFileSelect}
           lastSelectionIndex={lastSelectionIndex}
           showContextMenu={showContextMenu}
-          handleFileSelect={handleFileSelect}
         />
       );
       break;
