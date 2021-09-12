@@ -29,11 +29,13 @@ export const IMG_EXTENSIONS = [
   'tiff',
   'bmp',
   'svg',
-  'heic',
+  // 'heic', // not supported by Sharp out of the box https://github.com/lovell/sharp/issues/2871
+  'avif',
   'exr', // OpenEXR
   'psd', // Photoshop
   'kra', // Krita
-  // 'blend', xcf, raw
+  // 'xcf', // Gimp
+  // TODO: 'blend', raw, etc.?
 ] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 

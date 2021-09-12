@@ -257,7 +257,6 @@ class ExifIO {
     // console.log(res);
 
     const res = await ep.readMetadata(input, ['ThumbnailImage', 'PhotoshopThumbnail', 'b']);
-    // console.log(res);
 
     let data = res.data?.[0]?.ThumbnailImage || res.data?.[0]?.PhotoshopThumbnail;
     if (data) {

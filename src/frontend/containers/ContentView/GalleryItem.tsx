@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ClientFile, IFile } from 'src/entities/File';
+import { ClientTag } from 'src/entities/Tag';
+import { useStore } from 'src/frontend/contexts/StoreContext';
+import { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
 import { ellipsize, encodeFilePath, formatDateTime, humanFileSize } from 'src/frontend/utils';
 import { IconButton, IconSet, Tag } from 'widgets';
 import { ITransform } from './Masonry/MasonryWorkerAdapter';
-import { DnDAttribute, DnDTagType } from 'src/frontend/contexts/TagDnDContext';
-import { ClientTag } from 'src/entities/Tag';
-import { useStore } from 'src/frontend/contexts/StoreContext';
 
 interface ICell {
   file: ClientFile;
@@ -299,7 +299,7 @@ const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: IThumbnail) => 
   }
 });
 
-export const MissingImageFallback = ({ style }: { style?: React.CSSProperties }) => (
+const MissingImageFallback = ({ style }: { style?: React.CSSProperties }) => (
   <div style={style} className="image-error custom-icon-128">
     {IconSet.DB_ERROR}Could not load image
   </div>

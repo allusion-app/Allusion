@@ -3,7 +3,7 @@
 const path = require('path');
 import fse from 'fs-extra';
 
-import { thumbnailType, thumbnailMaxSize } from 'src/config';
+import { thumbnailFormat, thumbnailMaxSize } from 'src/config';
 
 ////////////////////////
 //// Time-out utils ////
@@ -378,11 +378,12 @@ export const getThumbnailPath = (filePath: string, thumbnailDirectory: string): 
   // Hash is needed to avoid files with the same name to clash with each other, when they come from different paths
   const hash = hashString(filePath);
 
-  return path.join(thumbnailDirectory, `${baseFilename}-${hash}.${thumbnailType}`);
+  return path.join(thumbnailDirectory, `${baseFilename}-${hash}.${thumbnailFormat}`);
 };
 
 /** Use this for any <img src attribute! */
 export function encodeFilePath(filePath: string): string {
+  if (filePath.startsWith('data:image/')) return filePath;
   // Take into account weird file names like "C:/Images/https_%2F%2Fcdn/.../my-image.jpg"
   const basename = path.basename(filePath);
   const basepath = filePath.substr(0, filePath.length - basename.length);
@@ -396,7 +397,7 @@ export function encodeFilePath(filePath: string): string {
     params = filename.substr(paramsIndex);
     filename = filename.substr(0, paramsIndex);
   }
-  return `${basepath}${encodeURIComponent(filename)}${params}`;
+  return `file://${basepath}${encodeURIComponent(filename)}${params}`;
 }
 
 export function needsThumbnail(width: number, height: number) {

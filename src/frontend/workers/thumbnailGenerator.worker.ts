@@ -1,7 +1,7 @@
 import fse from 'fs-extra';
 
-import { getThumbnailPath, needsThumbnail } from '../utils';
-import { thumbnailType, thumbnailMaxSize } from 'src/config';
+import { needsThumbnail } from '../utils';
+import { thumbnailFormat, thumbnailMaxSize } from 'src/config';
 import { IThumbnailMessage, IThumbnailMessageResponse } from '../image/ThumbnailGeneration';
 
 const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | null> => {
@@ -39,15 +39,13 @@ const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | nu
 
   ctx2D.drawImage(img, 0, 0, width, height);
 
-  const thumbBlob = await canvas.convertToBlob({ type: `image/${thumbnailType}`, quality: 0.75 });
+  const thumbBlob = await canvas.convertToBlob({ type: `image/${thumbnailFormat}`, quality: 0.75 });
   const reader = new FileReaderSync();
   const buffer = reader.readAsArrayBuffer(thumbBlob);
   return buffer;
 };
 
-const generateAndStoreThumbnail = async (filePath: string, thumbnailDirectory: string) => {
-  const thumbnailFilePath = getThumbnailPath(filePath, thumbnailDirectory);
-
+const generateAndStoreThumbnail = async (filePath: string, thumbnailFilePath: string) => {
   // Could already exist: maybe generated in another worker, when use scrolls up/down repeatedly
   // but this doesn't help if we want to deliberately overwrite the thumbnail, but we don't have that currently
   if (await fse.pathExists(thumbnailFilePath)) {
@@ -75,12 +73,12 @@ const MAX_PARALLEL_THUMBNAILS = 4; // Related to amount of workers. Currently 4 
 let curParallelThumbnails = 0;
 
 async function processMessage(data: IThumbnailMessage) {
-  const { filePath, thumbnailDirectory, fileId } = data;
+  const { filePath, thumbnailFilePath, fileId } = data;
   try {
     // console.log('Processing thumbnail message', { data, curParallelThumbnails, queue });
     if (curParallelThumbnails < MAX_PARALLEL_THUMBNAILS) {
       curParallelThumbnails++;
-      const thumbnailPath = await generateAndStoreThumbnail(filePath, thumbnailDirectory);
+      const thumbnailPath = await generateAndStoreThumbnail(filePath, thumbnailFilePath);
       const response: IThumbnailMessageResponse = {
         fileId,
         thumbnailPath: thumbnailPath || filePath,

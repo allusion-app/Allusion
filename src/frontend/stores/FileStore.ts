@@ -404,6 +404,10 @@ class FileStore {
     }
   }
 
+  @action.bound setSupportedImageExtensions(extensions: Set<IMG_EXTENSIONS_TYPE>) {
+    this.enabledFileExtensions.replace(extensions);
+  }
+
   @action.bound incrementNumUntaggedFiles() {
     this.numUntaggedFiles++;
   }

@@ -69,6 +69,11 @@ let rendererConfig = {
       wasm: path.resolve(__dirname, 'wasm/'),
     },
   },
+  externals: {
+    // From https://sharp.pixelplumbing.com/install#webpack
+    // Note: conflicts with node-loader, has been removed from config
+    'sharp': 'commonjs sharp'
+  },
   module: {
     rules: [
       {
@@ -115,10 +120,6 @@ let rendererConfig = {
         test: /\.js$/,
         resourceQuery: /file/,
         type: 'asset/resource',
-      },
-      {
-        test: /\.node$/,
-        use: 'node-loader',
       },
       {
         test: /\.svg$/,

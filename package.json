@@ -125,6 +125,7 @@
     "mobx": "^6.3.2",
     "mobx-react-lite": "^3.2.0",
     "node-exiftool": "^2.3.0",
+    "node-stream-zip": "^1.15.0",
     "react": "^16.14.0",
     "react-colorful": "^5.1.1",
     "react-dom": "^16.14.0",

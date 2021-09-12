@@ -2,16 +2,26 @@ import { shell } from 'electron';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   chromeExtensionUrl,
   getDefaultBackupDirectory,
   getDefaultThumbnailDirectory,
 } from 'src/config';
+import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
 import { WINDOW_STORAGE_KEY } from 'src/renderer';
-import { Button, ButtonGroup, IconButton, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
+import {
+  Button,
+  ButtonGroup,
+  Checkbox,
+  IconButton,
+  IconSet,
+  Radio,
+  RadioGroup,
+  Toggle,
+} from 'widgets';
 import { Callout } from 'widgets/notifications';
 import { Alert, DialogButton } from 'widgets/popovers';
 import PopupWindow from '../../components/PopupWindow';
@@ -322,6 +332,71 @@ const ImportExport = observer(() => {
   );
 });
 
+const ImageFormatPicker = observer(() => {
+  const { fileStore } = useStore();
+
+  const [removeDisabledImages, setRemoveDisabledImages] = useState(false);
+  const toggleRemoveDisabledImages = useCallback(() => setRemoveDisabledImages((val) => !val), []);
+
+  const [newEnabledFileExtensions, setNewEnabledFileExtensions] = useState(
+    new Set(fileStore.enabledFileExtensions),
+  );
+  const toggleExtension = useCallback(
+    (ext: IMG_EXTENSIONS_TYPE) => {
+      const newNewEnabledFileExtensions = new Set(newEnabledFileExtensions);
+      if (newEnabledFileExtensions.has(ext)) {
+        newNewEnabledFileExtensions.delete(ext);
+      } else {
+        newNewEnabledFileExtensions.add(ext);
+      }
+      setNewEnabledFileExtensions(newNewEnabledFileExtensions);
+    },
+    [newEnabledFileExtensions],
+  );
+
+  return (
+    <>
+      <h2>Image formats</h2>
+      <fieldset>
+        <legend>Image formats discovered by Allusion</legend>
+        <div className="checkbox-set-container">
+          {IMG_EXTENSIONS.map((ext) => (
+            <div className="item" key={ext}>
+              <Checkbox
+                label={ext}
+                checked={newEnabledFileExtensions.has(ext)}
+                onChange={() => toggleExtension(ext)}
+              />
+            </div>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Remove images with disabled image formats from library</legend>
+        <Toggle checked={removeDisabledImages} onChange={toggleRemoveDisabledImages} />
+      </fieldset>
+
+      <Button
+        text="Reset"
+        onClick={() => setNewEnabledFileExtensions(new Set(fileStore.enabledFileExtensions))}
+      />
+      <Button
+        text="Save"
+        styling="filled"
+        onClick={() => fileStore.setSupportedImageExtensions(newEnabledFileExtensions)}
+        disabled={
+          // Disabled if identical
+          newEnabledFileExtensions.size === fileStore.enabledFileExtensions.size &&
+          Array.from(newEnabledFileExtensions.values()).every((ext) =>
+            fileStore.enabledFileExtensions.has(ext),
+          )
+        }
+      />
+    </>
+  );
+});
+
 const BackgroundProcesses = observer(() => {
   const { uiStore, locationStore } = useStore();
 
@@ -532,6 +607,10 @@ const SETTINGS_TABS: () => TabItem[] = () => [
   {
     label: 'Import/Export',
     content: <ImportExport />,
+  },
+  {
+    label: 'Image formats',
+    content: <ImageFormatPicker />,
   },
   {
     label: 'Background Processes',

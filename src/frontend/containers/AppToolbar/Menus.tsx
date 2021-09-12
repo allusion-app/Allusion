@@ -143,29 +143,3 @@ export const ThumbnailSizeSliderMenuItem = observer(() => {
     />
   );
 });
-
-export const ThumbnailSizeMenuItems = observer(() => {
-  const { uiStore } = useStore();
-  return (
-    <MenuRadioGroup>
-      <MenuRadioItem
-        icon={IconSet.THUMB_SM}
-        onClick={uiStore.setThumbnailSmall}
-        checked={uiStore.thumbnailSize === 'small'}
-        text="Small"
-      />
-      <MenuRadioItem
-        icon={IconSet.THUMB_MD}
-        onClick={uiStore.setThumbnailMedium}
-        checked={uiStore.thumbnailSize === 'medium'}
-        text="Medium"
-      />
-      <MenuRadioItem
-        icon={IconSet.THUMB_BG}
-        onClick={uiStore.setThumbnailLarge}
-        checked={uiStore.thumbnailSize === 'large'}
-        text="Large"
-      />
-    </MenuRadioGroup>
-  );
-});

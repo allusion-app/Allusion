@@ -15,7 +15,7 @@ export const chromeExtensionUrl =
 
 export const RECURSIVE_DIR_WATCH_DEPTH = 16;
 
-export const thumbnailType = 'webp';
+export const thumbnailFormat = 'webp';
 
 const isRenderer = process && process.type === 'renderer';
 
