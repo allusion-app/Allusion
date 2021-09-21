@@ -2,7 +2,8 @@ import { Transaction } from 'dexie';
 import { IDBVersioningConfig } from './DBRepository';
 
 // The name of the IndexedDB
-export const DB_NAME = 'Allusion';
+// TODO: use different (unique?) name for portable version, so it can run seperately from installed version
+export const DB_NAME = 'Allusion2';
 
 export const NUM_AUTO_BACKUPS = 6;
 

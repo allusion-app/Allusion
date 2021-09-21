@@ -1,14 +1,14 @@
 import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
 import fse from 'fs-extra';
 import { getDefaultBackupDirectory } from 'src/config';
-import { RendererMessenger } from 'src/Messaging';
+import SysPath from 'path';
 import { IFile } from '../entities/File';
 import { ID } from '../entities/ID';
 import { ILocation } from '../entities/Location';
 import { IStringSearchCriteria, SearchCriteria } from '../entities/SearchCriteria';
 import { ITag, ROOT_TAG_ID } from '../entities/Tag';
 import BackupScheduler from './BackupScheduler';
-import { dbConfig, DB_NAME } from './config';
+import { dbConfig, DB_NAME, INSTANT_BACKUP_FILENAME } from './config';
 import DBRepository, { dbDelete, dbInit, FileOrder } from './DBRepository';
 
 /**
@@ -35,8 +35,20 @@ export default class Backend {
   }
 
   async init(isMainWindow: boolean, isPortable: boolean): Promise<void> {
+    const backupDirectory = await getDefaultBackupDirectory();
     if (isPortable) {
-      // TODO: Restore latest backup
+      // In portable mode, we must persist and restore data manually
+      // Here, we import the DB from a file that's updated any time the DB is updated
+      // TODO: localStorage too
+      // And use / everywhere, not \ on windows
+      try {
+        await this.restoreDatabaseFromFile(SysPath.join(backupDirectory, INSTANT_BACKUP_FILENAME));
+      } catch (e) {
+        // If we can't restore the DB from last exit, what then?
+        // maybe someone purposfully deleted their data, should we clear the current database?
+        // too risky for now, if they really want that, they can do it theirselves through settings
+        console.error('Could not restore database dump on startup of portable mode', e);
+      }
     }
 
     if (isMainWindow) {
@@ -54,10 +66,7 @@ export default class Backend {
       }
 
       try {
-        await this.backupScheduler.initialize(
-          await getDefaultBackupDirectory(),
-          RendererMessenger.isPortable(),
-        );
+        await this.backupScheduler.initialize(backupDirectory, isPortable);
       } catch (e) {
         console.error('Could not initialize backup scheduler', e);
       }

@@ -35,7 +35,7 @@ const mockFile: IFile = {
 
 describe('Backend', () => {
   beforeAll(() => {
-    return backend.init(true);
+    return backend.init(true, false);
   });
 
   describe('Tag API', () => {

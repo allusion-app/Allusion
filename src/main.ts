@@ -23,7 +23,7 @@ import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 import { Rectangle } from 'electron/main';
 
 /** dir where portable executable located */
-const PORTABLE_DIRECTORY = process.env.PORTABLE_EXECUTABLE_DIR;
+const PORTABLE_DIRECTORY = process.env.PORTABLE_EXECUTABLE_DIR as string;
 const IS_PORTABLE = !!PORTABLE_DIRECTORY;
 // TODO: Store things like preferences, backups relative to portable dir
 

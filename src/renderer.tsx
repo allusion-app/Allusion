@@ -34,7 +34,7 @@ export const IS_PREVIEW_WINDOW = params.get('preview') === 'true';
 const backend = new Backend();
 const rootStore = new RootStore(backend);
 backend
-  .init(!IS_PREVIEW_WINDOW)
+  .init(!IS_PREVIEW_WINDOW, RendererMessenger.isPortable())
   .then(async () => {
     console.log('Backend has been initialized!');
     await rootStore.init(IS_PREVIEW_WINDOW);
