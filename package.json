@@ -20,6 +20,7 @@
   "build": {
     "appId": "com.allusion-app.allusion",
     "productName": "Allusion",
+    "unpackDirName": "Allusion",
     "mac": {
       "category": "public.app-category.graphics-design",
       "extraResources": [

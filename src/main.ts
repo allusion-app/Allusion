@@ -22,6 +22,23 @@ import { ITag, ROOT_TAG_ID } from './entities/Tag';
 import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 import { Rectangle } from 'electron/main';
 
+/** dir where portable executable located */
+const PORTABLE_DIRECTORY = process.env.PORTABLE_EXECUTABLE_DIR;
+const IS_PORTABLE = !!PORTABLE_DIRECTORY;
+// TODO: Store things like preferences, backups relative to portable dir
+
+const basePath = IS_PORTABLE ? path.join(PORTABLE_DIRECTORY, 'Allusion') : app.getPath('userData');
+
+const preferencesFilePath = path.join(basePath, 'preferences.json');
+const windowStateFilePath = path.join(basePath, 'windowState.json');
+
+type PreferencesFile = { checkForUpdatesOnStartup?: boolean };
+let preferences: PreferencesFile = {};
+const updatePreferences = (prefs: PreferencesFile) => {
+  preferences = prefs;
+  fse.writeJSONSync(preferencesFilePath, prefs);
+};
+
 let mainWindow: BrowserWindow | null = null;
 let previewWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -30,6 +47,16 @@ let clipServer: ClipServer | null = null;
 function initialize() {
   createWindow();
   createPreviewWindow();
+
+  try {
+    fse.mkdirSync(basePath);
+    preferences = fse.readJSONSync(preferencesFilePath);
+    if (preferences.checkForUpdatesOnStartup) {
+      autoUpdater.checkForUpdates();
+    }
+  } catch (e) {
+    console.error('Could not read', preferencesFilePath, e);
+  }
 }
 
 function createWindow() {
@@ -534,7 +561,7 @@ MainMessenger.onReload(forceRelaunch);
 
 MainMessenger.onOpenDialog(dialog);
 
-MainMessenger.onGetPath(app);
+MainMessenger.onGetPath((path) => (IS_PORTABLE ? basePath : app.getPath(path)));
 
 MainMessenger.onIsFullScreen(() => mainWindow?.isFullScreen() ?? false);
 
@@ -576,9 +603,21 @@ MainMessenger.onWindowSystemButtonPressed((button: WindowSystemButtonPress) => {
 
 MainMessenger.onIsMaximized(() => mainWindow?.isMaximized() ?? false);
 
+MainMessenger.onIsPortable(() => IS_PORTABLE);
+
 MainMessenger.onGetVersion(getVersion);
 
 MainMessenger.onCheckForUpdates(() => autoUpdater.checkForUpdates());
+
+MainMessenger.onToggleCheckUpdatesOnStartup(
+  () =>
+    void updatePreferences({
+      ...preferences,
+      checkForUpdatesOnStartup: !preferences.checkForUpdatesOnStartup,
+    }),
+);
+
+MainMessenger.onIsCheckUpdatesOnStartupEnabled(() => !!preferences.checkForUpdatesOnStartup);
 
 // Helper functions and variables/constants
 
@@ -598,8 +637,6 @@ function getMainWindowDisplay() {
   }
   return screen.getPrimaryDisplay();
 }
-
-const windowStateFilePath = path.join(app.getPath('userData'), 'windowState.json');
 
 // Based on https://github.com/electron/electron/issues/526
 function getPreviousWindowState(): Electron.Rectangle & { isMaximized?: boolean } {
