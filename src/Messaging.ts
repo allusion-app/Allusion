@@ -42,6 +42,7 @@ const GET_ZOOM_FACTOR = 'GET_ZOOM_FACTOR';
 const WINDOW_MAXIMIZE = 'WINDOW_MAXIMIZE';
 const WINDOW_UNMAXIMIZE = 'WINDOW_UNMAXIMIZE';
 const IS_MAXIMIZED = 'IS_MAXIMIZED';
+const IS_PORTABLE = 'IS_PORTABLE';
 
 /////////////////// Window system buttons ////////////////////
 const WINDOW_SYSTEM_BUTTON_PRESS = 'WINDOW_SYSTEM_BUTTON_PRESS';
@@ -118,6 +119,8 @@ export interface IRunInBackgroundMessage {
 
 export const GET_VERSION = 'GET_VERSION';
 export const CHECK_FOR_UPDATES = 'CHECK_FOR_UPDATES';
+export const TOGGLE_CHECK_UPDATES_ON_STARTUP = 'TOGGLE_CHECK_UPDATES_ON_STARTUP';
+export const IS_CHECK_UPDATES_ON_STARTUP_ENABLED = 'IS_CHECK_UPDATES_ON_STARTUP_ENABLED';
 
 // Static methods for type safe IPC messages between renderer and main process
 export class RendererMessenger {
@@ -201,9 +204,17 @@ export class RendererMessenger {
 
   static isMaximized = (): boolean => ipcRenderer.sendSync(IS_MAXIMIZED);
 
+  static isPortable = (): boolean => ipcRenderer.sendSync(IS_PORTABLE);
+
   static getVersion = (): string => ipcRenderer.sendSync(GET_VERSION);
 
   static checkForUpdates = async () => ipcRenderer.invoke(CHECK_FOR_UPDATES);
+
+  static isCheckUpdatesOnStartupEnabled = (): boolean =>
+    ipcRenderer.sendSync(IS_CHECK_UPDATES_ON_STARTUP_ENABLED);
+
+  static toggleCheckUpdatesOnStartup = (): void =>
+    ipcRenderer.send(TOGGLE_CHECK_UPDATES_ON_STARTUP);
 }
 
 export class MainMessenger {
@@ -220,8 +231,8 @@ export class MainMessenger {
   static onOpenDialog = (dialog: Electron.Dialog) =>
     ipcMain.handle(OPEN_DIALOG, (_, options) => dialog.showOpenDialog(options));
 
-  static onGetPath = (app: Electron.App) =>
-    ipcMain.handle(GET_PATH, (_, name) => app.getPath(name));
+  static onGetPath = (cb: (name: SYSTEM_PATHS) => string) =>
+    ipcMain.handle(GET_PATH, (_, name) => cb(name));
 
   static onSetFullScreen = (cb: (isFullScreen: boolean) => void) =>
     ipcMain.handle(SET_FULL_SCREEN, (_, isFullScreen) => cb(isFullScreen));
@@ -296,8 +307,17 @@ export class MainMessenger {
   static onIsMaximized = (cb: () => boolean) =>
     ipcMain.on(IS_MAXIMIZED, (e) => (e.returnValue = cb()));
 
+  static onIsPortable = (cb: () => boolean) =>
+    ipcMain.on(IS_PORTABLE, (e) => (e.returnValue = cb()));
+
   static onGetVersion = (cb: () => string) =>
     ipcMain.on(GET_VERSION, (e) => (e.returnValue = cb()));
 
   static onCheckForUpdates = (cb: () => void) => ipcMain.handle(CHECK_FOR_UPDATES, cb);
+
+  static onToggleCheckUpdatesOnStartup = (cb: () => void) =>
+    ipcMain.handle(TOGGLE_CHECK_UPDATES_ON_STARTUP, cb);
+
+  static onIsCheckUpdatesOnStartupEnabled = (cb: () => boolean) =>
+    ipcMain.on(IS_CHECK_UPDATES_ON_STARTUP_ENABLED, (e) => (e.returnValue = cb()));
 }

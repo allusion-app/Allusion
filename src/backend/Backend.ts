@@ -1,6 +1,7 @@
 import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
 import fse from 'fs-extra';
 import { getDefaultBackupDirectory } from 'src/config';
+import { RendererMessenger } from 'src/Messaging';
 import { IFile } from '../entities/File';
 import { ID } from '../entities/ID';
 import { ILocation } from '../entities/Location';
@@ -33,7 +34,11 @@ export default class Backend {
     this.backupScheduler = new BackupScheduler(this);
   }
 
-  async init(isMainWindow: boolean): Promise<void> {
+  async init(isMainWindow: boolean, isPortable: boolean): Promise<void> {
+    if (isPortable) {
+      // TODO: Restore latest backup
+    }
+
     if (isMainWindow) {
       // Create a root tag if it does not exist
       const tagCount = await this.tagRepository.count();
@@ -49,7 +54,10 @@ export default class Backend {
       }
 
       try {
-        await this.backupScheduler.initialize(await getDefaultBackupDirectory());
+        await this.backupScheduler.initialize(
+          await getDefaultBackupDirectory(),
+          RendererMessenger.isPortable(),
+        );
       } catch (e) {
         console.error('Could not initialize backup scheduler', e);
       }
