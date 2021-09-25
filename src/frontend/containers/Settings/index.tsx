@@ -370,6 +370,7 @@ const ImageFormatPicker = observer(() => {
     RendererMessenger.reload();
   }, [fileStore, locationStore, newEnabledFileExtensions, removeDisabledImages]);
 
+  // TODO: group extensions by type: JPG+JPEG+JFIF, TIF+TIFF, etc
   return (
     <>
       <h2>Image formats</h2>
@@ -631,12 +632,12 @@ const SETTINGS_TABS: () => TabItem[] = () => [
     content: <Shortcuts />,
   },
   {
-    label: 'Import/Export',
-    content: <ImportExport />,
-  },
-  {
     label: 'Image formats',
     content: <ImageFormatPicker />,
+  },
+  {
+    label: 'Import/Export',
+    content: <ImportExport />,
   },
   {
     label: 'Background Processes',

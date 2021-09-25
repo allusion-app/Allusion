@@ -23,8 +23,8 @@ const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   tiff: 'tifLoader',
   psd: 'extractEmbeddedThumbnailOnly',
   kra: 'extractEmbeddedThumbnailOnly',
-  xcf: 'extractEmbeddedThumbnailOnly',
-  exr: 'extractEmbeddedThumbnailOnly',
+  // xcf: 'extractEmbeddedThumbnailOnly',
+  // exr: 'extractEmbeddedThumbnailOnly',
   // avif: 'sharp',
 };
 
