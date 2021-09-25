@@ -3,10 +3,14 @@ import { action, computed, makeObservable, observable, observe, runInAction } fr
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
 import ExifIO from 'src/backend/ExifIO';
-import { ClientFile, IFile, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
+import { ClientFile, IFile, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
-import { ClientTagSearchCriteria, SearchCriteria } from 'src/entities/SearchCriteria';
+import {
+  ClientStringSearchCriteria,
+  ClientTagSearchCriteria,
+  SearchCriteria,
+} from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
 import ImageLoader from '../image/ImageLoader';
@@ -47,9 +51,6 @@ class FileStore {
   @observable numTotalFiles = 0;
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
-
-  // TODO: allow users to disable certain file types. Maybe per location/sub-location?
-  enabledFileExtensions = observable(new Set<IMG_EXTENSIONS_TYPE>(IMG_EXTENSIONS));
 
   imageLoader: ImageLoader;
 
@@ -265,6 +266,21 @@ class FileStore {
     }
   }
 
+  @action async deleteFilesByExtension(ext: IMG_EXTENSIONS_TYPE): Promise<void> {
+    try {
+      const crit = new ClientStringSearchCriteria('extension', ext, 'equals');
+      const files = await this.backend.searchFiles(crit.serialize(), 'id', FileOrder.Asc);
+      console.log('Files to delete', ext, files);
+      await this.backend.removeFiles(files.map((f) => f.id));
+
+      for (const file of files) {
+        this.removeThumbnail(file.absolutePath);
+      }
+    } catch (e) {
+      console.error('Could not delete files bye extension', ext);
+    }
+  }
+
   @action.bound refetch() {
     if (this.showsAllContent) {
       this.fetchAllFiles();
@@ -397,10 +413,6 @@ class FileStore {
     } catch (e) {
       console.log('Could not find files based on IDs', e);
     }
-  }
-
-  @action.bound setSupportedImageExtensions(extensions: Set<IMG_EXTENSIONS_TYPE>) {
-    this.enabledFileExtensions.replace(extensions);
   }
 
   @action.bound incrementNumUntaggedFiles() {

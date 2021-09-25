@@ -23,14 +23,14 @@ export const IMG_EXTENSIONS = [
   'webp',
   'tif',
   'tiff',
-  'raw',
   'bmp',
   'svg',
   'psd', // Photoshop
   'kra', // Krita
-  // 'xcf', // Gimp
+  'xcf', // Gimp
+  'exr', // OpenEXR
+  // 'raw', not sure what file extensions the RAW format uses. My camera outputs .RW2
   // 'avif',
-  // 'exr', // OpenEXR
   // 'heic', // not supported by Sharp out of the box https://github.com/lovell/sharp/issues/2871
   // TODO: 'blend', raw, etc.?
 ] as const;

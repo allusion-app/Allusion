@@ -3,7 +3,7 @@ import SysPath from 'path';
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
 import ExifIO from 'src/backend/ExifIO';
-import { getMetaData, IFile } from 'src/entities/File';
+import { getMetaData, IFile, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { generateId, ID } from 'src/entities/ID';
 import { ClientLocation, ClientSubLocation, ILocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
@@ -11,6 +11,9 @@ import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
 import { promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
+
+const PREFERENCES_STORAGE_KEY = 'location-store-preferences';
+type Preferences = { extensions: IMG_EXTENSIONS_TYPE[] };
 
 /**
  * Compares metadata of two files to determine whether the files are (likely to be) identical
@@ -31,6 +34,10 @@ class LocationStore {
 
   readonly locationList = observable<ClientLocation>([]);
 
+  // Allow users to disable certain file types. Global option for now, needs restart
+  // TODO: Maybe per location/sub-location?
+  enabledFileExtensions = observable(new Set<IMG_EXTENSIONS_TYPE>());
+
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
@@ -39,10 +46,26 @@ class LocationStore {
   }
 
   @action async init() {
+    // Restore preferences
+    try {
+      const prefs = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) || '') as Preferences;
+      (prefs.extensions || IMG_EXTENSIONS).forEach((ext) => this.enabledFileExtensions.add(ext));
+    } catch (e) {
+      IMG_EXTENSIONS.forEach((ext) => this.enabledFileExtensions.add(ext));
+    }
+
     // Get dirs from backend
     const dirs = await this.backend.fetchLocations('dateAdded', FileOrder.Asc);
     const locations = dirs.map(
-      (dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded, dir.subLocations),
+      (dir) =>
+        new ClientLocation(
+          this,
+          dir.id,
+          dir.path,
+          dir.dateAdded,
+          dir.subLocations,
+          runInAction(() => this.enabledFileExtensions.toJSON()),
+        ),
     );
     runInAction(() => this.locationList.replace(locations));
   }
@@ -259,6 +282,7 @@ class LocationStore {
       newPath,
       location.dateAdded,
       location.subLocations,
+      runInAction(() => this.enabledFileExtensions.toJSON()),
     );
     this.set(index, newLocation);
     await this.initLocation(newLocation);
@@ -275,7 +299,14 @@ class LocationStore {
   }
 
   @action.bound async create(path: string): Promise<ClientLocation> {
-    const location = new ClientLocation(this, generateId(), path, new Date(), []);
+    const location = new ClientLocation(
+      this,
+      generateId(),
+      path,
+      new Date(),
+      [],
+      runInAction(() => this.enabledFileExtensions.toJSON()),
+    );
     await this.backend.createLocation(location.serialize());
     runInAction(() => this.locationList.push(location));
     return location;
@@ -356,6 +387,14 @@ class LocationStore {
     });
     this.rootStore.fileStore.refetch();
     this.rootStore.fileStore.refetchFileCounts();
+  }
+
+  @action.bound setSupportedImageExtensions(extensions: Set<IMG_EXTENSIONS_TYPE>) {
+    this.enabledFileExtensions.replace(extensions);
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({ extensions: this.enabledFileExtensions.toJSON() } as Preferences, null, 2),
+    );
   }
 
   @action async addFile(path: string, location: ClientLocation) {

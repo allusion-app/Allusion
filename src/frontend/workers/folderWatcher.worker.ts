@@ -3,7 +3,7 @@ import { expose } from 'comlink';
 import { Stats } from 'fs';
 import SysPath from 'path';
 import { RECURSIVE_DIR_WATCH_DEPTH } from 'src/config';
-import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
+import { IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 
 const ctx: Worker = self as any;
 
@@ -22,7 +22,7 @@ export class FolderWatcherWorker {
   }
 
   /** Returns all supported image files in the given directly, and callbacks for new or removed files */
-  async watch(directory: string) {
+  async watch(directory: string, extensions: IMG_EXTENSIONS_TYPE[]) {
     this.isCancelled = false;
 
     // Replace backslash with forward slash, recommendeded by chokidar
@@ -57,7 +57,7 @@ export class FolderWatcherWorker {
           return false;
         }
         // If the path (file or directory) ends with an image extension, don't ignore it.
-        if (IMG_EXTENSIONS.includes(ext as IMG_EXTENSIONS_TYPE)) {
+        if (extensions.includes(ext as IMG_EXTENSIONS_TYPE)) {
           return false;
         }
         // Otherwise, we need to know whether it is a file or a directory before making a decision.
@@ -88,7 +88,7 @@ export class FolderWatcherWorker {
           }
 
           const ext = SysPath.extname(path).toLowerCase().split('.')[1];
-          if (IMG_EXTENSIONS.includes(ext as IMG_EXTENSIONS_TYPE)) {
+          if (extensions.includes(ext as IMG_EXTENSIONS_TYPE)) {
             if (this.isReady) {
               ctx.postMessage({ type: 'add', value: path });
             } else {

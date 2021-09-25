@@ -21,12 +21,11 @@ const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   svg: 'web',
   tif: 'tifLoader',
   tiff: 'tifLoader',
-  raw: 'tifLoader',
   psd: 'extractEmbeddedThumbnailOnly',
   kra: 'extractEmbeddedThumbnailOnly',
-  // xcf: 'extractEmbeddedThumbnailOnly',
+  xcf: 'extractEmbeddedThumbnailOnly',
+  exr: 'extractEmbeddedThumbnailOnly',
   // avif: 'sharp',
-  // exr: 'sharp',
 };
 
 class ImageLoader {

@@ -333,13 +333,13 @@ const ImportExport = observer(() => {
 });
 
 const ImageFormatPicker = observer(() => {
-  const { fileStore } = useStore();
+  const { locationStore, fileStore } = useStore();
 
-  const [removeDisabledImages, setRemoveDisabledImages] = useState(false);
+  const [removeDisabledImages, setRemoveDisabledImages] = useState(true);
   const toggleRemoveDisabledImages = useCallback(() => setRemoveDisabledImages((val) => !val), []);
 
   const [newEnabledFileExtensions, setNewEnabledFileExtensions] = useState(
-    new Set(fileStore.enabledFileExtensions),
+    new Set(locationStore.enabledFileExtensions),
   );
   const toggleExtension = useCallback(
     (ext: IMG_EXTENSIONS_TYPE) => {
@@ -354,11 +354,27 @@ const ImageFormatPicker = observer(() => {
     [newEnabledFileExtensions],
   );
 
+  const onSubmit = useCallback(async () => {
+    if (removeDisabledImages) {
+      const extensionsToDelete = IMG_EXTENSIONS.filter((ext) => !newEnabledFileExtensions.has(ext));
+      console.log({ extensionsToDelete, IMG_EXTENSIONS, newEnabledFileExtensions });
+      for (const ext of extensionsToDelete) {
+        await fileStore.deleteFilesByExtension(ext);
+      }
+    }
+
+    locationStore.setSupportedImageExtensions(newEnabledFileExtensions);
+
+    window.alert('Allusion will restart to load your new preferences.');
+
+    RendererMessenger.reload();
+  }, [fileStore, locationStore, newEnabledFileExtensions, removeDisabledImages]);
+
   return (
     <>
       <h2>Image formats</h2>
       <fieldset>
-        <legend>Image formats discovered by Allusion</legend>
+        <legend>Image formats to be discovered by Allusion in your Locations</legend>
         <div className="checkbox-set-container">
           {IMG_EXTENSIONS.map((ext) => (
             <div className="item" key={ext}>
@@ -373,24 +389,34 @@ const ImageFormatPicker = observer(() => {
       </fieldset>
 
       <fieldset>
-        <legend>Remove images with disabled image formats from library</legend>
-        <Toggle checked={removeDisabledImages} onChange={toggleRemoveDisabledImages} />
+        <legend>
+          There may already be images discovered by Allusion with file extensions you have disabled.
+          <br />
+          Would you like to exclude these images from Allusion after saving, or keep them around?
+        </legend>
+        <Toggle
+          checked={removeDisabledImages}
+          onChange={toggleRemoveDisabledImages}
+          onLabel="Exclude images"
+          offLabel="Keep images"
+        />
       </fieldset>
 
       <Button
         text="Reset"
-        onClick={() => setNewEnabledFileExtensions(new Set(fileStore.enabledFileExtensions))}
+        onClick={() => setNewEnabledFileExtensions(new Set(locationStore.enabledFileExtensions))}
       />
       <Button
         text="Save"
         styling="filled"
-        onClick={() => fileStore.setSupportedImageExtensions(newEnabledFileExtensions)}
+        onClick={onSubmit}
         disabled={
+          newEnabledFileExtensions.size === 0 ||
           // Disabled if identical
-          newEnabledFileExtensions.size === fileStore.enabledFileExtensions.size &&
-          Array.from(newEnabledFileExtensions.values()).every((ext) =>
-            fileStore.enabledFileExtensions.has(ext),
-          )
+          (newEnabledFileExtensions.size === locationStore.enabledFileExtensions.size &&
+            Array.from(newEnabledFileExtensions.values()).every((ext) =>
+              locationStore.enabledFileExtensions.has(ext),
+            ))
         }
       />
     </>
