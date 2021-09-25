@@ -2,12 +2,12 @@ import fse from 'fs-extra';
 import { action, runInAction } from 'mobx';
 import ExifIO from 'src/backend/ExifIO';
 import { thumbnailMaxSize } from 'src/config';
-import { ClientFile, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
-import SharpImageLoader from './SharpImageLoader';
+import { ClientFile, IFile, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
+import TifLoader from './TifLoader';
 import { generateThumbnailUsingWorker } from './ThumbnailGeneration';
 import StreamZip from 'node-stream-zip';
 
-type FormatHandlerType = 'web' | 'sharp' | 'extractEmbeddedThumbnailOnly';
+type FormatHandlerType = 'web' | 'tifLoader' | 'extractEmbeddedThumbnailOnly';
 
 const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   gif: 'web',
@@ -15,26 +15,33 @@ const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   apng: 'web',
   jpg: 'web',
   jpeg: 'web',
-  jfif: 'sharp',
+  jfif: 'web',
   webp: 'web',
-  tif: 'sharp',
-  tiff: 'sharp',
   bmp: 'web',
   svg: 'web',
-  avif: 'sharp',
-  exr: 'sharp',
+  tif: 'tifLoader',
+  tiff: 'tifLoader',
+  raw: 'tifLoader',
   psd: 'extractEmbeddedThumbnailOnly',
   kra: 'extractEmbeddedThumbnailOnly',
   // xcf: 'extractEmbeddedThumbnailOnly',
+  // avif: 'sharp',
+  // exr: 'sharp',
 };
 
 class ImageLoader {
-  sharpImageLoader: SharpImageLoader;
+  tifLoader: TifLoader;
 
   srcBufferCache: WeakMap<ClientFile, string> = new WeakMap();
 
   constructor(private exifIO: ExifIO) {
-    this.sharpImageLoader = new SharpImageLoader(thumbnailMaxSize);
+    this.tifLoader = new TifLoader(thumbnailMaxSize);
+  }
+
+  @action needsThumbnail(file: IFile) {
+    if (file.extension === 'svg') return false;
+    if (FormatHandlers[file.extension] !== 'web') return true;
+    return file.width > thumbnailMaxSize || file.height > thumbnailMaxSize;
   }
 
   /**
@@ -44,7 +51,7 @@ class ImageLoader {
    * @throws When a thumbnail does not exist and cannot be generated
    */
   @action async ensureThumbnail(file: ClientFile): Promise<boolean> {
-    const { extension, absolutePath, thumbnailPath, width, height } = runInAction(() => ({
+    const { extension, absolutePath, thumbnailPath } = runInAction(() => ({
       extension: file.extension,
       absolutePath: file.absolutePath,
       width: file.width,
@@ -65,11 +72,11 @@ class ImageLoader {
         generateThumbnailUsingWorker(file, thumbnailPath);
         // Thumbnail path is updated when the worker finishes (useWorkerListener)
         break;
-      case 'sharp':
-        console.debug('generating thumbnail through sharp...', absolutePath);
-        await this.sharpImageLoader.generateThumbnail(absolutePath, thumbnailPath, width / height);
+      case 'tifLoader':
+        console.debug('generating thumbnail through UTIF...', absolutePath);
+        await this.tifLoader.generateThumbnail(absolutePath, thumbnailPath);
         updateThumbnailPath();
-        console.debug('generated thumbnail through sharp!', absolutePath);
+        console.debug('generated thumbnail through UTIF!', absolutePath);
         break;
       case 'extractEmbeddedThumbnailOnly':
         let success = false;
@@ -78,7 +85,6 @@ class ImageLoader {
           success = await this.extractKritaThumbnail(absolutePath, thumbnailPath);
         } else {
           // Fallback to extracting thumbnail using exiftool (works for PSD and some other formats)
-          await this.exifIO.initialize();
           success = await this.exifIO.extractThumbnail(absolutePath, thumbnailPath);
         }
         if (!success) {
@@ -99,11 +105,11 @@ class ImageLoader {
     switch (handlerType) {
       case 'web':
         return file.absolutePath;
-      case 'sharp':
+      case 'tifLoader':
         if (this.srcBufferCache.has(file)) {
           return this.srcBufferCache.get(file);
         }
-        const src = await this.sharpImageLoader.loadAsBuffer(file.absolutePath);
+        const src = await this.tifLoader.loadAsBuffer(file.absolutePath);
         // Store in cache for a while, so it loads quicker when going back and forth
         this.srcBufferCache.set(file, src);
         setTimeout(() => this.srcBufferCache.delete(file), 60_000);

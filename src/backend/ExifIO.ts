@@ -48,7 +48,7 @@ import { action, makeObservable, observable, runInAction } from 'mobx';
 import exiftool from 'node-exiftool';
 import path from 'path';
 import { isDev } from 'src/config';
-import { IS_WIN } from 'src/frontend/utils';
+import { Awaited, IS_WIN } from 'src/frontend/utils';
 
 // The exif binary is placed using ElectronBuilder's extraResources: https://www.electron.build/configuration/contents#extraresources
 // there also is process.resourcesPath but that doesn't work in dev mode
@@ -61,6 +61,8 @@ const ep = new exiftool.ExiftoolProcess(exiftoolPath);
 
 class ExifIO {
   @observable hierarchicalSeparator: string;
+
+  private isOpening = false;
 
   // For accented characters and foreign alphabets, an extra arg is needed on Windows
   // https://www.npmjs.com/package/node-exiftool#reading-utf8-encoded-filename-on-windows
@@ -78,8 +80,17 @@ class ExifIO {
 
   async initialize(): Promise<ExifIO> {
     if (ep._open) return this;
-    const pid = await ep.open();
-    console.log('Started exiftool process %s', pid);
+    if (!this.isOpening) {
+      this.isOpening = true;
+      const pid = await ep.open();
+      console.log('Started exiftool process %s', pid);
+    } else {
+      await new Promise<void>((resolve) =>
+        setInterval(() => {
+          if (ep._open) resolve();
+        }, 50),
+      );
+    }
     return this;
   }
 
@@ -242,6 +253,27 @@ class ExifIO {
   //     console.error('Could not update file metadata', res);
   //   }
   // }
+
+  async getDimensions(filepath: string): Promise<{ width: number; height: number }> {
+    let metadata: Awaited<ReturnType<typeof ep.readMetadata>> | undefined = undefined;
+    try {
+      metadata = await ep.readMetadata(filepath, [
+        's3',
+        'ImageWidth',
+        'ImageHeight',
+        ...this.extraArgs,
+      ]);
+      if (metadata.error || !metadata.data?.[0]) {
+        throw new Error(metadata.error || 'No metadata entry');
+      }
+      const entry = metadata.data[0];
+      const { ImageWidth, ImageHeight } = entry;
+      return { width: ImageWidth, height: ImageHeight };
+    } catch (e) {
+      console.error('Could not read image dimensions from ', filepath, e, metadata);
+      return { width: 0, height: 0 };
+    }
+  }
 
   /**
    * Extracts the embedded thumbnail of a file into its own separate image file

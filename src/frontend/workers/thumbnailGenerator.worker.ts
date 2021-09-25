@@ -1,6 +1,5 @@
 import fse from 'fs-extra';
 
-import { needsThumbnail } from '../utils';
 import { thumbnailFormat, thumbnailMaxSize } from 'src/config';
 import { IThumbnailMessage, IThumbnailMessageResponse } from '../image/ThumbnailGeneration';
 
@@ -8,11 +7,6 @@ const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | nu
   const inputBuffer = await fse.readFile(filePath);
   const inputBlob = new Blob([inputBuffer]);
   const img = await createImageBitmap(inputBlob);
-
-  // If the image is smaller than `thumbnailMaxSize`, don't create a thumbnail
-  if (!needsThumbnail(img.width, img.height)) {
-    return null;
-  }
 
   // Scale the image so that either width or height becomes `thumbnailMaxSize`
   let width = img.width;
@@ -40,6 +34,7 @@ const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | nu
   ctx2D.drawImage(img, 0, 0, width, height);
 
   const thumbBlob = await canvas.convertToBlob({ type: `image/${thumbnailFormat}`, quality: 0.75 });
+  // TODO: is canvas.toDataURL faster?
   const reader = new FileReaderSync();
   const buffer = reader.readAsArrayBuffer(thumbBlob);
   return buffer;

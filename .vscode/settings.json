@@ -6,5 +6,6 @@
   "search.exclude": {
     "resources/exiftool/exiftool.pl": true,
     "resources/exiftool/lib/**/*": true
-  }
+  },
+  "typescript.tsdk": "node_modules\\typescript\\lib"
 }

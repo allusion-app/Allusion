@@ -2,8 +2,12 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require('path');
 import fse from 'fs-extra';
+import { thumbnailFormat } from 'src/config';
 
-import { thumbnailFormat, thumbnailMaxSize } from 'src/config';
+////////////////////
+//// Type utils ////
+////////////////////
+export type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
 
 ////////////////////////
 //// Time-out utils ////
@@ -398,10 +402,6 @@ export function encodeFilePath(filePath: string): string {
     filename = filename.substr(0, paramsIndex);
   }
   return `file://${basepath}${encodeURIComponent(filename)}${params}`;
-}
-
-export function needsThumbnail(width: number, height: number) {
-  return width > thumbnailMaxSize || height > thumbnailMaxSize;
 }
 
 export const isDirEmpty = async (dir: string) => {

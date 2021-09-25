@@ -117,21 +117,19 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
         }
       });
 
-    fileStore.exifTool?.initialize().then((exifIO) =>
-      exifIO
-        .readExifTags(filePath, exifTags)
-        .then((tagValues) => {
-          const extraStats: Record<string, ReactNode> = {};
-          tagValues.forEach((val, i) => {
-            if (val !== '' && val !== undefined) {
-              const field = exifFields[exifTags[i]];
-              extraStats[field.label] = field.format?.(val) || val;
-            }
-          });
-          if (isMounted) setExifData(extraStats);
-        })
-        .catch(() => setExifData({})),
-    );
+    fileStore.exifTool
+      ?.readExifTags(filePath, exifTags)
+      .then((tagValues) => {
+        const extraStats: Record<string, ReactNode> = {};
+        tagValues.forEach((val, i) => {
+          if (val !== '' && val !== undefined) {
+            const field = exifFields[exifTags[i]];
+            extraStats[field.label] = field.format?.(val) || val;
+          }
+        });
+        if (isMounted) setExifData(extraStats);
+      })
+      .catch(() => setExifData({}));
 
     return () => {
       isMounted = false;

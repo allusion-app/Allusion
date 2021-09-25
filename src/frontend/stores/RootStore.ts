@@ -52,6 +52,8 @@ class RootStore {
     // to tag entities.
     await this.tagStore.init();
 
+    await this.fileStore.exifTool.initialize();
+
     // The preview window is opened while the locations are already watched. The
     // files are fetched based on the file selection.
     if (!isPreviewWindow) {

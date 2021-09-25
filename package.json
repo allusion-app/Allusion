@@ -85,6 +85,7 @@
     "@types/react-dom": "^17.0.3",
     "@types/react-window": "^1.8.2",
     "@types/sharp": "^0.29.1",
+    "@types/utif": "^3.0.1",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",
@@ -121,7 +122,6 @@
     "dexie-export-import": "^1.0.0",
     "electron-updater": "^4.3.8",
     "fs-extra": "^9.1.0",
-    "image-size": "^0.9.7",
     "mobx": "^6.3.2",
     "mobx-react-lite": "^3.2.0",
     "node-exiftool": "^2.3.0",
@@ -132,8 +132,8 @@
     "react-popper": "^2.2.5",
     "react-window": "^1.8.6",
     "reselect": "^4.0.0",
-    "sharp": "^0.29.1",
     "sourcemapped-stacktrace": "^1.1.11",
+    "utif": "^3.1.0",
     "uuid": "^8.3.2"
   }
 }

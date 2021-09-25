@@ -10,7 +10,7 @@ import { ClientTagSearchCriteria, SearchCriteria } from 'src/entities/SearchCrit
 import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
 import ImageLoader from '../image/ImageLoader';
-import { debounce, getThumbnailPath, needsThumbnail, promiseAllLimit } from '../utils';
+import { debounce, getThumbnailPath, promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
 
 const FILE_STORAGE_KEY = 'Allusion_File';
@@ -72,7 +72,6 @@ class FileStore {
   @action.bound async readTagsFromFiles() {
     const toastKey = 'read-tags-from-file';
     try {
-      await this.exifTool.initialize();
       const numFiles = runInAction(() => this.fileList.length);
       for (let i = 0; i < numFiles; i++) {
         AppToaster.show(
@@ -132,8 +131,6 @@ class FileStore {
         },
         toastKey,
       );
-    } finally {
-      await this.exifTool.close();
     }
   }
 
@@ -186,8 +183,6 @@ class FileStore {
         },
         toastKey,
       );
-    } finally {
-      this.exifTool.close();
     }
   }
 
@@ -586,7 +581,7 @@ class FileStore {
       const file = new ClientFile(this, f);
       // Initialize the thumbnail path so the image can be loaded immediately when it mounts.
       // To ensure the thumbnail actually exists, the `ensureThumbnail` function should be called
-      file.thumbnailPath = needsThumbnail(f.width, f.height)
+      file.thumbnailPath = this.imageLoader.needsThumbnail(f)
         ? getThumbnailPath(f.absolutePath, this.rootStore.uiStore.thumbnailDirectory)
         : f.absolutePath;
       return file;

@@ -2,6 +2,7 @@ import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
+import ExifIO from 'src/backend/ExifIO';
 import { getMetaData, IFile } from 'src/entities/File';
 import { generateId, ID } from 'src/entities/ID';
 import { ClientLocation, ClientSubLocation, ILocation } from 'src/entities/Location';
@@ -126,7 +127,7 @@ class LocationStore {
       // Find all files that have been created (those on disk but not in DB)
       const createdPaths = filePaths.filter((path) => !dbFilesPathSet.has(path));
       const createdFiles = await Promise.all(
-        createdPaths.map((path) => pathToIFile(path, location)),
+        createdPaths.map((path) => pathToIFile(path, location, this.rootStore.fileStore.exifTool)),
       );
 
       // Find all files of this location that have been removed (those in DB but not on disk anymore)
@@ -326,7 +327,7 @@ class LocationStore {
     // TODO: Should make N configurable, or determine based on the system/disk performance
     const N = 50;
     const files = await promiseAllLimit(
-      filePaths.map((path) => () => pathToIFile(path, location)),
+      filePaths.map((path) => () => pathToIFile(path, location, this.rootStore.fileStore.exifTool)),
       N,
       showProgressToaster,
       () => isCancelled,
@@ -358,7 +359,7 @@ class LocationStore {
   }
 
   @action async addFile(path: string, location: ClientLocation) {
-    const file = await pathToIFile(path, location);
+    const file = await pathToIFile(path, location, this.rootStore.fileStore.exifTool);
     await this.backend.createFilesFromPath(path, [file]);
 
     AppToaster.show({ message: 'New images have been detected.', timeout: 5000 }, 'new-images');
@@ -409,7 +410,7 @@ class LocationStore {
   }
 }
 
-async function pathToIFile(path: string, loc: ClientLocation): Promise<IFile> {
+async function pathToIFile(path: string, loc: ClientLocation, exifIO: ExifIO): Promise<IFile> {
   return {
     absolutePath: path,
     relativePath: path.replace(loc.path, ''),
@@ -418,7 +419,7 @@ async function pathToIFile(path: string, loc: ClientLocation): Promise<IFile> {
     tags: [],
     dateAdded: new Date(),
     dateModified: new Date(),
-    ...(await getMetaData(path)),
+    ...(await getMetaData(path, exifIO)),
   };
 }
 

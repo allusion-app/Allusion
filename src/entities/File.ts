@@ -1,6 +1,4 @@
 import fse from 'fs-extra';
-import ImageSize from 'image-size';
-import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import {
   action,
   IReactionDisposer,
@@ -10,12 +8,10 @@ import {
   reaction,
 } from 'mobx';
 import Path from 'path';
+import ExifIO from 'src/backend/ExifIO';
 import FileStore from 'src/frontend/stores/FileStore';
-import { promisify } from 'util';
 import { ID, IResource, ISerializable } from './ID';
 import { ClientTag } from './Tag';
-
-const sizeOf = promisify(ImageSize);
 
 export const IMG_EXTENSIONS = [
   'gif',
@@ -27,14 +23,15 @@ export const IMG_EXTENSIONS = [
   'webp',
   'tif',
   'tiff',
+  'raw',
   'bmp',
   'svg',
-  // 'heic', // not supported by Sharp out of the box https://github.com/lovell/sharp/issues/2871
-  'avif',
-  'exr', // OpenEXR
   'psd', // Photoshop
   'kra', // Krita
   // 'xcf', // Gimp
+  // 'avif',
+  // 'exr', // OpenEXR
+  // 'heic', // not supported by Sharp out of the box https://github.com/lovell/sharp/issues/2871
   // TODO: 'blend', raw, etc.?
 ] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
@@ -204,24 +201,16 @@ export class ClientFile implements ISerializable<IFile> {
 }
 
 /** Should be called when after constructing a file before sending it to the backend. */
-export async function getMetaData(path: string): Promise<IMetaData> {
+export async function getMetaData(path: string, exifIO: ExifIO): Promise<IMetaData> {
   const stats = await fse.stat(path);
-  let dimensions: ISizeCalculationResult | undefined;
-  try {
-    dimensions = await sizeOf(path);
-  } catch (e) {
-    if (!dimensions) {
-      console.error('Could not find dimensions for ', path, e, stats);
-    }
-    // TODO: Remove image? Probably unsupported file type
-  }
+  const dimensions = await exifIO.getDimensions(path);
 
   return {
     name: Path.basename(path),
     extension: Path.extname(path).slice(1).toLowerCase() as IMG_EXTENSIONS_TYPE,
     size: stats.size,
-    width: (dimensions && dimensions.width) || 0,
-    height: (dimensions && dimensions.height) || 0,
+    width: dimensions?.width ?? 0,
+    height: dimensions?.height ?? 0,
     dateCreated: stats.birthtime,
   };
 }
