@@ -291,7 +291,11 @@ const TreeLeaf = ({
     >
       <div className="label">
         <div className="spacer"></div>
-        {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
+        {typeof Label === 'string' ? (
+          Label
+        ) : (
+          <Label nodeData={nodeData} treeData={treeData} level={level} size={size} pos={pos} />
+        )}
       </div>
     </li>
   );
@@ -351,7 +355,11 @@ const TreeBranch = ({
           aria-label="Expand"
           onClick={() => toggleExpansion(nodeData, treeData)}
         />
-        {typeof Label === 'string' ? Label : Label(nodeData, treeData, level, size, pos)}
+        {typeof Label === 'string' ? (
+          Label
+        ) : (
+          <Label nodeData={nodeData} treeData={treeData} level={level} size={size} pos={pos} />
+        )}
       </div>
       <div className="transition" style={{ maxHeight: 0 }} ref={transition}>
         <ul
@@ -461,7 +469,7 @@ export interface ITreeLabel {
 }
 
 export type TreeLabel =
-  | ((nodeData: any, treeData: any, level: number, size: number, pos: number) => JSX.Element)
+  | React.FC<{ nodeData: any; treeData: any; level: number; size: number; pos: number }>
   | string;
 
 /** Presentation for branch nodes */

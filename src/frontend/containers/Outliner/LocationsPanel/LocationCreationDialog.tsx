@@ -26,9 +26,13 @@ const toggleExpansion = (nodeData: ClientLocation | ClientSubLocation, treeData:
   }
 };
 
-const SubLocationLabel = (nodeData: ClientSubLocation, treeData: ITreeData) => (
-  <SubLocation nodeData={nodeData} treeData={treeData} />
-);
+const SubLocationLabel = ({
+  nodeData,
+  treeData,
+}: {
+  nodeData: ClientSubLocation;
+  treeData: ITreeData;
+}) => <SubLocation nodeData={nodeData} treeData={treeData} />;
 
 const mapDirectory = (dir: ClientSubLocation): ITreeItem => ({
   id: dir.path,

@@ -1,30 +1,29 @@
-import React, { useContext, useCallback, useState, useEffect, useMemo } from 'react';
 import { shell } from 'electron';
-import { observer } from 'mobx-react-lite';
 import { action, autorun, runInAction } from 'mobx';
+import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
-
-import { RendererMessenger } from 'src/Messaging';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import useContextMenu from 'src/frontend/hooks/useContextMenu';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { IFile } from 'src/entities/File';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria, CustomKeyDict } from 'src/entities/SearchCriteria';
-import { IFile } from 'src/entities/File';
+import { Collapse } from 'src/frontend/components/Collapse';
+import { LocationRemoval, SubLocationExclusion } from 'src/frontend/components/RemovalAlert';
+import { AppToaster } from 'src/frontend/components/Toaster';
+import DropContext from 'src/frontend/contexts/DropContext';
+import { useStore } from 'src/frontend/contexts/StoreContext';
+import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
+import useContextMenu from 'src/frontend/hooks/useContextMenu';
+import LocationStore from 'src/frontend/stores/LocationStore';
+import { RendererMessenger } from 'src/Messaging';
 import { IconSet, Tree } from 'widgets';
-import { Toolbar, ToolbarButton, Menu, MenuItem, ContextMenu, MenuDivider } from 'widgets/menus';
+import { ContextMenu, Menu, MenuDivider, MenuItem, Toolbar, ToolbarButton } from 'widgets/menus';
+import { Callout } from 'widgets/notifications';
 import { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
 import { IExpansionState } from '../../types';
-import LocationRecoveryDialog from './LocationRecoveryDialog';
-import { LocationRemoval, SubLocationExclusion } from 'src/frontend/components/RemovalAlert';
-import { Collapse } from 'src/frontend/components/Collapse';
-import { AppToaster } from 'src/frontend/components/Toaster';
-import { handleDragLeave, isAcceptableType, onDragOver, storeDroppedImage } from './dnd';
-import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
-import DropContext from 'src/frontend/contexts/DropContext';
-import LocationCreationDialog from './LocationCreationDialog';
-import LocationStore from 'src/frontend/stores/LocationStore';
 import TreeItemRevealer from '../TreeItemRevealer';
-import { Callout } from 'widgets/notifications';
+import { handleDragLeave, isAcceptableType, onDragOver, storeDroppedImage } from './dnd';
+import LocationCreationDialog from './LocationCreationDialog';
+import LocationRecoveryDialog from './LocationRecoveryDialog';
 
 export class LocationTreeItemRevealer extends TreeItemRevealer {
   private locationStore?: LocationStore;
@@ -154,50 +153,56 @@ const customKeys = (
   }
 };
 
-const DirectoryMenu = ({
-  location,
-  onExclude,
-}: {
-  location: ClientLocation | ClientSubLocation;
-  onExclude: (subLocation: ClientSubLocation) => void;
-}) => {
-  const { uiStore } = useStore();
+const DirectoryMenu = observer(
+  ({
+    location,
+    onExclude,
+  }: {
+    location: ClientLocation | ClientSubLocation;
+    onExclude: (subLocation: ClientSubLocation) => void;
+  }) => {
+    const { uiStore } = useStore();
 
-  const path = location instanceof ClientLocation ? location.path : location.path;
+    const path = location instanceof ClientLocation ? location.path : location.path;
 
-  const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
+    const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
 
-  const handleAddToSearch = useCallback(() => uiStore.addSearchCriteria(pathCriteria(path)), [
-    path,
-    uiStore,
-  ]);
+    const handleAddToSearch = useCallback(() => uiStore.addSearchCriteria(pathCriteria(path)), [
+      path,
+      uiStore,
+    ]);
 
-  const handleReplaceSearch = useCallback(() => uiStore.replaceSearchCriteria(pathCriteria(path)), [
-    path,
-    uiStore,
-  ]);
+    const handleReplaceSearch = useCallback(
+      () => uiStore.replaceSearchCriteria(pathCriteria(path)),
+      [path, uiStore],
+    );
 
-  return (
-    <>
-      <MenuItem onClick={handleAddToSearch} text="Add to Search Query" icon={IconSet.SEARCH} />
-      <MenuItem onClick={handleReplaceSearch} text="Replace Search Query" icon={IconSet.REPLACE} />
-      <MenuDivider />
-      {location instanceof ClientSubLocation && (
+    return (
+      <>
+        <MenuItem onClick={handleAddToSearch} text="Add to Search Query" icon={IconSet.SEARCH} />
         <MenuItem
-          // Only show alert when excluding, not when re-including
-          onClick={location.isExcluded ? location.toggleExcluded : () => onExclude(location)}
-          text={location.isExcluded ? 'Re-include' : 'Exclude'}
-          icon={!location.isExcluded ? IconSet.HIDDEN : IconSet.PREVIEW}
+          onClick={handleReplaceSearch}
+          text="Replace Search Query"
+          icon={IconSet.REPLACE}
         />
-      )}
-      <MenuItem
-        onClick={handleOpenFileExplorer}
-        text="Open in File Browser"
-        icon={IconSet.FOLDER_CLOSE}
-      />
-    </>
-  );
-};
+        <MenuDivider />
+        {location instanceof ClientSubLocation && (
+          <MenuItem
+            // Only show alert when excluding, not when re-including
+            onClick={location.isExcluded ? location.toggleExcluded : () => onExclude(location)}
+            text={location.isExcluded ? 'Re-include' : 'Exclude'}
+            icon={!location.isExcluded ? IconSet.HIDDEN : IconSet.PREVIEW}
+          />
+        )}
+        <MenuItem
+          onClick={handleOpenFileExplorer}
+          text="Open in File Browser"
+          icon={IconSet.FOLDER_CLOSE}
+        />
+      </>
+    );
+  },
+);
 
 interface IContextMenuProps {
   location: ClientLocation;
@@ -439,7 +444,7 @@ const Location = observer(
   },
 );
 
-const SubLocationLabel = (nodeData: any, treeData: any) => (
+const SubLocationLabel = ({ nodeData, treeData }: { nodeData: any; treeData: any }) => (
   <SubLocation nodeData={nodeData} treeData={treeData} />
 );
 
@@ -451,7 +456,7 @@ const mapDirectory = (dir: ClientSubLocation): ITreeItem => ({
   isExpanded,
 });
 
-const LocationLabel = (nodeData: any, treeData: any) => (
+const LocationLabel = ({ nodeData, treeData }: { nodeData: any; treeData: any }) => (
   <Location nodeData={nodeData} treeData={treeData} />
 );
 
