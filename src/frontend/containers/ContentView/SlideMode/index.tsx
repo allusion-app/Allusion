@@ -214,29 +214,22 @@ const ZoomableImage = ({
       onDrop={eventManager.drop}
       tabIndex={-1}
     >
-      {/* Based on https://github.com/bradstiff/react-responsive-pinch-zoom-pan */}
-      <ZoomPan
-        position="center"
-        initialScale="auto"
-        doubleTapBehavior="zoomOrReset"
-        imageDimensions={currentImg.dimensions}
-        containerDimensions={{ width, height }}
-        minScale={minScale}
-        maxScale={5}
-        transitionStart={transitionStart}
-        transitionEnd={transitionEnd}
-        onClose={onClose}
-        // debug
-      >
-        {loadError ? (
-          <span
-            className="image-error"
-            style={{
-              width: `${width}px`,
-              height: `${height}px`,
-            }}
-          />
-        ) : (
+      {loadError ? (
+        <div className="image-error" style={{ width: `${width}px`, height: `${height}px` }} />
+      ) : (
+        <ZoomPan
+          position="center"
+          initialScale="auto"
+          doubleTapBehavior="zoomOrReset"
+          imageDimension={currentImg.dimensions}
+          containerDimension={{ width, height }}
+          minScale={minScale}
+          maxScale={5}
+          transitionStart={transitionStart}
+          transitionEnd={transitionEnd}
+          onClose={onClose}
+          // debug
+        >
           <img
             src={currentImg.src}
             width={currentImg.dimensions.width || undefined}
@@ -244,8 +237,8 @@ const ZoomableImage = ({
             alt={`Image could not be loaded: ${src}`}
             onError={setLoadError}
           />
-        )}
-      </ZoomPan>
+        </ZoomPan>
+      )}
       {/* Overlay buttons/icons */}
       {prevImage && (
         <button aria-label="previous image" className="side-button-left" onClick={prevImage}>

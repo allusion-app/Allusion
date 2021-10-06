@@ -69,14 +69,6 @@ export const getPinchLength = ([pos1, pos2]: [ClientPosition, ClientPosition]): 
   return Math.sqrt(dx * dx + dy * dy);
 };
 
-export function setRef(ref: any, value: any) {
-  if (typeof ref === 'function') {
-    ref(value);
-  } else if (ref) {
-    ref.current = value;
-  }
-}
-
 export const isEqualDimension = (dimensions1: Dimension, dimensions2: Dimension): boolean => {
   return dimensions1.width === dimensions2.width && dimensions1.height === dimensions2.height;
 };
