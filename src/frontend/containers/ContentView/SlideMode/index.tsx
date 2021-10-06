@@ -1,14 +1,14 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import ZoomPan, { ISlideTransform } from './SlideMode/ZoomPan';
+import ZoomPan, { SlideTransform } from './ZoomPan';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet, Split } from 'widgets';
-import Inspector from '../Inspector';
-import { CommandDispatcher, MousePointerEvent } from './Commands';
-import { ContentRect } from './LayoutSwitcher';
+import Inspector from '../../Inspector';
+import { CommandDispatcher } from '../Commands';
+import { ContentRect } from '../LayoutSwitcher';
 
 const SlideMode = observer(({ contentRect }: { contentRect: ContentRect }) => {
   const { uiStore, fileStore } = useStore();
@@ -17,21 +17,19 @@ const SlideMode = observer(({ contentRect }: { contentRect: ContentRect }) => {
   const contentWidth = contentRect.width - (isInspectorOpen ? inspectorWidth : 0);
   const contentHeight = contentRect.height;
 
-  const slideView = (
-    <SlideView
-      uiStore={uiStore}
-      fileStore={fileStore}
-      width={contentWidth}
-      height={contentHeight}
-    />
-  );
-
   return (
     <Split
       id="slide-mode"
       className={uiStore.isSlideMode ? 'fade-in' : 'fade-out'}
       primary={<Inspector />}
-      secondary={slideView}
+      secondary={
+        <SlideView
+          uiStore={uiStore}
+          fileStore={fileStore}
+          width={contentWidth}
+          height={contentHeight}
+        />
+      }
       axis="vertical"
       align="right"
       splitPoint={inspectorWidth}
@@ -41,14 +39,14 @@ const SlideMode = observer(({ contentRect }: { contentRect: ContentRect }) => {
   );
 });
 
-interface ISlideView {
+interface SlideViewProps {
   width: number;
   height: number;
   uiStore: UiStore;
   fileStore: FileStore;
 }
 
-const SlideView = observer((props: ISlideView) => {
+const SlideView = observer((props: SlideViewProps) => {
   const { uiStore, fileStore, width, height } = props;
   const file = fileStore.fileList[uiStore.firstItem];
 
@@ -85,8 +83,8 @@ const SlideView = observer((props: ISlideView) => {
   );
 
   // Detect left/right arrow keys to scroll between images
-  const handleUserKeyPress = useCallback(
-    (event: KeyboardEvent) => {
+  useEffect(() => {
+    const handleUserKeyPress = (event: KeyboardEvent) => {
       if (event.key === 'ArrowLeft') {
         decrImgIndex();
       } else if (event.key === 'ArrowRight') {
@@ -94,17 +92,12 @@ const SlideView = observer((props: ISlideView) => {
       } else if (event.key === 'Escape' || event.key === 'Backspace') {
         uiStore.disableSlideMode();
       }
-    },
-    [incrImgIndex, decrImgIndex, uiStore],
-  );
-
-  // Set up event listeners
-  useEffect(() => {
+    };
     window.addEventListener('keydown', handleUserKeyPress);
     return () => {
       window.removeEventListener('keydown', handleUserKeyPress);
     };
-  }, [handleUserKeyPress]);
+  }, [decrImgIndex, incrImgIndex, uiStore]);
 
   // Preload next and previous image for better UX
   useEffect(() => {
@@ -120,7 +113,7 @@ const SlideView = observer((props: ISlideView) => {
     });
   }, [fileStore.fileList, uiStore.firstItem]);
 
-  const transitionStart: ISlideTransform | undefined = useMemo(() => {
+  const transitionStart: SlideTransform | undefined = useMemo(() => {
     const thumbEl = document.querySelector(`[data-file-id="${file.id}"]`);
     const container = document.querySelector('#gallery-content');
     if (thumbEl && container) {
@@ -148,32 +141,28 @@ const SlideView = observer((props: ISlideView) => {
       transitionEnd={uiStore.isSlideMode ? undefined : transitionStart}
       prevImage={uiStore.firstItem - 1 >= 0 ? decrImgIndex : undefined}
       nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
-      doubleClickBehavior="zoomOrReset"
-      onContextMenu={eventManager.showSlideContextMenu}
-      onDrop={eventManager.drop}
+      eventManager={eventManager}
       onClose={uiStore.disableSlideMode}
-      tabIndex={-1}
     />
   );
 });
 
-interface IZoomableImageProps {
+interface ZoomableImageProps {
   src: string;
   thumbnailSrc?: string;
   width: number;
   height: number;
   imgWidth: number;
   imgHeight: number;
-  prevImage?: () => any;
-  nextImage?: () => any;
-  transitionStart?: ISlideTransform;
-  transitionEnd?: ISlideTransform;
-  onContextMenu: (e: MousePointerEvent) => void;
-  onClose?: () => void;
-  doubleClickBehavior?: 'zoomOrReset' | 'close';
+  prevImage?: () => void;
+  nextImage?: () => void;
+  transitionStart?: SlideTransform;
+  transitionEnd?: SlideTransform;
+  eventManager: CommandDispatcher;
+  onClose: () => void;
 }
 
-const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDivElement>> = ({
+const ZoomableImage = ({
   src,
   thumbnailSrc,
   width,
@@ -184,11 +173,9 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
   nextImage,
   transitionStart,
   transitionEnd,
-  onContextMenu,
+  eventManager,
   onClose,
-  doubleClickBehavior,
-  ...rest
-}: IZoomableImageProps) => {
+}: ZoomableImageProps) => {
   const [loadError, setLoadError] = useState<any>();
   useEffect(() => setLoadError(undefined), [src]);
 
@@ -223,14 +210,15 @@ const ZoomableImage: React.FC<IZoomableImageProps & React.HTMLAttributes<HTMLDiv
         maxWidth: `${width}px`,
         height: `${height}px`,
       }}
-      onContextMenu={onContextMenu}
-      {...rest}
+      onContextMenu={eventManager.showSlideContextMenu}
+      onDrop={eventManager.drop}
+      tabIndex={-1}
     >
       {/* Based on https://github.com/bradstiff/react-responsive-pinch-zoom-pan */}
       <ZoomPan
         position="center"
         initialScale="auto"
-        doubleTapBehavior={doubleClickBehavior}
+        doubleTapBehavior="zoomOrReset"
         imageDimensions={currentImg.dimensions}
         containerDimensions={{ width, height }}
         minScale={minScale}

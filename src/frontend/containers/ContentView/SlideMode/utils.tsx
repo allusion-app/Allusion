@@ -3,20 +3,17 @@
  * MIT license, see LICENSE file
  */
 
-import { createSelector } from 'reselect';
-import { IPinchZoomPanProps, IPinchZoomPanState } from './ZoomPan';
-
-export interface IDimensions {
+export interface Dimension {
   width: number;
   height: number;
 }
 
-export interface IVec2 {
+export interface Vec2 {
   x: number;
   y: number;
 }
 
-export interface ITransform {
+export interface Transform {
   top: number;
   left: number;
   scale: number;
@@ -61,7 +58,7 @@ export function setRef(ref: any, value: any) {
   }
 }
 
-export const isEqualDimensions = (dimensions1?: IDimensions, dimensions2?: IDimensions) => {
+export const isEqualDimensions = (dimensions1?: Dimension, dimensions2?: Dimension) => {
   if ((dimensions1 === dimensions2) === undefined) {
     return true;
   }
@@ -71,7 +68,7 @@ export const isEqualDimensions = (dimensions1?: IDimensions, dimensions2?: IDime
   return dimensions1.width === dimensions2.width && dimensions1.height === dimensions2.height;
 };
 
-export const getDimensions = (object: any): IDimensions | undefined => {
+export const getDimensions = (object: any): Dimension | undefined => {
   if (object === undefined) {
     return undefined;
   }
@@ -88,7 +85,7 @@ export const getContainerDimensions = (image: any) => {
   };
 };
 
-export const isEqualTransform = (transform1: ITransform, transform2: ITransform) => {
+export const isEqualTransform = (transform1: Transform, transform2: Transform) => {
   if ((transform1 === transform2) === undefined) {
     return true;
   }
@@ -102,7 +99,7 @@ export const isEqualTransform = (transform1: ITransform, transform2: ITransform)
   );
 };
 
-export const getAutofitScale = (containerDimensions: IDimensions, imageDimensions: IDimensions) => {
+export const getAutofitScale = (containerDimensions: Dimension, imageDimensions: Dimension) => {
   const { width: imageWidth, height: imageHeight } = imageDimensions || {};
   if (!(imageWidth > 0 && imageHeight > 0)) {
     return 1;
@@ -113,16 +110,6 @@ export const getAutofitScale = (containerDimensions: IDimensions, imageDimension
     1,
   );
 };
-
-export const getMinScale = createSelector(
-  (state: IPinchZoomPanState) => state.containerDimensions,
-  (state: IPinchZoomPanState) => state.imageDimensions,
-  (state: IPinchZoomPanState, props: IPinchZoomPanProps) => props.minScale,
-  (containerDimensions, imageDimensions, minScaleProp) =>
-    String(minScaleProp).toLowerCase() === 'auto'
-      ? getAutofitScale(containerDimensions, imageDimensions)
-      : minScaleProp || 1,
-);
 
 function round(number: number, precision?: number) {
   if (precision && number !== null && number !== undefined) {
@@ -159,8 +146,8 @@ function calculateOverflowTop(top: number) {
 function calculateOverflowRight(
   left: number,
   scale: number,
-  imageDimensions: IDimensions,
-  containerDimensions: IDimensions,
+  imageDimensions: Dimension,
+  containerDimensions: Dimension,
 ) {
   const overflow = Math.max(0, scale * imageDimensions.width - containerDimensions.width);
   return overflow > 0 ? overflow - negate(left) : 0;
@@ -169,8 +156,8 @@ function calculateOverflowRight(
 function calculateOverflowBottom(
   top: number,
   scale: number,
-  imageDimensions: IDimensions,
-  containerDimensions: IDimensions,
+  imageDimensions: Dimension,
+  containerDimensions: Dimension,
 ) {
   const overflow = Math.max(0, scale * imageDimensions.height - containerDimensions.height);
   return overflow > 0 ? overflow - negate(top) : 0;
@@ -180,8 +167,8 @@ export const getImageOverflow = (
   top: number,
   left: number,
   scale: number,
-  imageDimensions: IDimensions,
-  containerDimensions: IDimensions,
+  imageDimensions: Dimension,
+  containerDimensions: Dimension,
 ) => {
   return {
     top: calculateOverflowTop(top),

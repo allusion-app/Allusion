@@ -19,12 +19,11 @@ import {
   getContainerDimensions,
   isEqualTransform,
   getAutofitScale,
-  getMinScale,
   tryCancelEvent,
   getImageOverflow,
-  IDimensions,
-  IVec2,
-  ITransform,
+  Dimension,
+  Vec2,
+  Transform,
 } from './utils';
 
 const warning = (cond: boolean, msg: string) => !cond && console.warn(msg);
@@ -33,13 +32,9 @@ const OVERZOOM_TOLERANCE = 0.05;
 const DOUBLE_TAP_THRESHOLD = 250;
 const ANIMATION_SPEED = 0.1;
 
-export interface ISlideTransform {
-  scale: number;
-  left: number;
-  top: number;
-}
+export type SlideTransform = Transform;
 
-export interface IPinchZoomPanProps {
+export interface ZoomPanProps {
   // children: React.ReactHTMLElement<HTMLImageElement>;
   initialScale: number | 'auto';
   minScale: number;
@@ -48,21 +43,21 @@ export interface IPinchZoomPanProps {
   doubleTapBehavior: 'reset' | 'zoom' | 'zoomOrReset' | 'close';
   initialTop?: number;
   initialLeft?: number;
-  imageDimensions?: IDimensions;
-  containerDimensions?: IDimensions;
+  imageDimensions: Dimension;
+  containerDimensions: Dimension;
   onClose?: () => void;
   debug?: boolean;
 
-  transitionStart?: ISlideTransform;
-  transitionEnd?: ISlideTransform;
+  transitionStart?: Transform;
+  transitionEnd?: Transform;
 }
 
-export interface IPinchZoomPanState {
+export interface ZoomPanState {
   top: number;
   left: number;
   scale: number;
-  imageDimensions: IDimensions;
-  containerDimensions: IDimensions;
+  imageDimensions: Dimension;
+  containerDimensions: Dimension;
 
   initialTop?: number;
   initialLeft?: number;
@@ -70,68 +65,9 @@ export interface IPinchZoomPanState {
   position?: 'topLeft' | 'center';
 }
 
-const isInitialized = (top: number, left: number, scale: number) =>
-  !(scale === 0 && left === 0 && top === 0);
-
-const imageStyle = createSelector(
-  (state: IPinchZoomPanState) => state.top,
-  (state: IPinchZoomPanState) => state.left,
-  (state: IPinchZoomPanState) => state.scale,
-  (top, left, scale) => {
-    const style = {
-      cursor: 'pointer',
-    };
-    return isInitialized(top, left, scale)
-      ? {
-          ...style,
-          transform: `translate3d(${left}px, ${top}px, 0) scale(${scale})`,
-          transformOrigin: '0 0',
-        }
-      : style;
-  },
-);
-
-const imageOverflow = createSelector(
-  (state: IPinchZoomPanState) => state.top,
-  (state: IPinchZoomPanState) => state.left,
-  (state: IPinchZoomPanState) => state.scale,
-  (state: IPinchZoomPanState) => state.imageDimensions,
-  (state: IPinchZoomPanState) => state.containerDimensions,
-  (top, left, scale, imageDimensions, containerDimensions) => {
-    if (!isInitialized(top, left, scale)) {
-      return null;
-    }
-    return getImageOverflow(top, left, scale, imageDimensions, containerDimensions);
-  },
-);
-
-const browserPanActions = createSelector(imageOverflow, (imageOverflow) => {
-  //Determine the panning directions where there is no image overflow and let
-  //the browser handle those directions (e.g., scroll viewport if possible).
-  //Need to replace 'pan-left pan-right' with 'pan-x', etc. otherwise
-  //it is rejected (o_O), therefore explicitly handle each combination.
-  const browserPanX =
-    !imageOverflow?.left && !imageOverflow?.right
-      ? 'pan-x' //we can't pan the image horizontally, let the browser take it
-      : !imageOverflow.left
-      ? 'pan-left'
-      : !imageOverflow.right
-      ? 'pan-right'
-      : '';
-  const browserPanY =
-    !imageOverflow?.top && !imageOverflow?.bottom
-      ? 'pan-y'
-      : !imageOverflow.top
-      ? 'pan-up'
-      : !imageOverflow.bottom
-      ? 'pan-down'
-      : '';
-  return [browserPanX, browserPanY].join(' ').trim();
-});
-
 //Ensure the image is not over-panned, and not over- or under-scaled.
 //These constraints must be checked when image changes, and when container is resized.
-export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZoomPanState> {
+export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState> {
   static defaultProps = {
     initialScale: 'auto',
     minScale: 'auto',
@@ -149,7 +85,7 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
   originalOverscrollBehaviorY: any; //saves the original overscroll-behavior-y value while temporarily preventing pull down refresh
   isTransformInitialized?: boolean;
 
-  constructor(props: IPinchZoomPanProps) {
+  constructor(props: ZoomPanProps) {
     super(props);
     this.state = {
       imageDimensions: props.imageDimensions || { width: 0, height: 0 },
@@ -181,7 +117,7 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
       //suppress viewport scaling on iOS
       tryCancelEvent(event);
     } else if (touches.length === 1) {
-      const requestedPan = this.pan(touches.item(0)!);
+      const requestedPan = this.pan(touches[0]);
 
       if (requestedPan && !this.controlOverscrollViaCss) {
         //let the browser handling panning if we are at the edge of the image in
@@ -342,7 +278,7 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
     };
   }
 
-  doubleClick(pointerPosition: IVec2) {
+  doubleClick(pointerPosition: Vec2) {
     const { doubleTapBehavior, onClose } = this.props;
     if (doubleTapBehavior === 'close') return onClose?.();
     if (
@@ -378,7 +314,7 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
     this.lastPinchLength = length;
   }
 
-  zoomIn(midpoint?: IVec2, speed = 0, factor = 0.1) {
+  zoomIn(midpoint?: Vec2, speed = 0, factor = 0.1) {
     midpoint = midpoint || {
       x: this.state.containerDimensions.width / 2,
       y: this.state.containerDimensions.height / 2,
@@ -386,7 +322,7 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
     this.zoom(this.state.scale * (1 + factor), midpoint, 0, speed);
   }
 
-  zoomOut(midpoint?: IVec2) {
+  zoomOut(midpoint?: Vec2) {
     midpoint = midpoint || {
       x: this.state.containerDimensions.width / 2,
       y: this.state.containerDimensions.height / 2,
@@ -394,7 +330,7 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
     this.zoom(this.state.scale * 0.9, midpoint, 0);
   }
 
-  zoom(requestedScale: number, containerRelativePoint: IVec2, tolerance: number, speed = 0) {
+  zoom(requestedScale: number, containerRelativePoint: Vec2, tolerance: number, speed = 0) {
     if (!this.isTransformInitialized) {
       return;
     }
@@ -449,8 +385,8 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
         this.setState(
           {
             containerDimensions,
-            imageDimensions: imageDimensions!,
-            ...(newTransform ? newTransform : ({} as ISlideTransform)),
+            imageDimensions,
+            ...(newTransform ? newTransform : ({} as Transform)),
           },
           () => {
             //When image loads and image dimensions are first established, apply initial transform.
@@ -513,7 +449,7 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
     return true;
   }
 
-  applyTransform({ top, left, scale }: ITransform, speed: number) {
+  applyTransform({ top, left, scale }: Transform, speed: number) {
     if (speed > 0) {
       const frame = () => {
         const translateY = top - this.state.top;
@@ -554,7 +490,7 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
   }
 
   //Returns constrained transform when requested transform is outside constraints with tolerance, otherwise returns null
-  getCorrectedTransform(requestedTransform: ITransform, tolerance: number) {
+  getCorrectedTransform(requestedTransform: Transform, tolerance: number) {
     const scale = this.getConstrainedScale(requestedTransform.scale, tolerance);
 
     //get dimensions by which scaled image overflows container
@@ -690,7 +626,7 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
     );
   }
 
-  static getDerivedStateFromProps(nextProps: IPinchZoomPanProps, prevState: IPinchZoomPanState) {
+  static getDerivedStateFromProps(nextProps: ZoomPanProps, prevState: ZoomPanState) {
     if (
       nextProps.initialTop !== prevState.initialTop ||
       nextProps.initialLeft !== prevState.initialLeft ||
@@ -758,3 +694,72 @@ export default class ZoomPan extends React.Component<IPinchZoomPanProps, IPinchZ
     }
   }
 }
+
+const isInitialized = (top: number, left: number, scale: number) =>
+  !(scale === 0 && left === 0 && top === 0);
+
+const imageStyle = createSelector(
+  (state: ZoomPanState) => state.top,
+  (state: ZoomPanState) => state.left,
+  (state: ZoomPanState) => state.scale,
+  (top, left, scale) => {
+    const style = {
+      cursor: 'pointer',
+    };
+    return isInitialized(top, left, scale)
+      ? {
+          ...style,
+          transform: `translate3d(${left}px, ${top}px, 0) scale(${scale})`,
+          transformOrigin: '0 0',
+        }
+      : style;
+  },
+);
+
+const imageOverflow = createSelector(
+  (state: ZoomPanState) => state.top,
+  (state: ZoomPanState) => state.left,
+  (state: ZoomPanState) => state.scale,
+  (state: ZoomPanState) => state.imageDimensions,
+  (state: ZoomPanState) => state.containerDimensions,
+  (top, left, scale, imageDimensions, containerDimensions) => {
+    if (!isInitialized(top, left, scale)) {
+      return null;
+    }
+    return getImageOverflow(top, left, scale, imageDimensions, containerDimensions);
+  },
+);
+
+const browserPanActions = createSelector(imageOverflow, (imageOverflow) => {
+  //Determine the panning directions where there is no image overflow and let
+  //the browser handle those directions (e.g., scroll viewport if possible).
+  //Need to replace 'pan-left pan-right' with 'pan-x', etc. otherwise
+  //it is rejected (o_O), therefore explicitly handle each combination.
+  const browserPanX =
+    !imageOverflow?.left && !imageOverflow?.right
+      ? 'pan-x' //we can't pan the image horizontally, let the browser take it
+      : !imageOverflow.left
+      ? 'pan-left'
+      : !imageOverflow.right
+      ? 'pan-right'
+      : '';
+  const browserPanY =
+    !imageOverflow?.top && !imageOverflow?.bottom
+      ? 'pan-y'
+      : !imageOverflow.top
+      ? 'pan-up'
+      : !imageOverflow.bottom
+      ? 'pan-down'
+      : '';
+  return [browserPanX, browserPanY].join(' ').trim();
+});
+
+const getMinScale = createSelector(
+  (state: ZoomPanState) => state.containerDimensions,
+  (state: ZoomPanState) => state.imageDimensions,
+  (_: ZoomPanState, props: ZoomPanProps) => props.minScale,
+  (containerDimensions, imageDimensions, minScaleProp) =>
+    String(minScaleProp).toLowerCase() === 'auto'
+      ? getAutofitScale(containerDimensions, imageDimensions)
+      : minScaleProp || 1,
+);
