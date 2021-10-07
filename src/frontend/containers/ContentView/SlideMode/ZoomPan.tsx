@@ -41,7 +41,6 @@ export interface ZoomPanProps {
   imageDimension: Dimension;
   containerDimension: Dimension;
   onClose?: () => void;
-  debug?: boolean;
 
   transitionStart?: Transform;
   transitionEnd?: Transform;
@@ -55,12 +54,12 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   lastPointerUpTimeStamp: number | undefined = undefined; //enables detecting double-tap
   lastPanPointerPosition: Vec2 | undefined = undefined; //helps determine how far to pan the image
   lastPinchLength: number | undefined; //helps determine if we are pinching in or out
-  animation: (() => void) | undefined = undefined; //current animation handle
+  cancelAnimation: (() => void) | undefined = undefined;
   containerRef = React.createRef<HTMLDivElement>();
 
   constructor(props: ZoomPanProps) {
     super(props);
-    this.state = { ...(props.transitionStart ?? createTransform(0, 0, 0)) };
+    this.state = props.transitionStart ?? createTransform(0, 0, 0);
     this.setState = this.setState.bind(this);
   }
 
@@ -71,7 +70,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
 
   //event handlers
   handleTouchStart = (event: TouchEvent) => {
-    this.cancelAnimation();
+    this.stopAnimation();
 
     const touches = event.touches;
     if (touches.length === 2) {
@@ -97,7 +96,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   };
 
   handleTouchEnd = (event: TouchEvent) => {
-    this.cancelAnimation();
+    this.stopAnimation();
     if (event.touches.length === 0 && event.changedTouches.length === 1) {
       if (
         this.lastPointerUpTimeStamp &&
@@ -112,11 +111,11 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
 
     //We allow transient +/-5% over-pinching.
     //Animate the bounce back to constraints if applicable.
-    this.maybeAdjustCurrentTransform(ANIMATION_SPEED);
+    this.adjustCurrentTransform(ANIMATION_SPEED);
   };
 
   handleMouseDown = (event: MouseEvent) => {
-    this.cancelAnimation();
+    this.stopAnimation();
     this.pointerDown(event);
   };
 
@@ -126,16 +125,16 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   };
 
   handleMouseDoubleClick = (event: MouseEvent) => {
-    this.cancelAnimation();
+    this.stopAnimation();
     const pointerPosition = getRelativePosition(event, this.container);
     this.doubleClick(pointerPosition);
   };
 
   handleMouseWheel = (event: WheelEvent) => {
-    this.cancelAnimation();
+    this.stopAnimation();
     const point = getRelativePosition(event, this.container);
     if (event.deltaY > 0) {
-      if (this.state.scale > getMinScale(this.props)) {
+      if (this.state.scale > this.props.minScale) {
         this.zoomOut(point);
         tryCancelEvent(event);
       }
@@ -148,7 +147,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   };
 
   handleZoomInClick = () => {
-    this.cancelAnimation();
+    this.stopAnimation();
     this.zoomIn(
       createVec2(this.props.containerDimension.width / 2, this.props.containerDimension.height / 2),
       0,
@@ -157,7 +156,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   };
 
   handleZoomOutClick = () => {
-    this.cancelAnimation();
+    this.stopAnimation();
     this.zoomOut(
       createVec2(this.props.containerDimension.width / 2, this.props.containerDimension.height / 2),
     );
@@ -234,10 +233,11 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
 
   zoom(requestedScale: number, containerRelativePoint: Vec2, tolerance: number, speed: number) {
     const { scale, top, left } = this.state;
+    const { minScale, maxScale } = this.props;
     const dx = containerRelativePoint.x - left;
     const dy = containerRelativePoint.y - top;
 
-    const nextScale = getConstrainedScale(this.props, requestedScale, tolerance);
+    const nextScale = getConstrainedScale(requestedScale, minScale, maxScale, tolerance);
     const incrementalScalePercentage = (nextScale - scale) / scale;
     const translateX = dx * incrementalScalePercentage;
     const translateY = dy * incrementalScalePercentage;
@@ -256,7 +256,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     const imgDimensionsChanged = !isEqualDimension(imageDimension, oldImage);
     const containerDimensionsChanged = !isEqualDimension(containerDimension, oldContainer);
     if (imgDimensionsChanged || containerDimensionsChanged) {
-      this.cancelAnimation();
+      this.stopAnimation();
 
       // Keep image centered when container dimensions change (e.g. closing a side bar)
       const state: ZoomPanState = { ...this.state };
@@ -267,7 +267,6 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
 
       //capture new dimensions
       this.setState(state);
-      this.debug(`Dimensions changed: Container: ${containerDimension}, Image: ${imageDimension}`);
       return imgDimensionsChanged;
     }
     return undefined;
@@ -276,18 +275,18 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   //transformation methods
 
   //Ensure current transform is within constraints
-  maybeAdjustCurrentTransform(speed: number) {
+  adjustCurrentTransform(speed: number) {
     const correctedTransform = getCorrectedTransform(this.props, this.state, 0);
     if (correctedTransform !== undefined) {
-      this.setAnimation(applyTransform(correctedTransform, speed, this.setState));
+      this.startAnimation(applyTransform(correctedTransform, speed, this.setState));
     }
   }
 
   applyInitialTransform(speed: number) {
-    const requestedTransform = applyInitialTransform(this.props);
-    if (requestedTransform !== undefined) {
-      this.setAnimation(
-        constrainAndApplyTransform(this.props, requestedTransform, 0.5, speed, this.setState),
+    const transform = getTransform(this.props);
+    if (transform !== undefined) {
+      this.startAnimation(
+        constrainAndApplyTransform(this.props, transform, 0.5, speed, this.setState),
       );
     }
   }
@@ -322,9 +321,9 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   componentDidMount() {
     const zeroDimension = createDimension(0, 0);
     this.handleDimensionsChanged(zeroDimension, zeroDimension);
-    const requestedTransform = applyInitialTransform(this.props);
+    const requestedTransform = getTransform(this.props);
     if (requestedTransform !== undefined) {
-      this.animation = applyTransform(
+      this.cancelAnimation = applyTransform(
         requestedTransform,
         this.props.transitionStart !== undefined ? ANIMATION_SPEED * 2 : 0,
         this.setState,
@@ -340,52 +339,44 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     if (imgDimensionsChanged === true) {
       this.applyInitialTransform(0);
     } else if (imgDimensionsChanged === false) {
-      this.maybeAdjustCurrentTransform(0);
+      this.adjustCurrentTransform(0);
     }
     // Trigger ending transition when transitionEnd prop is passed
     if (this.props.transitionEnd !== undefined) {
-      this.setAnimation(
+      this.startAnimation(
         applyTransform(this.props.transitionEnd, ANIMATION_SPEED / 2, this.setState),
       );
     }
   }
 
   componentWillUnmount() {
-    this.cancelAnimation();
+    this.stopAnimation();
   }
 
-  setAnimation(cancel: (() => void) | undefined) {
-    this.animation?.();
-    this.animation = cancel;
+  startAnimation(cancel: (() => void) | undefined) {
+    this.cancelAnimation?.();
+    this.cancelAnimation = cancel;
   }
 
-  cancelAnimation() {
-    this.setAnimation(undefined);
-  }
-
-  debug(message: string) {
-    if (this.props.debug) {
-      console.debug(message);
-    }
+  stopAnimation() {
+    this.cancelAnimation?.();
+    this.cancelAnimation = undefined;
   }
 }
 
-function applyInitialTransform(props: Readonly<ZoomPanProps>): Transform | undefined {
-  const { position, initialScale, maxScale, imageDimension, containerDimension } = props;
+function getTransform(props: Readonly<ZoomPanProps>): Transform | undefined {
+  const { position, initialScale, minScale, maxScale, imageDimension, containerDimension } = props;
 
   const scale =
-    String(initialScale).toLowerCase() === 'auto'
-      ? getAutofitScale(containerDimension, imageDimension)
-      : (initialScale as number);
-  const minScale = getMinScale(props);
+    initialScale === 'auto' ? getAutofitScale(containerDimension, imageDimension) : initialScale;
 
   if (minScale > maxScale) {
     console.warn('minScale cannot exceed maxScale.');
-    return;
+    return undefined;
   }
   if (scale < minScale || scale > maxScale) {
     console.warn('initialScale must be between minScale and maxScale.');
-    return;
+    return undefined;
   }
 
   let top;
@@ -425,13 +416,13 @@ function constrainAndApplyTransform(
 
 function applyTransform(transform: Transform, speed: number, setState: Updater) {
   if (speed > 0) {
-    return runAnimation(transform, speed, setState);
+    return animateTransform(transform, speed, setState);
   } else {
     setState(transform);
   }
 }
 
-function runAnimation({ top, left, scale }: Transform, speed: number, setState: Updater) {
+function animateTransform({ top, left, scale }: Transform, speed: number, setState: Updater) {
   let animationHandle: number | undefined = undefined;
   const frame = () => {
     setState((state) => {
@@ -468,10 +459,10 @@ function getCorrectedTransform(
   requestedTransform: Transform,
   tolerance: number,
 ): Transform | undefined {
-  const scale = getConstrainedScale(props, requestedTransform.scale, tolerance);
+  const { containerDimension, imageDimension, position, minScale, maxScale } = props;
+  const scale = getConstrainedScale(requestedTransform.scale, minScale, maxScale, tolerance);
 
   //get dimensions by which scaled image overflows container
-  const { containerDimension, imageDimension, position } = props;
   const negativeSpaceWidth = containerDimension.width - scale * imageDimension.width;
   const negativeSpaceHeight = containerDimension.height - scale * imageDimension.height;
   const overflowWidth = Math.max(0, -negativeSpaceWidth);
@@ -510,22 +501,15 @@ function getCorrectedTransform(
 
 // Returns constrained scale when requested scale is outside min/max with tolerance, otherwise returns requested scale
 function getConstrainedScale(
-  props: Readonly<ZoomPanProps>,
   requestedScale: number,
+  minScale: number,
+  maxScale: number,
   tolerance: number,
 ) {
   const lowerBoundFactor = 1.0 - tolerance;
   const upperBoundFactor = 1.0 + tolerance;
-
-  return clamp(
-    requestedScale,
-    getMinScale(props) * lowerBoundFactor,
-    props.maxScale * upperBoundFactor,
-  );
+  return clamp(requestedScale, minScale * lowerBoundFactor, maxScale * upperBoundFactor);
 }
-
-const isInitialized = (top: number, left: number, scale: number) =>
-  scale !== 0 || left !== 0 || top !== 0;
 
 const imageStyle = createSelector(
   (state: ZoomPanState) => state.top,
@@ -534,7 +518,7 @@ const imageStyle = createSelector(
   (top, left, scale) => {
     let transform;
     let transformOrigin;
-    if (isInitialized(top, left, scale)) {
+    if (scale !== 0 || left !== 0 || top !== 0) {
       transform = `translate3d(${left}px, ${top}px, 0) scale(${scale})`;
       transformOrigin = '0 0';
     }
@@ -552,12 +536,8 @@ const imageOverflow = createSelector(
   (state: ZoomPanState) => state.scale,
   (_: ZoomPanState, props: ZoomPanProps) => props.imageDimension,
   (_: ZoomPanState, props: ZoomPanProps) => props.containerDimension,
-  (top, left, scale, imageDimensions, containerDimensions) => {
-    if (!isInitialized(top, left, scale)) {
-      return null;
-    }
-    return getImageOverflow(top, left, scale, imageDimensions, containerDimensions);
-  },
+  (top, left, scale, imageDimensions, containerDimensions) =>
+    getImageOverflow(top, left, scale, imageDimensions, containerDimensions),
 );
 
 const browserPanActions = createSelector(imageOverflow, (imageOverflow) => {
@@ -565,34 +545,13 @@ const browserPanActions = createSelector(imageOverflow, (imageOverflow) => {
   //the browser handle those directions (e.g., scroll viewport if possible).
   //Need to replace 'pan-left pan-right' with 'pan-x', etc. otherwise
   //it is rejected (o_O), therefore explicitly handle each combination.
-  const browserPanX =
-    !imageOverflow?.left && !imageOverflow?.right
-      ? 'pan-x' //we can't pan the image horizontally, let the browser take it
-      : !imageOverflow.left
-      ? 'pan-left'
-      : !imageOverflow.right
-      ? 'pan-right'
-      : '';
-  const browserPanY =
-    !imageOverflow?.top && !imageOverflow?.bottom
-      ? 'pan-y'
-      : !imageOverflow.top
-      ? 'pan-up'
-      : !imageOverflow.bottom
-      ? 'pan-down'
-      : '';
-  if (browserPanX.length === 0 && browserPanY.length === 0) {
+  const [top, left, right, bottom] = imageOverflow;
+  const hasOverflowX = left !== 0 && right !== 0;
+  const hasOverflowY = top !== 0 && bottom !== 0;
+  if (!hasOverflowX && !hasOverflowY) {
     return 'none';
   }
-  return [browserPanX, browserPanY].join(' ').trim();
+  const panX = hasOverflowX ? 'pan-x' : left === 0 ? 'pan-left' : right === 0 ? 'pan-right' : '';
+  const panY = hasOverflowY ? 'pan-y' : top === 0 ? 'pan-up' : bottom === 0 ? 'pan-down' : '';
+  return [panX, panY].join(' ').trim();
 });
-
-const getMinScale = createSelector(
-  (props: ZoomPanProps) => props.containerDimension,
-  (props: ZoomPanProps) => props.imageDimension,
-  (props: ZoomPanProps) => props.minScale,
-  (containerDimensions, imageDimensions, minScaleProp) =>
-    String(minScaleProp).toLowerCase() === 'auto'
-      ? getAutofitScale(containerDimensions, imageDimensions)
-      : minScaleProp || 1,
-);

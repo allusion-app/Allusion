@@ -19,12 +19,7 @@ export interface Transform {
   scale: number;
 }
 
-export interface Overflow {
-  top: number;
-  left: number;
-  right: number;
-  bottom: number;
-}
+export type Overflow = [top: number, left: number, right: number, bottom: number];
 
 interface ClientPosition {
   clientX: number;
@@ -106,12 +101,12 @@ export const getImageOverflow = (
   image: Dimension,
   container: Dimension,
 ): Overflow => {
-  return {
-    top: Math.max(-top, 0),
-    left: Math.max(-left, 0),
-    right: calculateOverflow(left, scale, image.width, container.width),
-    bottom: calculateOverflow(top, scale, image.height, container.height),
-  };
+  return [
+    Math.max(-top, 0),
+    Math.max(-left, 0),
+    calculateOverflow(left, scale, image.width, container.width),
+    calculateOverflow(top, scale, image.height, container.height),
+  ];
 };
 
 function calculateOverflow(x: number, scale: number, image: number, container: number): number {
