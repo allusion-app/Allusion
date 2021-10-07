@@ -9,6 +9,7 @@ import { IconSet, Split } from 'widgets';
 import Inspector from '../../Inspector';
 import { CommandDispatcher } from '../Commands';
 import { ContentRect } from '../LayoutSwitcher';
+import { createDimension, createTransform } from './utils';
 
 const SlideMode = observer(({ contentRect }: { contentRect: ContentRect }) => {
   const { uiStore, fileStore } = useStore();
@@ -119,11 +120,11 @@ const SlideView = observer((props: SlideViewProps) => {
     if (thumbEl && container) {
       const thumbElRect = thumbEl.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
-      return {
-        left: thumbElRect.left - containerRect.left,
-        top: thumbElRect.top - containerRect.top,
-        scale: thumbElRect.height / file.height,
-      };
+      return createTransform(
+        thumbElRect.top - containerRect.top,
+        thumbElRect.left - containerRect.left,
+        thumbElRect.height / file.height,
+      );
     }
     return undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -182,19 +183,19 @@ const ZoomableImage = ({
   // in order to coordinate image dimensions at the time of loading, store current img src + dimensions together
   const [currentImg, setCurrentImg] = useState({
     src: thumbnailSrc || src,
-    dimensions: { width: imgWidth, height: imgHeight },
+    dimensions: createDimension(imgWidth, imgHeight),
   });
   useEffect(() => {
     setCurrentImg({
       src: thumbnailSrc || src,
-      dimensions: { width: imgWidth, height: imgHeight },
+      dimensions: createDimension(imgWidth, imgHeight),
     });
     const img = new Image();
     img.src = src;
     img.onload = () =>
       setCurrentImg((prevImg) =>
         prevImg.src === thumbnailSrc
-          ? { src, dimensions: { width: imgWidth, height: imgHeight } }
+          ? { src, dimensions: createDimension(imgWidth, imgHeight) }
           : prevImg,
       );
     img.onerror = setLoadError;
@@ -222,7 +223,7 @@ const ZoomableImage = ({
           initialScale="auto"
           doubleTapBehavior="zoomOrReset"
           imageDimension={currentImg.dimensions}
-          containerDimension={{ width, height }}
+          containerDimension={createDimension(width, height)}
           minScale={minScale}
           maxScale={5}
           transitionStart={transitionStart}

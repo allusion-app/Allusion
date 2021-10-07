@@ -20,9 +20,9 @@ import {
   Dimension,
   Vec2,
   Transform,
-  createDimension,
   createTransform,
   createVec2,
+  createDimension,
 } from './utils';
 
 const OVERZOOM_TOLERANCE = 0.05;
@@ -47,13 +47,7 @@ export interface ZoomPanProps {
   transitionEnd?: Transform;
 }
 
-export interface ZoomPanState {
-  top: number;
-  left: number;
-  scale: number;
-  imageDimension: Dimension;
-  containerDimension: Dimension;
-}
+export type ZoomPanState = Transform;
 
 //Ensure the image is not over-panned, and not over- or under-scaled.
 //These constraints must be checked when image changes, and when container is resized.
@@ -61,17 +55,13 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   lastPointerUpTimeStamp: number | undefined = undefined; //enables detecting double-tap
   lastPanPointerPosition: Vec2 | undefined = undefined; //helps determine how far to pan the image
   lastPinchLength: number | undefined; //helps determine if we are pinching in or out
-  animation: number | undefined = undefined; //current animation handle
-  isTransformInitialized: boolean = false;
+  animation: (() => void) | undefined = undefined; //current animation handle
   containerRef = React.createRef<HTMLDivElement>();
 
   constructor(props: ZoomPanProps) {
     super(props);
-    this.state = {
-      imageDimension: props.imageDimension,
-      containerDimension: createDimension(0, 0),
-      ...(props.transitionStart ?? createTransform(0, 0, 0)),
-    };
+    this.state = { ...(props.transitionStart ?? createTransform(0, 0, 0)) };
+    this.setState = this.setState.bind(this);
   }
 
   private get container(): HTMLDivElement {
@@ -123,7 +113,6 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     //We allow transient +/-5% over-pinching.
     //Animate the bounce back to constraints if applicable.
     this.maybeAdjustCurrentTransform(ANIMATION_SPEED);
-    return;
   };
 
   handleMouseDown = (event: MouseEvent) => {
@@ -146,7 +135,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     this.cancelAnimation();
     const point = getRelativePosition(event, this.container);
     if (event.deltaY > 0) {
-      if (this.state.scale > getMinScale(this.state, this.props)) {
+      if (this.state.scale > getMinScale(this.props)) {
         this.zoomOut(point);
         tryCancelEvent(event);
       }
@@ -161,7 +150,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   handleZoomInClick = () => {
     this.cancelAnimation();
     this.zoomIn(
-      createVec2(this.state.containerDimension.width / 2, this.state.containerDimension.height / 2),
+      createVec2(this.props.containerDimension.width / 2, this.props.containerDimension.height / 2),
       0,
       0.1,
     );
@@ -170,7 +159,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   handleZoomOutClick = () => {
     this.cancelAnimation();
     this.zoomOut(
-      createVec2(this.state.containerDimension.width / 2, this.state.containerDimension.height / 2),
+      createVec2(this.props.containerDimension.width / 2, this.props.containerDimension.height / 2),
     );
   };
 
@@ -180,10 +169,6 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   }
 
   pan(pointerClientPosition: MouseEvent | Touch): void {
-    if (!this.isTransformInitialized) {
-      return;
-    }
-
     if (!this.lastPanPointerPosition) {
       //if we were pinching and lifted a finger
       this.pointerDown(pointerClientPosition);
@@ -197,7 +182,8 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
 
     const top = this.state.top + translateY;
     const left = this.state.left + translateX;
-    this.constrainAndApplyTransform(top, left, this.state.scale, 0, 0);
+    const requestedTransform = createTransform(top, left, this.state.scale);
+    constrainAndApplyTransform(this.props, requestedTransform, 0, 0, this.setState);
   }
 
   doubleClick(pointerPosition: Vec2) {
@@ -216,8 +202,8 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     }
     if (doubleTapBehavior === 'zoomOrReset') {
       const initialScale = getAutofitScale(
-        this.state.containerDimension,
-        this.state.imageDimension,
+        this.props.containerDimension,
+        this.props.imageDimension,
       );
       // If current scale is same as initial scale, zoom in, otherwise reset to initial zoom
       Math.abs(this.state.scale - initialScale) < 0.01
@@ -247,212 +233,63 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   }
 
   zoom(requestedScale: number, containerRelativePoint: Vec2, tolerance: number, speed: number) {
-    if (!this.isTransformInitialized) {
-      return;
-    }
     const { scale, top, left } = this.state;
     const dx = containerRelativePoint.x - left;
     const dy = containerRelativePoint.y - top;
 
-    const nextScale = this.getConstrainedScale(requestedScale, tolerance);
+    const nextScale = getConstrainedScale(this.props, requestedScale, tolerance);
     const incrementalScalePercentage = (nextScale - scale) / scale;
     const translateX = dx * incrementalScalePercentage;
     const translateY = dy * incrementalScalePercentage;
 
     const nextTop = top - translateY;
     const nextLeft = left - translateX;
-
-    this.constrainAndApplyTransform(nextTop, nextLeft, nextScale, tolerance, speed);
+    const requestedTransform = createTransform(nextTop, nextLeft, nextScale);
+    constrainAndApplyTransform(this.props, requestedTransform, tolerance, speed, this.setState);
   }
 
   //compare stored dimensions to actual dimensions; capture actual dimensions if different
-  maybeHandleDimensionsChanged() {
-    // if img resolution is provided, no need to wait for img load before transform
-
+  handleDimensionsChanged(oldContainer: Dimension, oldImage: Dimension): boolean | undefined {
     const containerDimension = this.props.containerDimension;
     const imageDimension = this.props.imageDimension;
 
-    const imgDimensionsChanged = !isEqualDimension(imageDimension, this.state.imageDimension);
-    const containerDimensionsChanged = !isEqualDimension(
-      containerDimension,
-      this.state.containerDimension,
-    );
+    const imgDimensionsChanged = !isEqualDimension(imageDimension, oldImage);
+    const containerDimensionsChanged = !isEqualDimension(containerDimension, oldContainer);
     if (imgDimensionsChanged || containerDimensionsChanged) {
       this.cancelAnimation();
 
       // Keep image centered when container dimensions change (e.g. closing a side bar)
-      const state: ZoomPanState = { ...this.state, containerDimension, imageDimension };
-      const oldContainerDims = this.state.containerDimension;
-      if (oldContainerDims.width !== 0 && oldContainerDims.height !== 0) {
-        state.left = state.left - (oldContainerDims.width - containerDimension.width) / 2;
-        state.top = state.top - (oldContainerDims.height - containerDimension.height) / 2;
+      const state: ZoomPanState = { ...this.state };
+      if (oldContainer.width !== 0 && oldContainer.height !== 0) {
+        state.left = state.left - (oldContainer.width - containerDimension.width) / 2;
+        state.top = state.top - (oldContainer.height - containerDimension.height) / 2;
       }
 
       //capture new dimensions
-      this.setState(state, () => {
-        //When image loads and image dimensions are first established, apply initial transform.
-        //If dimensions change, constraints change; current transform may need to be adjusted.
-        //Transforms depend on state, so wait until state is updated.
-        if (!this.isTransformInitialized) {
-          this.applyInitialTransform(this.props.transitionStart ? ANIMATION_SPEED * 2 : 0);
-          this.isTransformInitialized = true;
-        } else {
-          // apply initial transform when image changes
-          imgDimensionsChanged
-            ? this.applyInitialTransform(0)
-            : this.maybeAdjustCurrentTransform(0);
-        }
-      });
-      this.debug(
-        `Dimensions changed: Container: ${containerDimension}, ${containerDimension}, Image: ${imageDimension}`,
-      );
+      this.setState(state);
+      this.debug(`Dimensions changed: Container: ${containerDimension}, Image: ${imageDimension}`);
+      return imgDimensionsChanged;
     }
+    return undefined;
   }
 
   //transformation methods
 
-  //Zooming and panning cause transform to be requested.
-  constrainAndApplyTransform(
-    requestedTop: number,
-    requestedLeft: number,
-    requestedScale: number,
-    tolerance: number,
-    speed: number,
-  ) {
-    const requestedTransform = createTransform(requestedTop, requestedLeft, requestedScale);
-    this.debug(`Requesting transform: ${requestedTransform}`);
-
-    //Correct the transform if needed to prevent overpanning and overzooming
-    // Don't constrain for transition so that image can be positioned off-center
-    const transform =
-      !this.isTransformInitialized || this.props.transitionEnd !== undefined
-        ? requestedTransform
-        : this.getCorrectedTransform(requestedTransform, tolerance) ?? requestedTransform;
-    this.debug(`Applying transform: ${transform}`);
-
-    if (!isEqualTransform(transform, this.state)) {
-      this.applyTransform(transform, speed);
-    }
-  }
-
-  applyTransform({ top, left, scale }: Transform, speed: number) {
-    if (speed > 0) {
-      const frame = () => {
-        const translateY = top - this.state.top;
-        const translateX = left - this.state.left;
-        const translateScale = scale - this.state.scale;
-
-        const nextTransform = createTransform(
-          snapToTarget(this.state.top + speed * translateY, top, 1),
-          snapToTarget(this.state.left + speed * translateX, left, 1),
-          snapToTarget(this.state.scale + speed * translateScale, scale, 0.001),
-        );
-
-        //animation runs until we reach the target
-        if (this.animation !== undefined && !isEqualTransform(nextTransform, this.state)) {
-          this.setState(nextTransform, () => (this.animation = requestAnimationFrame(frame)));
-        }
-      };
-      this.animation = requestAnimationFrame(frame);
-    } else {
-      this.setState(createTransform(top, left, scale));
-    }
-  }
-
-  //Returns constrained scale when requested scale is outside min/max with tolerance, otherwise returns requested scale
-  getConstrainedScale(requestedScale: number, tolerance: number) {
-    const lowerBoundFactor = 1.0 - tolerance;
-    const upperBoundFactor = 1.0 + tolerance;
-
-    return clamp(
-      requestedScale,
-      getMinScale(this.state, this.props) * lowerBoundFactor,
-      this.props.maxScale * upperBoundFactor,
-    );
-  }
-
-  //Returns constrained transform when requested transform is outside constraints with tolerance, otherwise returns null
-  getCorrectedTransform(requestedTransform: Transform, tolerance: number): Transform | undefined {
-    const scale = this.getConstrainedScale(requestedTransform.scale, tolerance);
-
-    //get dimensions by which scaled image overflows container
-    const { containerDimension: containerDimensions, imageDimension: imageDimensions } = this.state;
-    const negativeSpaceWidth = containerDimensions.width - scale * imageDimensions.width;
-    const negativeSpaceHeight = containerDimensions.height - scale * imageDimensions.height;
-    const overflowWidth = Math.max(0, -negativeSpaceWidth);
-    const overflowHeight = Math.max(0, -negativeSpaceHeight);
-
-    //if image overflows container, prevent moving by more than the overflow
-    //example: overflow.height = 100, tolerance = 0.05 => top is constrained between -105 and +5
-    const { position } = this.props;
-    const upperBoundFactor = 1.0 + tolerance;
-
-    const top = overflowHeight
-      ? clamp(
-          requestedTransform.top,
-          -overflowHeight * upperBoundFactor,
-          overflowHeight * upperBoundFactor - overflowHeight,
-        )
-      : position === 'center'
-      ? (containerDimensions.height - imageDimensions.height * scale) / 2
-      : 0;
-
-    const left = overflowWidth
-      ? clamp(
-          requestedTransform.left,
-          -overflowWidth * upperBoundFactor,
-          overflowWidth * upperBoundFactor - overflowWidth,
-        )
-      : position === 'center'
-      ? (containerDimensions.width - imageDimensions.width * scale) / 2
-      : 0;
-
-    const constrainedTransform = createTransform(top, left, scale);
-
-    return isEqualTransform(constrainedTransform, requestedTransform)
-      ? undefined
-      : constrainedTransform;
-  }
-
   //Ensure current transform is within constraints
   maybeAdjustCurrentTransform(speed: number) {
-    const correctedTransform = this.getCorrectedTransform(this.state, 0);
+    const correctedTransform = getCorrectedTransform(this.props, this.state, 0);
     if (correctedTransform !== undefined) {
-      this.applyTransform(correctedTransform, speed);
+      this.setAnimation(applyTransform(correctedTransform, speed, this.setState));
     }
   }
 
   applyInitialTransform(speed: number) {
-    const { imageDimension: imageDimensions, containerDimension: containerDimensions } = this.state;
-    const { position, initialScale, maxScale } = this.props;
-
-    const scale =
-      String(initialScale).toLowerCase() === 'auto'
-        ? getAutofitScale(containerDimensions, imageDimensions)
-        : (initialScale as number);
-    const minScale = getMinScale(this.state, this.props);
-
-    if (minScale > maxScale) {
-      console.warn('minScale cannot exceed maxScale.');
-      return;
+    const requestedTransform = applyInitialTransform(this.props);
+    if (requestedTransform !== undefined) {
+      this.setAnimation(
+        constrainAndApplyTransform(this.props, requestedTransform, 0.5, speed, this.setState),
+      );
     }
-    if (scale < minScale || scale > maxScale) {
-      console.warn('initialScale must be between minScale and maxScale.');
-      return;
-    }
-
-    let top;
-    let left;
-    if (position === 'center') {
-      left = (containerDimensions.width - imageDimensions.width * scale) / 2;
-      top = (containerDimensions.height - imageDimensions.height * scale) / 2;
-    } else {
-      top = 0;
-      left = 0;
-    }
-
-    const tolerance = 0.5;
-    this.constrainAndApplyTransform(top, left, scale, tolerance, speed);
   }
 
   //lifecycle methods
@@ -461,7 +298,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
       width: '100%',
       height: '100%',
       overflow: 'hidden',
-      touchAction: browserPanActions(this.state),
+      touchAction: browserPanActions(this.state, this.props),
     };
 
     return (
@@ -483,14 +320,33 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   }
 
   componentDidMount() {
-    this.maybeHandleDimensionsChanged();
+    const zeroDimension = createDimension(0, 0);
+    this.handleDimensionsChanged(zeroDimension, zeroDimension);
+    const requestedTransform = applyInitialTransform(this.props);
+    if (requestedTransform !== undefined) {
+      this.animation = applyTransform(
+        requestedTransform,
+        this.props.transitionStart !== undefined ? ANIMATION_SPEED * 2 : 0,
+        this.setState,
+      );
+    }
   }
 
-  componentDidUpdate() {
-    this.maybeHandleDimensionsChanged();
+  componentDidUpdate(prevProps: Readonly<ZoomPanProps>) {
+    const imgDimensionsChanged = this.handleDimensionsChanged(
+      prevProps.containerDimension,
+      prevProps.imageDimension,
+    );
+    if (imgDimensionsChanged === true) {
+      this.applyInitialTransform(0);
+    } else if (imgDimensionsChanged === false) {
+      this.maybeAdjustCurrentTransform(0);
+    }
     // Trigger ending transition when transitionEnd prop is passed
     if (this.props.transitionEnd !== undefined) {
-      this.applyTransform(this.props.transitionEnd, ANIMATION_SPEED / 2);
+      this.setAnimation(
+        applyTransform(this.props.transitionEnd, ANIMATION_SPEED / 2, this.setState),
+      );
     }
   }
 
@@ -498,11 +354,13 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     this.cancelAnimation();
   }
 
+  setAnimation(cancel: (() => void) | undefined) {
+    this.animation?.();
+    this.animation = cancel;
+  }
+
   cancelAnimation() {
-    if (this.animation !== undefined) {
-      cancelAnimationFrame(this.animation);
-      this.animation = undefined;
-    }
+    this.setAnimation(undefined);
   }
 
   debug(message: string) {
@@ -510,6 +368,160 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
       console.debug(message);
     }
   }
+}
+
+function applyInitialTransform(props: Readonly<ZoomPanProps>): Transform | undefined {
+  const { position, initialScale, maxScale, imageDimension, containerDimension } = props;
+
+  const scale =
+    String(initialScale).toLowerCase() === 'auto'
+      ? getAutofitScale(containerDimension, imageDimension)
+      : (initialScale as number);
+  const minScale = getMinScale(props);
+
+  if (minScale > maxScale) {
+    console.warn('minScale cannot exceed maxScale.');
+    return;
+  }
+  if (scale < minScale || scale > maxScale) {
+    console.warn('initialScale must be between minScale and maxScale.');
+    return;
+  }
+
+  let top;
+  let left;
+  if (position === 'center') {
+    left = (containerDimension.width - imageDimension.width * scale) / 2;
+    top = (containerDimension.height - imageDimension.height * scale) / 2;
+  } else {
+    top = 0;
+    left = 0;
+  }
+  return createTransform(top, left, scale);
+}
+
+type Updater = (
+  updater:
+    | ((state: Readonly<ZoomPanState>, props: Readonly<ZoomPanProps>) => ZoomPanState)
+    | ZoomPanState,
+) => void;
+
+// Zooming and panning cause transform to be requested.
+function constrainAndApplyTransform(
+  props: Readonly<ZoomPanProps>,
+  requestedTransform: Transform,
+  tolerance: number,
+  speed: number,
+  setState: Updater,
+) {
+  //Correct the transform if needed to prevent overpanning and overzooming
+  // Don't constrain for transition so that image can be positioned off-center
+  const transform =
+    props.transitionEnd !== undefined
+      ? requestedTransform
+      : getCorrectedTransform(props, requestedTransform, tolerance) ?? requestedTransform;
+  return applyTransform(transform, speed, setState);
+}
+
+function applyTransform(transform: Transform, speed: number, setState: Updater) {
+  if (speed > 0) {
+    return runAnimation(transform, speed, setState);
+  } else {
+    setState(transform);
+  }
+}
+
+function runAnimation({ top, left, scale }: Transform, speed: number, setState: Updater) {
+  let animationHandle: number | undefined = undefined;
+  const frame = () => {
+    setState((state) => {
+      const translateY = top - state.top;
+      const translateX = left - state.left;
+      const translateScale = scale - state.scale;
+      const nextTransform = createTransform(
+        snapToTarget(state.top + speed * translateY, top, 1),
+        snapToTarget(state.left + speed * translateX, left, 1),
+        snapToTarget(state.scale + speed * translateScale, scale, 0.001),
+      );
+      //animation runs until we reach the target
+      if (animationHandle !== undefined && !isEqualTransform(nextTransform, state)) {
+        animationHandle = requestAnimationFrame(frame);
+        return nextTransform;
+      }
+      animationHandle = undefined;
+      return nextTransform;
+    });
+  };
+  animationHandle = requestAnimationFrame(frame);
+
+  return () => {
+    if (animationHandle !== undefined) {
+      cancelAnimationFrame(animationHandle);
+      animationHandle = undefined;
+    }
+  };
+}
+
+// Returns constrained transform when requested transform is outside constraints with tolerance, otherwise returns null
+function getCorrectedTransform(
+  props: Readonly<ZoomPanProps>,
+  requestedTransform: Transform,
+  tolerance: number,
+): Transform | undefined {
+  const scale = getConstrainedScale(props, requestedTransform.scale, tolerance);
+
+  //get dimensions by which scaled image overflows container
+  const { containerDimension, imageDimension, position } = props;
+  const negativeSpaceWidth = containerDimension.width - scale * imageDimension.width;
+  const negativeSpaceHeight = containerDimension.height - scale * imageDimension.height;
+  const overflowWidth = Math.max(0, -negativeSpaceWidth);
+  const overflowHeight = Math.max(0, -negativeSpaceHeight);
+
+  //if image overflows container, prevent moving by more than the overflow
+  //example: overflow.height = 100, tolerance = 0.05 => top is constrained between -105 and +5
+  const upperBoundFactor = 1.0 + tolerance;
+
+  const top = overflowHeight
+    ? clamp(
+        requestedTransform.top,
+        -overflowHeight * upperBoundFactor,
+        overflowHeight * upperBoundFactor - overflowHeight,
+      )
+    : position === 'center'
+    ? (containerDimension.height - imageDimension.height * scale) / 2
+    : 0;
+
+  const left = overflowWidth
+    ? clamp(
+        requestedTransform.left,
+        -overflowWidth * upperBoundFactor,
+        overflowWidth * upperBoundFactor - overflowWidth,
+      )
+    : position === 'center'
+    ? (containerDimension.width - imageDimension.width * scale) / 2
+    : 0;
+
+  const constrainedTransform = createTransform(top, left, scale);
+
+  return isEqualTransform(constrainedTransform, requestedTransform)
+    ? undefined
+    : constrainedTransform;
+}
+
+// Returns constrained scale when requested scale is outside min/max with tolerance, otherwise returns requested scale
+function getConstrainedScale(
+  props: Readonly<ZoomPanProps>,
+  requestedScale: number,
+  tolerance: number,
+) {
+  const lowerBoundFactor = 1.0 - tolerance;
+  const upperBoundFactor = 1.0 + tolerance;
+
+  return clamp(
+    requestedScale,
+    getMinScale(props) * lowerBoundFactor,
+    props.maxScale * upperBoundFactor,
+  );
 }
 
 const isInitialized = (top: number, left: number, scale: number) =>
@@ -538,8 +550,8 @@ const imageOverflow = createSelector(
   (state: ZoomPanState) => state.top,
   (state: ZoomPanState) => state.left,
   (state: ZoomPanState) => state.scale,
-  (state: ZoomPanState) => state.imageDimension,
-  (state: ZoomPanState) => state.containerDimension,
+  (_: ZoomPanState, props: ZoomPanProps) => props.imageDimension,
+  (_: ZoomPanState, props: ZoomPanProps) => props.containerDimension,
   (top, left, scale, imageDimensions, containerDimensions) => {
     if (!isInitialized(top, left, scale)) {
       return null;
@@ -576,9 +588,9 @@ const browserPanActions = createSelector(imageOverflow, (imageOverflow) => {
 });
 
 const getMinScale = createSelector(
-  (state: ZoomPanState) => state.containerDimension,
-  (state: ZoomPanState) => state.imageDimension,
-  (_: ZoomPanState, props: ZoomPanProps) => props.minScale,
+  (props: ZoomPanProps) => props.containerDimension,
+  (props: ZoomPanProps) => props.imageDimension,
+  (props: ZoomPanProps) => props.minScale,
   (containerDimensions, imageDimensions, minScaleProp) =>
     String(minScaleProp).toLowerCase() === 'auto'
       ? getAutofitScale(containerDimensions, imageDimensions)
