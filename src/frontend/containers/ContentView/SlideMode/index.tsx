@@ -233,8 +233,8 @@ const ZoomableImage = ({
         >
           <img
             src={currentImg.src}
-            width={currentImg.dimensions.width || undefined}
-            height={currentImg.dimensions.height || undefined}
+            width={currentImg.dimensions[0] || undefined}
+            height={currentImg.dimensions[1] || undefined}
             alt={`Image could not be loaded: ${src}`}
             onError={setLoadError}
           />

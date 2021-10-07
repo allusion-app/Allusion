@@ -151,7 +151,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   handleZoomInClick = () => {
     this.stopAnimation();
     this.zoomIn(
-      createVec2(this.props.containerDimension.width / 2, this.props.containerDimension.height / 2),
+      createVec2(this.props.containerDimension[0] / 2, this.props.containerDimension[1] / 2),
       0,
       0.1,
     );
@@ -160,7 +160,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   handleZoomOutClick = () => {
     this.stopAnimation();
     this.zoomOut(
-      createVec2(this.props.containerDimension.width / 2, this.props.containerDimension.height / 2),
+      createVec2(this.props.containerDimension[0] / 2, this.props.containerDimension[1] / 2),
     );
   };
 
@@ -170,15 +170,15 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   }
 
   pan(pointerClientPosition: MouseEvent | Touch): void {
-    if (!this.lastPanPointerPosition) {
+    if (this.lastPanPointerPosition === undefined) {
       //if we were pinching and lifted a finger
       this.pointerDown(pointerClientPosition);
       return;
     }
 
     const pointerPosition = getRelativePosition(pointerClientPosition, this.container);
-    const translateX = pointerPosition.x - this.lastPanPointerPosition.x;
-    const translateY = pointerPosition.y - this.lastPanPointerPosition.y;
+    const translateX = pointerPosition[0] - this.lastPanPointerPosition[0];
+    const translateY = pointerPosition[1] - this.lastPanPointerPosition[1];
     this.lastPanPointerPosition = pointerPosition;
 
     this.setState((state, props) => {
@@ -239,11 +239,11 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     this.zoom(this.state.scale * 0.9, midpoint, 0, 0);
   }
 
-  zoom(requestedScale: number, containerRelativePoint: Vec2, tolerance: number, speed: number) {
+  zoom(requestedScale: number, [px, py]: Vec2, tolerance: number, speed: number) {
     const { scale, top, left } = this.state;
     const { minScale, maxScale } = this.props;
-    const dx = containerRelativePoint.x - left;
-    const dy = containerRelativePoint.y - top;
+    const dx = px - left;
+    const dy = py - top;
 
     const nextScale = getConstrainedScale(requestedScale, minScale, maxScale, tolerance);
     const incrementalScalePercentage = (nextScale - scale) / scale;
@@ -277,8 +277,8 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     this.stopAnimation();
     this.setState((state, props) => {
       // Keep image centered when container dimensions change (e.g. closing a side bar)
-      const top = state.top - (oldContainer.height - containerDimension.height) / 2;
-      const left = state.left - (oldContainer.width - containerDimension.width) / 2;
+      const top = state.top - (oldContainer[1] - containerDimension[1]) / 2;
+      const left = state.left - (oldContainer[0] - containerDimension[0]) / 2;
 
       let transform: Transform | undefined = undefined;
       if (imgDimensionChanged) {
@@ -388,8 +388,8 @@ function getTransform(props: Readonly<ZoomPanProps>): Transform | undefined {
   let top;
   let left;
   if (position === 'center') {
-    left = (containerDimension.width - imageDimension.width * scale) / 2;
-    top = (containerDimension.height - imageDimension.height * scale) / 2;
+    left = (containerDimension[0] - imageDimension[0] * scale) / 2;
+    top = (containerDimension[1] - imageDimension[1] * scale) / 2;
   } else {
     top = 0;
     left = 0;
@@ -444,13 +444,13 @@ function getCorrectedTransform(
   const scale = getConstrainedScale(requestedTransform.scale, minScale, maxScale, tolerance);
 
   //get dimensions by which scaled image overflows container
-  const negativeSpaceWidth = containerDimension.width - scale * imageDimension.width;
-  const negativeSpaceHeight = containerDimension.height - scale * imageDimension.height;
+  const negativeSpaceWidth = containerDimension[0] - scale * imageDimension[0];
+  const negativeSpaceHeight = containerDimension[1] - scale * imageDimension[1];
   const overflowWidth = Math.max(0, -negativeSpaceWidth);
   const overflowHeight = Math.max(0, -negativeSpaceHeight);
 
   //if image overflows container, prevent moving by more than the overflow
-  //example: overflow.height = 100, tolerance = 0.05 => top is constrained between -105 and +5
+  //example: overflow[1] = 100, tolerance = 0.05 => top is constrained between -105 and +5
   const upperBoundFactor = 1.0 + tolerance;
 
   const top = overflowHeight
@@ -460,7 +460,7 @@ function getCorrectedTransform(
         overflowHeight * upperBoundFactor - overflowHeight,
       )
     : position === 'center'
-    ? (containerDimension.height - imageDimension.height * scale) / 2
+    ? (containerDimension[1] - imageDimension[1] * scale) / 2
     : 0;
 
   const left = overflowWidth
@@ -470,7 +470,7 @@ function getCorrectedTransform(
         overflowWidth * upperBoundFactor - overflowWidth,
       )
     : position === 'center'
-    ? (containerDimension.width - imageDimension.width * scale) / 2
+    ? (containerDimension[0] - imageDimension[0] * scale) / 2
     : 0;
 
   const constrainedTransform = createTransform(top, left, scale);

@@ -3,15 +3,9 @@
  * MIT license, see LICENSE file
  */
 
-export interface Dimension {
-  width: number;
-  height: number;
-}
+export type Dimension = [width: number, height: number];
 
-export interface Vec2 {
-  x: number;
-  y: number;
-}
+export type Vec2 = [x: number, y: number];
 
 export interface Transform {
   top: number;
@@ -31,11 +25,11 @@ interface ClientPosition {
 // will suffer in one way or another.
 
 export function createDimension(width: number, height: number): Dimension {
-  return { width, height };
+  return [width, height];
 }
 
 export function createVec2(x: number, y: number): Vec2 {
-  return { x, y };
+  return [x, y];
 }
 
 export function createTransform(top: number, left: number, scale: number): Transform {
@@ -64,8 +58,8 @@ export const getPinchLength = ([pos1, pos2]: [ClientPosition, ClientPosition]): 
   return Math.sqrt(dx * dx + dy * dy);
 };
 
-export const isEqualDimension = (dimensions1: Dimension, dimensions2: Dimension): boolean => {
-  return dimensions1.width === dimensions2.width && dimensions1.height === dimensions2.height;
+export const isEqualDimension = ([w1, h1]: Dimension, [w2, h2]: Dimension): boolean => {
+  return w1 === w2 && h1 === h2;
 };
 
 export const isEqualTransform = (transform1: Transform, transform2: Transform): boolean => {
@@ -76,12 +70,14 @@ export const isEqualTransform = (transform1: Transform, transform2: Transform): 
   );
 };
 
-export const getAutofitScale = (container: Dimension, image: Dimension): number => {
-  const { width, height } = image;
-  if (width <= 0 || height <= 0) {
+export const getAutofitScale = (
+  [containerWidth, containerHeight]: Dimension,
+  [imageWidth, imageHeight]: Dimension,
+): number => {
+  if (imageWidth <= 0 || imageHeight <= 0) {
     return 1;
   }
-  return Math.min(container.width / width, container.height / height, 1);
+  return Math.min(containerWidth / imageWidth, containerHeight / imageHeight, 1);
 };
 
 function round(number: number): number {
@@ -98,14 +94,14 @@ export const getImageOverflow = (
   top: number,
   left: number,
   scale: number,
-  image: Dimension,
-  container: Dimension,
+  [imageWidth, imageHeight]: Dimension,
+  [containerWidth, containerHeight]: Dimension,
 ): Overflow => {
   return [
     Math.max(-top, 0),
     Math.max(-left, 0),
-    calculateOverflow(left, scale, image.width, container.width),
-    calculateOverflow(top, scale, image.height, container.height),
+    calculateOverflow(left, scale, imageWidth, containerWidth),
+    calculateOverflow(top, scale, imageHeight, containerHeight),
   ];
 };
 
