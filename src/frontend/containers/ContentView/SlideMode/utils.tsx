@@ -3,6 +3,8 @@
  * MIT license, see LICENSE file
  */
 
+import { clamp } from 'src/frontend/utils';
+
 export type Dimension = [width: number, height: number];
 
 export type Vec2 = [x: number, y: number];
@@ -108,4 +110,16 @@ export const getImageOverflow = (
 function calculateOverflow(x: number, scale: number, image: number, container: number): number {
   const overflow = Math.max(0, scale * image - container);
   return overflow === 0 ? overflow + x : overflow;
+}
+
+// Returns constrained scale when requested scale is outside min/max with tolerance, otherwise returns requested scale
+export function getConstrainedScale(
+  requestedScale: number,
+  minScale: number,
+  maxScale: number,
+  tolerance: number,
+) {
+  const lowerBoundFactor = 1.0 - tolerance;
+  const upperBoundFactor = 1.0 + tolerance;
+  return clamp(requestedScale, minScale * lowerBoundFactor, maxScale * upperBoundFactor);
 }
