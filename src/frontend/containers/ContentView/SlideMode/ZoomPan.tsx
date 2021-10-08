@@ -4,7 +4,6 @@
  */
 
 import React from 'react';
-import { createSelector } from 'reselect';
 import { clamp } from 'src/frontend/utils';
 
 import {
@@ -276,15 +275,16 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
 
   //lifecycle methods
   render() {
-    const containerStyle = {
-      width: '100%',
-      height: '100%',
-      overflow: 'hidden',
-      touchAction: browserPanActions(this.state, this.props),
-    };
-
     return (
-      <div ref={this.containerRef} style={containerStyle}>
+      <div
+        ref={this.containerRef}
+        style={{
+          width: '100%',
+          height: '100%',
+          overflow: 'hidden',
+          touchAction: browserPanActions(this.state, this.props),
+        }}
+      >
         {React.cloneElement(this.props.children, {
           onPointerDown: this.handlePointerDown,
           onPointerMove: this.handlePointerMove,
@@ -471,35 +471,29 @@ function animateTransform(transform: Transform, speed: number, setState: Updater
   };
 }
 
-//// DERIVED STATE
+//// COMPUTED STATE
 
-const imageStyle = createSelector(
-  (state: ZoomPanState) => state.top,
-  (state: ZoomPanState) => state.left,
-  (state: ZoomPanState) => state.scale,
-  (top, left, scale) => ({
+function imageStyle({ top, left, scale }: ZoomPanState) {
+  return {
     cursor: 'pointer',
     transform: `translate3d(${left}px, ${top}px, 0) scale(${scale})`,
     transformOrigin: '0 0',
-  }),
-);
+  };
+}
 
-const imageOverflow = createSelector(
-  (state: ZoomPanState) => state.top,
-  (state: ZoomPanState) => state.left,
-  (state: ZoomPanState) => state.scale,
-  (_: ZoomPanState, props: ZoomPanProps) => props.imageDimension,
-  (_: ZoomPanState, props: ZoomPanProps) => props.containerDimension,
-  (top, left, scale, imageDimensions, containerDimensions) =>
-    getImageOverflow(top, left, scale, imageDimensions, containerDimensions),
-);
+function imageOverflow(
+  { top, left, scale }: ZoomPanState,
+  { imageDimension, containerDimension }: ZoomPanProps,
+) {
+  return getImageOverflow(top, left, scale, imageDimension, containerDimension);
+}
 
-const browserPanActions = createSelector(imageOverflow, (imageOverflow) => {
+function browserPanActions(state: Transform, props: ZoomPanProps) {
   //Determine the panning directions where there is no image overflow and let
   //the browser handle those directions (e.g., scroll viewport if possible).
   //Need to replace 'pan-left pan-right' with 'pan-x', etc. otherwise
   //it is rejected (o_O), therefore explicitly handle each combination.
-  const [top, left, right, bottom] = imageOverflow;
+  const [top, left, right, bottom] = imageOverflow(state, props);
   const hasOverflowX = left !== 0 && right !== 0;
   const hasOverflowY = top !== 0 && bottom !== 0;
   if (!hasOverflowX && !hasOverflowY) {
@@ -508,4 +502,4 @@ const browserPanActions = createSelector(imageOverflow, (imageOverflow) => {
   const panX = hasOverflowX ? 'pan-x' : left === 0 ? 'pan-left' : right === 0 ? 'pan-right' : '';
   const panY = hasOverflowY ? 'pan-y' : top === 0 ? 'pan-up' : bottom === 0 ? 'pan-down' : '';
   return [panX, panY].join(' ').trim();
-});
+}
