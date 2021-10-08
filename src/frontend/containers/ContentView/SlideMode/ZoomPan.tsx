@@ -467,19 +467,11 @@ const imageStyle = createSelector(
   (state: ZoomPanState) => state.top,
   (state: ZoomPanState) => state.left,
   (state: ZoomPanState) => state.scale,
-  (top, left, scale) => {
-    let transform;
-    let transformOrigin;
-    if (scale !== 0 || left !== 0 || top !== 0) {
-      transform = `translate3d(${left}px, ${top}px, 0) scale(${scale})`;
-      transformOrigin = '0 0';
-    }
-    return {
-      cursor: 'pointer',
-      transform,
-      transformOrigin,
-    };
-  },
+  (top, left, scale) => ({
+    cursor: 'pointer',
+    transform: `translate3d(${left}px, ${top}px, 0) scale(${scale})`,
+    transformOrigin: '0 0',
+  }),
 );
 
 const imageOverflow = createSelector(
