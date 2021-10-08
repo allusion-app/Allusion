@@ -8,21 +8,20 @@ import { createSelector } from 'reselect';
 import { clamp } from 'src/frontend/utils';
 
 import {
-  snapToTarget,
   getPinchLength,
   getPinchMidpoint,
   getRelativePosition,
   isEqualDimension,
   isEqualTransform,
   getAutofitScale,
-  tryCancelEvent,
+  tryPreventDefault,
   getImageOverflow,
   Dimension,
   Vec2,
   Transform,
   createTransform,
-  createVec2,
   getConstrainedScale,
+  ClientPosition,
 } from './utils';
 
 const OVERZOOM_TOLERANCE = 0.05;
@@ -51,11 +50,12 @@ export type ZoomPanState = Transform;
 //Ensure the image is not over-panned, and not over- or under-scaled.
 //These constraints must be checked when image changes, and when container is resized.
 export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState> {
-  lastPointerUpTimeStamp: number | undefined = undefined; //enables detecting double-tap
-  lastPanPointerPosition: Vec2 | undefined = undefined; //helps determine how far to pan the image
-  lastPinchLength: number | undefined; //helps determine if we are pinching in or out
+  lastPointerUpTimeStamp: number = 0; //enables detecting double-tap
+  lastPointerPosition: Vec2 | undefined = undefined; //helps determine how far to pan the image
+  lastPinchLength: number = 0; //helps determine if we are pinching in or out
   cancelAnimation: (() => void) | undefined = undefined;
   containerRef = React.createRef<HTMLDivElement>();
+  activePointers: { id: number; clientX: number; clientY: number }[] = [];
 
   constructor(props: ZoomPanProps) {
     super(props);
@@ -69,118 +69,114 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   }
 
   //event handlers
-  handleTouchStart = (event: TouchEvent) => {
+  handlePointerDown = (event: PointerEvent) => {
     this.stopAnimation();
 
-    const touches = event.touches;
-    if (touches.length === 2) {
-      this.lastPinchLength = getPinchLength([touches[0], touches[1]]);
-      this.lastPanPointerPosition = undefined;
-    } else if (touches.length === 1) {
-      this.lastPinchLength = undefined;
-      this.pointerDown(touches[0]);
-      tryCancelEvent(event); //suppress mouse events
+    const pointers = this.activePointers;
+    const currentPointer = event.pointerId;
+    const pointer = {
+      id: currentPointer,
+      clientX: event.clientX,
+      clientY: event.clientY,
+    };
+    const index = pointers.findIndex((p) => p.id === currentPointer);
+    if (index > -1) {
+      pointers[index] = pointer;
+    } else {
+      pointers.push(pointer);
+    }
+
+    if (pointers.length === 2) {
+      this.lastPinchLength = getPinchLength(
+        (pointers as unknown) as [ClientPosition, ClientPosition],
+      );
+      this.lastPointerPosition = undefined;
+    } else if (pointers.length === 1) {
+      this.lastPinchLength = 0;
+      this.lastPointerPosition = getRelativePosition(pointers[0], this.container);
+      if (event.pointerType === 'touch') {
+        tryPreventDefault(event); //suppress mouse events
+      }
     }
   };
 
-  handleTouchMove = (event: TouchEvent) => {
-    const touches = event.touches;
-    if (touches.length === 2) {
-      this.pinchChange([touches[0], touches[1]]);
-
-      //suppress viewport scaling on iOS
-      tryCancelEvent(event);
-    } else if (touches.length === 1) {
-      this.pan(touches[0]);
+  handlePointerMove = (event: PointerEvent) => {
+    const pointers = this.activePointers;
+    const currentPointer = event.pointerId;
+    const pointer = pointers.find((p) => p.id === currentPointer);
+    if (pointer !== undefined) {
+      pointer.clientX = event.clientX;
+      pointer.clientY = event.clientY;
+    }
+    if (pointers.length === 2) {
+      this.pinch((pointers as unknown) as [ClientPosition, ClientPosition]);
+      tryPreventDefault(event); //suppress viewport scaling on iOS
+    } else if (pointers.length === 1 && event.buttons) {
+      this.pan(pointers[0]);
     }
   };
 
-  handleTouchEnd = (event: TouchEvent) => {
-    this.stopAnimation();
-    if (event.touches.length === 0 && event.changedTouches.length === 1) {
-      if (
-        this.lastPointerUpTimeStamp &&
-        this.lastPointerUpTimeStamp + DOUBLE_TAP_THRESHOLD > event.timeStamp
-      ) {
-        const pointerPosition = getRelativePosition(event.changedTouches[0], this.container);
+  handlePointerUp = (event: PointerEvent) => {
+    const pointers = this.activePointers;
+
+    // Remove pointer from active pointers list
+    const currentPointer = event.pointerId;
+    const index = pointers.findIndex((p) => p.id === currentPointer);
+    // This can only ever happen, if a synthetic event was dispatched.
+    if (index === -1) {
+      return;
+    }
+    const removedPointer = pointers.splice(index, 1);
+
+    if (pointers.length === 0) {
+      // Check for double click/tap
+      if (this.lastPointerUpTimeStamp + DOUBLE_TAP_THRESHOLD > event.timeStamp) {
+        const pointerPosition = getRelativePosition(removedPointer[0], this.container);
         this.doubleClick(pointerPosition);
       }
       this.lastPointerUpTimeStamp = event.timeStamp;
-      tryCancelEvent(event); //suppress mouse events
+      tryPreventDefault(event); //suppress mouse events
     }
 
     //We allow transient +/-5% over-pinching.
     //Animate the bounce back to constraints if applicable.
-    const correctedTransform = getCorrectedTransform(this.props, this.state, 0);
-    if (correctedTransform !== undefined) {
-      this.startAnimation(animateTransform(correctedTransform, ANIMATION_SPEED, this.setState));
+    if (event.pointerType === 'touch') {
+      const correctedTransform = getCorrectedTransform(this.props, this.state, 0);
+      if (correctedTransform !== undefined) {
+        this.startAnimation(animateTransform(correctedTransform, ANIMATION_SPEED, this.setState));
+      }
     }
-  };
-
-  handleMouseDown = (event: MouseEvent) => {
-    this.stopAnimation();
-    this.pointerDown(event);
-  };
-
-  handleMouseMove = (event: MouseEvent) => {
-    if (!event.buttons) return null;
-    this.pan(event);
-  };
-
-  handleMouseDoubleClick = (event: MouseEvent) => {
-    this.stopAnimation();
-    const pointerPosition = getRelativePosition(event, this.container);
-    this.doubleClick(pointerPosition);
   };
 
   handleMouseWheel = (event: WheelEvent) => {
     this.stopAnimation();
+    const { scale } = this.state;
     const point = getRelativePosition(event, this.container);
     if (event.deltaY > 0) {
-      if (this.state.scale > this.props.minScale) {
+      if (scale > this.props.minScale) {
         this.zoomOut(point);
-        tryCancelEvent(event);
+        tryPreventDefault(event);
       }
     } else if (event.deltaY < 0) {
-      if (this.state.scale < this.props.maxScale) {
-        this.zoomIn(point, 0, 0.1);
-        tryCancelEvent(event);
+      if (scale < this.props.maxScale) {
+        const transform = getZoomedTransform(this.props, this.state, scale * 1.1, point, 0);
+        this.setState(transform);
+        tryPreventDefault(event);
       }
     }
-  };
-
-  handleZoomInClick = () => {
-    this.stopAnimation();
-    this.zoomIn(
-      createVec2(this.props.containerDimension[0] / 2, this.props.containerDimension[1] / 2),
-      0,
-      0.1,
-    );
-  };
-
-  handleZoomOutClick = () => {
-    this.stopAnimation();
-    this.zoomOut(
-      createVec2(this.props.containerDimension[0] / 2, this.props.containerDimension[1] / 2),
-    );
   };
 
   //actions
-  pointerDown(clientPosition: Touch | MouseEvent) {
-    this.lastPanPointerPosition = getRelativePosition(clientPosition, this.container);
-  }
-
-  pan(pointerClientPosition: MouseEvent | Touch): void {
-    if (this.lastPanPointerPosition === undefined) {
+  pan(clientPosition: ClientPosition): void {
+    const pointerPosition = getRelativePosition(clientPosition, this.container);
+    if (this.lastPointerPosition === undefined) {
       //if we were pinching and lifted a finger
-      this.pointerDown(pointerClientPosition);
+      this.lastPointerPosition = pointerPosition;
       return;
     }
-
-    const pointerPosition = getRelativePosition(pointerClientPosition, this.container);
-    const translateX = pointerPosition[0] - this.lastPanPointerPosition[0];
-    const translateY = pointerPosition[1] - this.lastPanPointerPosition[1];
-    this.lastPanPointerPosition = pointerPosition;
+    const translateX = pointerPosition[0] - this.lastPointerPosition[0];
+    const translateY = pointerPosition[1] - this.lastPointerPosition[1];
+    this.lastPointerPosition = pointerPosition;
 
     this.setState((state, props) => {
       const top = state.top + translateY;
@@ -195,77 +191,54 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   }
 
   doubleClick(pointerPosition: Vec2) {
-    const { doubleTapBehavior, onClose } = this.props;
+    const { doubleTapBehavior, onClose, containerDimension, imageDimension, maxScale } = this.props;
     if (doubleTapBehavior === 'close') {
       return onClose?.();
     }
-    if (
-      doubleTapBehavior === 'zoom' &&
-      this.state.scale * (1 + OVERZOOM_TOLERANCE) < this.props.maxScale
-    ) {
-      return this.zoomIn(pointerPosition, ANIMATION_SPEED, 1);
-    }
-    if (doubleTapBehavior === 'reset') {
-      this.startAnimation(resetTransform(this.props, this.setState));
-    }
-    if (doubleTapBehavior === 'zoomOrReset') {
-      const initialScale = getAutofitScale(
-        this.props.containerDimension,
-        this.props.imageDimension,
-      );
-      // If current scale is same as initial scale, zoom in, otherwise reset to initial zoom
-      if (Math.abs(this.state.scale - initialScale) < 0.01) {
-        this.zoomIn(pointerPosition, ANIMATION_SPEED, 1);
-      } else {
+
+    switch (doubleTapBehavior) {
+      case 'zoom':
+        if (this.state.scale * (1 + OVERZOOM_TOLERANCE) < maxScale) {
+          this.zoomIn(pointerPosition);
+        }
+        break;
+      case 'reset':
         this.startAnimation(resetTransform(this.props, this.setState));
-      }
+        break;
+      case 'zoomOrReset':
+        const initialScale = getAutofitScale(containerDimension, imageDimension);
+        // If current scale is same as initial scale, zoom in, otherwise reset to initial zoom
+        if (Math.abs(this.state.scale - initialScale) < 0.01) {
+          this.zoomIn(pointerPosition);
+        } else {
+          this.startAnimation(resetTransform(this.props, this.setState));
+        }
+        break;
+      default:
+        break;
     }
   }
 
-  pinchChange(touches: [Touch, Touch]) {
-    const length = getPinchLength(touches);
-    const midpoint = getPinchMidpoint(touches);
-    const scale = this.lastPinchLength
-      ? (this.state.scale * length) / this.lastPinchLength //sometimes we get a touchchange before a touchstart when pinching
-      : this.state.scale;
-
-    this.zoom(scale, midpoint, OVERZOOM_TOLERANCE, 0);
-
+  pinch(pointers: [ClientPosition, ClientPosition]) {
+    const length = getPinchLength(pointers);
+    const center = getPinchMidpoint(pointers);
+    const scale =
+      this.lastPinchLength > 0
+        ? (this.state.scale * length) / this.lastPinchLength //sometimes we get a touchchange before a touchstart when pinching
+        : this.state.scale;
     this.lastPinchLength = length;
+    const transform = getZoomedTransform(this.props, this.state, scale, center, OVERZOOM_TOLERANCE);
+    this.setState(transform);
   }
 
-  zoomIn(midpoint: Vec2, speed: number, factor: number) {
-    this.zoom(this.state.scale * (1 + factor), midpoint, 0, speed);
+  zoomIn(center: Vec2) {
+    const transform = getZoomedTransform(this.props, this.state, this.state.scale * 2, center, 0);
+    this.startAnimation(animateTransform(transform, ANIMATION_SPEED, this.setState));
   }
 
-  zoomOut(midpoint: Vec2) {
-    this.zoom(this.state.scale * 0.9, midpoint, 0, 0);
-  }
-
-  zoom(requestedScale: number, [px, py]: Vec2, tolerance: number, speed: number) {
-    const { scale, top, left } = this.state;
-    const { minScale, maxScale } = this.props;
-    const dx = px - left;
-    const dy = py - top;
-
-    const nextScale = getConstrainedScale(requestedScale, minScale, maxScale, tolerance);
-    const incrementalScalePercentage = (nextScale - scale) / scale;
-    const translateX = dx * incrementalScalePercentage;
-    const translateY = dy * incrementalScalePercentage;
-
-    const nextTop = top - translateY;
-    const nextLeft = left - translateX;
-    const requestedTransform = createTransform(nextTop, nextLeft, nextScale);
-
-    const transform =
-      this.props.transitionEnd !== undefined
-        ? requestedTransform
-        : getCorrectedTransform(this.props, requestedTransform, tolerance) ?? requestedTransform;
-    if (speed > 0) {
-      this.startAnimation(animateTransform(transform, speed, this.setState));
-    } else {
-      this.setState(transform);
-    }
+  zoomOut(center: Vec2) {
+    const transform = getZoomedTransform(this.props, this.state, this.state.scale * 0.9, center, 0);
+    this.setState(transform);
   }
 
   updateTransform(oldContainer: Dimension, oldImage: Dimension) {
@@ -279,9 +252,11 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     this.setState((state, props) => {
       if (imgDimensionChanged) {
         const transform = getTransform(props);
-        return props.transitionEnd !== undefined
-          ? transform
-          : getCorrectedTransform(props, transform, 0.5) ?? transform;
+        if (props.transitionEnd !== undefined) {
+          return transform;
+        } else {
+          return getCorrectedTransform(props, transform, 0.5) ?? transform;
+        }
       } else {
         // Keep image centered when container dimensions change (e.g. closing a side bar)
         const top = state.top - (oldContainer[1] - containerDimension[1]) / 2;
@@ -290,6 +265,13 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
         return getCorrectedTransform(props, transform, 0) ?? transform;
       }
     });
+  }
+
+  animateTransitionEnd(oldTransition: Transform | undefined) {
+    const { transitionEnd } = this.props;
+    if (transitionEnd !== undefined && oldTransition !== transitionEnd) {
+      this.startAnimation(animateTransform(transitionEnd, ANIMATION_SPEED / 2, this.setState));
+    }
   }
 
   //lifecycle methods
@@ -304,15 +286,11 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     return (
       <div ref={this.containerRef} style={containerStyle}>
         {React.cloneElement(this.props.children, {
-          onTouchStart: this.handleTouchStart,
-          onTouchMove: this.handleTouchMove,
-          onTouchEnd: this.handleTouchEnd,
-          onMouseDown: this.handleMouseDown,
-          onMouseMove: this.handleMouseMove,
-          onDoubleClick: this.handleMouseDoubleClick,
+          onPointerDown: this.handlePointerDown,
+          onPointerMove: this.handlePointerMove,
+          onPointerUp: this.handlePointerUp,
           onWheel: this.handleMouseWheel,
-          onDragStart: tryCancelEvent,
-          onContextMenu: tryCancelEvent,
+          onDragStart: tryPreventDefault,
           style: imageStyle(this.state),
         })}
       </div>
@@ -331,11 +309,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   componentDidUpdate(prevProps: Readonly<ZoomPanProps>) {
     this.updateTransform(prevProps.containerDimension, prevProps.imageDimension);
     // Trigger ending transition when transitionEnd prop is passed
-    if (this.props.transitionEnd !== undefined) {
-      this.startAnimation(
-        animateTransform(this.props.transitionEnd, ANIMATION_SPEED / 2, this.setState),
-      );
-    }
+    this.animateTransitionEnd(prevProps.transitionEnd);
   }
 
   componentWillUnmount() {
@@ -358,6 +332,8 @@ type Updater = (
     | ((state: Readonly<ZoomPanState>, props: Readonly<ZoomPanProps>) => ZoomPanState)
     | ZoomPanState,
 ) => void;
+
+//// ANIMATION
 
 function getTransform(props: Readonly<ZoomPanProps>): Transform {
   const { position, initialScale, minScale, maxScale, imageDimension, containerDimension } = props;
@@ -396,31 +372,63 @@ function getCorrectedTransform(
   //example: overflow[1] = 100, tolerance = 0.05 => top is constrained between -105 and +5
   const upperBoundFactor = 1.0 + tolerance;
 
-  const top = overflowHeight
-    ? clamp(
-        requestedTransform.top,
-        -overflowHeight * upperBoundFactor,
-        overflowHeight * upperBoundFactor - overflowHeight,
-      )
-    : position === 'center'
-    ? (containerDimension[1] - imageDimension[1] * scale) / 2
-    : 0;
+  const top =
+    overflowHeight > 0
+      ? clamp(
+          requestedTransform.top,
+          -overflowHeight * upperBoundFactor,
+          overflowHeight * upperBoundFactor - overflowHeight,
+        )
+      : position === 'center'
+      ? (containerDimension[1] - imageDimension[1] * scale) / 2
+      : 0;
 
-  const left = overflowWidth
-    ? clamp(
-        requestedTransform.left,
-        -overflowWidth * upperBoundFactor,
-        overflowWidth * upperBoundFactor - overflowWidth,
-      )
-    : position === 'center'
-    ? (containerDimension[0] - imageDimension[0] * scale) / 2
-    : 0;
+  const left =
+    overflowWidth > 0
+      ? clamp(
+          requestedTransform.left,
+          -overflowWidth * upperBoundFactor,
+          overflowWidth * upperBoundFactor - overflowWidth,
+        )
+      : position === 'center'
+      ? (containerDimension[0] - imageDimension[0] * scale) / 2
+      : 0;
 
   const constrainedTransform = createTransform(top, left, scale);
 
-  return isEqualTransform(constrainedTransform, requestedTransform)
-    ? undefined
-    : constrainedTransform;
+  if (isEqualTransform(constrainedTransform, requestedTransform)) {
+    return undefined;
+  } else {
+    return constrainedTransform;
+  }
+}
+
+function getZoomedTransform(
+  props: Readonly<ZoomPanProps>,
+  state: Readonly<ZoomPanState>,
+  requestedScale: number,
+  [px, py]: Vec2,
+  tolerance: number,
+) {
+  const { scale, top, left } = state;
+  const { minScale, maxScale, transitionEnd } = props;
+  const dx = px - left;
+  const dy = py - top;
+
+  const nextScale = getConstrainedScale(requestedScale, minScale, maxScale, tolerance);
+  const incrementalScalePercentage = (nextScale - scale) / scale;
+  const translateX = dx * incrementalScalePercentage;
+  const translateY = dy * incrementalScalePercentage;
+
+  const nextTop = top - translateY;
+  const nextLeft = left - translateX;
+  const transform = createTransform(nextTop, nextLeft, nextScale);
+
+  if (transitionEnd !== undefined) {
+    return transform;
+  } else {
+    return getCorrectedTransform(props, transform, tolerance) ?? transform;
+  }
 }
 
 function resetTransform(props: Readonly<ZoomPanProps>, setState: Updater) {
@@ -432,25 +440,25 @@ function resetTransform(props: Readonly<ZoomPanProps>, setState: Updater) {
   return animateTransform(transform, ANIMATION_SPEED, setState);
 }
 
-function animateTransform({ top, left, scale }: Transform, speed: number, setState: Updater) {
+function animateTransform(transform: Transform, speed: number, setState: Updater) {
   let animationHandle: number | undefined = undefined;
   const frame = () => {
     setState((state) => {
-      const translateY = top - state.top;
-      const translateX = left - state.left;
-      const translateScale = scale - state.scale;
+      const translateY = transform.top - state.top;
+      const translateX = transform.left - state.left;
+      const translateScale = transform.scale - state.scale;
       const nextTransform = createTransform(
-        snapToTarget(state.top + speed * translateY, top, 1),
-        snapToTarget(state.left + speed * translateX, left, 1),
-        snapToTarget(state.scale + speed * translateScale, scale, 0.001),
+        state.top + speed * translateY,
+        state.left + speed * translateX,
+        state.scale + speed * translateScale,
       );
       //animation runs until we reach the target
-      if (animationHandle !== undefined && !isEqualTransform(nextTransform, state)) {
+      if (animationHandle !== undefined && !isEqualTransform(nextTransform, transform)) {
         animationHandle = requestAnimationFrame(frame);
         return nextTransform;
       }
       animationHandle = undefined;
-      return nextTransform;
+      return transform;
     });
   };
   animationHandle = requestAnimationFrame(frame);
@@ -462,6 +470,8 @@ function animateTransform({ top, left, scale }: Transform, speed: number, setSta
     }
   };
 }
+
+//// DERIVED STATE
 
 const imageStyle = createSelector(
   (state: ZoomPanState) => state.top,

@@ -17,7 +17,7 @@ export interface Transform {
 
 export type Overflow = [top: number, left: number, right: number, bottom: number];
 
-interface ClientPosition {
+export interface ClientPosition {
   clientX: number;
   clientY: number;
 }
@@ -37,11 +37,6 @@ export function createVec2(x: number, y: number): Vec2 {
 export function createTransform(top: number, left: number, scale: number): Transform {
   return { top, left, scale };
 }
-
-export const snapToTarget = (value: number, target: number, tolerance: number): number => {
-  const withinRange = Math.abs(target - value) < tolerance;
-  return withinRange ? target : value;
-};
 
 export const getRelativePosition = (
   { clientX, clientY }: ClientPosition,
@@ -66,11 +61,15 @@ export const isEqualDimension = ([w1, h1]: Dimension, [w2, h2]: Dimension): bool
 
 export const isEqualTransform = (transform1: Transform, transform2: Transform): boolean => {
   return (
-    round(transform1.top) === round(transform2.top) &&
-    round(transform1.left) === round(transform2.left) &&
-    round(transform1.scale) === round(transform2.scale)
+    isClose(transform1.top, transform2.top, 0.05) &&
+    isClose(transform1.left, transform2.left, 0.05) &&
+    isClose(transform1.scale, transform2.scale, 0.0005)
   );
 };
+
+function isClose(a: number, b: number, tolerance: number) {
+  return Math.abs(a - b) < tolerance;
+}
 
 export const getAutofitScale = (
   [containerWidth, containerHeight]: Dimension,
@@ -82,11 +81,7 @@ export const getAutofitScale = (
   return Math.min(containerWidth / imageWidth, containerHeight / imageHeight, 1);
 };
 
-function round(number: number): number {
-  return Number.parseFloat(number.toPrecision(5));
-}
-
-export const tryCancelEvent = (event: Event) => {
+export const tryPreventDefault = (event: Event) => {
   if (event.cancelable) {
     event.preventDefault();
   }
