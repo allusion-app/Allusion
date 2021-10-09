@@ -20,7 +20,7 @@ import {
   Transform,
   createTransform,
   getConstrainedScale,
-  ClientPosition,
+  createVec2,
 } from './utils';
 
 const OVERZOOM_TOLERANCE = 0.05;
@@ -54,7 +54,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   lastPinchLength: number = 0; //helps determine if we are pinching in or out
   cancelAnimation: (() => void) | undefined = undefined;
   containerRef = React.createRef<HTMLDivElement>();
-  activePointers: { id: number; clientX: number; clientY: number }[] = [];
+  activePointers: { id: number; pos: Vec2 }[] = [];
 
   constructor(props: ZoomPanProps) {
     super(props);
@@ -72,13 +72,9 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     this.stopAnimation();
 
     const pointers = this.activePointers;
-    const currentPointer = event.pointerId;
-    const pointer = {
-      id: currentPointer,
-      clientX: event.clientX,
-      clientY: event.clientY,
-    };
-    const index = pointers.findIndex((p) => p.id === currentPointer);
+    const id = event.pointerId;
+    const pointer = { id, pos: createVec2(event.clientX, event.clientY) };
+    const index = pointers.findIndex((p) => p.id === id);
     if (index > -1) {
       pointers[index] = pointer;
     } else {
@@ -86,13 +82,11 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     }
 
     if (pointers.length === 2) {
-      this.lastPinchLength = getPinchLength(
-        (pointers as unknown) as [ClientPosition, ClientPosition],
-      );
+      this.lastPinchLength = getPinchLength(pointers[0].pos, pointers[1].pos);
       this.lastPointerPosition = undefined;
     } else if (pointers.length === 1) {
       this.lastPinchLength = 0;
-      this.lastPointerPosition = getRelativePosition(pointers[0], this.container);
+      this.lastPointerPosition = getRelativePosition(pointers[0].pos, this.container);
       if (event.pointerType === 'touch') {
         tryPreventDefault(event); //suppress mouse events
       }
@@ -101,17 +95,16 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
 
   handlePointerMove = (event: PointerEvent) => {
     const pointers = this.activePointers;
-    const currentPointer = event.pointerId;
-    const pointer = pointers.find((p) => p.id === currentPointer);
+    const id = event.pointerId;
+    const pointer = pointers.find((p) => p.id === id);
     if (pointer !== undefined) {
-      pointer.clientX = event.clientX;
-      pointer.clientY = event.clientY;
+      pointer.pos = createVec2(event.clientX, event.clientY);
     }
     if (pointers.length === 2) {
-      this.pinch((pointers as unknown) as [ClientPosition, ClientPosition]);
+      this.pinch(pointers[0].pos, pointers[1].pos);
       tryPreventDefault(event); //suppress viewport scaling on iOS
     } else if (pointers.length === 1 && event.buttons) {
-      this.pan(pointers[0]);
+      this.pan(pointers[0].pos);
     }
   };
 
@@ -119,8 +112,8 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     const pointers = this.activePointers;
 
     // Remove pointer from active pointers list
-    const currentPointer = event.pointerId;
-    const index = pointers.findIndex((p) => p.id === currentPointer);
+    const id = event.pointerId;
+    const index = pointers.findIndex((p) => p.id === id);
     // This can only ever happen, if a synthetic event was dispatched.
     if (index === -1) {
       return;
@@ -130,7 +123,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     if (pointers.length === 0) {
       // Check for double click/tap
       if (this.lastPointerUpTimeStamp + DOUBLE_TAP_THRESHOLD > event.timeStamp) {
-        const pointerPosition = getRelativePosition(removedPointer[0], this.container);
+        const pointerPosition = getRelativePosition(removedPointer[0].pos, this.container);
         this.doubleClick(pointerPosition);
       }
       this.lastPointerUpTimeStamp = event.timeStamp;
@@ -150,7 +143,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   handleMouseWheel = (event: WheelEvent) => {
     this.stopAnimation();
     const { scale } = this.state;
-    const point = getRelativePosition(event, this.container);
+    const point = getRelativePosition(createVec2(event.clientX, event.clientY), this.container);
     if (event.deltaY > 0) {
       if (scale > this.props.minScale) {
         this.zoomOut(point);
@@ -166,51 +159,51 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   };
 
   //actions
-  pan(clientPosition: ClientPosition): void {
-    const pointerPosition = getRelativePosition(clientPosition, this.container);
+  pan(position: Vec2): void {
+    const relativePosition = getRelativePosition(position, this.container);
     if (this.lastPointerPosition === undefined) {
       //if we were pinching and lifted a finger
-      this.lastPointerPosition = pointerPosition;
+      this.lastPointerPosition = relativePosition;
       return;
     }
-    const translateX = pointerPosition[0] - this.lastPointerPosition[0];
-    const translateY = pointerPosition[1] - this.lastPointerPosition[1];
-    this.lastPointerPosition = pointerPosition;
+    const translateX = relativePosition[0] - this.lastPointerPosition[0];
+    const translateY = relativePosition[1] - this.lastPointerPosition[1];
+    this.lastPointerPosition = relativePosition;
 
     this.setState((state, props) => {
       const top = state.top + translateY;
       const left = state.left + translateX;
-      const requestedTransform = createTransform(top, left, state.scale);
+      const transform = createTransform(top, left, state.scale);
       if (props.transitionEnd !== undefined) {
-        return requestedTransform;
+        return transform;
       } else {
-        return getCorrectedTransform(props, requestedTransform, 0) ?? requestedTransform;
+        return getCorrectedTransform(props, transform, 0) ?? transform;
       }
     });
   }
 
-  doubleClick(pointerPosition: Vec2) {
-    const { doubleTapBehavior, onClose, containerDimension, imageDimension, maxScale } = this.props;
-    if (doubleTapBehavior === 'close') {
-      return onClose?.();
-    }
+  doubleClick(position: Vec2) {
+    const props = this.props;
+    switch (props.doubleTapBehavior) {
+      case 'close':
+        props.onClose?.();
+        break;
 
-    switch (doubleTapBehavior) {
       case 'zoom':
-        if (this.state.scale * (1 + OVERZOOM_TOLERANCE) < maxScale) {
-          this.zoomIn(pointerPosition);
+        if (this.state.scale * (1 + OVERZOOM_TOLERANCE) < props.maxScale) {
+          this.zoomIn(position);
         }
         break;
       case 'reset':
-        this.startAnimation(resetTransform(this.props, this.setState));
+        this.startAnimation(resetTransform(props, this.setState));
         break;
       case 'zoomOrReset':
-        const initialScale = getAutofitScale(containerDimension, imageDimension);
+        const initialScale = getAutofitScale(props.containerDimension, props.imageDimension);
         // If current scale is same as initial scale, zoom in, otherwise reset to initial zoom
         if (Math.abs(this.state.scale - initialScale) < 0.01) {
-          this.zoomIn(pointerPosition);
+          this.zoomIn(position);
         } else {
-          this.startAnimation(resetTransform(this.props, this.setState));
+          this.startAnimation(resetTransform(props, this.setState));
         }
         break;
       default:
@@ -218,9 +211,9 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     }
   }
 
-  pinch(pointers: [ClientPosition, ClientPosition]) {
-    const length = getPinchLength(pointers);
-    const center = getPinchMidpoint(pointers);
+  pinch(position1: Vec2, position2: Vec2) {
+    const length = getPinchLength(position1, position2);
+    const center = getPinchMidpoint(position1, position2);
     const scale =
       this.lastPinchLength > 0
         ? (this.state.scale * length) / this.lastPinchLength //sometimes we get a touchchange before a touchstart when pinching

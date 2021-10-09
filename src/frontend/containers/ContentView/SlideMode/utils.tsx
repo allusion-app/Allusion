@@ -17,11 +17,6 @@ export interface Transform {
 
 export type Overflow = [top: number, left: number, right: number, bottom: number];
 
-export interface ClientPosition {
-  clientX: number;
-  clientY: number;
-}
-
 // Constructor functions are there to prevent creating new object shapes. This
 // happens when property order or types are changed. Which means performance
 // will suffer in one way or another.
@@ -38,20 +33,17 @@ export function createTransform(top: number, left: number, scale: number): Trans
   return { top, left, scale };
 }
 
-export const getRelativePosition = (
-  { clientX, clientY }: ClientPosition,
-  relativeToElement: Element,
-): Vec2 => {
+export const getRelativePosition = ([x, y]: Vec2, relativeToElement: Element): Vec2 => {
   const rect = relativeToElement.getBoundingClientRect();
-  return createVec2(clientX - rect.left, clientY - rect.top);
+  return createVec2(x - rect.left, y - rect.top);
 };
 
-export const getPinchMidpoint = ([pos1, pos2]: [ClientPosition, ClientPosition]): Vec2 =>
-  createVec2((pos1.clientX + pos2.clientX) / 2, (pos1.clientY + pos2.clientY) / 2);
+export const getPinchMidpoint = ([p1x, p1y]: Vec2, [p2x, p2y]: Vec2): Vec2 =>
+  createVec2((p1x + p2x) / 2, (p1y + p2y) / 2);
 
-export const getPinchLength = ([pos1, pos2]: [ClientPosition, ClientPosition]): number => {
-  const dx = pos1.clientY - pos2.clientY;
-  const dy = pos1.clientX - pos2.clientX;
+export const getPinchLength = ([p1x, p1y]: Vec2, [p2x, p2y]: Vec2): number => {
+  const dx = p1x - p2x;
+  const dy = p1y - p2y;
   return Math.sqrt(dx * dx + dy * dy);
 };
 
