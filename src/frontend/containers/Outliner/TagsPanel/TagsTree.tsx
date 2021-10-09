@@ -14,7 +14,7 @@ import UiStore from 'src/frontend/stores/UiStore';
 import { formatTagCountText } from 'src/frontend/utils';
 import { IconSet, Tree } from 'widgets';
 import { ContextMenu, Toolbar, ToolbarButton } from 'widgets/menus';
-import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem } from 'widgets/Tree';
+import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem, TreeLabel } from 'widgets/Tree';
 import { IExpansionState } from '../../types';
 import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
 import TreeItemRevealer from '../TreeItemRevealer';
@@ -373,13 +373,15 @@ interface ITreeData {
   select: (event: React.MouseEvent, nodeData: ClientTag) => void;
 }
 
-const TagItemLabel = (
-  nodeData: ClientTag,
-  treeData: ITreeData,
-  _level: number,
-  _size: number,
-  pos: number,
-) => (
+const TagItemLabel: TreeLabel = ({
+  nodeData,
+  treeData,
+  pos,
+}: {
+  nodeData: ClientTag;
+  treeData: ITreeData;
+  pos: number;
+}) => (
   <TagItem
     showContextMenu={treeData.showContextMenu}
     nodeData={nodeData}

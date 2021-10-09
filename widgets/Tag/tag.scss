@@ -12,6 +12,11 @@
   white-space: nowrap;
   overflow: hidden;
 
+  .label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   button {
     min-height: 1em;
     min-width: 1em;

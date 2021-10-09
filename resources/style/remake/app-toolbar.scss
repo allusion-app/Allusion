@@ -34,6 +34,16 @@
   .italic {
     font-style: italic;
   }
+
+  // Overflow for many search terms: vertical scroll, no horizontal overflow
+  > .input {
+    overflow: hidden auto;
+
+    .input-wrapper {
+      overflow: hidden visible;
+    }
+  }
+
 }
 
 .deletion-confirmation-list {

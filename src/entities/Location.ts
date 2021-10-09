@@ -49,6 +49,8 @@ export class ClientSubLocation implements ISubLocation {
           ),
       ),
     );
+
+    makeObservable(this);
   }
 
   @action.bound
@@ -163,7 +165,9 @@ export class ClientLocation implements ISerializable<ILocation> {
       // Maybe move to separate collection? that won't work cleanly after tag removal
       // Looking at it realistically, this will be used for directories that contain animation frames, junk, timelapses, etc.
       // in which case it should be fine to just get rid of it all
-      if (this.isInitialized) return this.store.removeSublocationFiles(subLocation);
+      if (this.isInitialized) {
+        await this.store.removeSublocationFiles(subLocation);
+      }
     } else {
       // If included, re-scan for files in that path
       // - first, update cache

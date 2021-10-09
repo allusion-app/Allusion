@@ -28,13 +28,15 @@ const Tag = (props: TagProps) => {
 
   return (
     <span
-      className={`tag ${className}`}
+      className={`tag ${className || ''}`}
       data-tooltip={tooltip}
       onClick={onClick}
       style={style}
       onContextMenu={props.onContextMenu}
     >
-      {text}
+      <span className="label" title={text}>
+        {text}
+      </span>
       {onRemove ? (
         <IconButton
           icon={IconSet.CLOSE}
