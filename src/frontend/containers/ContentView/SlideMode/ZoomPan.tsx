@@ -69,6 +69,9 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
 
   //event handlers
   handlePointerDown = (event: PointerEvent) => {
+    // Only apply panning to left mouse button
+    if (event.button !== 0) return;
+
     this.stopAnimation();
 
     const pointers = this.activePointers;
