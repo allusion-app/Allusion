@@ -36,7 +36,7 @@ import { ClientTag } from 'src/entities/Tag';
 import { IconButton, IconSet, Tag, Row } from 'widgets';
 
 import { TagSelector } from 'src/frontend/components/TagSelector';
-import { useAction } from 'src/frontend/hooks/useAction';
+import { useAction } from 'src/frontend/hooks/mobx';
 
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore } = useStore();

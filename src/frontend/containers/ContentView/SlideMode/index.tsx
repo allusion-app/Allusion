@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { useAction } from 'src/frontend/hooks/useAction';
+import { useAction } from 'src/frontend/hooks/mobx';
 import useMountState from 'src/frontend/hooks/useMountState';
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';

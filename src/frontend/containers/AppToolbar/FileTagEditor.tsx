@@ -13,7 +13,7 @@ import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 import { TagOption } from 'src/frontend/components/TagSelector';
 import FocusManager from 'src/frontend/FocusManager';
-import { useAction } from 'src/frontend/hooks/useAction';
+import { useAction } from 'src/frontend/hooks/mobx';
 import { debounce } from 'src/frontend/utils';
 import { Grid, Tag } from 'widgets';
 import { Row, RowSeparator, useGridFocus } from 'widgets/Combobox/Grid';
