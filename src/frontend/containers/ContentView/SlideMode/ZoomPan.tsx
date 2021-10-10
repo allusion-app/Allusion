@@ -69,9 +69,10 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
 
   //event handlers
   handlePointerDown = (event: PointerEvent) => {
-    // Only apply panning to left mouse button
-    if (event.button !== 0) return;
-
+    // Only apply panning and pinching to left mouse button/touch or pen contact
+    if (event.button !== 0) {
+      return;
+    }
     this.stopAnimation();
 
     const pointers = this.activePointers;
@@ -97,6 +98,10 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   };
 
   handlePointerMove = (event: PointerEvent) => {
+    // Only apply panning and pinching to left mouse button/touch or pen contact
+    if (event.buttons !== 1 || event.button > 0) {
+      return;
+    }
     const pointers = this.activePointers;
     const id = event.pointerId;
     const pointer = pointers.find((p) => p.id === id);
@@ -106,7 +111,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     if (pointers.length === 2) {
       this.pinch(pointers[0].pos, pointers[1].pos);
       tryPreventDefault(event); //suppress viewport scaling on iOS
-    } else if (pointers.length === 1 && event.buttons) {
+    } else if (pointers.length === 1) {
       this.pan(pointers[0].pos);
     }
   };
@@ -117,7 +122,6 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     // Remove pointer from active pointers list
     const id = event.pointerId;
     const index = pointers.findIndex((p) => p.id === id);
-    // This can only ever happen, if a synthetic event was dispatched.
     if (index === -1) {
       return;
     }
@@ -287,6 +291,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
           onPointerUp: this.handlePointerUp,
           onWheel: this.handleMouseWheel,
           onDragStart: tryPreventDefault,
+          onContextMenu: tryPreventDefault,
           style: imageStyle(this.state),
         })}
       </div>
