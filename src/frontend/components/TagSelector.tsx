@@ -121,7 +121,9 @@ const TagSelector = (props: TagSelectorProps) => {
         target={
           <div className="multiautocomplete-input">
             <div className="input-wrapper">
-              <SelectedTags selection={selection} onDeselect={onDeselect} onTagClick={onTagClick} />
+              {selection.map((t) => (
+                <SelectedTag key={t.id} tag={t} onDeselect={onDeselect} onTagClick={onTagClick} />
+              ))}
               <input
                 disabled={disabled}
                 type="text"
@@ -156,27 +158,21 @@ const TagSelector = (props: TagSelectorProps) => {
 
 export { TagSelector };
 
-interface SelectedTagsProps {
-  selection: readonly ClientTag[];
+interface SelectedTagProps {
+  tag: ClientTag;
   onDeselect: (item: ClientTag) => void;
   onTagClick?: (item: ClientTag) => void;
 }
 
-const SelectedTags = observer((props: SelectedTagsProps) => {
-  const { selection, onDeselect, onTagClick } = props;
-
+const SelectedTag = observer((props: SelectedTagProps) => {
+  const { tag, onDeselect, onTagClick } = props;
   return (
-    <>
-      {selection.map((t, i) => (
-        <Tag
-          key={`${t.id}-${i}`}
-          text={t.name}
-          color={t.viewColor}
-          onRemove={() => onDeselect(t)}
-          onClick={onTagClick ? () => onTagClick(t) : undefined}
-        />
-      ))}
-    </>
+    <Tag
+      text={tag.name}
+      color={tag.viewColor}
+      onRemove={() => onDeselect(tag)}
+      onClick={onTagClick !== undefined ? () => onTagClick(tag) : undefined}
+    />
   );
 });
 
