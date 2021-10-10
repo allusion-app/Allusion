@@ -3,190 +3,110 @@
  * MIT license, see LICENSE file
  */
 
-import { createSelector } from 'reselect';
-import { IPinchZoomPanProps, IPinchZoomPanState } from './ZoomPan';
+import { clamp } from 'src/frontend/utils';
 
-export interface IDimensions {
-  width: number;
-  height: number;
-}
+export type Dimension = [width: number, height: number];
 
-export interface IVec2 {
-  x: number;
-  y: number;
-}
+export type Vec2 = [x: number, y: number];
 
-export interface ITransform {
+export interface Transform {
   top: number;
   left: number;
   scale: number;
 }
 
-export const snapToTarget = (value: number, target: number, tolerance: number) => {
-  const withinRange = Math.abs(target - value) < tolerance;
-  return withinRange ? target : value;
-};
+export type Overflow = [top: number, left: number, right: number, bottom: number];
 
-export const constrain = (lowerBound: number, upperBound: number, value: number) =>
-  Math.min(upperBound, Math.max(lowerBound, value));
+// Constructor functions are there to prevent creating new object shapes. This
+// happens when property order or types are changed. Which means performance
+// will suffer in one way or another.
 
-export const negate = (value: number) => value * -1;
-
-export const getRelativePosition = (
-  { clientX, clientY }: MouseEvent | Touch,
-  relativeToElement: { getBoundingClientRect: () => any },
-) => {
-  const rect = relativeToElement.getBoundingClientRect();
-  return {
-    x: clientX - rect.left,
-    y: clientY - rect.top,
-  };
-};
-
-export const getPinchMidpoint = ([touch1, touch2]: any) => ({
-  x: (touch1.clientX + touch2.clientX) / 2,
-  y: (touch1.clientY + touch2.clientY) / 2,
-});
-
-export const getPinchLength = ([touch1, touch2]: any) =>
-  Math.sqrt(
-    Math.pow(touch1.clientY - touch2.clientY, 2) + Math.pow(touch1.clientX - touch2.clientX, 2),
-  );
-
-export function setRef(ref: any, value: any) {
-  if (typeof ref === 'function') {
-    ref(value);
-  } else if (ref) {
-    ref.current = value;
-  }
+export function createDimension(width: number, height: number): Dimension {
+  return [width, height];
 }
 
-export const isEqualDimensions = (dimensions1?: IDimensions, dimensions2?: IDimensions) => {
-  if ((dimensions1 === dimensions2) === undefined) {
-    return true;
-  }
-  if (dimensions1 === undefined || dimensions2 === undefined) {
-    return false;
-  }
-  return dimensions1.width === dimensions2.width && dimensions1.height === dimensions2.height;
+export function createVec2(x: number, y: number): Vec2 {
+  return [x, y];
+}
+
+export function createTransform(top: number, left: number, scale: number): Transform {
+  return { top, left, scale };
+}
+
+export const getRelativePosition = ([x, y]: Vec2, relativeToElement: Element): Vec2 => {
+  const rect = relativeToElement.getBoundingClientRect();
+  return createVec2(x - rect.left, y - rect.top);
 };
 
-export const getDimensions = (object: any): IDimensions | undefined => {
-  if (object === undefined) {
-    return undefined;
-  }
-  return {
-    width: object.offsetWidth || object.width,
-    height: object.offsetHeight || object.height,
-  };
+export const getPinchMidpoint = ([p1x, p1y]: Vec2, [p2x, p2y]: Vec2): Vec2 =>
+  createVec2((p1x + p2x) / 2, (p1y + p2y) / 2);
+
+export const getPinchLength = ([p1x, p1y]: Vec2, [p2x, p2y]: Vec2): number => {
+  const dx = p1x - p2x;
+  const dy = p1y - p2y;
+  return Math.sqrt(dx * dx + dy * dy);
 };
 
-export const getContainerDimensions = (image: any) => {
-  return {
-    width: image.parentNode.offsetWidth,
-    height: image.parentNode.offsetHeight,
-  };
+export const isEqualDimension = ([w1, h1]: Dimension, [w2, h2]: Dimension): boolean => {
+  return w1 === w2 && h1 === h2;
 };
 
-export const isEqualTransform = (transform1: ITransform, transform2: ITransform) => {
-  if ((transform1 === transform2) === undefined) {
-    return true;
-  }
-  if (transform1 === undefined || transform2 === undefined) {
-    return false;
-  }
+export const isEqualTransform = (transform1: Transform, transform2: Transform): boolean => {
   return (
-    round(transform1.top, 5) === round(transform2.top, 5) &&
-    round(transform1.left, 5) === round(transform2.left, 5) &&
-    round(transform1.scale, 5) === round(transform2.scale, 5)
+    isClose(transform1.top, transform2.top, 0.05) &&
+    isClose(transform1.left, transform2.left, 0.05) &&
+    isClose(transform1.scale, transform2.scale, 0.0005)
   );
 };
 
-export const getAutofitScale = (containerDimensions: IDimensions, imageDimensions: IDimensions) => {
-  const { width: imageWidth, height: imageHeight } = imageDimensions || {};
-  if (!(imageWidth > 0 && imageHeight > 0)) {
+function isClose(a: number, b: number, tolerance: number) {
+  return Math.abs(a - b) < tolerance;
+}
+
+export const getAutofitScale = (
+  [containerWidth, containerHeight]: Dimension,
+  [imageWidth, imageHeight]: Dimension,
+): number => {
+  if (imageWidth <= 0 || imageHeight <= 0) {
     return 1;
   }
-  return Math.min(
-    containerDimensions.width / imageWidth,
-    containerDimensions.height / imageHeight,
-    1,
-  );
+  return Math.min(containerWidth / imageWidth, containerHeight / imageHeight, 1);
 };
 
-export const getMinScale = createSelector(
-  (state: IPinchZoomPanState) => state.containerDimensions,
-  (state: IPinchZoomPanState) => state.imageDimensions,
-  (state: IPinchZoomPanState, props: IPinchZoomPanProps) => props.minScale,
-  (containerDimensions, imageDimensions, minScaleProp) =>
-    String(minScaleProp).toLowerCase() === 'auto'
-      ? getAutofitScale(containerDimensions, imageDimensions)
-      : minScaleProp || 1,
-);
-
-function round(number: number, precision?: number) {
-  if (precision && number !== null && number !== undefined) {
-    // Shift with exponential notation to avoid floating-point issues.
-    // See [MDN](https://mdn.io/round#Examples) for more details.
-    let pair = (String(number) + 'e').split('e');
-    const value = Math.round(Number(`${pair[0]}e${+pair[1] + precision}`));
-
-    pair = (String(value) + 'e').split('e');
-    return +(pair[0] + 'e' + (+pair[1] - precision));
+export const tryPreventDefault = (event: Event) => {
+  if (event.cancelable) {
+    event.preventDefault();
   }
-  return Math.round(number);
-}
-
-export const tryCancelEvent = (event: Event) => {
-  if (event.cancelable === false) {
-    return false;
-  }
-
-  event.preventDefault();
-  return true;
 };
-
-function calculateOverflowLeft(left: number) {
-  const overflow = negate(left);
-  return overflow > 0 ? overflow : 0;
-}
-
-function calculateOverflowTop(top: number) {
-  const overflow = negate(top);
-  return overflow > 0 ? overflow : 0;
-}
-
-function calculateOverflowRight(
-  left: number,
-  scale: number,
-  imageDimensions: IDimensions,
-  containerDimensions: IDimensions,
-) {
-  const overflow = Math.max(0, scale * imageDimensions.width - containerDimensions.width);
-  return overflow > 0 ? overflow - negate(left) : 0;
-}
-
-function calculateOverflowBottom(
-  top: number,
-  scale: number,
-  imageDimensions: IDimensions,
-  containerDimensions: IDimensions,
-) {
-  const overflow = Math.max(0, scale * imageDimensions.height - containerDimensions.height);
-  return overflow > 0 ? overflow - negate(top) : 0;
-}
 
 export const getImageOverflow = (
   top: number,
   left: number,
   scale: number,
-  imageDimensions: IDimensions,
-  containerDimensions: IDimensions,
-) => {
-  return {
-    top: calculateOverflowTop(top),
-    right: calculateOverflowRight(left, scale, imageDimensions, containerDimensions),
-    bottom: calculateOverflowBottom(top, scale, imageDimensions, containerDimensions),
-    left: calculateOverflowLeft(left),
-  };
+  [imageWidth, imageHeight]: Dimension,
+  [containerWidth, containerHeight]: Dimension,
+): Overflow => {
+  return [
+    Math.max(-top, 0),
+    Math.max(-left, 0),
+    calculateOverflow(left, scale, imageWidth, containerWidth),
+    calculateOverflow(top, scale, imageHeight, containerHeight),
+  ];
 };
+
+function calculateOverflow(x: number, scale: number, image: number, container: number): number {
+  const overflow = Math.max(0, scale * image - container);
+  return overflow === 0 ? overflow + x : overflow;
+}
+
+// Returns constrained scale when requested scale is outside min/max with tolerance, otherwise returns requested scale
+export function getConstrainedScale(
+  requestedScale: number,
+  minScale: number,
+  maxScale: number,
+  tolerance: number,
+) {
+  const lowerBoundFactor = 1.0 - tolerance;
+  const upperBoundFactor = 1.0 + tolerance;
+  return clamp(requestedScale, minScale * lowerBoundFactor, maxScale * upperBoundFactor);
+}
