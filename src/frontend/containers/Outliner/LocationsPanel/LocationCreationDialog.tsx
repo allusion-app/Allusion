@@ -1,7 +1,7 @@
-import { autorun } from 'mobx';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { useStore } from 'src/frontend/contexts/StoreContext';
+import { useAutorun } from 'src/frontend/hooks/mobx';
 import { Button } from 'widgets';
 import { Checkbox } from 'widgets/Checkbox';
 import { IconSet } from 'widgets/Icons';
@@ -105,21 +105,17 @@ const SubLocationInclusionTree = ({ location }: { location: ClientLocation }) =>
   );
   const [branches, setBranches] = useState<ITreeItem[]>([]);
 
-  useEffect(
-    () =>
-      autorun(() =>
-        setBranches([
-          {
-            id: location.id,
-            label: LocationLabel,
-            children: location.subLocations.map(mapDirectory),
-            nodeData: location,
-            isExpanded,
-          },
-        ]),
-      ),
-    [location],
-  );
+  useAutorun(() => {
+    setBranches([
+      {
+        id: location.id,
+        label: LocationLabel,
+        children: location.subLocations.map(mapDirectory),
+        nodeData: location,
+        isExpanded,
+      },
+    ]);
+  });
 
   return (
     <Tree
@@ -155,13 +151,11 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
     onClose();
   }, [location, onClose]);
 
-  useEffect(() => {
-    return autorun(() => {
-      if (location.subLocations.length === 0 && !location.isInitialized) {
-        location.refreshSublocations().then(() => setSublocationsLoaded(true));
-      }
-    });
-  }, [location]);
+  useAutorun(() => {
+    if (location.subLocations.length === 0 && !location.isInitialized) {
+      location.refreshSublocations().then(() => setSublocationsLoaded(true));
+    }
+  });
 
   return (
     <Dialog

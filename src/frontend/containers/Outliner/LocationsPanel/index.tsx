@@ -1,5 +1,5 @@
 import { shell } from 'electron';
-import { action, autorun, runInAction } from 'mobx';
+import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -12,6 +12,7 @@ import { AppToaster } from 'src/frontend/components/Toaster';
 import DropContext from 'src/frontend/contexts/DropContext';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
+import { useAutorun } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import LocationStore from 'src/frontend/stores/LocationStore';
 import { RendererMessenger } from 'src/Messaging';
@@ -39,31 +40,30 @@ export class LocationTreeItemRevealer extends TreeItemRevealer {
   ) {
     super.initializeExpansion(setExpansion);
     this.locationStore = locationStore;
+    this.revealSubLocation = action(this.revealSubLocation.bind(this));
   }
 
   revealSubLocation(locationId: string, absolutePath: string) {
-    runInAction(() => {
-      // For every sublocation on its path to the relativePath, expand it, and then scrollTo + focus the item
-      const location = this.locationStore?.locationList.find((l) => l.id === locationId);
-      if (!location) {
-        return;
-      }
+    // For every sublocation on its path to the relativePath, expand it, and then scrollTo + focus the item
+    const location = this.locationStore?.locationList.find((l) => l.id === locationId);
+    if (!location) {
+      return;
+    }
 
-      const getSubLocationsToFile = (
-        loc: ClientSubLocation | ClientLocation,
-      ): ClientSubLocation[] => {
-        const match = loc.subLocations.find((child) =>
-          absolutePath.startsWith(`${child.path}${SysPath.sep}`),
-        );
-        if (loc instanceof ClientLocation) return match ? getSubLocationsToFile(match) : [];
-        return match ? [loc, ...getSubLocationsToFile(match)] : [loc];
-      };
+    const getSubLocationsToFile = (
+      loc: ClientSubLocation | ClientLocation,
+    ): ClientSubLocation[] => {
+      const match = loc.subLocations.find((child) =>
+        absolutePath.startsWith(`${child.path}${SysPath.sep}`),
+      );
+      if (loc instanceof ClientLocation) return match ? getSubLocationsToFile(match) : [];
+      return match ? [loc, ...getSubLocationsToFile(match)] : [loc];
+    };
 
-      const subLocationsToExpand = getSubLocationsToFile(location);
+    const subLocationsToExpand = getSubLocationsToFile(location);
 
-      // Location's dataId is its ID, subLocation's dataId's are their paths
-      this.revealTreeItem([location.id, ...subLocationsToExpand.map((l) => l.path)]);
-    });
+    // Location's dataId is its ID, subLocation's dataId's are their paths
+    this.revealTreeItem([location.id, ...subLocationsToExpand.map((l) => l.path)]);
   }
 }
 
@@ -499,21 +499,18 @@ const LocationsTree = ({ onDelete, onExclude, showContextMenu }: ILocationTreePr
     [uiStore],
   );
 
-  useEffect(() => {
-    autorun(() => {
-      setBranches(
-        locationStore.locationList.map((location) => ({
-          id: location.id,
-          label: LocationLabel,
-          children: location.subLocations.map(mapDirectory),
-          nodeData: location,
-          isExpanded,
-        })),
-      );
-    });
-
-    // TODO: re-run when location (sub)-folder updates: add "lastUpdated" field to location, update when location watcher notices changes?
-  }, [locationStore.locationList]);
+  useAutorun(() => {
+    setBranches(
+      locationStore.locationList.map((location) => ({
+        id: location.id,
+        label: LocationLabel,
+        children: location.subLocations.map(mapDirectory),
+        nodeData: location,
+        isExpanded,
+      })),
+    );
+  });
+  // TODO: re-run when location (sub)-folder updates: add "lastUpdated" field to location, update when location watcher notices changes?
 
   useEffect(() => LocationTreeItemRevealer.instance.initialize(setExpansion, locationStore), [
     locationStore,

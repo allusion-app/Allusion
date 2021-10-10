@@ -1,4 +1,4 @@
-import { autorun, computed, IComputedValue, runInAction } from 'mobx';
+import { computed, IComputedValue, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, {
   ForwardedRef,
@@ -13,7 +13,7 @@ import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 import { TagOption } from 'src/frontend/components/TagSelector';
 import FocusManager from 'src/frontend/FocusManager';
-import { useAction } from 'src/frontend/hooks/mobx';
+import { useAction, useAutorun, useComputed } from 'src/frontend/hooks/mobx';
 import { debounce } from 'src/frontend/utils';
 import { Grid, Tag } from 'widgets';
 import { Row, RowSeparator, useGridFocus } from 'widgets/Combobox/Grid';
@@ -48,29 +48,25 @@ const TagEditor = () => {
   const { uiStore } = useStore();
   const [inputText, setInputText] = useState('');
 
-  const counter = useRef(
-    computed(() => {
-      // Count how often tags are used
-      const counter = new Map<ClientTag, number>();
-      for (const file of uiStore.fileSelection) {
-        for (const tag of file.tags) {
-          const count = counter.get(tag);
-          counter.set(tag, count !== undefined ? count + 1 : 1);
-        }
+  const counter = useComputed(() => {
+    // Count how often tags are used
+    const counter = new Map<ClientTag, number>();
+    for (const file of uiStore.fileSelection) {
+      for (const tag of file.tags) {
+        const count = counter.get(tag);
+        counter.set(tag, count !== undefined ? count + 1 : 1);
       }
-      return counter;
-    }),
-  ).current;
+    }
+    return counter;
+  });
 
   const inputRef = useRef<HTMLInputElement>(null);
   // Autofocus
-  useEffect(() => {
-    return autorun(() => {
-      if (uiStore.isToolbarTagPopoverOpen) {
-        requestAnimationFrame(() => requestAnimationFrame(() => inputRef.current?.focus()));
-      }
-    });
-  }, [uiStore]);
+  useAutorun(() => {
+    if (uiStore.isToolbarTagPopoverOpen) {
+      requestAnimationFrame(() => requestAnimationFrame(() => inputRef.current?.focus()));
+    }
+  });
 
   const handleInput = useRef((e: React.ChangeEvent<HTMLInputElement>) =>
     setInputText(e.target.value),

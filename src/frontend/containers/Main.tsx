@@ -1,13 +1,14 @@
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
-import { action, observable, runInAction } from 'mobx';
+import { action, observable } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Split } from 'widgets/Split';
 import { useStore } from '../contexts/StoreContext';
 import TagDnDProvider, { DnDAttribute } from '../contexts/TagDnDContext';
 import AppToolbar from './AppToolbar';
 import ContentView from './ContentView';
 import Outliner from './Outliner';
+import { useAction } from '../hooks/mobx';
 
 const Main = () => {
   const { uiStore } = useStore();
@@ -37,27 +38,23 @@ const Main = () => {
     };
   }, []);
 
-  const handleShortcuts = useCallback(
-    (e: React.KeyboardEvent) => {
-      if ((e.target as HTMLElement).matches?.('input')) return;
-      const combo = getKeyCombo(e.nativeEvent);
-      const matches = (c: string): boolean => {
-        return comboMatches(combo, parseKeyCombo(c));
-      };
-      runInAction(() => {
-        const { hotkeyMap } = uiStore;
-        if (matches(hotkeyMap.selectAll)) {
-          uiStore.selectAllFiles();
-        } else if (matches(hotkeyMap.deselectAll)) {
-          uiStore.clearFileSelection();
-        } else if (matches(hotkeyMap.openTagEditor)) {
-          e.preventDefault();
-          uiStore.openToolbarTagPopover();
-        }
-      });
-    },
-    [uiStore],
-  );
+  const handleShortcuts = useAction((e: React.KeyboardEvent) => {
+    if ((e.target as HTMLElement).matches?.('input')) return;
+    const combo = getKeyCombo(e.nativeEvent);
+    const matches = (c: string): boolean => {
+      return comboMatches(combo, parseKeyCombo(c));
+    };
+
+    const { hotkeyMap } = uiStore;
+    if (matches(hotkeyMap.selectAll)) {
+      uiStore.selectAllFiles();
+    } else if (matches(hotkeyMap.deselectAll)) {
+      uiStore.clearFileSelection();
+    } else if (matches(hotkeyMap.openTagEditor)) {
+      e.preventDefault();
+      uiStore.openToolbarTagPopover();
+    }
+  });
 
   return (
     <TagDnDProvider value={data.current}>

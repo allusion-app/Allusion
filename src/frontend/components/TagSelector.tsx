@@ -7,6 +7,7 @@ import { RowProps, useGridFocus } from 'widgets/Combobox/Grid';
 import { Flyout } from 'widgets/popovers';
 import { generateWidgetId } from 'widgets/utility';
 import { useStore } from '../contexts/StoreContext';
+import { useComputed } from '../hooks/mobx';
 
 export interface TagSelectorProps {
   selection: ClientTag[];
@@ -238,13 +239,11 @@ interface TagOptionProps {
 }
 
 export const TagOption = observer(({ id, tag, selected, toggleSelection }: TagOptionProps) => {
-  const [path, hint] = useRef(
-    computed(() => {
-      const path = tag.treePath.map((t) => t.name).join(' › ');
-      const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
-      return [path, hint];
-    }),
-  ).current.get();
+  const [path, hint] = useComputed(() => {
+    const path = tag.treePath.map((t) => t.name).join(' › ');
+    const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
+    return [path, hint];
+  }).get();
 
   return (
     <Row

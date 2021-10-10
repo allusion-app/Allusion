@@ -1,4 +1,4 @@
-import { runInAction } from 'mobx';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
@@ -8,6 +8,7 @@ import { TagRemoval } from 'src/frontend/components/RemovalAlert';
 import { TagMerge } from 'src/frontend/containers/Outliner/TagsPanel/TagMerge';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDAttribute, DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
+import { useAction } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import TagStore from 'src/frontend/stores/TagStore';
 import UiStore from 'src/frontend/stores/UiStore';
@@ -25,6 +26,7 @@ export class TagsTreeItemRevealer extends TreeItemRevealer {
   public static readonly instance: TagsTreeItemRevealer = new TagsTreeItemRevealer();
   private constructor() {
     super();
+    this.revealTag = action(this.revealTag.bind(this));
   }
 
   initialize(setExpansion: React.Dispatch<React.SetStateAction<IExpansionState>>) {
@@ -32,10 +34,8 @@ export class TagsTreeItemRevealer extends TreeItemRevealer {
   }
 
   revealTag(tag: ClientTag) {
-    runInAction(() => {
-      const tagsToExpand = tag.treePath;
-      this.revealTreeItem([ROOT_TAG_ID, ...tagsToExpand.map((t) => t.id)]);
-    });
+    const tagsToExpand = tag.treePath;
+    this.revealTreeItem([ROOT_TAG_ID, ...tagsToExpand.map((t) => t.id)]);
   }
 }
 
@@ -222,7 +222,7 @@ const TagItem = observer((props: ITagItemProps) => {
         }
       });
     },
-    [dndData.source, expandDelayed, expandTimeoutId, expansion, nodeData],
+    [dndData, expandDelayed, expandTimeoutId, expansion, nodeData],
   );
 
   const handleDragLeave = useCallback(
@@ -240,7 +240,7 @@ const TagItem = observer((props: ITagItemProps) => {
         }
       }
     },
-    [dndData.source, expandTimeoutId],
+    [dndData, expandTimeoutId],
   );
 
   const handleDrop = useCallback(
@@ -277,7 +277,7 @@ const TagItem = observer((props: ITagItemProps) => {
         setExpandTimeoutId(undefined);
       }
     },
-    [dndData.source, expandTimeoutId, nodeData, pos, uiStore],
+    [dndData, expandTimeoutId, nodeData, pos, uiStore],
   );
 
   const handleSelect = useCallback(
@@ -313,7 +313,7 @@ const TagItem = observer((props: ITagItemProps) => {
         }
       });
     },
-    [nodeData.id, nodeData.isSearched, nodeData.name, tagStore, uiStore],
+    [nodeData, tagStore, uiStore],
   );
 
   const handleRename = useCallback(() => dispatch(Factory.enableEditing(nodeData.id)), [
@@ -480,15 +480,12 @@ const TagsTree = observer(() => {
   const dndData = useTagDnD();
 
   /** Header and Footer drop zones of the root node */
-  const handleDragOverAndLeave = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      if (runInAction(() => dndData.source !== undefined)) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-    },
-    [dndData],
-  );
+  const handleDragOverAndLeave = useAction((event: React.DragEvent<HTMLDivElement>) => {
+    if (dndData.source !== undefined) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  });
 
   const submit = useRef((target: EventTarget & HTMLInputElement) => {
     target.focus();
@@ -501,50 +498,47 @@ const TagsTree = observer(() => {
   /** The last item that is selected in a multi-selection */
   const lastSelectionIndex = useRef<number>();
   // Handles selection via click event
-  const select = useCallback(
-    (e: React.MouseEvent, selectedTag: ClientTag) => {
-      // Note: selection logic is copied from Gallery.tsx
-      const rangeSelection = e.shiftKey;
-      const expandSelection = e.ctrlKey || e.metaKey;
+  const select = useAction((e: React.MouseEvent, selectedTag: ClientTag) => {
+    // Note: selection logic is copied from Gallery.tsx
+    const rangeSelection = e.shiftKey;
+    const expandSelection = e.ctrlKey || e.metaKey;
 
-      /** The index of the active (newly selected) item */
-      const i = tagStore.findFlatTagListIndex(selectedTag);
+    /** The index of the active (newly selected) item */
+    const i = tagStore.findFlatTagListIndex(selectedTag);
 
-      // If nothing is selected, initialize the selection range and select that single item
-      if (lastSelectionIndex.current === undefined) {
-        initialSelectionIndex.current = i;
-        lastSelectionIndex.current = i;
-        uiStore.toggleTagSelection(selectedTag);
+    // If nothing is selected, initialize the selection range and select that single item
+    if (lastSelectionIndex.current === undefined) {
+      initialSelectionIndex.current = i;
+      lastSelectionIndex.current = i;
+      uiStore.toggleTagSelection(selectedTag);
+      return;
+    }
+
+    // Mark this index as the last item that was selected
+    lastSelectionIndex.current = i;
+
+    if (rangeSelection && initialSelectionIndex.current !== undefined) {
+      if (i === undefined) {
         return;
       }
-
-      // Mark this index as the last item that was selected
-      lastSelectionIndex.current = i;
-
-      if (rangeSelection && initialSelectionIndex.current !== undefined) {
-        if (i === undefined) {
-          return;
-        }
-        if (i < initialSelectionIndex.current) {
-          uiStore.selectTagRange(i, initialSelectionIndex.current, expandSelection);
-        } else {
-          uiStore.selectTagRange(initialSelectionIndex.current, i, expandSelection);
-        }
-      } else if (expandSelection) {
-        uiStore.toggleTagSelection(selectedTag);
-        initialSelectionIndex.current = i;
+      if (i < initialSelectionIndex.current) {
+        uiStore.selectTagRange(i, initialSelectionIndex.current, expandSelection);
       } else {
-        if (selectedTag.isSelected && uiStore.tagSelection.size === 1) {
-          uiStore.clearTagSelection();
-          (document.activeElement as HTMLElement)?.blur?.();
-        } else {
-          uiStore.selectTag(selectedTag, true);
-        }
-        initialSelectionIndex.current = i;
+        uiStore.selectTagRange(initialSelectionIndex.current, i, expandSelection);
       }
-    },
-    [tagStore, uiStore],
-  );
+    } else if (expandSelection) {
+      uiStore.toggleTagSelection(selectedTag);
+      initialSelectionIndex.current = i;
+    } else {
+      if (selectedTag.isSelected && uiStore.tagSelection.size === 1) {
+        uiStore.clearTagSelection();
+        (document.activeElement as HTMLElement)?.blur?.();
+      } else {
+        uiStore.selectTag(selectedTag, true);
+      }
+      initialSelectionIndex.current = i;
+    }
+  });
 
   const treeData: ITreeData = useMemo(
     () => ({
@@ -559,26 +553,23 @@ const TagsTree = observer(() => {
 
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const handleRootAddTag = useCallback(
-    () =>
-      tagStore
-        .create(root, 'New Tag')
-        .then((tag) => dispatch(Factory.enableEditing(tag.id)))
-        .catch((err) => console.log('Could not create tag', err)),
-    [root, tagStore],
+  const handleRootAddTag = useAction(() =>
+    tagStore
+      .create(tagStore.root, 'New Tag')
+      .then((tag) => dispatch(Factory.enableEditing(tag.id)))
+      .catch((err) => console.log('Could not create tag', err)),
   );
 
-  const handleDrop = useCallback(() => {
-    runInAction(() => {
-      if (dndData.source?.isSelected) {
-        uiStore.moveSelectedTagItems(ROOT_TAG_ID);
-      } else if (dndData.source !== undefined) {
-        root.insertSubTag(dndData.source, root.subTags.length);
-      }
-    });
-  }, [dndData, root, uiStore]);
+  const handleDrop = useAction(() => {
+    if (dndData.source?.isSelected) {
+      uiStore.moveSelectedTagItems(ROOT_TAG_ID);
+    } else if (dndData.source !== undefined) {
+      const { root } = tagStore;
+      root.insertSubTag(dndData.source, root.subTags.length);
+    }
+  });
 
-  const handleBranchOnKeyDown = useCallback(
+  const handleBranchOnKeyDown = useAction(
     (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
       createBranchOnKeyDown(
         event,
@@ -589,10 +580,9 @@ const TagsTree = observer(() => {
         toggleExpansion,
         customKeys.bind(null, uiStore, tagStore),
       ),
-    [tagStore, uiStore],
   );
 
-  const handleLeafOnKeyDown = useCallback(
+  const handleLeafOnKeyDown = useAction(
     (event: React.KeyboardEvent<HTMLLIElement>, nodeData: ClientTag, treeData: ITreeData) =>
       createLeafOnKeyDown(
         event,
@@ -601,19 +591,15 @@ const TagsTree = observer(() => {
         toggleSelection.bind(null, uiStore),
         customKeys.bind(null, uiStore, tagStore),
       ),
-    [tagStore, uiStore],
   );
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        uiStore.clearTagSelection();
-        (document.activeElement as HTMLElement)?.blur?.();
-        e.stopPropagation();
-      }
-    },
-    [uiStore],
-  );
+  const handleKeyDown = useAction((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      uiStore.clearTagSelection();
+      (document.activeElement as HTMLElement)?.blur?.();
+      e.stopPropagation();
+    }
+  });
 
   return (
     <div onKeyDown={handleKeyDown}>

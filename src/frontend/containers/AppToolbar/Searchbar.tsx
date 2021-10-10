@@ -1,5 +1,4 @@
 import React, { useRef } from 'react';
-import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -36,25 +35,23 @@ import { ClientTag } from 'src/entities/Tag';
 import { IconButton, IconSet, Tag, Row } from 'widgets';
 
 import { TagSelector } from 'src/frontend/components/TagSelector';
-import { useAction } from 'src/frontend/hooks/mobx';
+import { useAction, useComputed } from 'src/frontend/hooks/mobx';
 
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore } = useStore();
 
-  const selection = useRef(
-    computed(() => {
-      const selectedItems: ClientTag[] = [];
-      uiStore.searchCriteriaList.forEach((c) => {
-        if (c instanceof ClientTagSearchCriteria && c.value.length === 1) {
-          const item = tagStore.get(c.value[0]);
-          if (item) {
-            selectedItems.push(item);
-          }
+  const selection = useComputed(() => {
+    const selectedItems: ClientTag[] = [];
+    uiStore.searchCriteriaList.forEach((c) => {
+      if (c instanceof ClientTagSearchCriteria && c.value.length === 1) {
+        const item = tagStore.get(c.value[0]);
+        if (item) {
+          selectedItems.push(item);
         }
-      });
-      return selectedItems;
-    }),
-  ).current;
+      }
+    });
+    return selectedItems;
+  });
 
   const handleSelect = useAction((item: Readonly<ClientTag>) =>
     uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', item.id, item.name)),

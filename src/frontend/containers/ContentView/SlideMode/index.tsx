@@ -1,10 +1,10 @@
 import { shell } from 'electron';
-import { autorun, reaction } from 'mobx';
+import { reaction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { useAction } from 'src/frontend/hooks/mobx';
+import { useAction, useAutorun } from 'src/frontend/hooks/mobx';
 import useMountState from 'src/frontend/hooks/useMountState';
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
@@ -104,26 +104,24 @@ const SlideView = observer((props: SlideViewProps) => {
   }, [decrImgIndex, incrImgIndex, uiStore]);
 
   // Preload next and previous image for better UX
-  useEffect(() => {
-    return autorun(() => {
-      if (uiStore.firstItem + 1 < fileStore.fileList.length) {
-        const nextImg = new Image();
-        const nextFile = fileStore.fileList[uiStore.firstItem + 1];
-        fileStore.imageLoader
-          .getImageSrc(nextFile)
-          .then((src) => (nextImg.src = encodeFilePath(src || nextFile.absolutePath)))
-          .catch(() => (nextImg.src = encodeFilePath(nextFile.absolutePath)));
-      }
-      if (uiStore.firstItem >= 1) {
-        const prevImg = new Image();
-        const prevFile = fileStore.fileList[uiStore.firstItem - 1];
-        fileStore.imageLoader
-          .getImageSrc(prevFile)
-          .then((src) => (prevImg.src = encodeFilePath(src || prevFile.absolutePath)))
-          .catch(() => (prevImg.src = encodeFilePath(prevFile.absolutePath)));
-      }
-    });
-  }, [fileStore, uiStore]);
+  useAutorun(() => () => {
+    if (uiStore.firstItem + 1 < fileStore.fileList.length) {
+      const nextImg = new Image();
+      const nextFile = fileStore.fileList[uiStore.firstItem + 1];
+      fileStore.imageLoader
+        .getImageSrc(nextFile)
+        .then((src) => (nextImg.src = encodeFilePath(src || nextFile.absolutePath)))
+        .catch(() => (nextImg.src = encodeFilePath(nextFile.absolutePath)));
+    }
+    if (uiStore.firstItem >= 1) {
+      const prevImg = new Image();
+      const prevFile = fileStore.fileList[uiStore.firstItem - 1];
+      fileStore.imageLoader
+        .getImageSrc(prevFile)
+        .then((src) => (prevImg.src = encodeFilePath(src || prevFile.absolutePath)))
+        .catch(() => (prevImg.src = encodeFilePath(prevFile.absolutePath)));
+    }
+  });
 
   const transitionStart: SlideTransform | undefined = useMemo(() => {
     const thumbEl = document.querySelector(`[data-file-id="${file.id}"]`);
