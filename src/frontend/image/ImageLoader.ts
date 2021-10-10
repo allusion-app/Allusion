@@ -99,7 +99,7 @@ class ImageLoader {
     return false;
   }
 
-  async getImageSrc(file: ClientFile) {
+  async getImageSrc(file: ClientFile): Promise<string | undefined> {
     const handlerType = FormatHandlers[file.extension];
     switch (handlerType) {
       case 'web':
@@ -115,10 +115,10 @@ class ImageLoader {
         return src;
       case 'extractEmbeddedThumbnailOnly':
         // TODO: krita has full image also embedded (mergedimage.png)
-        return null;
+        return undefined;
       default:
         console.warn('Unsupported extension', file.absolutePath, file.extension);
-        return null;
+        return undefined;
     }
   }
 

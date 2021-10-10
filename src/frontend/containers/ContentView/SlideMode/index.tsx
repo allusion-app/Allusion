@@ -2,10 +2,10 @@ import { shell } from 'electron';
 import { reaction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { useAction, useAutorun } from 'src/frontend/hooks/mobx';
-import useMountState from 'src/frontend/hooks/useMountState';
+import { useAction, useAutorun, useComputed } from 'src/frontend/hooks/mobx';
+import { Poll, Result, usePromise } from 'src/frontend/hooks/usePromise';
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
 import { encodeFilePath } from 'src/frontend/utils';
@@ -14,7 +14,7 @@ import Inspector from '../../Inspector';
 import { CommandDispatcher } from '../Commands';
 import { ContentRect } from '../LayoutSwitcher';
 import ZoomPan, { SlideTransform } from '../SlideMode/ZoomPan';
-import { createDimension, createTransform } from './utils';
+import { createDimension, createTransform, Vec2 } from './utils';
 
 const SlideMode = observer(({ contentRect }: { contentRect: ContentRect }) => {
   const { uiStore, fileStore } = useStore();
@@ -54,9 +54,10 @@ interface SlideViewProps {
 
 const SlideView = observer((props: SlideViewProps) => {
   const { uiStore, fileStore, width, height } = props;
-  const file = fileStore.fileList[uiStore.firstItem];
-
+  const file = useComputed(() => fileStore.fileList[uiStore.firstItem]).get();
   const eventManager = useMemo(() => new CommandDispatcher(file), [file]);
+  const isFirst = useComputed(() => uiStore.firstItem === 0);
+  const isLast = useComputed(() => uiStore.firstItem === fileStore.fileList.length - 1);
 
   // Go to the first selected image on load
   useEffect(() => {
@@ -79,7 +80,7 @@ const SlideView = observer((props: SlideViewProps) => {
     const popStateHandler = uiStore.disableSlideMode;
     window.addEventListener('popstate', popStateHandler);
     return () => window.removeEventListener('popstate', popStateHandler);
-  }, [uiStore.disableSlideMode]);
+  }, [uiStore]);
 
   const decrImgIndex = useAction(() => uiStore.setFirstItem(Math.max(0, uiStore.firstItem - 1)));
   const incrImgIndex = useAction(() =>
@@ -104,8 +105,8 @@ const SlideView = observer((props: SlideViewProps) => {
   }, [decrImgIndex, incrImgIndex, uiStore]);
 
   // Preload next and previous image for better UX
-  useAutorun(() => () => {
-    if (uiStore.firstItem + 1 < fileStore.fileList.length) {
+  useAutorun(() => {
+    if (!isLast.get()) {
       const nextImg = new Image();
       const nextFile = fileStore.fileList[uiStore.firstItem + 1];
       fileStore.imageLoader
@@ -113,7 +114,7 @@ const SlideView = observer((props: SlideViewProps) => {
         .then((src) => (nextImg.src = encodeFilePath(src || nextFile.absolutePath)))
         .catch(() => (nextImg.src = encodeFilePath(nextFile.absolutePath)));
     }
-    if (uiStore.firstItem >= 1) {
+    if (!isFirst.get()) {
       const prevImg = new Image();
       const prevFile = fileStore.fileList[uiStore.firstItem - 1];
       fileStore.imageLoader
@@ -129,6 +130,7 @@ const SlideView = observer((props: SlideViewProps) => {
     if (thumbEl && container) {
       const thumbElRect = thumbEl.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
+      console.log(containerRect, width, height);
       return createTransform(
         thumbElRect.left - containerRect.left,
         thumbElRect.top - containerRect.top,
@@ -141,33 +143,17 @@ const SlideView = observer((props: SlideViewProps) => {
 
   // Image src can be set asynchronously: keep track of it in a state
   // Needed for image formats not natively supported by the browser (e.g. tiff): will be converted to another format
-  const fileRef = useRef(file);
-  const [, isMountedRef] = useMountState();
-  const [imageSrc, setImageSrc] = useState(file.absolutePath);
-  const [srcLoading, setSrcLoading] = useState(false);
-  useEffect(() => {
-    setSrcLoading(true);
-    fileRef.current = file;
-    setImageSrc(file.absolutePath);
-    fileStore.imageLoader
-      .getImageSrc(file)
-      .then((src) => {
-        // check if same file is still open when src is returned
-        if (fileRef.current === file && isMountedRef.current) {
-          setSrcLoading(false);
-          if (src) {
-            setImageSrc(src);
-          }
-        }
-      })
-      .catch(() => setSrcLoading(false));
-  }, [file, fileStore.imageLoader, isMountedRef]);
+  const source: Poll<Result<string, any>> = usePromise(
+    file,
+    file.thumbnailPath,
+    (file, thumbnailPath) =>
+      fileStore.imageLoader.getImageSrc(file).then((src) => src ?? thumbnailPath),
+  );
 
   return (
     <ZoomableImage
       absolutePath={file.absolutePath}
-      src={imageSrc}
-      srcLoading={srcLoading}
+      source={source}
       thumbnailSrc={file.thumbnailPath}
       width={width}
       height={height}
@@ -175,8 +161,8 @@ const SlideView = observer((props: SlideViewProps) => {
       imgHeight={file.height}
       transitionStart={transitionStart}
       transitionEnd={uiStore.isSlideMode ? undefined : transitionStart}
-      prevImage={uiStore.firstItem >= 1 ? decrImgIndex : undefined}
-      nextImage={uiStore.firstItem + 1 < fileStore.fileList.length ? incrImgIndex : undefined}
+      prevImage={!isFirst.get() ? decrImgIndex : undefined}
+      nextImage={!isLast.get() ? incrImgIndex : undefined}
       eventManager={eventManager}
       onClose={uiStore.disableSlideMode}
     />
@@ -185,8 +171,7 @@ const SlideView = observer((props: SlideViewProps) => {
 
 interface ZoomableImageProps {
   absolutePath: string;
-  src: string;
-  srcLoading: boolean;
+  source: Poll<Result<string, any>>;
   thumbnailSrc?: string;
   width: number;
   height: number;
@@ -202,8 +187,7 @@ interface ZoomableImageProps {
 
 const ZoomableImage: React.FC<ZoomableImageProps> = ({
   absolutePath,
-  src,
-  srcLoading,
+  source,
   thumbnailSrc,
   width,
   height,
@@ -216,66 +200,49 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
   eventManager,
   onClose,
 }: ZoomableImageProps) => {
-  const [loadError, setLoadError] = useState<any>();
-
-  // in order to coordinate image dimensions at the time of loading, store current img src + dimensions together
-  const [currentImage, setCurrentImage] = useState({
-    src: thumbnailSrc || src,
-    dimension: createDimension(imgWidth, imgHeight),
-  });
-
-  useEffect(() => {
-    // First load the thumbnail, for responsiveness
-    setCurrentImage((i) => ({ ...i, src: thumbnailSrc || src }));
-
-    // Try to load the full image, so we can show a fallback component when the image fails to load
-    const srcRef = src;
-    setLoadError(undefined);
-
-    const img = new Image();
-
-    img.onload = function (this: any) {
-      if (srcRef === src) {
-        console.log(this.naturalWidth);
-        setCurrentImage((i) => ({
-          // When the currentImage was the thumbnail of the image we just loaded, set the currentImage to the full image
-          src: i.src === thumbnailSrc ? src : i.src,
-          // In case the image width and height was changed at runtime
-          dimension: createDimension(this.naturalWidth, this.naturalHeight),
-        }));
+  const image: Poll<Result<{ src: string; dimension: Vec2 }, any>> = usePromise(
+    source,
+    thumbnailSrc,
+    absolutePath,
+    imgWidth,
+    imgHeight,
+    (imageSource, thumbnailSrc, absolutePath, imgWidth, imgHeight) => {
+      switch (imageSource.tag) {
+        case 'pending':
+          return Promise.resolve({
+            src: thumbnailSrc || absolutePath,
+            dimension: createDimension(imgWidth, imgHeight),
+          });
+        case 'ready':
+          switch (imageSource.value.tag) {
+            case 'ok':
+              const src = imageSource.value.value;
+              return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = function (this: any) {
+                  resolve({
+                    src,
+                    dimension: createDimension(this.naturalWidth, this.naturalHeight),
+                  });
+                };
+                img.onerror = reject;
+                img.src = encodeFilePath(src);
+              });
+            case 'err':
+              return Promise.reject();
+          }
+        default:
+          throw new Error('Unreachable!');
       }
-    };
+    },
+  );
 
-    img.onerror = (e: any) => {
-      if (srcRef === src) {
-        setLoadError(e);
-      }
-    };
-
-    img.src = encodeFilePath(src);
-  }, [src, thumbnailSrc]);
-
-  const { dimension } = currentImage;
-  const minScale = Math.min(0.1, Math.min(width / dimension[0], height / dimension[1]));
-
-  return (
-    <div
-      id="zoomable-image"
-      style={{ width, height }}
-      onContextMenu={eventManager.showSlideContextMenu}
-      onDrop={eventManager.drop}
-      tabIndex={-1}
-    >
-      {loadError ? (
-        <ImageFallback
-          width={width}
-          height={height}
-          absolutePath={absolutePath}
-          thumbnailPath={thumbnailSrc}
-          loading={srcLoading}
-        />
-      ) : (
-        // {/* Based on https://github.com/bradstiff/react-responsive-pinch-zoom-pan */}
+  let content;
+  if (image.tag === 'ready') {
+    if (image.value.tag === 'ok') {
+      const { src, dimension } = image.value.value;
+      const minScale = Math.min(0.1, Math.min(width / dimension[0], height / dimension[1]));
+      content = (
         <ZoomPan
           position="center"
           initialScale="auto"
@@ -288,15 +255,55 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
           transitionEnd={transitionEnd}
           onClose={onClose}
         >
-          <img
-            src={encodeFilePath(currentImage.src)}
-            width={dimension[0]}
-            height={dimension[1]}
-            alt=""
-            onError={setLoadError}
-          />
+          <img src={encodeFilePath(src)} width={dimension[0]} height={dimension[1]} alt="" />
         </ZoomPan>
-      )}
+      );
+    } else if (image.value.tag === 'err') {
+      content = <ImageFallback absolutePath={absolutePath} thumbnailPath={thumbnailSrc} />;
+    }
+  }
+
+  return (
+    <ZoomPanContainer
+      width={width}
+      height={height}
+      prevImage={prevImage}
+      nextImage={nextImage}
+      eventManager={eventManager}
+    >
+      {content}
+    </ZoomPanContainer>
+  );
+};
+
+export default SlideMode;
+
+interface ZoomPanContainerProps {
+  width: number;
+  height: number;
+  prevImage?: () => void;
+  nextImage?: () => void;
+  eventManager: CommandDispatcher;
+  children: React.ReactNode;
+}
+
+const ZoomPanContainer = ({
+  width,
+  height,
+  eventManager,
+  prevImage,
+  nextImage,
+  children,
+}: ZoomPanContainerProps) => {
+  return (
+    <div
+      id="zoomable-image"
+      style={{ width, height }}
+      onContextMenu={eventManager.showSlideContextMenu}
+      onDrop={eventManager.drop}
+      tabIndex={-1}
+    >
+      {children}
       {/* Overlay buttons/icons */}
       {prevImage && (
         <button aria-label="previous image" className="side-button-left" onClick={prevImage}>
@@ -312,31 +319,18 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
   );
 };
 
-SlideMode.displayName = 'SlideMode';
-
-export default SlideMode;
-
 interface ImageFallbackProps {
-  width: number;
-  height: number;
   absolutePath: string;
   thumbnailPath?: string;
-  loading: boolean;
 }
 
-const ImageFallback = ({
-  width,
-  height,
-  absolutePath,
-  thumbnailPath,
-  loading,
-}: ImageFallbackProps) => {
+const ImageFallback = ({ absolutePath, thumbnailPath }: ImageFallbackProps) => {
   // Try to load the thumbnail, could also fail
   const [loadError, setLoadError] = useState<any>();
   useEffect(() => setLoadError(undefined), [thumbnailPath]);
 
   return (
-    <div style={{ width, height }}>
+    <div style={{ width: '100%', height: '100%' }}>
       {loadError ? (
         <div style={{ maxHeight: 360, maxWidth: 360 }} className="image-error" />
       ) : (
@@ -348,11 +342,7 @@ const ImageFallback = ({
         />
       )}
       <br />
-      {loading ? (
-        <span>{IconSet.LOADING} Loading...</span>
-      ) : (
-        <span>Could not load {loadError ? '' : 'full '}image </span>
-      )}
+      <span>Could not load {loadError ? '' : 'full '}image </span>
       <pre
         title={absolutePath}
         style={{ maxWidth: '40ch', overflow: 'hidden', textOverflow: 'ellipsis' }}

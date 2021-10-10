@@ -17,7 +17,8 @@ export function useAction<F extends (...args: any) => any>(fun: F): F {
  * @param fun function that must only capture MobX objects or stable references.
  */
 export function useAutorun(fun: () => void): void {
-  useEffect(() => autorun(fun), [fun]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => autorun(fun), []);
 }
 
 /**
