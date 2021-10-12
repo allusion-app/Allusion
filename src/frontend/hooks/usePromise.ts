@@ -1,36 +1,46 @@
 import { useEffect, useRef, useState } from 'react';
 
 export type Result<T, E> = { tag: 'ok'; value: T } | { tag: 'err'; err: E };
+export const createOk = <T, E>(value: T): Result<T, E> => ({ tag: 'ok', value });
+export const createErr = <T, E>(err: E): Result<T, E> => ({ tag: 'err', err });
+
 export type Poll<T> = { tag: 'ready'; value: T } | { tag: 'pending' };
+export const createPending = <T>(): Poll<T> => ({ tag: 'pending' });
+export const createReady = <T>(value: T): Poll<T> => ({ tag: 'ready', value });
 
 export function usePromise<
   T,
   E extends any,
-  S extends [...any[]],
+  S extends [any, ...any[]],
   F extends (...args: [...S]) => Promise<T>
 >(...args: [...S, F]): Poll<Result<T, E>> {
-  const sources = args.slice(0, args.length - 1) as [...S];
-  const fetch = useRef<F>(args[args.length - 1] as F);
-  const [future, setFuture] = useState<Poll<Result<T, E>>>({ tag: 'pending' });
+  const fetch = useRef<F>(args.pop() as F);
+  const sources = (args as unknown) as S;
+  const [future, setFuture] = useState<Poll<Result<T, E>>>(createPending);
 
   useEffect(() => {
     let isEffectRunning = true;
     const promise = fetch.current.apply(null, sources);
-    setFuture({ tag: 'pending' });
     promise
       .then((value: T) => {
         if (isEffectRunning) {
-          setFuture({ tag: 'ready', value: { tag: 'ok', value } });
+          setFuture(createReady(createOk(value)));
         }
       })
       .catch((err) => {
         if (isEffectRunning) {
-          setFuture({ tag: 'ready', value: { tag: 'err', err } });
+          setFuture(createReady(createErr(err)));
         }
       });
 
+    // Only set to pending state if the future was not resolved until the next frame.
+    const handle = requestAnimationFrame(() =>
+      setFuture((f) => (isEffectRunning && f === future ? createPending() : f)),
+    );
+
     return () => {
       isEffectRunning = false;
+      cancelAnimationFrame(handle);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, sources);

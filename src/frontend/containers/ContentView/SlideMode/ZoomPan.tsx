@@ -279,9 +279,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
       <div
         ref={this.containerRef}
         style={{
-          width: '100%',
-          height: '100%',
-          overflow: 'hidden',
+          ...CONTAINER_DEFAULT_STYLE,
           touchAction: browserPanActions(this.state, this.props),
         }}
       >
@@ -473,6 +471,12 @@ function animateTransform(transform: Transform, speed: number, setState: Updater
 }
 
 //// COMPUTED STATE
+
+export const CONTAINER_DEFAULT_STYLE = {
+  width: '100%',
+  height: '100%',
+  overflow: 'hidden',
+};
 
 function imageStyle({ top, left, scale }: ZoomPanState) {
   return {

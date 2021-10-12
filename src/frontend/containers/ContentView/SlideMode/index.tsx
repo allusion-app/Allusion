@@ -2,10 +2,10 @@ import { shell } from 'electron';
 import { reaction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAction, useAutorun, useComputed } from 'src/frontend/hooks/mobx';
-import { Poll, Result, usePromise } from 'src/frontend/hooks/usePromise';
+import { createOk, Poll, Result, usePromise } from 'src/frontend/hooks/usePromise';
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
 import { encodeFilePath } from 'src/frontend/utils';
@@ -13,7 +13,7 @@ import { Button, IconSet, Split } from 'widgets';
 import Inspector from '../../Inspector';
 import { CommandDispatcher } from '../Commands';
 import { ContentRect } from '../LayoutSwitcher';
-import ZoomPan, { SlideTransform } from '../SlideMode/ZoomPan';
+import ZoomPan, { CONTAINER_DEFAULT_STYLE, SlideTransform } from '../SlideMode/ZoomPan';
 import { createDimension, createTransform, Vec2 } from './utils';
 
 const SlideMode = observer(({ contentRect }: { contentRect: ContentRect }) => {
@@ -130,7 +130,6 @@ const SlideView = observer((props: SlideViewProps) => {
     if (thumbEl && container) {
       const thumbElRect = thumbEl.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
-      console.log(containerRect, width, height);
       return createTransform(
         thumbElRect.left - containerRect.left,
         thumbElRect.top - containerRect.top,
@@ -146,8 +145,10 @@ const SlideView = observer((props: SlideViewProps) => {
   const source: Poll<Result<string, any>> = usePromise(
     file,
     file.thumbnailPath,
-    (file, thumbnailPath) =>
-      fileStore.imageLoader.getImageSrc(file).then((src) => src ?? thumbnailPath),
+    async (file, thumbnailPath) => {
+      const src = await fileStore.imageLoader.getImageSrc(file);
+      return src ?? thumbnailPath;
+    },
   );
 
   return (
@@ -200,67 +201,61 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
   eventManager,
   onClose,
 }: ZoomableImageProps) => {
+  const sourceResult: Result<string, any> = useMemo(
+    () => (source.tag === 'pending' ? createOk(thumbnailSrc || absolutePath) : source.value),
+    [absolutePath, source, thumbnailSrc],
+  );
+
   const image: Poll<Result<{ src: string; dimension: Vec2 }, any>> = usePromise(
-    source,
-    thumbnailSrc,
-    absolutePath,
-    imgWidth,
-    imgHeight,
-    (imageSource, thumbnailSrc, absolutePath, imgWidth, imgHeight) => {
-      switch (imageSource.tag) {
-        case 'pending':
-          return Promise.resolve({
-            src: thumbnailSrc || absolutePath,
-            dimension: createDimension(imgWidth, imgHeight),
-          });
-        case 'ready':
-          switch (imageSource.value.tag) {
-            case 'ok':
-              const src = imageSource.value.value;
-              return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = function (this: any) {
-                  resolve({
-                    src,
-                    dimension: createDimension(this.naturalWidth, this.naturalHeight),
-                  });
-                };
-                img.onerror = reject;
-                img.src = encodeFilePath(src);
-              });
-            case 'err':
-              return Promise.reject();
-          }
-        default:
-          throw new Error('Unreachable!');
+    sourceResult,
+    (result) => {
+      if (result.tag === 'ok') {
+        const src = result.value;
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = function (this: any) {
+            resolve({
+              src,
+              dimension: createDimension(this.naturalWidth, this.naturalHeight),
+            });
+          };
+          img.onerror = reject;
+          img.src = encodeFilePath(src);
+        });
+      } else {
+        return Promise.reject(result.err);
       }
     },
   );
 
   let content;
-  if (image.tag === 'ready') {
-    if (image.value.tag === 'ok') {
-      const { src, dimension } = image.value.value;
-      const minScale = Math.min(0.1, Math.min(width / dimension[0], height / dimension[1]));
-      content = (
-        <ZoomPan
-          position="center"
-          initialScale="auto"
-          doubleTapBehavior="zoomOrReset"
-          imageDimension={dimension}
-          containerDimension={createDimension(width, height)}
-          minScale={minScale}
-          maxScale={5}
-          transitionStart={transitionStart}
-          transitionEnd={transitionEnd}
-          onClose={onClose}
-        >
-          <img src={encodeFilePath(src)} width={dimension[0]} height={dimension[1]} alt="" />
-        </ZoomPan>
-      );
-    } else if (image.value.tag === 'err') {
-      content = <ImageFallback absolutePath={absolutePath} thumbnailPath={thumbnailSrc} />;
-    }
+  if (image.tag === 'ready' && image.value.tag === 'err') {
+    content = <ImageFallback error={image.value.err} absolutePath={absolutePath} />;
+  } else {
+    const { src, dimension } =
+      image.tag === 'ready' && image.value.tag === 'ok'
+        ? image.value.value
+        : {
+            src: thumbnailSrc || absolutePath,
+            dimension: createDimension(imgWidth, imgHeight),
+          };
+    const minScale = Math.min(0.1, Math.min(width / dimension[0], height / dimension[1]));
+    content = (
+      <ZoomPan
+        position="center"
+        initialScale="auto"
+        doubleTapBehavior="zoomOrReset"
+        imageDimension={dimension}
+        containerDimension={createDimension(width, height)}
+        minScale={minScale}
+        maxScale={5}
+        transitionStart={transitionStart}
+        transitionEnd={transitionEnd}
+        onClose={onClose}
+      >
+        <img src={encodeFilePath(src)} width={dimension[0]} height={dimension[1]} alt="" />
+      </ZoomPan>
+    );
   }
 
   return (
@@ -320,29 +315,16 @@ const ZoomPanContainer = ({
 };
 
 interface ImageFallbackProps {
+  error: any;
   absolutePath: string;
-  thumbnailPath?: string;
 }
 
-const ImageFallback = ({ absolutePath, thumbnailPath }: ImageFallbackProps) => {
-  // Try to load the thumbnail, could also fail
-  const [loadError, setLoadError] = useState<any>();
-  useEffect(() => setLoadError(undefined), [thumbnailPath]);
-
+const ImageFallback = ({ error, absolutePath }: ImageFallbackProps) => {
   return (
-    <div style={{ width: '100%', height: '100%' }}>
-      {loadError ? (
-        <div style={{ maxHeight: 360, maxWidth: 360 }} className="image-error" />
-      ) : (
-        <img
-          alt=""
-          onError={setLoadError}
-          src={encodeFilePath(thumbnailPath ?? '')}
-          style={{ maxHeight: 360 }}
-        />
-      )}
+    <div style={CONTAINER_DEFAULT_STYLE}>
+      <div style={{ maxHeight: 360, maxWidth: 360 }} className="image-error" />
       <br />
-      <span>Could not load {loadError ? '' : 'full '}image </span>
+      <span>Could not load {error ? '' : 'full '}image </span>
       <pre
         title={absolutePath}
         style={{ maxWidth: '40ch', overflow: 'hidden', textOverflow: 'ellipsis' }}
