@@ -3,9 +3,11 @@ import { reaction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { useEffect, useMemo } from 'react';
+import { ClientFile } from 'src/entities/File';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAction, useAutorun, useComputed } from 'src/frontend/hooks/mobx';
 import { createOk, Poll, Result, usePromise } from 'src/frontend/hooks/usePromise';
+import ImageLoader from 'src/frontend/image/ImageLoader';
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
 import { encodeFilePath } from 'src/frontend/utils';
@@ -140,67 +142,67 @@ const SlideView = observer((props: SlideViewProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file.id]);
 
-  // Image src can be set asynchronously: keep track of it in a state
-  // Needed for image formats not natively supported by the browser (e.g. tiff): will be converted to another format
-  const source: Poll<Result<string, any>> = usePromise(
-    file,
-    file.thumbnailPath,
-    async (file, thumbnailPath) => {
-      const src = await fileStore.imageLoader.getImageSrc(file);
-      return src ?? thumbnailPath;
-    },
-  );
-
   return (
-    <ZoomableImage
-      absolutePath={file.absolutePath}
-      source={source}
-      thumbnailSrc={file.thumbnailPath}
-      width={width}
-      height={height}
-      imgWidth={file.width}
-      imgHeight={file.height}
-      transitionStart={transitionStart}
-      transitionEnd={uiStore.isSlideMode ? undefined : transitionStart}
-      prevImage={!isFirst.get() ? decrImgIndex : undefined}
-      nextImage={!isLast.get() ? incrImgIndex : undefined}
-      eventManager={eventManager}
-      onClose={uiStore.disableSlideMode}
-    />
+    <div
+      id="zoomable-image"
+      style={{ width, height }}
+      onContextMenu={eventManager.showSlideContextMenu}
+      onDrop={eventManager.drop}
+      tabIndex={-1}
+    >
+      <ZoomableImage
+        imageLoader={fileStore.imageLoader}
+        file={file}
+        thumbnailSrc={file.thumbnailPath}
+        width={width}
+        height={height}
+        transitionStart={transitionStart}
+        transitionEnd={uiStore.isSlideMode ? undefined : transitionStart}
+        onClose={uiStore.disableSlideMode}
+      />
+      <NavigationButtons
+        isStart={isFirst.get()}
+        isEnd={isLast.get()}
+        prevImage={decrImgIndex}
+        nextImage={incrImgIndex}
+      />
+    </div>
   );
 });
 
 interface ZoomableImageProps {
-  absolutePath: string;
-  source: Poll<Result<string, any>>;
-  thumbnailSrc?: string;
+  file: ClientFile;
+  thumbnailSrc: string;
+  imageLoader: ImageLoader;
   width: number;
   height: number;
-  imgWidth: number;
-  imgHeight: number;
-  prevImage?: () => void;
-  nextImage?: () => void;
   transitionStart?: SlideTransform;
   transitionEnd?: SlideTransform;
-  eventManager: CommandDispatcher;
   onClose: () => void;
 }
 
 const ZoomableImage: React.FC<ZoomableImageProps> = ({
-  absolutePath,
-  source,
+  file,
   thumbnailSrc,
+  imageLoader,
   width,
   height,
-  imgWidth,
-  imgHeight,
-  prevImage,
-  nextImage,
   transitionStart,
   transitionEnd,
-  eventManager,
   onClose,
 }: ZoomableImageProps) => {
+  const { absolutePath, width: imgWidth, height: imgHeight } = file;
+  // Image src can be set asynchronously: keep track of it in a state
+  // Needed for image formats not natively supported by the browser (e.g. tiff): will be converted to another format
+  const source: Poll<Result<string, any>> = usePromise(
+    file,
+    thumbnailSrc,
+    async (file, thumbnailPath) => {
+      const src = await imageLoader.getImageSrc(file);
+      return src ?? thumbnailPath;
+    },
+  );
+
   const sourceResult: Result<string, any> = useMemo(
     () => (source.tag === 'pending' ? createOk(thumbnailSrc || absolutePath) : source.value),
     [absolutePath, source, thumbnailSrc],
@@ -228,9 +230,8 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
     },
   );
 
-  let content;
   if (image.tag === 'ready' && image.value.tag === 'err') {
-    content = <ImageFallback error={image.value.err} absolutePath={absolutePath} />;
+    return <ImageFallback error={image.value.err} absolutePath={absolutePath} />;
   } else {
     const { src, dimension } =
       image.tag === 'ready' && image.value.tag === 'ok'
@@ -240,7 +241,7 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
             dimension: createDimension(imgWidth, imgHeight),
           };
     const minScale = Math.min(0.1, Math.min(width / dimension[0], height / dimension[1]));
-    content = (
+    return (
       <ZoomPan
         position="center"
         initialScale="auto"
@@ -257,60 +258,39 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
       </ZoomPan>
     );
   }
-
-  return (
-    <ZoomPanContainer
-      width={width}
-      height={height}
-      prevImage={prevImage}
-      nextImage={nextImage}
-      eventManager={eventManager}
-    >
-      {content}
-    </ZoomPanContainer>
-  );
 };
 
 export default SlideMode;
 
-interface ZoomPanContainerProps {
-  width: number;
-  height: number;
-  prevImage?: () => void;
-  nextImage?: () => void;
-  eventManager: CommandDispatcher;
-  children: React.ReactNode;
+interface NavigationButtonsProps {
+  isStart: boolean;
+  isEnd: boolean;
+  prevImage: () => void;
+  nextImage: () => void;
 }
 
-const ZoomPanContainer = ({
-  width,
-  height,
-  eventManager,
-  prevImage,
-  nextImage,
-  children,
-}: ZoomPanContainerProps) => {
+const NavigationButtons = ({ isStart, isEnd, prevImage, nextImage }: NavigationButtonsProps) => {
+  const none = { display: 'none' };
+  const initial = { display: 'initial' };
   return (
-    <div
-      id="zoomable-image"
-      style={{ width, height }}
-      onContextMenu={eventManager.showSlideContextMenu}
-      onDrop={eventManager.drop}
-      tabIndex={-1}
-    >
-      {children}
-      {/* Overlay buttons/icons */}
-      {prevImage && (
-        <button aria-label="previous image" className="side-button-left" onClick={prevImage}>
-          {IconSet.ARROW_LEFT}
-        </button>
-      )}
-      {nextImage && (
-        <button aria-label="next image" className="side-button-right" onClick={nextImage}>
-          {IconSet.ARROW_RIGHT}
-        </button>
-      )}
-    </div>
+    <>
+      <button
+        style={isStart ? none : initial}
+        aria-label="previous image"
+        className="side-button-left"
+        onClick={prevImage}
+      >
+        {IconSet.ARROW_LEFT}
+      </button>
+      <button
+        style={isEnd ? none : initial}
+        aria-label="next image"
+        className="side-button-right"
+        onClick={nextImage}
+      >
+        {IconSet.ARROW_RIGHT}
+      </button>
+    </>
   );
 };
 
