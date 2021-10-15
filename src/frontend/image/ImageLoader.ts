@@ -1,5 +1,5 @@
 import fse from 'fs-extra';
-import { action, runInAction } from 'mobx';
+import { action } from 'mobx';
 import ExifIO from 'src/backend/ExifIO';
 import { thumbnailMaxSize } from 'src/config';
 import { ClientFile, IFile, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
@@ -28,19 +28,25 @@ const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   // avif: 'sharp',
 };
 
+type ObjectURL = string;
+
 class ImageLoader {
   tifLoader: TifLoader;
 
-  srcBufferCache: WeakMap<ClientFile, string> = new WeakMap();
+  private srcBufferCache: WeakMap<ClientFile, ObjectURL> = new WeakMap();
+  private bufferCacheTimer: WeakMap<ClientFile, number> = new WeakMap();
 
   constructor(private exifIO: ExifIO) {
-    this.tifLoader = new TifLoader(thumbnailMaxSize);
+    this.tifLoader = new TifLoader();
+    this.ensureThumbnail = action(this.ensureThumbnail.bind(this));
   }
 
-  @action needsThumbnail(file: IFile) {
-    if (file.extension === 'svg') return false;
-    if (FormatHandlers[file.extension] !== 'web') return true;
-    return file.width > thumbnailMaxSize || file.height > thumbnailMaxSize;
+  needsThumbnail(file: IFile) {
+    return (
+      FormatHandlers[file.extension] !== 'web' ||
+      file.width > thumbnailMaxSize ||
+      file.height > thumbnailMaxSize
+    );
   }
 
   /**
@@ -49,21 +55,17 @@ class ImageLoader {
    * @returns Whether a thumbnail had to be generated
    * @throws When a thumbnail does not exist and cannot be generated
    */
-  @action async ensureThumbnail(file: ClientFile): Promise<boolean> {
-    const { extension, absolutePath, thumbnailPath } = runInAction(() => ({
+  async ensureThumbnail(file: ClientFile): Promise<boolean> {
+    const { extension, absolutePath, thumbnailPath } = {
       extension: file.extension,
       absolutePath: file.absolutePath,
-      width: file.width,
-      height: file.height,
       // remove ?v=1 that might have been added after the thumbnail was generated earlier
       thumbnailPath: file.thumbnailPath.split('?v=1')[0],
-    }));
-    const thumbnailExists = await fse.pathExists(thumbnailPath);
-    if (thumbnailExists) return false;
+    };
 
-    // Update the thumbnail path to re-render the image where ever it is used in React
-    const updateThumbnailPath = () =>
-      runInAction(() => (file.thumbnailPath = `${thumbnailPath}?v=1`));
+    if (await fse.pathExists(thumbnailPath)) {
+      return false;
+    }
 
     const handlerType = FormatHandlers[extension];
     switch (handlerType) {
@@ -73,9 +75,8 @@ class ImageLoader {
         break;
       case 'tifLoader':
         console.debug('generating thumbnail through UTIF...', absolutePath);
-        await this.tifLoader.generateThumbnail(absolutePath, thumbnailPath);
-        updateThumbnailPath();
-        console.debug('generated thumbnail through UTIF!', absolutePath);
+        await this.tifLoader.generateThumbnail(absolutePath, thumbnailPath, thumbnailMaxSize);
+        updateThumbnailPath(file, thumbnailPath);
         break;
       case 'extractEmbeddedThumbnailOnly':
         let success = false;
@@ -90,7 +91,7 @@ class ImageLoader {
           // There might not be an embedded thumbnail
           return false;
         } else {
-          updateThumbnailPath();
+          updateThumbnailPath(file, thumbnailPath);
         }
         break;
       default:
@@ -105,16 +106,13 @@ class ImageLoader {
       case 'web':
         return file.absolutePath;
       case 'tifLoader':
-        if (this.srcBufferCache.has(file)) {
-          return this.srcBufferCache.get(file);
-        }
-        const src = await this.tifLoader.loadAsBuffer(file.absolutePath);
+        const src =
+          this.srcBufferCache.get(file) ?? (await this.tifLoader.getBlob(file.absolutePath));
         // Store in cache for a while, so it loads quicker when going back and forth
-        this.srcBufferCache.set(file, src);
-        setTimeout(() => this.srcBufferCache.delete(file), 60_000);
+        this.updateCache(file, src);
         return src;
+      // TODO: krita has full image also embedded (mergedimage.png)
       case 'extractEmbeddedThumbnailOnly':
-        // TODO: krita has full image also embedded (mergedimage.png)
         return undefined;
       default:
         console.warn('Unsupported extension', file.absolutePath, file.extension);
@@ -136,6 +134,24 @@ class ImageLoader {
     }
     return success;
   }
+
+  private updateCache(file: ClientFile, src: ObjectURL) {
+    this.srcBufferCache.set(file, src);
+    const timer = this.bufferCacheTimer.get(file);
+    clearTimeout(timer);
+    this.bufferCacheTimer.set(
+      file,
+      window.setTimeout(() => {
+        URL.revokeObjectURL(src);
+        this.srcBufferCache.delete(file);
+      }, 60_000),
+    );
+  }
 }
 
 export default ImageLoader;
+
+// Update the thumbnail path to re-render the image where ever it is used in React
+const updateThumbnailPath = action((file: ClientFile, thumbnailPath: string) => {
+  file.thumbnailPath = `${thumbnailPath}?v=1`;
+});

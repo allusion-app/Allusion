@@ -6,7 +6,7 @@ import React, { useEffect, useMemo } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAction, useAutorun, useComputed } from 'src/frontend/hooks/mobx';
-import { createOk, Poll, Result, usePromise } from 'src/frontend/hooks/usePromise';
+import { Poll, Result, usePromise } from 'src/frontend/hooks/usePromise';
 import ImageLoader from 'src/frontend/image/ImageLoader';
 import FileStore from 'src/frontend/stores/FileStore';
 import UiStore from 'src/frontend/stores/UiStore';
@@ -203,29 +203,35 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
     },
   );
 
-  const sourceResult: Result<string, any> = useMemo(
-    () => (source.tag === 'pending' ? createOk(thumbnailSrc || absolutePath) : source.value),
-    [absolutePath, source, thumbnailSrc],
-  );
-
   const image: Poll<Result<{ src: string; dimension: Vec2 }, any>> = usePromise(
-    sourceResult,
-    (result) => {
-      if (result.tag === 'ok') {
-        const src = result.value;
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.onload = function (this: any) {
-            resolve({
-              src,
-              dimension: createDimension(this.naturalWidth, this.naturalHeight),
-            });
-          };
-          img.onerror = reject;
-          img.src = encodeFilePath(src);
-        });
+    source,
+    absolutePath,
+    thumbnailSrc,
+    imgWidth,
+    imgHeight,
+    (source, absolutePath, thumbnailSrc, imgWidth, imgHeight) => {
+      if (source.tag === 'ready') {
+        if (source.value.tag === 'ok') {
+          const src = source.value.value;
+          return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = function (this: any) {
+              resolve({
+                src,
+                dimension: createDimension(this.naturalWidth, this.naturalHeight),
+              });
+            };
+            img.onerror = reject;
+            img.src = encodeFilePath(src);
+          });
+        } else {
+          return Promise.reject(source.value.err);
+        }
       } else {
-        return Promise.reject(result.err);
+        return Promise.resolve({
+          src: thumbnailSrc || absolutePath,
+          dimension: createDimension(imgWidth, imgHeight),
+        });
       }
     },
   );

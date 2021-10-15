@@ -387,7 +387,9 @@ export const getThumbnailPath = (filePath: string, thumbnailDirectory: string): 
 
 /** Use this for any <img src attribute! */
 export function encodeFilePath(filePath: string): string {
-  if (filePath.startsWith('data:image/')) return filePath;
+  if (filePath.startsWith('data:image') || filePath.startsWith('blob:')) {
+    return filePath;
+  }
   // Take into account weird file names like "C:/Images/https_%2F%2Fcdn/.../my-image.jpg"
   const basename = path.basename(filePath);
   const basepath = filePath.substr(0, filePath.length - basename.length);

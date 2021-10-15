@@ -34,9 +34,11 @@ export function usePromise<
       });
 
     // Only set to pending state if the future was not resolved until the next frame.
-    const handle = requestAnimationFrame(() =>
-      setFuture((f) => (isEffectRunning && f === future ? createPending() : f)),
-    );
+    let handle: number = requestAnimationFrame(() => {
+      handle = requestAnimationFrame(() =>
+        setFuture((f) => (isEffectRunning && f === future ? createPending() : f)),
+      );
+    });
 
     return () => {
       isEffectRunning = false;
