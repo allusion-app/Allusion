@@ -1,8 +1,11 @@
+import { action, when } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { ReactEventHandler, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
+import fse from 'fs-extra';
 import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
+import { Poll, usePromise, Result } from 'src/frontend/hooks/usePromise';
 import { ellipsize, encodeFilePath, humanFileSize } from 'src/frontend/utils';
 import { IconButton, IconSet, Tag } from 'widgets';
 import { CommandDispatcher, MousePointerEvent } from './Commands';
@@ -45,7 +48,7 @@ export const MasonryCell = observer(
           onDrop={eventManager.drop}
           onDragEnd={eventManager.dragEnd}
         >
-          <Thumbnail mounted={!mounted} file={file} forceNoThumbnail={forceNoThumbnail} />
+          <Thumbnail mounted={mounted} file={file} forceNoThumbnail={forceNoThumbnail} />
         </div>
         {file.isBroken === true && !fileStore.showsMissingContent && (
           <IconButton
@@ -74,97 +77,62 @@ export const MasonryCell = observer(
   },
 );
 
-const enum ThumbnailState {
-  Ok,
-  Loading,
-  Error,
-}
-
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProps) => {
   const { uiStore, fileStore } = useStore();
-  const { thumbnailDirectory } = uiStore;
   const { thumbnailPath, isBroken } = file;
 
-  const useThumbnail = uiStore.isList || !forceNoThumbnail;
-
-  // Initially, we assume the thumbnail exists
-  const [state, setState] = useState(ThumbnailState.Ok);
-
-  const [imgSrc, setImgSrc] = useState(thumbnailPath);
-
   // This will check whether a thumbnail exists, generate it if needed
-  useEffect(() => {
-    let isMounted = true;
-    if (!mounted || isBroken === true) {
-      return;
-    }
-    setState(ThumbnailState.Loading);
-    if (useThumbnail) {
-      fileStore.imageLoader
-        .ensureThumbnail(file)
-        .then(() => {
-          if (isMounted) setState(ThumbnailState.Ok);
-        })
-        .catch(() => {
-          if (isMounted) setState(ThumbnailState.Error);
-        });
-    } else {
-      fileStore.imageLoader
-        .getImageSrc(file)
-        .then((src) => {
-          if (!isMounted) return;
-          if (src) {
-            setState(ThumbnailState.Ok);
-            setImgSrc(src);
-          } else {
-            setState(ThumbnailState.Error);
-          }
-        })
-        .catch(() => {
-          if (isMounted) setState(ThumbnailState.Error);
-        });
-    }
-
-    return () => {
-      isMounted = false;
-    };
-  }, [
+  const imageSource: Poll<Result<string, any>> = usePromise(
     file,
-    fileStore.imageLoader,
-    forceNoThumbnail,
     isBroken,
     mounted,
-    thumbnailDirectory,
-    useThumbnail,
-  ]);
+    thumbnailPath,
+    uiStore.isList || !forceNoThumbnail,
+    async (file, isBroken, mounted, thumbnailPath, useThumbnail) => {
+      // If it is broken, only show thumbnail if it exists.
+      if (!mounted || isBroken === true) {
+        if (await fse.pathExists(thumbnailPath)) {
+          return thumbnailPath;
+        } else {
+          throw new Error('No thumbnail available.');
+        }
+      }
 
-  // The thumbnailPath of an image is always set, but may not exist yet.
-  // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`,
-  // which we detect here to know the thumbnail is ready
-  useEffect(() => {
-    if (!mounted && thumbnailPath.endsWith('?v=1')) {
-      setState(ThumbnailState.Ok);
-      setImgSrc(thumbnailPath);
+      if (useThumbnail) {
+        const freshlyGenerated = await fileStore.imageLoader.ensureThumbnail(file);
+        // The thumbnailPath of an image is always set, but may not exist yet.
+        // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`.
+        if (freshlyGenerated) {
+          await when(() => file.thumbnailPath.endsWith('?v=1'));
+        }
+        return getThumbnail(file);
+      } else {
+        const src = await fileStore.imageLoader.getImageSrc(file);
+        if (src !== undefined) {
+          return src;
+        } else {
+          throw new Error('No thumbnail available.');
+        }
+      }
+    },
+  );
+
+  if (!mounted) {
+    return <span className="image-placeholder" />;
+  } else if (imageSource.tag === 'ready') {
+    if (imageSource.value.tag === 'ok') {
+      return <img src={encodeFilePath(imageSource.value.value)} alt="" data-file-id={file.id} />;
+    } else {
+      return <span className="image-error" />;
     }
-  }, [thumbnailPath, mounted]);
-
-  if (state === ThumbnailState.Ok) {
-    // When the thumbnail cannot be loaded, display an error
-    const handleImageError: ReactEventHandler<HTMLImageElement> = () => {
-      console.log('Could not load image:', imgSrc, { useThumbnail });
-      setState(ThumbnailState.Error);
-    };
-    return (
-      <img src={encodeFilePath(imgSrc)} onError={handleImageError} alt="" data-file-id={file.id} />
-    );
-  } else if (state === ThumbnailState.Loading) {
-    return <span className="image-loading" />;
   } else {
-    return <span className="image-error" />;
+    return <span className="image-loading" />;
   }
 });
+
+const getThumbnail = action((file: ClientFile) => file.thumbnailPath);
 
 export const ThumbnailTags = observer(
   ({ file, eventManager }: { file: ClientFile; eventManager: CommandDispatcher }) => {

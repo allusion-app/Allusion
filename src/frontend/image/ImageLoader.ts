@@ -66,9 +66,6 @@ class ImageLoader {
       thumbnailPath: file.thumbnailPath.split('?v=1')[0],
     };
 
-    if (absolutePath.includes('Ferber')) {
-      console.log('Ferber', await fse.pathExists(thumbnailPath));
-    }
     if (await fse.pathExists(thumbnailPath)) {
       return false;
     }
@@ -101,8 +98,9 @@ class ImageLoader {
         break;
       default:
         console.warn('Unsupported extension', file.absolutePath, file.extension);
+        return false;
     }
-    return false;
+    return true;
   }
 
   async getImageSrc(file: ClientFile): Promise<string | undefined> {

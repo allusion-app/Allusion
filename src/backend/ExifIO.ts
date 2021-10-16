@@ -134,7 +134,7 @@ class ExifIO {
     }
     return [...splitHierarchy, ...filteredTags.map((t) => [t])];
   }
-  async readTags(filepath: string) {
+  async readTags(filepath: string): Promise<string[][]> {
     const metadata = await ep.readMetadata(filepath, [
       'HierarchicalSubject',
       'Subject',

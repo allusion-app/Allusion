@@ -57,11 +57,7 @@ export const ListItem = observer((props: ListItemProps) => {
     >
       {/* Filename */}
       <div role="gridcell" className="col-name">
-        {isMounted ? (
-          <Thumbnail mounted={isMounted} file={file} />
-        ) : (
-          <span className="image-placeholder" />
-        )}
+        <Thumbnail mounted={isMounted} file={file} />
         {file.name}
       </div>
 
