@@ -146,7 +146,6 @@ class FileStore {
           tagHierarchy: Array.from(f.tags).map(action((t) => t.treePath.map((t) => t.name))),
         })),
       );
-      console.log(tagFilePairs);
       let lastToastVal = '0';
       for (let i = 0; i < tagFilePairs.length; i++) {
         const newToastVal = ((100 * i) / numFiles).toFixed(0);

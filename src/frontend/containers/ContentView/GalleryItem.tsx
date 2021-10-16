@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { ReactEventHandler, useCallback, useEffect, useMemo, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -87,29 +87,58 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
   const { thumbnailDirectory } = uiStore;
   const { thumbnailPath, isBroken } = file;
 
+  const useThumbnail = uiStore.isList || !forceNoThumbnail;
+
   // Initially, we assume the thumbnail exists
   const [state, setState] = useState(ThumbnailState.Ok);
+
+  const [imgSrc, setImgSrc] = useState(thumbnailPath);
 
   // This will check whether a thumbnail exists, generate it if needed
   useEffect(() => {
     let isMounted = true;
-    if ((!mounted && isBroken === true) || forceNoThumbnail) {
+    if (!mounted || isBroken === true) {
       return;
     }
     setState(ThumbnailState.Loading);
-    fileStore.imageLoader
-      .ensureThumbnail(file)
-      .then(() => {
-        if (isMounted) setState(ThumbnailState.Ok);
-      })
-      .catch(() => {
-        if (isMounted) setState(ThumbnailState.Error);
-      });
+    if (useThumbnail) {
+      fileStore.imageLoader
+        .ensureThumbnail(file)
+        .then(() => {
+          if (isMounted) setState(ThumbnailState.Ok);
+        })
+        .catch(() => {
+          if (isMounted) setState(ThumbnailState.Error);
+        });
+    } else {
+      fileStore.imageLoader
+        .getImageSrc(file)
+        .then((src) => {
+          if (!isMounted) return;
+          if (src) {
+            setState(ThumbnailState.Ok);
+            setImgSrc(src);
+          } else {
+            setState(ThumbnailState.Error);
+          }
+        })
+        .catch(() => {
+          if (isMounted) setState(ThumbnailState.Error);
+        });
+    }
 
     return () => {
       isMounted = false;
     };
-  }, [file, fileStore.imageLoader, forceNoThumbnail, isBroken, mounted, thumbnailDirectory]);
+  }, [
+    file,
+    fileStore.imageLoader,
+    forceNoThumbnail,
+    isBroken,
+    mounted,
+    thumbnailDirectory,
+    useThumbnail,
+  ]);
 
   // The thumbnailPath of an image is always set, but may not exist yet.
   // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`,
@@ -117,24 +146,18 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
   useEffect(() => {
     if (!mounted && thumbnailPath.endsWith('?v=1')) {
       setState(ThumbnailState.Ok);
+      setImgSrc(thumbnailPath);
     }
   }, [thumbnailPath, mounted]);
 
-  const useThumbnail = uiStore.isList || !forceNoThumbnail;
-
   if (state === ThumbnailState.Ok) {
     // When the thumbnail cannot be loaded, display an error
-    const handleImageError = () => {
-      console.log('Could not load image:', thumbnailPath);
+    const handleImageError: ReactEventHandler<HTMLImageElement> = () => {
+      console.log('Could not load image:', imgSrc, { useThumbnail });
       setState(ThumbnailState.Error);
     };
     return (
-      <img
-        src={encodeFilePath(useThumbnail ? thumbnailPath : file.absolutePath)}
-        onError={handleImageError}
-        alt=""
-        data-file-id={file.id}
-      />
+      <img src={encodeFilePath(imgSrc)} onError={handleImageError} alt="" data-file-id={file.id} />
     );
   } else if (state === ThumbnailState.Loading) {
     return <span className="image-loading" />;

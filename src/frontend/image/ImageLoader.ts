@@ -42,6 +42,9 @@ class ImageLoader {
   }
 
   needsThumbnail(file: IFile) {
+    // Not using thumbnails for gifs, since they're mostly used for animations, which doesn't get preserved in thumbnails
+    if (file.extension === 'gif') return false;
+
     return (
       FormatHandlers[file.extension] !== 'web' ||
       file.width > thumbnailMaxSize ||
@@ -63,6 +66,9 @@ class ImageLoader {
       thumbnailPath: file.thumbnailPath.split('?v=1')[0],
     };
 
+    if (absolutePath.includes('Ferber')) {
+      console.log('Ferber', await fse.pathExists(thumbnailPath));
+    }
     if (await fse.pathExists(thumbnailPath)) {
       return false;
     }
@@ -74,7 +80,6 @@ class ImageLoader {
         // Thumbnail path is updated when the worker finishes (useWorkerListener)
         break;
       case 'tifLoader':
-        console.debug('generating thumbnail through UTIF...', absolutePath);
         await this.tifLoader.generateThumbnail(absolutePath, thumbnailPath, thumbnailMaxSize);
         updateThumbnailPath(file, thumbnailPath);
         break;

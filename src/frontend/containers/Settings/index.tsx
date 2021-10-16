@@ -357,7 +357,7 @@ const ImageFormatPicker = observer(() => {
   const onSubmit = useCallback(async () => {
     if (removeDisabledImages) {
       const extensionsToDelete = IMG_EXTENSIONS.filter((ext) => !newEnabledFileExtensions.has(ext));
-      console.log({ extensionsToDelete, IMG_EXTENSIONS, newEnabledFileExtensions });
+
       for (const ext of extensionsToDelete) {
         await fileStore.deleteFilesByExtension(ext);
       }
@@ -495,7 +495,6 @@ const BackgroundProcesses = observer(() => {
             isClipEnabled || importDirectory
               ? toggleClipServer
               : (e) => {
-                  console.log('came here');
                   e.preventDefault();
                   e.stopPropagation();
                   alert(
