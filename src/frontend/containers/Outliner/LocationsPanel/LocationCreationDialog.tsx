@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import { when } from 'mobx';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
@@ -151,11 +152,19 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
     onClose();
   }, [location, onClose]);
 
-  useAutorun(() => {
-    if (location.subLocations.length === 0 && !location.isInitialized) {
-      location.refreshSublocations().then(() => setSublocationsLoaded(true));
-    }
-  });
+  useEffect(() => {
+    let isEffectRunning = true;
+    const dispose = when(
+      () => location.subLocations.length === 0 && !location.isInitialized,
+      () => {
+        location.refreshSublocations().then(() => isEffectRunning && setSublocationsLoaded(true));
+      },
+    );
+    return () => {
+      isEffectRunning = false;
+      dispose();
+    };
+  }, [location]);
 
   return (
     <Dialog
