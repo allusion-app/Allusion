@@ -216,8 +216,8 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
     imgHeight,
     (source, absolutePath, thumbnailSrc, imgWidth, imgHeight) => {
       if (source.tag === 'ready') {
-        if (source.value.tag === 'ok') {
-          const src = source.value.value;
+        if ('ok' in source.value) {
+          const src = source.value.ok;
           return new Promise((resolve, reject) => {
             const img = new Image();
             img.onload = function (this: any) {
@@ -241,12 +241,12 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
     },
   );
 
-  if (image.tag === 'ready' && image.value.tag === 'err') {
+  if (image.tag === 'ready' && 'err' in image.value) {
     return <ImageFallback error={image.value.err} absolutePath={absolutePath} />;
   } else {
     const { src, dimension } =
-      image.tag === 'ready' && image.value.tag === 'ok'
-        ? image.value.value
+      image.tag === 'ready' && 'ok' in image.value
+        ? image.value.ok
         : {
             src: thumbnailSrc || absolutePath,
             dimension: createDimension(imgWidth, imgHeight),

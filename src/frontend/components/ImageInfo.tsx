@@ -81,8 +81,7 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
     size: humanFileSize(file.size),
     imported: formatDateTime(file.dateAdded),
     created: formatDateTime(file.dateCreated),
-    modified:
-      modified.tag === 'ready' && modified.value.tag === 'ok' ? modified.value.value : '...',
+    modified: modified.tag === 'ready' && 'ok' in modified.value ? modified.value.ok : '...',
   };
 
   const exifData: Poll<Result<{ [key: string]: ReactNode }, any>> = usePromise(
@@ -102,9 +101,7 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
   );
 
   const extraStats =
-    exifData.tag === 'ready' && exifData.value.tag === 'ok'
-      ? Object.entries(exifData.value.value)
-      : [];
+    exifData.tag === 'ready' && 'ok' in exifData.value ? Object.entries(exifData.value.ok) : [];
 
   // Todo: Would be nice to also add tooltips explaining what these mean (e.g. diff between dimensions & resolution)
   // Or add the units: pixels vs DPI

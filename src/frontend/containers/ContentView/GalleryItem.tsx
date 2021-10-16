@@ -122,8 +122,8 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
   if (!mounted) {
     return <span className="image-placeholder" />;
   } else if (imageSource.tag === 'ready') {
-    if (imageSource.value.tag === 'ok') {
-      return <img src={encodeFilePath(imageSource.value.value)} alt="" data-file-id={file.id} />;
+    if ('ok' in imageSource.value) {
+      return <img src={encodeFilePath(imageSource.value.ok)} alt="" data-file-id={file.id} />;
     } else {
       return <span className="image-error" />;
     }

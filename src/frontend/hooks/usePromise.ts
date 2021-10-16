@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 
-export type Result<T, E> = { tag: 'ok'; value: T } | { tag: 'err'; err: E };
-export const createOk = <T, E>(value: T): Result<T, E> => ({ tag: 'ok', value });
-export const createErr = <T, E>(err: E): Result<T, E> => ({ tag: 'err', err });
+export type Result<T, E> = { ok: T } | { err: E };
+export const createOk = <T, E>(ok: T): Result<T, E> => ({ ok });
+export const createErr = <T, E>(err: E): Result<T, E> => ({ err });
 
 export type Poll<T> = { tag: 'ready'; value: T } | { tag: 'pending' };
 export const createPending = <T>(): Poll<T> => ({ tag: 'pending' });
