@@ -28,7 +28,7 @@ export const IMG_EXTENSIONS = [
   'psd', // Photoshop
   'kra', // Krita
   // 'xcf', // Gimp
-  // 'exr', // OpenEXR
+  'exr', // OpenEXR
   // 'raw', there are many RAW file extensions :( https://fileinfo.com/filetypes/camera_raw
   // 'avif',
   // 'heic', // not supported by Sharp out of the box https://github.com/lovell/sharp/issues/2871

@@ -6,8 +6,9 @@ import { ClientFile, IFile, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import TifLoader from './TifLoader';
 import { generateThumbnailUsingWorker } from './ThumbnailGeneration';
 import StreamZip from 'node-stream-zip';
+import ExrLoader from './ExrLoader';
 
-type FormatHandlerType = 'web' | 'tifLoader' | 'extractEmbeddedThumbnailOnly';
+type FormatHandlerType = 'web' | 'tifLoader' | 'exrLoader' | 'extractEmbeddedThumbnailOnly';
 
 const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   gif: 'web',
@@ -24,20 +25,22 @@ const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   psd: 'extractEmbeddedThumbnailOnly',
   kra: 'extractEmbeddedThumbnailOnly',
   // xcf: 'extractEmbeddedThumbnailOnly',
-  // exr: 'extractEmbeddedThumbnailOnly',
+  exr: 'exrLoader',
   // avif: 'sharp',
 };
 
 type ObjectURL = string;
 
 class ImageLoader {
-  tifLoader: TifLoader;
+  private tifLoader: TifLoader;
+  private exrLoader: ExrLoader;
 
   private srcBufferCache: WeakMap<ClientFile, ObjectURL> = new WeakMap();
   private bufferCacheTimer: WeakMap<ClientFile, number> = new WeakMap();
 
   constructor(private exifIO: ExifIO) {
     this.tifLoader = new TifLoader();
+    this.exrLoader = new ExrLoader();
     this.ensureThumbnail = action(this.ensureThumbnail.bind(this));
   }
 
@@ -80,6 +83,11 @@ class ImageLoader {
         await this.tifLoader.generateThumbnail(absolutePath, thumbnailPath, thumbnailMaxSize);
         updateThumbnailPath(file, thumbnailPath);
         break;
+      case 'exrLoader':
+        console.debug('generating thumbnail through exr-rs WASM...', absolutePath);
+        await this.exrLoader.generateThumbnail(absolutePath, thumbnailPath, thumbnailMaxSize);
+        updateThumbnailPath(file, thumbnailPath);
+        break;
       case 'extractEmbeddedThumbnailOnly':
         let success = false;
         // Custom logic for specific file formats
@@ -108,12 +116,20 @@ class ImageLoader {
     switch (handlerType) {
       case 'web':
         return file.absolutePath;
-      case 'tifLoader':
+      case 'tifLoader': {
         const src =
           this.srcBufferCache.get(file) ?? (await this.tifLoader.getBlob(file.absolutePath));
         // Store in cache for a while, so it loads quicker when going back and forth
         this.updateCache(file, src);
         return src;
+      }
+      case 'exrLoader': {
+        const src =
+          this.srcBufferCache.get(file) ?? (await this.exrLoader.getBlob(file.absolutePath));
+        // Store in cache for a while, so it loads quicker when going back and forth
+        this.updateCache(file, src);
+        return src;
+      }
       // TODO: krita has full image also embedded (mergedimage.png)
       case 'extractEmbeddedThumbnailOnly':
         return undefined;
