@@ -84,7 +84,6 @@
     "@types/react": "^17.0.3",
     "@types/react-dom": "^17.0.3",
     "@types/react-window": "^1.8.2",
-    "@types/sharp": "^0.29.1",
     "@types/utif": "^3.0.1",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.2.0",
