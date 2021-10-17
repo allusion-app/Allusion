@@ -7,6 +7,7 @@ import TifLoader from './TifLoader';
 import { generateThumbnailUsingWorker } from './ThumbnailGeneration';
 import StreamZip from 'node-stream-zip';
 import ExrLoader from './ExrLoader';
+import { generateThumbnail, getBlob } from './util';
 
 type FormatHandlerType = 'web' | 'tifLoader' | 'exrLoader' | 'extractEmbeddedThumbnailOnly';
 
@@ -42,6 +43,10 @@ class ImageLoader {
     this.tifLoader = new TifLoader();
     this.exrLoader = new ExrLoader();
     this.ensureThumbnail = action(this.ensureThumbnail.bind(this));
+  }
+
+  async init(): Promise<void> {
+    await Promise.all([this.tifLoader.init(), this.exrLoader.init()]);
   }
 
   needsThumbnail(file: IFile) {
@@ -80,12 +85,11 @@ class ImageLoader {
         // Thumbnail path is updated when the worker finishes (useWorkerListener)
         break;
       case 'tifLoader':
-        await this.tifLoader.generateThumbnail(absolutePath, thumbnailPath, thumbnailMaxSize);
+        await generateThumbnail(this.tifLoader, absolutePath, thumbnailPath, thumbnailMaxSize);
         updateThumbnailPath(file, thumbnailPath);
         break;
       case 'exrLoader':
-        console.debug('generating thumbnail through exr-rs WASM...', absolutePath);
-        await this.exrLoader.generateThumbnail(absolutePath, thumbnailPath, thumbnailMaxSize);
+        await generateThumbnail(this.exrLoader, absolutePath, thumbnailPath, thumbnailMaxSize);
         updateThumbnailPath(file, thumbnailPath);
         break;
       case 'extractEmbeddedThumbnailOnly':
@@ -118,14 +122,14 @@ class ImageLoader {
         return file.absolutePath;
       case 'tifLoader': {
         const src =
-          this.srcBufferCache.get(file) ?? (await this.tifLoader.getBlob(file.absolutePath));
+          this.srcBufferCache.get(file) ?? (await getBlob(this.tifLoader, file.absolutePath));
         // Store in cache for a while, so it loads quicker when going back and forth
         this.updateCache(file, src);
         return src;
       }
       case 'exrLoader': {
         const src =
-          this.srcBufferCache.get(file) ?? (await this.exrLoader.getBlob(file.absolutePath));
+          this.srcBufferCache.get(file) ?? (await getBlob(this.exrLoader, file.absolutePath));
         // Store in cache for a while, so it loads quicker when going back and forth
         this.updateCache(file, src);
         return src;

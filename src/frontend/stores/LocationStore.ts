@@ -150,7 +150,7 @@ class LocationStore {
       // Find all files that have been created (those on disk but not in DB)
       const createdPaths = filePaths.filter((path) => !dbFilesPathSet.has(path));
       const createdFiles = await Promise.all(
-        createdPaths.map((path) => pathToIFile(path, location, this.rootStore.fileStore.exifTool)),
+        createdPaths.map((path) => pathToIFile(path, location, this.rootStore.exifTool)),
       );
 
       // Find all files of this location that have been removed (those in DB but not on disk anymore)
@@ -358,7 +358,7 @@ class LocationStore {
     // TODO: Should make N configurable, or determine based on the system/disk performance
     const N = 50;
     const files = await promiseAllLimit(
-      filePaths.map((path) => () => pathToIFile(path, location, this.rootStore.fileStore.exifTool)),
+      filePaths.map((path) => () => pathToIFile(path, location, this.rootStore.exifTool)),
       N,
       showProgressToaster,
       () => isCancelled,
@@ -398,7 +398,7 @@ class LocationStore {
   }
 
   @action async addFile(path: string, location: ClientLocation) {
-    const file = await pathToIFile(path, location, this.rootStore.fileStore.exifTool);
+    const file = await pathToIFile(path, location, this.rootStore.exifTool);
     await this.backend.createFilesFromPath(path, [file]);
 
     AppToaster.show({ message: 'New images have been detected.', timeout: 5000 }, 'new-images');

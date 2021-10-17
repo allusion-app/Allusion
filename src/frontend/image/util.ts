@@ -1,6 +1,50 @@
 import { clamp } from '../utils';
+import fse from 'fs-extra';
+import { thumbnailFormat } from 'src/config';
 
-export function dataToCanvas(data: ImageData): HTMLCanvasElement {
+export interface Loader extends Decoder {
+  init: () => Promise<void>;
+}
+
+export interface Decoder {
+  decode: (buffer: Buffer) => ImageData;
+}
+
+/** Returns a string that can be used as img src attribute */
+export async function getBlob(decoder: Decoder, path: string): Promise<string> {
+  const buf = await fse.readFile(path);
+  const data = decoder.decode(buf);
+  const blob = await new Promise((resolve, reject) =>
+    dataToCanvas(data).toBlob(
+      (blob) => (blob !== null ? resolve(blob) : reject()),
+      'image/avif',
+      1.0,
+    ),
+  );
+  return URL.createObjectURL(blob);
+}
+
+export async function generateThumbnail(
+  decoder: Decoder,
+  inputPath: string,
+  outputPath: string,
+  thumbnailSize: number,
+): Promise<void> {
+  const buffer = await fse.readFile(inputPath);
+  const data = decoder.decode(buffer);
+  const sampledCanvas = getSampledCanvas(dataToCanvas(data), thumbnailSize);
+  const quality = computeQuality(sampledCanvas, thumbnailSize);
+  const blobBuffer = await new Promise<ArrayBuffer>((resolve, reject) =>
+    sampledCanvas.toBlob(
+      (blob) => (blob !== null ? resolve(blob.arrayBuffer()) : reject()),
+      `image/${thumbnailFormat}`,
+      quality, // Allows to further compress image
+    ),
+  );
+  return fse.writeFile(outputPath, Buffer.from(blobBuffer));
+}
+
+function dataToCanvas(data: ImageData): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = data.width;
   canvas.height = data.height;
@@ -10,7 +54,7 @@ export function dataToCanvas(data: ImageData): HTMLCanvasElement {
   return canvas;
 }
 
-export function getSampledCanvas(canvas: HTMLCanvasElement, targetSize: number): HTMLCanvasElement {
+function getSampledCanvas(canvas: HTMLCanvasElement, targetSize: number): HTMLCanvasElement {
   const [sx, sy, swidth, sheight] = getAreaOfInterest(canvas.width, canvas.height);
   const [scaledWidth, scaledHeight] = getScaledSize(swidth, sheight, targetSize);
   const sampledCanvas = document.createElement('canvas');
@@ -22,7 +66,7 @@ export function getSampledCanvas(canvas: HTMLCanvasElement, targetSize: number):
   return sampledCanvas;
 }
 
-export function computeQuality(canvas: HTMLCanvasElement, targetSize: number): number {
+function computeQuality(canvas: HTMLCanvasElement, targetSize: number): number {
   const maxSize = Math.max(canvas.width, canvas.height);
   return clamp(targetSize / maxSize, 0.5, 1.0);
 }

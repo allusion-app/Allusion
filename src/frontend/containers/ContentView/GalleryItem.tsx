@@ -80,7 +80,7 @@ export const MasonryCell = observer(
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
 export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProps) => {
-  const { uiStore, fileStore } = useStore();
+  const { uiStore, imageLoader } = useStore();
   const { thumbnailPath, isBroken } = file;
 
   // This will check whether a thumbnail exists, generate it if needed
@@ -101,7 +101,7 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
       }
 
       if (useThumbnail) {
-        const freshlyGenerated = await fileStore.imageLoader.ensureThumbnail(file);
+        const freshlyGenerated = await imageLoader.ensureThumbnail(file);
         // The thumbnailPath of an image is always set, but may not exist yet.
         // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`.
         if (freshlyGenerated) {
@@ -109,7 +109,7 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
         }
         return getThumbnail(file);
       } else {
-        const src = await fileStore.imageLoader.getImageSrc(file);
+        const src = await imageLoader.getImageSrc(file);
         if (src !== undefined) {
           return src;
         } else {

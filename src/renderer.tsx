@@ -116,7 +116,7 @@ window.addEventListener('beforeunload', () => {
   // TODO: check whether this works okay with running in background process
   // And when force-closing the application. I think it might be keep running...
   // Update: yes, it keeps running when force-closing. Not sure how to fix. Don't think it can run as child-process
-  rootStore.fileStore.exifTool.close();
+  rootStore.exifTool.close();
 });
 
 // Render our react components in the div with id 'app' in the html file

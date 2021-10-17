@@ -154,7 +154,7 @@ const Zoom = () => {
 
 const ImportExport = observer(() => {
   const rootStore = useStore();
-  const { fileStore, tagStore } = rootStore;
+  const { fileStore, tagStore, exifTool } = rootStore;
   const [isConfirmingMetadataExport, setConfirmingMetadataExport] = useState(false);
   const [isConfirmingFileImport, setConfirmingFileImport] = useState<{
     path: string;
@@ -223,12 +223,12 @@ const ImportExport = observer(() => {
         <legend>
           Hierarchical separator, e.g.{' '}
           <pre style={{ display: 'inline' }}>
-            {['Food', 'Fruit', 'Apple'].join(fileStore.exifTool.hierarchicalSeparator)}
+            {['Food', 'Fruit', 'Apple'].join(exifTool.hierarchicalSeparator)}
           </pre>
         </legend>
         <select
-          value={fileStore.exifTool.hierarchicalSeparator}
-          onChange={(e) => fileStore.exifTool.setHierarchicalSeparator(e.target.value)}
+          value={exifTool.hierarchicalSeparator}
+          onChange={(e) => exifTool.setHierarchicalSeparator(e.target.value)}
         >
           <option value="|">|</option>
           <option value="/">/</option>

@@ -68,7 +68,7 @@ interface ImageInfoProps {
 }
 
 const ImageInfo = ({ file }: ImageInfoProps) => {
-  const { fileStore } = useStore();
+  const { exifTool } = useStore();
 
   const modified: Poll<Result<string, any>> = usePromise(file.absolutePath, async (filePath) => {
     const stats = await fse.stat(filePath);
@@ -86,7 +86,7 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
 
   const exifData: Poll<Result<{ [key: string]: ReactNode }, any>> = usePromise(
     file.absolutePath,
-    fileStore.exifTool,
+    exifTool,
     async (filePath, exifTool) => {
       const tagValues = await exifTool.readExifTags(filePath, exifTags);
       const extraStats: Record<string, ReactNode> = {};

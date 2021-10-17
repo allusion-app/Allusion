@@ -7,9 +7,6 @@ import { ClientFile } from 'src/entities/File';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAction, useComputed } from 'src/frontend/hooks/mobx';
 import { Poll, Result, usePromise } from 'src/frontend/hooks/usePromise';
-import ImageLoader from 'src/frontend/image/ImageLoader';
-import FileStore from 'src/frontend/stores/FileStore';
-import UiStore from 'src/frontend/stores/UiStore';
 import { encodeFilePath } from 'src/frontend/utils';
 import { Button, IconSet, Split } from 'widgets';
 import Inspector from '../../Inspector';
@@ -19,7 +16,7 @@ import ZoomPan, { CONTAINER_DEFAULT_STYLE, SlideTransform } from '../SlideMode/Z
 import { createDimension, createTransform, Vec2 } from './utils';
 
 const SlideMode = observer(({ contentRect }: { contentRect: ContentRect }) => {
-  const { uiStore, fileStore } = useStore();
+  const { uiStore } = useStore();
   const isInspectorOpen = uiStore.isInspectorOpen;
   const inspectorWidth = uiStore.inspectorWidth;
   const contentWidth = contentRect.width - (isInspectorOpen ? inspectorWidth : 0);
@@ -30,14 +27,7 @@ const SlideMode = observer(({ contentRect }: { contentRect: ContentRect }) => {
       id="slide-mode"
       className={uiStore.isSlideMode ? 'fade-in' : 'fade-out'}
       primary={<Inspector />}
-      secondary={
-        <SlideView
-          uiStore={uiStore}
-          fileStore={fileStore}
-          width={contentWidth}
-          height={contentHeight}
-        />
-      }
+      secondary={<SlideView width={contentWidth} height={contentHeight} />}
       axis="vertical"
       align="right"
       splitPoint={inspectorWidth}
@@ -50,12 +40,10 @@ const SlideMode = observer(({ contentRect }: { contentRect: ContentRect }) => {
 interface SlideViewProps {
   width: number;
   height: number;
-  uiStore: UiStore;
-  fileStore: FileStore;
 }
 
-const SlideView = observer((props: SlideViewProps) => {
-  const { uiStore, fileStore, width, height } = props;
+const SlideView = observer(({ width, height }: SlideViewProps) => {
+  const { uiStore, fileStore, imageLoader } = useStore();
   const file = useComputed(() => fileStore.fileList[uiStore.firstItem]).get();
   const eventManager = useMemo(() => new CommandDispatcher(file), [file]);
   const isFirst = useComputed(() => uiStore.firstItem === 0);
@@ -113,14 +101,14 @@ const SlideView = observer((props: SlideViewProps) => {
       if (!isLast.get()) {
         const nextImg = new Image();
         const nextFile = fileStore.fileList[uiStore.firstItem + 1];
-        fileStore.imageLoader
+        imageLoader
           .getImageSrc(nextFile)
           .then((src) => isEffectRunning && src && (nextImg.src = encodeFilePath(src)));
       }
       if (!isFirst.get()) {
         const prevImg = new Image();
         const prevFile = fileStore.fileList[uiStore.firstItem - 1];
-        fileStore.imageLoader
+        imageLoader
           .getImageSrc(prevFile)
           .then((src) => isEffectRunning && src && (prevImg.src = encodeFilePath(src)));
       }
@@ -129,7 +117,7 @@ const SlideView = observer((props: SlideViewProps) => {
       isEffectRunning = false;
       dispose();
     };
-  }, [fileStore, isFirst, isLast, uiStore]);
+  }, [fileStore, isFirst, isLast, uiStore, imageLoader]);
 
   const transitionStart: SlideTransform | undefined = useMemo(() => {
     const thumbEl = document.querySelector(`[data-file-id="${file.id}"]`);
@@ -156,7 +144,6 @@ const SlideView = observer((props: SlideViewProps) => {
       tabIndex={-1}
     >
       <ZoomableImage
-        imageLoader={fileStore.imageLoader}
         file={file}
         thumbnailSrc={file.thumbnailPath}
         width={width}
@@ -178,7 +165,6 @@ const SlideView = observer((props: SlideViewProps) => {
 interface ZoomableImageProps {
   file: ClientFile;
   thumbnailSrc: string;
-  imageLoader: ImageLoader;
   width: number;
   height: number;
   transitionStart?: SlideTransform;
@@ -189,13 +175,13 @@ interface ZoomableImageProps {
 const ZoomableImage: React.FC<ZoomableImageProps> = ({
   file,
   thumbnailSrc,
-  imageLoader,
   width,
   height,
   transitionStart,
   transitionEnd,
   onClose,
 }: ZoomableImageProps) => {
+  const { imageLoader } = useStore();
   const { absolutePath, width: imgWidth, height: imgHeight } = file;
   // Image src can be set asynchronously: keep track of it in a state
   // Needed for image formats not natively supported by the browser (e.g. tiff): will be converted to another format
