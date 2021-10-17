@@ -26,12 +26,24 @@
 
 use exr::{math::Vec2, meta::attribute::Chromaticities};
 
-pub const SRGB: Chromaticities = Chromaticities {
+pub const SRGB_CHROMATICITIES: Chromaticities = Chromaticities {
     red: Vec2(0.64, 0.33),
     green: Vec2(0.30, 0.60),
     blue: Vec2(0.15, 0.06),
     white: Vec2(0.3127, 0.3290), // D65
 };
+
+pub const SRGB_TO_XYZ: Matrix3 = Matrix3([
+    [0.4123909, 0.35758442, 0.18048081],
+    [0.21263906, 0.71516883, 0.07219232],
+    [0.019330805, 0.11919476, 0.9505322],
+]);
+
+pub const XYZ_TO_SRGB: Matrix3 = Matrix3([
+    [3.2409692, -1.5373828, -0.49861068],
+    [-0.96924347, 1.8759671, 0.04155507],
+    [0.05563009, -0.20397688, 1.0569714],
+]);
 
 pub struct Vec3([f32; 3]);
 
@@ -61,7 +73,7 @@ impl Vec3 {
     }
 }
 
-struct Matrix3([[f32; 3]; 3]);
+pub struct Matrix3([[f32; 3]; 3]);
 
 impl Matrix3 {
     fn invert(&self) -> Matrix3 {
@@ -108,7 +120,6 @@ impl Matrix3 {
     }
 }
 
-/// Convert a linear sRGB color to an sRGB color
 fn calc_color_space_conversion_rgb_to_xyz(
     Chromaticities {
         red,
@@ -127,9 +138,11 @@ fn calc_color_space_conversion_rgb_to_xyz(
     // component of and XYZ color.
     //   XYZ = xyz * (Y / y)
     let w = {
+        let y = white.y();
         let mut w = Vec3::from_xy(white.x(), white.y());
-        let value = white.y();
-        w.0.iter_mut().for_each(|v| *v /= value);
+        for v in w.0.iter_mut() {
+            *v /= y;
+        }
         w
     };
 
@@ -158,83 +171,82 @@ fn calc_color_space_conversion_rgb_to_xyz(
     // We now have an equation for the components of the scale matrix 'S' and
     // can compute 'M' from 'N' and 'S'
 
-    let matrix = Matrix3([
+    let mut matrix = Matrix3([
         [r.x(), g.x(), b.x()],
         [r.y(), g.y(), b.y()],
         [r.z(), g.z(), b.z()],
     ]);
-    let inverse_matrix = matrix.invert();
-    let scale = inverse_matrix.mul_vec(w);
-    Matrix3(
-        matrix
-            .0
-            .map(|xyz| [xyz[0] * scale.x(), xyz[1] * scale.y(), xyz[2] * scale.z()]),
-    )
+    let scale = matrix.invert().mul_vec(w);
+    for xyz in matrix.0.iter_mut() {
+        xyz[0] *= scale.x();
+        xyz[1] *= scale.y();
+        xyz[2] *= scale.z();
+    }
+    matrix
 }
 
 /// Convert a linear sRGB color to an sRGB color.
 fn gamma_compress_s_rgb(mut color: Vec3) -> Vec3 {
-    /// Convert a linear sRGB color channel to a sRGB color channel.
-    fn gamma_compress_s_rgb(v: &mut f32) {
-        let linear = *v;
-        *v = if linear <= 0.0031308 {
+    // Convert a linear sRGB color channel to a sRGB color channel.
+    for c in color.0.iter_mut() {
+        let linear = *c;
+        *c = if linear <= 0.0031308 {
             12.92 * linear
         } else {
             1.055 * linear.powf(2.4f32.recip()) - 0.055
         };
     }
-    color.0.iter_mut().for_each(gamma_compress_s_rgb);
     color
 }
 
 pub struct ColorMapper {
-    convert_s_rgb_to_xyz: Matrix3,
-    convert_xyz_to_s_rgb: Matrix3,
+    color_to_xyz: Matrix3,
+    xyz_to_color: Matrix3,
 }
 
 impl ColorMapper {
     pub fn new(chromaticities: Chromaticities) -> ColorMapper {
-        let convert_s_rgb_to_xyz = calc_color_space_conversion_rgb_to_xyz(chromaticities);
-        let convert_xyz_to_s_rgb = calc_color_space_conversion_rgb_to_xyz(SRGB).invert();
         ColorMapper {
-            convert_s_rgb_to_xyz,
-            convert_xyz_to_s_rgb,
+            color_to_xyz: if chromaticities == SRGB_CHROMATICITIES {
+                SRGB_TO_XYZ
+            } else {
+                calc_color_space_conversion_rgb_to_xyz(chromaticities)
+            },
+            xyz_to_color: XYZ_TO_SRGB,
         }
     }
 
+    /// Maps linear RGB to SRGB and applies SRGB gamma correction.
     pub fn map_gamut(&self, (red, green, blue): (f32, f32, f32)) -> Vec3 {
+        // The passed color must be non-linear because the exr format does not assume a viewing
+        // condition which requires applying a transfer function.
         let linear_rgb = Vec3::new(red, green, blue);
-        let xyz = self.convert_s_rgb_to_xyz.mul_vec(linear_rgb);
-        let linear_rgb = self.convert_xyz_to_s_rgb.mul_vec(xyz);
+        let xyz = self.color_to_xyz.mul_vec(linear_rgb);
+
+        // Very few browsers actually support color spaces other than SRGB. In the future a
+        // transfer function must be passed to use the display color space.
+        let linear_rgb = self.xyz_to_color.mul_vec(xyz);
         gamma_compress_s_rgb(linear_rgb)
     }
 
     /// Compress any possible f32 into the range of [0,1] and then convert it to an unsigned byte.
     pub fn map_tone(linear: f32) -> u8 {
+        // Gamma correction is already applied in ColorMapper::map_gamut.
         (linear * 255.0) as u8
     }
 }
 
 #[cfg(test)]
 mod test {
-    use super::{calc_color_space_conversion_rgb_to_xyz, Matrix3, SRGB};
+    use super::{
+        calc_color_space_conversion_rgb_to_xyz, SRGB_CHROMATICITIES, SRGB_TO_XYZ, XYZ_TO_SRGB,
+    };
 
     #[test]
     fn correct_matrix() {
-        let expected_m = Matrix3([
-            [0.4123909, 0.35758442, 0.18048081],
-            [0.21263906, 0.71516883, 0.07219232],
-            [0.019330805, 0.11919476, 0.9505322],
-        ]);
-        let m = calc_color_space_conversion_rgb_to_xyz(SRGB);
-        assert_eq!(m.0, expected_m.0);
-
-        let expected_im = Matrix3([
-            [3.2409692, -1.5373828, -0.49861068],
-            [-0.96924347, 1.8759671, 0.04155507],
-            [0.05563009, -0.20397688, 1.0569714],
-        ]);
-        let im = expected_im.invert();
-        assert_eq!(im.0, expected_im.0);
+        let m = calc_color_space_conversion_rgb_to_xyz(SRGB_CHROMATICITIES);
+        assert_eq!(m.0, SRGB_TO_XYZ.0);
+        let im = m.invert();
+        assert_eq!(im.0, XYZ_TO_SRGB.0);
     }
 }

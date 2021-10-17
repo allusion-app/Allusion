@@ -5,7 +5,7 @@ use std::io::Cursor;
 use wasm_bindgen::{prelude::*, Clamped};
 use web_sys::ImageData;
 
-use crate::color::{ColorMapper, SRGB};
+use crate::color::{ColorMapper, SRGB_CHROMATICITIES};
 
 type ImageBuffer = (Vec<u8>, usize, usize);
 
@@ -13,7 +13,7 @@ type ImageBuffer = (Vec<u8>, usize, usize);
 pub fn decode(bytes: &[u8]) -> Result<ImageData, JsValue> {
     use exr::error::Error;
 
-    match decode_exr(bytes) {
+    match decode_buffer(bytes) {
         Ok((buffer, width, height)) => {
             ImageData::new_with_u8_clamped_array_and_sh(Clamped(&buffer), width as _, height as _)
         }
@@ -22,7 +22,7 @@ pub fn decode(bytes: &[u8]) -> Result<ImageData, JsValue> {
     }
 }
 
-fn decode_exr(bytes: &[u8]) -> Result<ImageBuffer, exr::error::Error> {
+fn decode_buffer(bytes: &[u8]) -> Result<ImageBuffer, exr::error::Error> {
     use exr::prelude::*;
 
     struct Buffer {
@@ -34,7 +34,9 @@ fn decode_exr(bytes: &[u8]) -> Result<ImageBuffer, exr::error::Error> {
 
     impl Buffer {
         fn put_pixel(&mut self, x: usize, y: usize, (r, g, b, a): (f32, f32, f32, f32)) {
-            let offset = (self.width * y + x) * 4;
+            // This will never overflow because the max offset is isize::MAX - 3 because
+            // Vec::with_capacity will panic if more than isize::MAX are allocated.
+            let offset = (self.width * y + x) << 2; // x << 2 == x * 4
             let [r, g, b] = self.color_mapper.map_gamut((r, g, b)).into_array();
             self.buffer[offset + 3] = ColorMapper::map_tone(a);
             self.buffer[offset] = ColorMapper::map_tone(r);
@@ -46,7 +48,7 @@ fn decode_exr(bytes: &[u8]) -> Result<ImageBuffer, exr::error::Error> {
     let chromaticities = MetaData::read_from_buffered(bytes, false)?.headers[0]
         .shared_attributes
         .chromaticities
-        .unwrap_or(SRGB);
+        .unwrap_or(SRGB_CHROMATICITIES);
 
     let create_image = |resolution: Vec2<usize>, _channels: &RgbaChannels| -> Buffer {
         Buffer {
