@@ -118,7 +118,7 @@ async function load(module, imports) {
 
 async function init(input) {
     if (typeof input === 'undefined') {
-        input = new URL('decode_exr_bg.wasm', import.meta.url);
+        input = new URL('exr_decoder_bg.wasm', import.meta.url);
     }
     const imports = {};
     imports.wbg = {};

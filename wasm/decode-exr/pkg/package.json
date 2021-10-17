@@ -1,12 +1,12 @@
 {
-  "name": "decode-exr",
+  "name": "exr-decoder",
   "version": "0.1.0",
   "files": [
-    "decode_exr_bg.wasm",
-    "decode_exr.js",
-    "decode_exr.d.ts"
+    "exr_decoder_bg.wasm",
+    "exr_decoder.js",
+    "exr_decoder.d.ts"
   ],
-  "module": "decode_exr.js",
-  "types": "decode_exr.d.ts",
+  "module": "exr_decoder.js",
+  "types": "exr_decoder.d.ts",
   "sideEffects": false
 }

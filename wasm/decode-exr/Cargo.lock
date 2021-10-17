@@ -27,15 +27,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "decode-exr"
-version = "0.1.0"
-dependencies = [
- "exr",
- "wasm-bindgen",
- "web-sys",
-]
-
-[[package]]
 name = "deflate"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -58,6 +49,15 @@ dependencies = [
  "lebe",
  "smallvec",
  "threadpool",
+]
+
+[[package]]
+name = "exr-decoder"
+version = "0.1.0"
+dependencies = [
+ "exr",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
