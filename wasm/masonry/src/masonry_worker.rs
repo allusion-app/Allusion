@@ -173,21 +173,8 @@ fn create_web_worker(module_path: &str, wasm_path: &str) -> Result<web_sys::Work
         web_sys::BlobPropertyBag::new().type_("text/javascript"),
     )?;
     let url = web_sys::Url::create_object_url_with_blob(&blob)?;
-    web_sys::Worker::new_with_options(&url, web_sys::WorkerOptions::new().type_("module"))
-}
-
-// Add missing implementation of type property.
-trait WorkerOptionsExt {
-    fn type_(&mut self, val: &str) -> &mut Self;
-}
-
-impl WorkerOptionsExt for web_sys::WorkerOptions {
-    fn type_(&mut self, val: &str) -> &mut Self {
-        let r = js_sys::Reflect::set(self.as_ref(), &JsValue::from("type"), &JsValue::from(val));
-        debug_assert!(
-            r.is_ok(),
-            "setting properties should never fail on our dictionary objects"
-        );
-        self
-    }
+    web_sys::Worker::new_with_options(
+        &url,
+        web_sys::WorkerOptions::new().type_(web_sys::WorkerType::Module),
+    )
 }

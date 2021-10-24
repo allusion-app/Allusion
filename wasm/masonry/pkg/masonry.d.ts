@@ -102,13 +102,13 @@ export interface InitOutput {
   readonly masonryworker_set_dimension: (a: number, b: number, c: number, d: number) => void;
   readonly masonryworker_get_transform: (a: number, b: number) => number;
   readonly compute: () => number;
-  readonly __wbindgen_export_0: WebAssembly.Memory;
+  readonly memory: WebAssembly.Memory;
   readonly __wbindgen_export_1: WebAssembly.Table;
-  readonly wasm_bindgen__convert__closures__invoke1_mut__hae1aa38dc1391970: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h7450babba3fb5b2a: (a: number, b: number, c: number) => void;
   readonly __wbindgen_malloc: (a: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;
-  readonly wasm_bindgen__convert__closures__invoke2_mut__h04b557a7effa519a: (a: number, b: number, c: number, d: number) => void;
+  readonly wasm_bindgen__convert__closures__invoke2_mut__h091c21b65bbba926: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_start: () => void;
 }
 
