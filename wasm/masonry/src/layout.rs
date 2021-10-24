@@ -15,12 +15,13 @@ pub struct Layout {
     padding: u16,
 }
 
+#[repr(C)]
 #[derive(Clone, Default)]
 pub struct Transform {
     pub width: u16,
     pub height: u16,
-    pub left: u32,
     pub top: u32,
+    pub left: u32,
 }
 
 #[derive(Clone, Default)]
@@ -43,7 +44,7 @@ impl Layout {
         }
     }
 
-    pub fn get_transform(&self, index: usize) -> &Transform {
+    pub fn get_transform(&self, index: usize) -> *const Transform {
         &self.transforms[index]
     }
 

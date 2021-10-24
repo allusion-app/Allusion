@@ -102,7 +102,7 @@ export class MasonryWorkerAdapter {
 
   // This method will be available in the custom VirtualizedRenderer component as layout.getItemLayout
   getTransform(index: number): ITransform {
-    if (!this.worker) {
+    if (!this.worker || !this.WASM) {
       return {
         width: 0,
         height: 0,
@@ -110,6 +110,10 @@ export class MasonryWorkerAdapter {
         top: 0,
       };
     }
-    return this.worker.get_transform(index);
+    const ptr = this.worker.get_transform(index);
+    const memory = this.WASM.memory.buffer;
+    const [width, height] = new Uint16Array(memory, ptr, 2);
+    const [top, left] = new Uint32Array(memory, ptr + 4, 2); // offset + (2 * Uint16Array.BYTES_PER_ELEMENT)
+    return { width, height, top, left };
   }
 }

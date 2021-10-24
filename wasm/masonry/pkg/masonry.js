@@ -46,6 +46,10 @@ function addHeapObject(obj) {
     return idx;
 }
 
+const CLOSURE_DTORS = new FinalizationRegistry(state => {
+    wasm.__wbindgen_export_1.get(state.dtor)(state.a, state.b)
+});
+
 function makeMutClosure(arg0, arg1, dtor, f) {
     const state = { a: arg0, b: arg1, cnt: 1, dtor };
     const real = (...args) => {
@@ -60,14 +64,14 @@ function makeMutClosure(arg0, arg1, dtor, f) {
         } finally {
             if (--state.cnt === 0) {
                 wasm.__wbindgen_export_1.get(state.dtor)(a, state.b);
-
+                CLOSURE_DTORS.unregister(state)
             } else {
                 state.a = a;
             }
         }
     };
     real.original = state;
-
+    CLOSURE_DTORS.register(real, state, state);
     return real;
 }
 function __wbg_adapter_16(arg0, arg1, arg2) {
@@ -153,13 +157,15 @@ function getInt32Memory0() {
     }
     return cachegetInt32Memory0;
 }
-function __wbg_adapter_50(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_48(arg0, arg1, arg2, arg3) {
     wasm.wasm_bindgen__convert__closures__invoke2_mut__h091c21b65bbba926(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 /**
 */
 export const MasonryType = Object.freeze({ Vertical:0,"0":"Vertical",Horizontal:1,"1":"Horizontal",Grid:2,"2":"Grid", });
+
+const MasonryWorkerFinalization = new FinalizationRegistry(ptr => wasm.__wbg_masonryworker_free(ptr));
 /**
 */
 export class MasonryWorker {
@@ -167,14 +173,14 @@ export class MasonryWorker {
     static __wrap(ptr) {
         const obj = Object.create(MasonryWorker.prototype);
         obj.ptr = ptr;
-
+        MasonryWorkerFinalization.register(obj, obj.ptr, obj);
         return obj;
     }
 
     __destroy_into_raw() {
         const ptr = this.ptr;
         this.ptr = 0;
-
+        MasonryWorkerFinalization.unregister(this);
         return ptr;
     }
 
@@ -256,7 +262,7 @@ export class MasonryWorker {
         wasm.masonryworker_set_dimension(this.ptr, index, src_width, src_height);
     }
     /**
-    * Returns the transform of the item at the given index.
+    * Returns a pointer to the transform of the item at the given index.
     *
     * The [`Transform`] object can be used to set the absolute position of an element.
     *
@@ -264,11 +270,11 @@ export class MasonryWorker {
     *
     * If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
     * @param {number} index
-    * @returns {any}
+    * @returns {number}
     */
     get_transform(index) {
         var ret = wasm.masonryworker_get_transform(this.ptr, index);
-        return takeObject(ret);
+        return ret;
     }
 }
 
@@ -377,10 +383,6 @@ async function init(input, maybe_memory) {
         var ret = Reflect.set(getObject(arg0), getObject(arg1), getObject(arg2));
         return ret;
     }, arguments) };
-    imports.wbg.__wbg_parse_ccb2cd4fe8ead0cb = function() { return handleError(function (arg0, arg1) {
-        var ret = JSON.parse(getStringFromWasm0(arg0, arg1));
-        return addHeapObject(ret);
-    }, arguments) };
     imports.wbg.__wbg_new_b1d61b5687f5e73a = function(arg0, arg1) {
         try {
             var state0 = {a: arg0, b: arg1};
@@ -388,7 +390,7 @@ async function init(input, maybe_memory) {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wbg_adapter_50(a, state0.b, arg0, arg1);
+                    return __wbg_adapter_48(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -409,7 +411,7 @@ async function init(input, maybe_memory) {
         var ret = wasm.memory;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper27 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper26 = function(arg0, arg1, arg2) {
         var ret = makeMutClosure(arg0, arg1, 3, __wbg_adapter_16);
         return addHeapObject(ret);
     };

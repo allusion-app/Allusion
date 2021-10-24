@@ -1,11 +1,9 @@
 use alloc::boxed::Box;
 use alloc::format;
-use alloc::string::String;
 
 use crate::data::{Computation, MasonryConfig, MasonryType};
 use crate::layout::{Layout, Transform};
 use crate::sync::send_computation;
-use crate::util::UnwrapOrAbort;
 
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -14,7 +12,6 @@ use wasm_bindgen::JsCast;
 pub struct MasonryWorker {
     layout: Layout,
     worker: web_sys::Worker,
-    json_output: String,
 }
 
 #[wasm_bindgen]
@@ -33,7 +30,6 @@ impl MasonryWorker {
                 MasonryConfig::DEFAULT.padding,
             ),
             worker: create_web_worker(module_path, wasm_path)?,
-            json_output: String::new(),
         })
     }
 
@@ -119,7 +115,7 @@ impl MasonryWorker {
         self.layout.set_dimension(index, src_width, src_height)
     }
 
-    /// Returns the transform of the item at the given index.
+    /// Returns a pointer to the transform of the item at the given index.
     ///
     /// The [`Transform`] object can be used to set the absolute position of an element.
     ///
@@ -127,25 +123,8 @@ impl MasonryWorker {
     ///
     /// If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
     //// panic because of an out of bounds error.
-    pub fn get_transform(&mut self, index: usize) -> JsValue {
-        let Transform {
-            width,
-            height,
-            top,
-            left,
-        } = self.layout.get_transform(index);
-        core::fmt::write(
-            &mut self.json_output,
-            format_args!(
-                "{{\"width\":{},\"height\":{},\"top\":{},\"left\":{}}}",
-                width, height, top, left
-            ),
-        )
-        .unwrap_or_abort();
-        // We could use serde but I do not think this added dependency is worth here.
-        let json = js_sys::JSON::parse(&self.json_output).unwrap_or_abort();
-        self.json_output.clear();
-        json
+    pub fn get_transform(&self, index: usize) -> *const Transform {
+        self.layout.get_transform(index)
     }
 }
 

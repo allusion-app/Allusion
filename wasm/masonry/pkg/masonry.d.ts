@@ -78,7 +78,7 @@ export class MasonryWorker {
 */
   set_dimension(index: number, src_width: number, src_height: number): void;
 /**
-* Returns the transform of the item at the given index.
+* Returns a pointer to the transform of the item at the given index.
 *
 * The [`Transform`] object can be used to set the absolute position of an element.
 *
@@ -86,9 +86,9 @@ export class MasonryWorker {
 *
 * If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
 * @param {number} index
-* @returns {any}
+* @returns {number}
 */
-  get_transform(index: number): any;
+  get_transform(index: number): number;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
