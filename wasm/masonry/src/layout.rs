@@ -315,22 +315,18 @@ mod vertical_masonry {
         }
 
         pub fn min_index(&self) -> u32 {
-            assert!(self.heights.len() >= 4);
+            let (first_chunk, heights) = self.heights.split_at(4);
 
             let mut indices = Vector::new(0, 1, 2, 3);
             let increment = Vector::from(4);
 
-            let mut min_values = Vector::from_array(self.heights[..4].try_into().unwrap_or_abort());
+            let mut min_values = Vector::from_slice(first_chunk);
             let mut min_indices = Vector::new(0, 1, 2, 3);
 
-            for values in self.heights[4..]
-                .chunks_exact(4)
-                .map(|chunk| chunk.try_into().unwrap_or_abort())
-            {
+            for values in heights.chunks_exact(4).map(Vector::from_slice) {
                 indices = indices + increment;
 
                 // compare
-                let values = Vector::from_array(values);
                 let less: Mask = values.lt(min_values);
 
                 // update
@@ -338,36 +334,32 @@ mod vertical_masonry {
                 min_indices = indices.blend(min_indices, less);
             }
 
-            let min_values = min_values.into_array();
-            let min_indices = min_indices.into_array();
-
             min_values
+                .to_array()
                 .into_iter()
-                .zip(min_indices.into_iter())
+                .zip(min_indices.to_array())
                 .min_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)))
                 .unwrap_or_abort()
                 .1
         }
 
         pub fn max_height(mut self) -> u32 {
-            assert!(self.heights.len() >= 4);
-
             {
                 let len = self.heights.len();
                 let padded_columns = self.padded_columns;
                 self.heights[len - padded_columns..].fill(0);
             }
 
-            let mut max_values: Vector =
-                Vector::from_array(self.heights[..4].try_into().unwrap_or_abort());
-            for values in self.heights[4..]
+            let (first_chunk, heights) = self.heights.split_at(4);
+
+            heights
                 .chunks_exact(4)
-                .map(|chunk| chunk.try_into().unwrap_or_abort())
-            {
-                let values = Vector::from_array(values);
-                max_values = values.max(max_values);
-            }
-            max_values.into_array().into_iter().max().unwrap_or_abort()
+                .map(Vector::from_slice)
+                .fold(Vector::from_slice(first_chunk), |max, vec| max.max(vec))
+                .to_array()
+                .into_iter()
+                .max()
+                .unwrap_or_abort()
         }
     }
 }
@@ -381,6 +373,8 @@ mod wide {
         ops::Add,
     };
 
+    use crate::util::UnwrapOrAbort;
+
     #[derive(Clone, Copy)]
     pub struct U32x4(v128);
 
@@ -391,6 +385,10 @@ mod wide {
 
         pub fn from_array(array: [u32; 4]) -> U32x4 {
             U32x4::from(array)
+        }
+
+        pub fn from_slice(array: &[u32]) -> U32x4 {
+            U32x4::from_array(array.try_into().unwrap_or_abort())
         }
 
         pub fn min(self, other: U32x4) -> U32x4 {
@@ -410,7 +408,7 @@ mod wide {
             U32x4(u32x4_lt(self.0, other.0))
         }
 
-        pub fn into_array(self) -> [u32; 4] {
+        pub fn to_array(self) -> [u32; 4] {
             self.into()
         }
     }
