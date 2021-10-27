@@ -7,6 +7,7 @@ import {
   nativeImage,
   nativeTheme,
   screen,
+  session,
   shell,
   Tray,
 } from 'electron';
@@ -28,6 +29,20 @@ let tray: Tray | null = null;
 let clipServer: ClipServer | null = null;
 
 function initialize() {
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    if (details.responseHeaders === undefined) {
+      callback({});
+    } else {
+      callback({
+        responseHeaders: {
+          ...details.responseHeaders,
+          'Cross-Origin-Opener-Policy': ['same-origin'],
+          'Cross-Origin-Embedder-Policy': ['require-corp'],
+        },
+      });
+    }
+  });
+
   createWindow();
   createPreviewWindow();
 }
@@ -46,6 +61,7 @@ function createWindow() {
       // window.open should open a normal window like in a browser, not an electron BrowserWindowProxy
       nativeWindowOpen: true,
       nodeIntegrationInSubFrames: true,
+      contextIsolation: false,
     },
     minWidth: MIN_WINDOW_WIDTH,
     minHeight: MIN_WINDOW_HEIGHT,
@@ -63,9 +79,9 @@ function createWindow() {
 
   // Customize new window opening
   // https://www.electronjs.org/docs/api/window-open
-  mainWindow.webContents.on('new-window', (event, _url, frameName, _disposition, options) => {
+  mainWindow.webContents.setWindowOpenHandler(({ frameName }) => {
     if (mainWindow === null || mainWindow?.isDestroyed()) {
-      return;
+      return { action: 'deny' };
     }
 
     const WINDOW_TITLES: { [key: string]: string } = {
@@ -73,8 +89,9 @@ function createWindow() {
       'help-center': 'Help Center',
       about: 'About',
     };
+
     if (!(frameName in WINDOW_TITLES)) {
-      return;
+      return { action: 'deny' };
     }
 
     // Open window on same display as main window
@@ -83,20 +100,28 @@ function createWindow() {
     bounds.x = targetDisplay.bounds.x + bounds.width / 2;
     bounds.y = targetDisplay.bounds.y + bounds.height / 2;
 
-    event.preventDefault();
-    // https://www.electronjs.org/docs/api/browser-window#class-browserwindow
-    const additionalOptions: Electron.BrowserWindowConstructorOptions = {
-      ...bounds,
-      parent: mainWindow,
-      title: `${WINDOW_TITLES[frameName]} • Allusion`,
-      frame: true,
-      titleBarStyle: 'default',
+    return {
+      action: 'allow',
+      overrideBrowserWindowOptions: {
+        ...bounds,
+        icon: `${__dirname}/${AppIcon}`,
+        // Should be same as body background: Only for split second before css is loaded
+        backgroundColor: '#1c1e23',
+        parent: mainWindow,
+        title: `${WINDOW_TITLES[frameName]} • Allusion`,
+        frame: true,
+        titleBarStyle: 'default',
+      },
     };
-    Object.assign(options, additionalOptions);
-    const childWindow = new BrowserWindow(options);
+  });
+
+  mainWindow.webContents.on('did-create-window', (childWindow) => {
+    if (mainWindow === null || mainWindow?.isDestroyed()) {
+      return;
+    }
+
     childWindow.center(); // "center" in additionalOptions doesn't work :/
     childWindow.setMenu(null); // no toolbar needed
-    event.newGuest = childWindow;
 
     if (isDev()) {
       childWindow.webContents.openDevTools();
@@ -285,6 +310,7 @@ function createPreviewWindow() {
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
+      contextIsolation: false,
     },
     minWidth: 224,
     minHeight: 224,
