@@ -3,9 +3,7 @@
 // - Output a list of image positions, laid out in a masonry format
 // TODO: Could also use the google photos layout: Groups of masonry layouts, each with a header (e.g. the date)
 use crate::util::UnwrapOrAbort;
-use alloc::collections::BinaryHeap;
 use alloc::{vec, vec::Vec};
-use core::cmp::Ordering;
 
 pub struct Layout {
     num_items: usize,
@@ -141,69 +139,29 @@ impl Layout {
     // Main idea: Initialize with N columns of identical widths
     // loop over images, put them in the column that has the least height filled
     pub fn compute_vertical(&mut self, container_width: u16) -> u32 {
-        #[derive(PartialEq, Eq)]
-        struct Column {
-            left: u32,
-            height: u32,
-        }
-
-        impl PartialOrd for Column {
-            fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-                Some(self.cmp(other))
-            }
-        }
-
-        // The priority queue depends on `Ord`.
-        // Explicitly implement the trait so the queue becomes a min-heap instead of a max-heap.
-        impl Ord for Column {
-            fn cmp(&self, other: &Self) -> Ordering {
-                other
-                    .height
-                    .cmp(&self.height)
-                    .then_with(|| other.left.cmp(&self.left))
-            }
-        }
-
-        if self.is_empty() || self.thumbnail_size == 0 {
-            return 0;
-        }
+        use vertical_masonry::ColumnHeights;
 
         let (column_width, mut columns) = {
             let container_width = container_width.max(self.thumbnail_size);
             let n_columns = container_width.div_int(self.thumbnail_size);
             let column_width = container_width.div_int(n_columns);
-
-            let mut columns = Vec::with_capacity(usize::from(n_columns));
-            for i in 0..n_columns {
-                columns.push(Column {
-                    left: u32::from(i * column_width),
-                    height: 0,
-                });
-            }
-            (column_width, BinaryHeap::from(columns))
+            (column_width, ColumnHeights::new(usize::from(n_columns)))
         };
         let item_width = column_width - self.padding;
+        let column_width = u32::from(column_width);
 
         for i in 0..self.len() {
             let transform = &mut self.transforms[i];
             transform.width = item_width;
             transform.correct_height(item_width, &self.aspect_ratios[i]);
 
-            let mut column = columns.peek_mut().unwrap_or_abort();
-            transform.left = column.left;
-            transform.top = column.height;
-            column.height += u32::from(transform.height + self.padding);
+            let shortest_column_index = columns.min_index();
+            let height = &mut columns.heights[shortest_column_index as usize];
+            transform.left = shortest_column_index * column_width;
+            transform.top = *height;
+            *height += u32::from(transform.height + self.padding);
         }
-
-        let binary_heap = columns.into_vec();
-        let (_, leaf_nodes) = binary_heap.split_at(binary_heap.len() / 2);
-        let mut longest_column_height = 0;
-        for &Column { height, .. } in leaf_nodes {
-            if height > longest_column_height {
-                longest_column_height = height;
-            }
-        }
-        longest_column_height
+        columns.max_height()
     }
 
     // Simple Grid layout, replacement for the react-window dependency
@@ -322,5 +280,166 @@ impl DivInt for u32 {
     #[inline]
     fn div_int(self, rhs: Self) -> Self::Output {
         (self.saturating_add(rhs >> 1)) / rhs
+    }
+}
+
+/// http://0x80.pl/notesen/2018-10-03-simd-index-of-min.html
+mod vertical_masonry {
+    use alloc::{vec, vec::Vec};
+
+    use crate::util::UnwrapOrAbort;
+
+    use super::wide::U32x4;
+
+    type Vector = U32x4;
+    type Mask = Vector;
+
+    pub struct ColumnHeights {
+        pub heights: Vec<u32>,
+        padded_columns: usize,
+    }
+
+    impl ColumnHeights {
+        pub fn new(columns: usize) -> Self {
+            // If the number of columns cannot be divided by 4, it is padded with the greatest value.
+            // This way it won't effect the search in Self::min_index().
+            let rest = columns % 4;
+            let padded_columns = if rest == 0 { 0 } else { 4 - rest };
+            let len = columns + padded_columns;
+            let mut heights = vec![0; len];
+            heights[len - padded_columns..].fill(u32::MAX);
+            Self {
+                heights,
+                padded_columns,
+            }
+        }
+
+        pub fn min_index(&self) -> u32 {
+            assert!(self.heights.len() >= 4);
+
+            let mut indices = Vector::new(0, 1, 2, 3);
+            let increment = Vector::from(4);
+
+            let mut min_values = Vector::from_array(self.heights[..4].try_into().unwrap_or_abort());
+            let mut min_indices = Vector::new(0, 1, 2, 3);
+
+            for values in self.heights[4..]
+                .chunks_exact(4)
+                .map(|chunk| chunk.try_into().unwrap_or_abort())
+            {
+                indices = indices + increment;
+
+                // compare
+                let values = Vector::from_array(values);
+                let less: Mask = values.lt(min_values);
+
+                // update
+                min_values = values.min(min_values);
+                min_indices = indices.blend(min_indices, less);
+            }
+
+            let min_values = min_values.into_array();
+            let min_indices = min_indices.into_array();
+
+            min_values
+                .into_iter()
+                .zip(min_indices.into_iter())
+                .min_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)))
+                .unwrap_or_abort()
+                .1
+        }
+
+        pub fn max_height(mut self) -> u32 {
+            assert!(self.heights.len() >= 4);
+
+            {
+                let len = self.heights.len();
+                let padded_columns = self.padded_columns;
+                self.heights[len - padded_columns..].fill(0);
+            }
+
+            let mut max_values: Vector =
+                Vector::from_array(self.heights[..4].try_into().unwrap_or_abort());
+            for values in self.heights[4..]
+                .chunks_exact(4)
+                .map(|chunk| chunk.try_into().unwrap_or_abort())
+            {
+                let values = Vector::from_array(values);
+                max_values = values.max(max_values);
+            }
+            max_values.into_array().into_iter().max().unwrap_or_abort()
+        }
+    }
+}
+
+mod wide {
+    use core::{
+        arch::wasm32::{
+            u32x4, u32x4_add, u32x4_lt, u32x4_max, u32x4_min, u32x4_splat, v128, v128_bitselect,
+            v128_load, v128_store,
+        },
+        ops::Add,
+    };
+
+    #[derive(Clone, Copy)]
+    pub struct U32x4(v128);
+
+    impl U32x4 {
+        pub const fn new(a: u32, b: u32, c: u32, d: u32) -> U32x4 {
+            U32x4(u32x4(a, b, c, d))
+        }
+
+        pub fn from_array(array: [u32; 4]) -> U32x4 {
+            U32x4::from(array)
+        }
+
+        pub fn min(self, other: U32x4) -> U32x4 {
+            U32x4(u32x4_min(self.0, other.0))
+        }
+
+        pub fn max(self, other: U32x4) -> U32x4 {
+            U32x4(u32x4_max(self.0, other.0))
+        }
+
+        pub fn blend(self, other: U32x4, mask: U32x4) -> U32x4 {
+            U32x4(v128_bitselect(self.0, other.0, mask.0))
+        }
+
+        /// Compares lanes with < operator.
+        pub fn lt(self, other: U32x4) -> U32x4 {
+            U32x4(u32x4_lt(self.0, other.0))
+        }
+
+        pub fn into_array(self) -> [u32; 4] {
+            self.into()
+        }
+    }
+
+    impl From<u32> for U32x4 {
+        fn from(value: u32) -> Self {
+            U32x4(u32x4_splat(value))
+        }
+    }
+
+    impl From<[u32; 4]> for U32x4 {
+        fn from(value: [u32; 4]) -> Self {
+            unsafe { U32x4(v128_load(&value as *const _ as *const _)) }
+        }
+    }
+
+    impl From<U32x4> for [u32; 4] {
+        fn from(value: U32x4) -> Self {
+            let mut output = [0; 4];
+            unsafe { v128_store(&mut output as *mut _ as *mut _, value.0) }
+            output
+        }
+    }
+
+    impl Add for U32x4 {
+        type Output = U32x4;
+
+        fn add(self, rhs: Self) -> Self::Output {
+            U32x4(u32x4_add(self.0, rhs.0))
+        }
     }
 }
