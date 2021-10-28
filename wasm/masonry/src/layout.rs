@@ -5,6 +5,8 @@
 use crate::util::UnwrapOrAbort;
 use alloc::{vec, vec::Vec};
 
+use self::wide::U32x4;
+
 pub struct Layout {
     num_items: usize,
     transforms: Vec<Transform>,
@@ -16,16 +18,16 @@ pub struct Layout {
 #[repr(C)]
 #[derive(Clone, Default)]
 pub struct Transform {
-    pub width: u16,
-    pub height: u16,
+    pub width: u32,
+    pub height: u32,
     pub top: u32,
     pub left: u32,
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone, Copy, Default)]
 struct AspectRatio {
-    width: u16,
-    height: u16,
+    width: u8,
+    height: u8,
 }
 
 const MIN_ITEMS_CAPACITY: usize = 1_000;
@@ -95,21 +97,21 @@ impl Layout {
         let mut cur_row_width = 0;
         let mut first_row_item_index = 0;
 
-        for i in 0..self.len() {
+        for i in 0..self.num_items {
             let transform = &mut self.transforms[i];
             // Correct aspect ratio for very wide/narrow images
-            transform.height = self.thumbnail_size;
-            transform.correct_width(self.thumbnail_size, &self.aspect_ratios[i]);
+            transform.height = thumbnail_size;
+            transform.correct_width(thumbnail_size, &self.aspect_ratios[i]);
             transform.top = top_offset;
             transform.left = cur_row_width;
 
-            let new_row_width = cur_row_width + u32::from(transform.width + self.padding);
+            let new_row_width = cur_row_width + transform.width + padding;
 
             // Check if adding this image to the row would exceed the container width
             if new_row_width > container_width {
                 // If it exceeds it, scale all current items in the row accordingly and start a new row.
                 let corrected_height = (thumbnail_size * container_width).div_int(new_row_width);
-                let height = corrected_height as u16;
+                let height = corrected_height;
                 for prev_item in self
                     .transforms
                     .get_mut(first_row_item_index..=i)
@@ -139,27 +141,35 @@ impl Layout {
     // Main idea: Initialize with N columns of identical widths
     // loop over images, put them in the column that has the least height filled
     pub fn compute_vertical(&mut self, container_width: u16) -> u32 {
+        if self.is_empty() || self.thumbnail_size == 0 {
+            return 0;
+        }
+
         use vertical_masonry::ColumnHeights;
 
         let (column_width, mut columns) = {
             let container_width = container_width.max(self.thumbnail_size);
             let n_columns = container_width.div_int(self.thumbnail_size);
-            let column_width = container_width.div_int(n_columns);
+            let column_width = u32::from(container_width.div_int(n_columns));
             (column_width, ColumnHeights::new(usize::from(n_columns)))
         };
-        let item_width = column_width - self.padding;
-        let column_width = u32::from(column_width);
+        let padding = u32::from(self.padding);
+        let item_width = column_width - padding;
 
-        for i in 0..self.len() {
+        for i in 0..self.num_items {
             let transform = &mut self.transforms[i];
             transform.width = item_width;
             transform.correct_height(item_width, &self.aspect_ratios[i]);
 
-            let shortest_column_index = columns.min_index();
-            let height = &mut columns.heights[shortest_column_index as usize];
+            let (height, shortest_column_index) = columns.min_column();
+            // let height = &mut columns.heights[shortest_column_index as usize];
             transform.left = shortest_column_index * column_width;
-            transform.top = *height;
-            *height += u32::from(transform.height + self.padding);
+            transform.top = height;
+
+            // Only safe if the passed index is a valid column index.
+            unsafe {
+                columns.set_min_column(shortest_column_index, height + transform.height + padding);
+            }
         }
         columns.max_height()
     }
@@ -171,37 +181,37 @@ impl Layout {
         }
 
         // Main idea: Put items in a grid.
-        let (n_columns, column_width) = {
+        let (n_columns, row_height) = {
             let container_width = container_width.max(self.thumbnail_size);
             let n_columns = container_width.div_int(self.thumbnail_size);
-            let column_width = container_width.div_int(n_columns);
+            let column_width = u32::from(container_width.div_int(n_columns));
             (usize::from(n_columns), column_width)
         };
-        let item_size = column_width - self.padding;
-        let row_height = u32::from(column_width);
+        let item_size = row_height - u32::from(self.padding);
 
         let rows = {
-            let len = self.len();
+            let len = self.num_items;
             self.transforms
                 .get_mut(..len)
                 .unwrap_or_abort()
                 .chunks_mut(n_columns)
         };
-        let mut top_offset = 0;
-        for row in rows {
-            let mut left_offset = 0;
-            for transform in row.iter_mut() {
-                transform.width = item_size;
-                transform.height = item_size;
-                transform.left = left_offset;
-                transform.top = top_offset;
-                left_offset += row_height;
-            }
-            top_offset += row_height;
-        }
 
+        // width | height | top | left
+        let mut item_transform = U32x4::new(item_size, item_size, 0, 0);
+        let increment_top = U32x4::new(0, 0, row_height, 0);
+        let increment_left = U32x4::new(0, 0, 0, row_height);
+        for row in rows {
+            for transform in row.iter_mut() {
+                let transform = unsafe { &mut *(transform as *mut _ as *mut _) };
+                *transform = item_transform;
+                item_transform += increment_left;
+            }
+            item_transform += increment_top;
+            item_transform.set::<3>(0); // Reset left offset
+        }
         // Return total height of the grid
-        top_offset
+        item_transform.get::<2>()
     }
 }
 
@@ -209,24 +219,20 @@ impl Layout {
     fn is_empty(&self) -> bool {
         self.num_items == 0
     }
-
-    fn len(&self) -> usize {
-        self.num_items
-    }
 }
 
 impl Transform {
     fn scale(&mut self, total_width: u32, current_width: u32) {
         self.left = (self.left * total_width).div_int(current_width);
-        self.width = (u32::from(self.width) * total_width).div_int(current_width) as u16;
+        self.width = (self.width * total_width).div_int(current_width);
     }
 
-    fn correct_height(&mut self, width: u16, aspect_ratio: &AspectRatio) {
-        self.height = (width * aspect_ratio.height).div_int(aspect_ratio.width);
+    fn correct_height(&mut self, width: u32, aspect_ratio: &AspectRatio) {
+        self.height = (width * aspect_ratio.height()).div_int(aspect_ratio.width());
     }
 
-    fn correct_width(&mut self, height: u16, aspect_ratio: &AspectRatio) {
-        self.width = (height * aspect_ratio.width).div_int(aspect_ratio.height);
+    fn correct_width(&mut self, height: u32, aspect_ratio: &AspectRatio) {
+        self.width = (height * aspect_ratio.width()).div_int(aspect_ratio.height());
     }
 }
 
@@ -236,23 +242,31 @@ impl AspectRatio {
         self.width = width;
         self.height = height;
     }
+
+    fn width(&self) -> u32 {
+        u32::from(self.width)
+    }
+
+    fn height(&self) -> u32 {
+        u32::from(self.height)
+    }
 }
 
 // For images with extreme aspect ratios (very narrow or wide), crop them a little
 // so that they are at most X times as wide/long as they are long/wide
 // Returns a correct height value of the image
-fn correct_aspect_ratio(w: u16, h: u16) -> (u16, u16) {
+fn correct_aspect_ratio(w: u16, h: u16) -> (u8, u8) {
     const MIN_ASPECT_RATIO: u32 = 100 / 3; // X times as wide as narrow or vice versa
 
     if w > h {
         let height = (100 * u32::from(h))
-            .div_int(u32::from(w.max(1)))
-            .max(MIN_ASPECT_RATIO) as u16;
+            .div_int(u32::from(w))
+            .max(MIN_ASPECT_RATIO) as u8;
         (100, height)
     } else if h > w {
         let width = (100 * u32::from(w))
-            .div_int(u32::from(h.max(1)))
-            .max(MIN_ASPECT_RATIO) as u16;
+            .div_int(u32::from(h))
+            .max(MIN_ASPECT_RATIO) as u8;
         (width, 100)
     } else {
         (1, 1)
@@ -291,40 +305,47 @@ mod vertical_masonry {
 
     use super::wide::U32x4;
 
-    type Vector = U32x4;
-    type Mask = Vector;
+    type Mask = U32x4;
 
     pub struct ColumnHeights {
-        pub heights: Vec<u32>,
-        padded_columns: usize,
+        pub heights: Vec<U32x4>,
+        padded_offset: usize,
     }
 
     impl ColumnHeights {
         pub fn new(columns: usize) -> Self {
-            // If the number of columns cannot be divided by 4, it is padded with the greatest value.
+            // If the number of columns cannot be divided by 4, it is padded with u32::MAX.
             // This way it won't effect the search in Self::min_index().
             let rest = columns % 4;
-            let padded_columns = if rest == 0 { 0 } else { 4 - rest };
-            let len = columns + padded_columns;
-            let mut heights = vec![0; len];
-            heights[len - padded_columns..].fill(u32::MAX);
+            let (len, padded_offset) = if rest == 0 {
+                (columns / 4, 4)
+            } else {
+                ((columns / 4) + 1, rest)
+            };
             Self {
-                heights,
-                padded_columns,
+                heights: {
+                    let mut heights = vec![U32x4::from(0); len];
+                    let last = &mut heights[len - 1];
+                    let last: &mut [u32; 4] = unsafe { &mut *(last as *mut _ as *mut _) };
+                    last[padded_offset..].fill(u32::MAX);
+                    heights
+                },
+                padded_offset,
             }
         }
 
-        pub fn min_index(&self) -> u32 {
-            let (first_chunk, heights) = self.heights.split_at(4);
+        // (min_value, min_index)
+        pub fn min_column(&self) -> (u32, u32) {
+            let (&first, heights) = self.heights.split_first().unwrap_or_abort();
 
-            let mut indices = Vector::new(0, 1, 2, 3);
-            let increment = Vector::from(4);
+            let mut indices = U32x4::new(0, 1, 2, 3);
+            let increment = U32x4::from(4);
 
-            let mut min_values = Vector::from_slice(first_chunk);
-            let mut min_indices = Vector::new(0, 1, 2, 3);
+            let mut min_values = first;
+            let mut min_indices = U32x4::new(0, 1, 2, 3);
 
-            for values in heights.chunks_exact(4).map(Vector::from_slice) {
-                indices = indices + increment;
+            for values in heights {
+                indices += increment;
 
                 // compare
                 let less: Mask = values.lt(min_values);
@@ -340,22 +361,33 @@ mod vertical_masonry {
                 .zip(min_indices.to_array())
                 .min_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)))
                 .unwrap_or_abort()
-                .1
+        }
+
+        pub unsafe fn set_min_column(&mut self, index: u32, value: u32) {
+            // SAFETY: This only works because the layout of a U32x4 is [u32; 4].
+            // If the index is out of bounds, chaos will fall upon us but this should
+            // never happen because the passed index is the shortest column index.
+            let slice = core::slice::from_raw_parts_mut(
+                self.heights.as_mut_ptr() as *mut u32,
+                self.heights.len() * 4,
+            );
+            *slice.get_unchecked_mut(index as usize) = value;
         }
 
         pub fn max_height(mut self) -> u32 {
+            // Re-interpret last U32x4 as array of u32 and set padding columns to 0.
+            // Otherwise, Self::max_height() will always return u32::MAX (see Self::new()).
             {
-                let len = self.heights.len();
-                let padded_columns = self.padded_columns;
-                self.heights[len - padded_columns..].fill(0);
+                let last = self.heights.last_mut().unwrap_or_abort();
+                let last: &mut [u32; 4] = unsafe { &mut *(last as *mut _ as *mut _) };
+                last[self.padded_offset..].fill(0);
             }
 
-            let (first_chunk, heights) = self.heights.split_at(4);
+            let (&first, heights) = self.heights.split_first().unwrap_or_abort();
 
             heights
-                .chunks_exact(4)
-                .map(Vector::from_slice)
-                .fold(Vector::from_slice(first_chunk), |max, vec| max.max(vec))
+                .into_iter()
+                .fold(first, |max, &x| max.max(x))
                 .to_array()
                 .into_iter()
                 .max()
@@ -367,14 +399,15 @@ mod vertical_masonry {
 mod wide {
     use core::{
         arch::wasm32::{
-            u32x4, u32x4_add, u32x4_lt, u32x4_max, u32x4_min, u32x4_splat, v128, v128_bitselect,
-            v128_load, v128_store,
+            u32x4, u32x4_add, u32x4_extract_lane, u32x4_lt, u32x4_max, u32x4_min,
+            u32x4_replace_lane, u32x4_splat, v128, v128_bitselect, v128_load, v128_store,
         },
-        ops::Add,
+        ops::{Add, AddAssign},
     };
 
     use crate::util::UnwrapOrAbort;
 
+    #[repr(transparent)]
     #[derive(Clone, Copy)]
     pub struct U32x4(v128);
 
@@ -401,6 +434,14 @@ mod wide {
 
         pub fn blend(self, other: U32x4, mask: U32x4) -> U32x4 {
             U32x4(v128_bitselect(self.0, other.0, mask.0))
+        }
+
+        pub fn get<const N: usize>(&self) -> u32 {
+            u32x4_extract_lane::<N>(self.0)
+        }
+
+        pub fn set<const N: usize>(&mut self, value: u32) {
+            self.0 = u32x4_replace_lane::<N>(self.0, value);
         }
 
         /// Compares lanes with < operator.
@@ -438,6 +479,12 @@ mod wide {
 
         fn add(self, rhs: Self) -> Self::Output {
             U32x4(u32x4_add(self.0, rhs.0))
+        }
+    }
+
+    impl AddAssign for U32x4 {
+        fn add_assign(&mut self, rhs: Self) {
+            self.0 = (*self + rhs).0;
         }
     }
 }

@@ -46,10 +46,6 @@ function addHeapObject(obj) {
     return idx;
 }
 
-const CLOSURE_DTORS = new FinalizationRegistry(state => {
-    wasm.__wbindgen_export_1.get(state.dtor)(state.a, state.b)
-});
-
 function makeMutClosure(arg0, arg1, dtor, f) {
     const state = { a: arg0, b: arg1, cnt: 1, dtor };
     const real = (...args) => {
@@ -64,14 +60,14 @@ function makeMutClosure(arg0, arg1, dtor, f) {
         } finally {
             if (--state.cnt === 0) {
                 wasm.__wbindgen_export_1.get(state.dtor)(a, state.b);
-                CLOSURE_DTORS.unregister(state)
+
             } else {
                 state.a = a;
             }
         }
     };
     real.original = state;
-    CLOSURE_DTORS.register(real, state, state);
+
     return real;
 }
 function __wbg_adapter_16(arg0, arg1, arg2) {
@@ -164,8 +160,6 @@ function __wbg_adapter_48(arg0, arg1, arg2, arg3) {
 /**
 */
 export const MasonryType = Object.freeze({ Vertical:0,"0":"Vertical",Horizontal:1,"1":"Horizontal",Grid:2,"2":"Grid", });
-
-const MasonryWorkerFinalization = new FinalizationRegistry(ptr => wasm.__wbg_masonryworker_free(ptr));
 /**
 */
 export class MasonryWorker {
@@ -173,14 +167,14 @@ export class MasonryWorker {
     static __wrap(ptr) {
         const obj = Object.create(MasonryWorker.prototype);
         obj.ptr = ptr;
-        MasonryWorkerFinalization.register(obj, obj.ptr, obj);
+
         return obj;
     }
 
     __destroy_into_raw() {
         const ptr = this.ptr;
         this.ptr = 0;
-        MasonryWorkerFinalization.unregister(this);
+
         return ptr;
     }
 
@@ -310,9 +304,7 @@ async function load(module, imports) {
 }
 
 async function init(input, maybe_memory) {
-    if (typeof input === 'undefined') {
-        input = new URL('masonry_bg.wasm', import.meta.url);
-    }
+
     const imports = {};
     imports.wbg = {};
     imports.wbg.__wbindgen_object_drop_ref = function(arg0) {

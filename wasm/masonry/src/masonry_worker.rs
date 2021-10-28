@@ -99,7 +99,7 @@ impl MasonryWorker {
     /// a lot. Allocations can be vary in performance depending on the provided allocator. This
     /// makes no efforts and uses the standard library allocator.
     pub fn resize(&mut self, new_len: usize) {
-        self.layout.resize(new_len)
+        self.layout.resize(new_len);
     }
 
     /// Set the dimension of one item at the given index.
@@ -112,7 +112,7 @@ impl MasonryWorker {
     /// If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
     //// panic because of an out of bounds error.
     pub fn set_dimension(&mut self, index: usize, src_width: u16, src_height: u16) {
-        self.layout.set_dimension(index, src_width, src_height)
+        self.layout.set_dimension(index, src_width, src_height);
     }
 
     /// Returns a pointer to the transform of the item at the given index.

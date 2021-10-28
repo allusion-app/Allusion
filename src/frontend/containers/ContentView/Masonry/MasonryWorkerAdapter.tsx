@@ -112,8 +112,7 @@ export class MasonryWorkerAdapter {
     }
     const ptr = this.worker.get_transform(index);
     const memory = this.WASM.memory.buffer;
-    const [width, height] = new Uint16Array(memory, ptr, 2);
-    const [top, left] = new Uint32Array(memory, ptr + 4, 2); // offset + (2 * Uint16Array.BYTES_PER_ELEMENT)
+    const [width, height, top, left] = new Uint32Array(memory, ptr, 4);
     return { width, height, top, left };
   }
 }
