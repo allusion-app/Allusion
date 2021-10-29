@@ -98,26 +98,27 @@ impl Layout {
         let mut first_row_item_index = 0;
 
         for i in 0..self.num_items {
-            let transform = &mut self.transforms[i];
             // Correct aspect ratio for very wide/narrow images
+            let width = self.aspect_ratios[i].correct_width(thumbnail_size);
+
+            let transform = &mut self.transforms[i];
             transform.height = thumbnail_size;
-            transform.correct_width(thumbnail_size, &self.aspect_ratios[i]);
+            transform.width = width;
             transform.top = top_offset;
             transform.left = cur_row_width;
 
-            let new_row_width = cur_row_width + transform.width + padding;
+            let new_row_width = cur_row_width + width + padding;
 
             // Check if adding this image to the row would exceed the container width
             if new_row_width > container_width {
                 // If it exceeds it, scale all current items in the row accordingly and start a new row.
                 let corrected_height = (thumbnail_size * container_width).div_int(new_row_width);
-                let height = corrected_height;
                 for prev_item in self
                     .transforms
                     .get_mut(first_row_item_index..=i)
                     .unwrap_or_abort()
                 {
-                    prev_item.height = height;
+                    prev_item.height = corrected_height;
                     prev_item.scale(container_width, new_row_width);
                 }
 
@@ -156,20 +157,25 @@ impl Layout {
         let padding = u32::from(self.padding);
         let item_width = column_width - padding;
 
-        for i in 0..self.num_items {
-            let transform = &mut self.transforms[i];
-            transform.width = item_width;
-            transform.correct_height(item_width, &self.aspect_ratios[i]);
-
-            let (height, shortest_column_index) = columns.min_column();
-            // let height = &mut columns.heights[shortest_column_index as usize];
-            transform.left = shortest_column_index * column_width;
-            transform.top = height;
+        for (transform, aspect_ratio) in self
+            .transforms
+            .iter_mut()
+            .zip(self.aspect_ratios.iter())
+            .take(self.num_items)
+        {
+            let height = aspect_ratio.correct_height(item_width);
+            let (top, shortest_column_index) = columns.min_column();
+            let left = shortest_column_index * column_width;
 
             // Only safe if the passed index is a valid column index.
             unsafe {
-                columns.set_min_column(shortest_column_index, height + transform.height + padding);
+                columns.set_min_column(shortest_column_index, top + height + padding);
             }
+
+            transform.width = item_width;
+            transform.height = height;
+            transform.top = top;
+            transform.left = left;
         }
         columns.max_height()
     }
@@ -226,14 +232,6 @@ impl Transform {
         self.left = (self.left * total_width).div_int(current_width);
         self.width = (self.width * total_width).div_int(current_width);
     }
-
-    fn correct_height(&mut self, width: u32, aspect_ratio: &AspectRatio) {
-        self.height = (width * aspect_ratio.height()).div_int(aspect_ratio.width());
-    }
-
-    fn correct_width(&mut self, height: u32, aspect_ratio: &AspectRatio) {
-        self.width = (height * aspect_ratio.width()).div_int(aspect_ratio.height());
-    }
 }
 
 impl AspectRatio {
@@ -249,6 +247,14 @@ impl AspectRatio {
 
     fn height(&self) -> u32 {
         u32::from(self.height)
+    }
+
+    fn correct_width(&self, height: u32) -> u32 {
+        (height * self.width()).div_int(self.height())
+    }
+
+    fn correct_height(&self, width: u32) -> u32 {
+        (width * self.height()).div_int(self.width())
     }
 }
 
@@ -462,14 +468,14 @@ mod wide {
 
     impl From<[u32; 4]> for U32x4 {
         fn from(value: [u32; 4]) -> Self {
-            unsafe { U32x4(v128_load(&value as *const _ as *const _)) }
+            unsafe { U32x4(v128_load(value.as_ptr() as *const _)) }
         }
     }
 
     impl From<U32x4> for [u32; 4] {
         fn from(value: U32x4) -> Self {
             let mut output = [0; 4];
-            unsafe { v128_store(&mut output as *mut _ as *mut _, value.0) }
+            unsafe { v128_store(output.as_mut_ptr() as *mut _, value.0) }
             output
         }
     }
