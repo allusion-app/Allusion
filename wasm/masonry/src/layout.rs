@@ -331,8 +331,7 @@ mod vertical_masonry {
             Self {
                 heights: {
                     let mut heights = vec![U32x4::from(0); len].into_boxed_slice();
-                    let last = &mut heights[len - 1];
-                    let last: &mut [u32; 4] = unsafe { &mut *(last as *mut _ as *mut _) };
+                    let last: &mut [u32; 4] = heights.last_mut().unwrap_or_abort().into();
                     last[padded_offset..].fill(u32::MAX);
                     heights
                 },
@@ -384,8 +383,7 @@ mod vertical_masonry {
             // Re-interpret last U32x4 as array of u32 and set padding columns to 0.
             // Otherwise, Self::max_height() will always return u32::MAX (see Self::new()).
             {
-                let last = self.heights.last_mut().unwrap_or_abort();
-                let last: &mut [u32; 4] = unsafe { &mut *(last as *mut _ as *mut _) };
+                let last: &mut [u32; 4] = self.heights.last_mut().unwrap_or_abort().into();
                 last[self.padded_offset..].fill(0);
             }
 
@@ -406,7 +404,7 @@ mod wide {
     use core::{
         arch::wasm32::{
             u32x4, u32x4_add, u32x4_extract_lane, u32x4_lt, u32x4_max, u32x4_min,
-            u32x4_replace_lane, u32x4_splat, v128, v128_bitselect, v128_load, v128_store,
+            u32x4_replace_lane, u32x4_splat, v128, v128_bitselect, v128_load,
         },
         ops::{Add, AddAssign},
     };
@@ -468,15 +466,19 @@ mod wide {
 
     impl From<[u32; 4]> for U32x4 {
         fn from(value: [u32; 4]) -> Self {
-            unsafe { U32x4(v128_load(value.as_ptr() as *const _)) }
+            unsafe { U32x4(v128_load(value.as_ptr() as _)) }
         }
     }
 
     impl From<U32x4> for [u32; 4] {
         fn from(value: U32x4) -> Self {
-            let mut output = [0; 4];
-            unsafe { v128_store(output.as_mut_ptr() as *mut _, value.0) }
-            output
+            unsafe { *(&value as *const _ as *const _) }
+        }
+    }
+
+    impl From<&mut U32x4> for &mut [u32; 4] {
+        fn from(value: &mut U32x4) -> Self {
+            unsafe { &mut *(value as *mut _ as *mut _) }
         }
     }
 
