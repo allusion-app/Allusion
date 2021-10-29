@@ -4,7 +4,7 @@ import { ClientFile } from 'src/entities/File';
 import { ellipsize, encodeFilePath, humanFileSize } from 'src/frontend/utils';
 import { IconButton, IconSet, Tag } from 'widgets';
 import { ensureThumbnail } from '../../ThumbnailGeneration';
-import { ITransform } from './Masonry/MasonryWorkerAdapter';
+import { ITransform } from './Masonry/layout-helpers';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { CommandDispatcher, MousePointerEvent } from './Commands';
@@ -26,7 +26,7 @@ export const MasonryCell = observer(
     file,
     mounted,
     forceNoThumbnail,
-    transform: { height, width, left, top },
+    transform: [width, height, top, left],
   }: MasonryItemProps) => {
     const { uiStore, fileStore } = useStore();
     const style = { height, width, transform: `translate(${left}px,${top}px)` };

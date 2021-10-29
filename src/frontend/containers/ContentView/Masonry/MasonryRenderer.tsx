@@ -50,22 +50,22 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
       }
       // Find the image that's below/above the center of the current image
       const curTransform = worker.getTransform(index);
-      const curTransformCenter = curTransform.left + curTransform.width / 2;
+      const curTransformCenter = curTransform[3] + curTransform[0] / 2;
       const maxLookAhead = 100;
       const numFiles = fileStore.fileList.length;
 
       if (e.key === 'ArrowUp') {
         for (let i = index - 1; i > Math.max(0, i - maxLookAhead); i--) {
-          const t = worker.getTransform(i);
-          if (t.left < curTransformCenter && t.left + t.width > curTransformCenter) {
+          const [tWidth, , , tLeft] = worker.getTransform(i);
+          if (tLeft < curTransformCenter && tLeft + tWidth > curTransformCenter) {
             index = i;
             break;
           }
         }
       } else if (e.key === 'ArrowDown' && index < numFiles - 1) {
         for (let i = index + 1; i < Math.min(i + maxLookAhead, numFiles); i++) {
-          const t = worker.getTransform(i);
-          if (t.left < curTransformCenter && t.left + t.width > curTransformCenter) {
+          const [tWidth, , , tLeft] = worker.getTransform(i);
+          if (tLeft < curTransformCenter && tLeft + tWidth > curTransformCenter) {
             index = i;
             break;
           }

@@ -4,13 +4,7 @@ import { ClientFile } from 'src/entities/File';
 import { default as init, MasonryWorker, MasonryType, InitOutput } from 'wasm/masonry/pkg/masonry';
 import MasonryWASM from 'wasm/masonry/pkg/masonry_bg.wasm';
 import MasonryModule from 'wasm/masonry/pkg/masonry.js?file';
-
-export interface ITransform {
-  width: number;
-  height: number;
-  top: number;
-  left: number;
-}
+import { ITransform, Layouter } from './layout-helpers';
 
 export interface MasonryOptions {
   type: MasonryType;
@@ -24,7 +18,7 @@ const defaultOpts: MasonryOptions = {
   padding: 8,
 };
 
-export class MasonryWorkerAdapter {
+export class MasonryWorkerAdapter implements Layouter {
   private worker?: MasonryWorker;
   private WASM?: InitOutput;
   isInitialized = false;
@@ -103,16 +97,10 @@ export class MasonryWorkerAdapter {
   // This method will be available in the custom VirtualizedRenderer component as layout.getItemLayout
   getTransform(index: number): ITransform {
     if (!this.worker || !this.WASM) {
-      return {
-        width: 0,
-        height: 0,
-        left: 0,
-        top: 0,
-      };
+      return [0, 0, 0, 0];
     }
     const ptr = this.worker.get_transform(index);
     const memory = this.WASM.memory.buffer;
-    const [width, height, top, left] = new Uint32Array(memory, ptr, 4);
-    return { width, height, top, left };
+    return (new Uint32Array(memory, ptr, 4) as unknown) as ITransform;
   }
 }
