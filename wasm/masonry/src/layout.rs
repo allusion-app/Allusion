@@ -15,14 +15,9 @@ pub struct Layout {
     padding: u16,
 }
 
-#[repr(C)]
+#[repr(transparent)]
 #[derive(Clone, Default)]
-pub struct Transform {
-    pub width: u32,
-    pub height: u32,
-    pub top: u32,
-    pub left: u32,
-}
+pub struct Transform(U32x4);
 
 #[derive(Clone, Copy, Default)]
 struct AspectRatio {
@@ -102,11 +97,11 @@ impl Layout {
             // Correct aspect ratio for very wide/narrow images
             let width = self.aspect_ratios[end].correct_width(height);
 
-            let transform = &mut self.transforms[end];
-            transform.width = width;
-            transform.height = height;
-            transform.top = top;
-            transform.left = row_width;
+            let transform: &mut [u32; 4] = (&mut self.transforms[end].0).into();
+            transform[0] = width;
+            transform[1] = height;
+            transform[2] = top;
+            transform[3] = row_width;
 
             row_width += width + padding;
 
@@ -120,14 +115,13 @@ impl Layout {
                     f
                 };
                 for transform in self.transforms.get_mut(start..=end).unwrap_or_abort() {
-                    let transform: &mut U32x4 = unsafe { &mut *(transform as *mut _ as *mut _) };
-                    *transform = U32x4::from((F32x4::from(*transform) * factor).round());
+                    transform.0 = U32x4::from(F32x4::from(transform.0) * factor);
                 }
 
                 // Start a new row
                 row_width = 0;
                 start = end + 1;
-                top += self.transforms[end].height + padding;
+                top += self.transforms[end].0.get::<1>() + padding;
             }
         }
         // Return the height of the container: If a new row was just started, no need to add last item's height; already done in the loop
@@ -171,10 +165,11 @@ impl Layout {
                 columns.set_min_column(shortest_column_index, top + height + padding);
             }
 
-            transform.width = item_width;
-            transform.height = height;
-            transform.top = top;
-            transform.left = left;
+            let transform: &mut [u32; 4] = (&mut transform.0).into();
+            transform[0] = item_width;
+            transform[1] = height;
+            transform[2] = top;
+            transform[3] = left;
         }
         columns.max_height()
     }
@@ -208,8 +203,7 @@ impl Layout {
         let increment_left = U32x4::new(0, 0, 0, row_height);
         for row in rows {
             for transform in row.iter_mut() {
-                let transform = unsafe { &mut *(transform as *mut _ as *mut _) };
-                *transform = item_transform;
+                transform.0 = item_transform;
                 item_transform += increment_left;
             }
             item_transform += increment_top;
@@ -395,7 +389,7 @@ mod vertical_masonry {
 mod wide {
     use core::{
         arch::wasm32::{
-            f32x4_convert_u32x4, f32x4_mul, f32x4_nearest, f32x4_replace_lane, f32x4_splat, u32x4,
+            f32x4_convert_u32x4, f32x4_mul, f32x4_replace_lane, f32x4_splat, u32x4,
             u32x4_add, u32x4_extract_lane, u32x4_lt, u32x4_max, u32x4_min, u32x4_replace_lane,
             u32x4_splat, u32x4_trunc_sat_f32x4, v128, v128_bitselect, v128_load,
         },
@@ -455,6 +449,12 @@ mod wide {
         }
     }
 
+    impl Default for U32x4 {
+        fn default() -> Self {
+            U32x4::from(0)
+        }
+    }
+
     impl From<u32> for U32x4 {
         fn from(value: u32) -> Self {
             U32x4(u32x4_splat(value))
@@ -502,10 +502,6 @@ mod wide {
     impl F32x4 {
         pub fn set<const N: usize>(&mut self, value: f32) {
             self.0 = f32x4_replace_lane::<N>(self.0, value);
-        }
-
-        pub fn round(self) -> F32x4 {
-            F32x4(f32x4_nearest(self.0))
         }
     }
 
