@@ -5,7 +5,7 @@
 use crate::util::UnwrapOrAbort;
 use alloc::{vec, vec::Vec};
 
-use self::wide::U32x4;
+use self::wide::{F32x4, U32x4};
 
 pub struct Layout {
     num_items: usize,
@@ -90,49 +90,48 @@ impl Layout {
         }
 
         let thumbnail_size = u32::from(self.thumbnail_size);
+        let container_width_float = f32::from(container_width);
         let container_width = u32::from(container_width).max(thumbnail_size);
         let padding = u32::from(self.padding);
 
         let mut top_offset = 0;
-        let mut cur_row_width = 0;
-        let mut first_row_item_index = 0;
+        let mut row_width = 0;
+        let mut start = 0;
 
-        for i in 0..self.num_items {
+        for end in 0..self.num_items {
             // Correct aspect ratio for very wide/narrow images
-            let width = self.aspect_ratios[i].correct_width(thumbnail_size);
+            let width = self.aspect_ratios[end].correct_width(thumbnail_size);
 
-            let transform = &mut self.transforms[i];
+            let transform = &mut self.transforms[end];
             transform.height = thumbnail_size;
             transform.width = width;
             transform.top = top_offset;
-            transform.left = cur_row_width;
+            transform.left = row_width;
 
-            let new_row_width = cur_row_width + width + padding;
+            row_width += width + padding;
 
             // Check if adding this image to the row would exceed the container width
-            if new_row_width > container_width {
+            if row_width > container_width {
                 // If it exceeds it, scale all current items in the row accordingly and start a new row.
-                let corrected_height = (thumbnail_size * container_width).div_int(new_row_width);
-                for prev_item in self
-                    .transforms
-                    .get_mut(first_row_item_index..=i)
-                    .unwrap_or_abort()
-                {
-                    prev_item.height = corrected_height;
-                    prev_item.scale(container_width, new_row_width);
+                // width | height | top | left
+                let factor = {
+                    let mut f = F32x4::from(container_width_float / f32::from(row_width as u16));
+                    f.set::<2>(1.0); // Do not scale top
+                    f
+                };
+                for transform in self.transforms.get_mut(start..=end).unwrap_or_abort() {
+                    let transform: &mut U32x4 = unsafe { &mut *(transform as *mut _ as *mut _) };
+                    *transform = U32x4::from((F32x4::from(*transform) * factor).round());
                 }
 
                 // Start a new row
-                cur_row_width = 0;
-                first_row_item_index = i + 1;
-                top_offset += corrected_height + padding;
-            } else {
-                // Otherwise, just add its width to the current row width and continue on!
-                cur_row_width = new_row_width;
+                row_width = 0;
+                start = end + 1;
+                top_offset += self.transforms[end].height + padding;
             }
         }
         // Return the height of the container: If a new row was just started, no need to add last item's height; already done in the loop
-        if cur_row_width == 0 {
+        if row_width == 0 {
             top_offset
         } else {
             top_offset + thumbnail_size + padding
@@ -224,13 +223,6 @@ impl Layout {
 impl Layout {
     fn is_empty(&self) -> bool {
         self.num_items == 0
-    }
-}
-
-impl Transform {
-    fn scale(&mut self, total_width: u32, current_width: u32) {
-        self.left = (self.left * total_width).div_int(current_width);
-        self.width = (self.width * total_width).div_int(current_width);
     }
 }
 
@@ -403,10 +395,11 @@ mod vertical_masonry {
 mod wide {
     use core::{
         arch::wasm32::{
-            u32x4, u32x4_add, u32x4_extract_lane, u32x4_lt, u32x4_max, u32x4_min,
-            u32x4_replace_lane, u32x4_splat, v128, v128_bitselect, v128_load,
+            f32x4_convert_u32x4, f32x4_mul, f32x4_nearest, f32x4_replace_lane, f32x4_splat, u32x4,
+            u32x4_add, u32x4_extract_lane, u32x4_lt, u32x4_max, u32x4_min, u32x4_replace_lane,
+            u32x4_splat, u32x4_trunc_sat_f32x4, v128, v128_bitselect, v128_load,
         },
-        ops::{Add, AddAssign},
+        ops::{Add, AddAssign, Mul, MulAssign},
     };
 
     use crate::util::UnwrapOrAbort;
@@ -414,6 +407,10 @@ mod wide {
     #[repr(transparent)]
     #[derive(Clone, Copy)]
     pub struct U32x4(v128);
+
+    #[repr(transparent)]
+    #[derive(Clone, Copy)]
+    pub struct F32x4(v128);
 
     impl U32x4 {
         pub const fn new(a: u32, b: u32, c: u32, d: u32) -> U32x4 {
@@ -464,6 +461,12 @@ mod wide {
         }
     }
 
+    impl From<F32x4> for U32x4 {
+        fn from(value: F32x4) -> Self {
+            U32x4(u32x4_trunc_sat_f32x4(value.0))
+        }
+    }
+
     impl From<[u32; 4]> for U32x4 {
         fn from(value: [u32; 4]) -> Self {
             unsafe { U32x4(v128_load(value.as_ptr() as _)) }
@@ -493,6 +496,42 @@ mod wide {
     impl AddAssign for U32x4 {
         fn add_assign(&mut self, rhs: Self) {
             self.0 = (*self + rhs).0;
+        }
+    }
+
+    impl F32x4 {
+        pub fn set<const N: usize>(&mut self, value: f32) {
+            self.0 = f32x4_replace_lane::<N>(self.0, value);
+        }
+
+        pub fn round(self) -> F32x4 {
+            F32x4(f32x4_nearest(self.0))
+        }
+    }
+
+    impl From<f32> for F32x4 {
+        fn from(value: f32) -> Self {
+            F32x4(f32x4_splat(value))
+        }
+    }
+
+    impl From<U32x4> for F32x4 {
+        fn from(value: U32x4) -> Self {
+            F32x4(f32x4_convert_u32x4(value.0))
+        }
+    }
+
+    impl Mul for F32x4 {
+        type Output = F32x4;
+
+        fn mul(self, rhs: Self) -> Self::Output {
+            F32x4(f32x4_mul(self.0, rhs.0))
+        }
+    }
+
+    impl MulAssign for F32x4 {
+        fn mul_assign(&mut self, rhs: Self) {
+            self.0 = (*self * rhs).0;
         }
     }
 }
