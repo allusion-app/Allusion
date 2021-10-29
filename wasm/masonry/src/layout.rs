@@ -299,7 +299,7 @@ impl DivInt for u32 {
 
 /// http://0x80.pl/notesen/2018-10-03-simd-index-of-min.html
 mod vertical_masonry {
-    use alloc::{vec, vec::Vec};
+    use alloc::{boxed::Box, vec};
 
     use crate::util::UnwrapOrAbort;
 
@@ -308,7 +308,7 @@ mod vertical_masonry {
     type Mask = U32x4;
 
     pub struct ColumnHeights {
-        pub heights: Vec<U32x4>,
+        heights: Box<[U32x4]>,
         padded_offset: usize,
     }
 
@@ -324,7 +324,7 @@ mod vertical_masonry {
             };
             Self {
                 heights: {
-                    let mut heights = vec![U32x4::from(0); len];
+                    let mut heights = vec![U32x4::from(0); len].into_boxed_slice();
                     let last = &mut heights[len - 1];
                     let last: &mut [u32; 4] = unsafe { &mut *(last as *mut _ as *mut _) };
                     last[padded_offset..].fill(u32::MAX);
