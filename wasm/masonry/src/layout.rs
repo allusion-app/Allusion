@@ -89,33 +89,33 @@ impl Layout {
             return 0;
         }
 
-        let thumbnail_size = u32::from(self.thumbnail_size);
-        let container_width_float = f32::from(container_width);
-        let container_width = u32::from(container_width).max(thumbnail_size);
+        let height = u32::from(self.thumbnail_size);
+        let max_width = u32::from(container_width).max(height);
+        let container_width = f32::from(container_width);
         let padding = u32::from(self.padding);
 
-        let mut top_offset = 0;
+        let mut top = 0;
         let mut row_width = 0;
         let mut start = 0;
 
         for end in 0..self.num_items {
             // Correct aspect ratio for very wide/narrow images
-            let width = self.aspect_ratios[end].correct_width(thumbnail_size);
+            let width = self.aspect_ratios[end].correct_width(height);
 
             let transform = &mut self.transforms[end];
-            transform.height = thumbnail_size;
             transform.width = width;
-            transform.top = top_offset;
+            transform.height = height;
+            transform.top = top;
             transform.left = row_width;
 
             row_width += width + padding;
 
             // Check if adding this image to the row would exceed the container width
-            if row_width > container_width {
+            if row_width > max_width {
                 // If it exceeds it, scale all current items in the row accordingly and start a new row.
                 // width | height | top | left
                 let factor = {
-                    let mut f = F32x4::from(container_width_float / f32::from(row_width as u16));
+                    let mut f = F32x4::from(container_width / f32::from(row_width as u16));
                     f.set::<2>(1.0); // Do not scale top
                     f
                 };
@@ -127,14 +127,14 @@ impl Layout {
                 // Start a new row
                 row_width = 0;
                 start = end + 1;
-                top_offset += self.transforms[end].height + padding;
+                top += self.transforms[end].height + padding;
             }
         }
         // Return the height of the container: If a new row was just started, no need to add last item's height; already done in the loop
         if row_width == 0 {
-            top_offset
+            top
         } else {
-            top_offset + thumbnail_size + padding
+            top + height + padding
         }
     }
 
