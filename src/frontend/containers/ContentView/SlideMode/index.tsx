@@ -126,8 +126,8 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
       const thumbElRect = thumbEl.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
       return createTransform(
-        thumbElRect.left - containerRect.left,
         thumbElRect.top - containerRect.top,
+        thumbElRect.left - containerRect.left,
         thumbElRect.height / file.height,
       );
     }
