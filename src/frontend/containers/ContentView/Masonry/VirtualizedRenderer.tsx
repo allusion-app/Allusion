@@ -100,7 +100,7 @@ const VirtualizedRenderer = observer(
     const scrollToIndex = useCallback(
       (index: number, block: 'nearest' | 'start' | 'end' | 'center' = 'nearest') => {
         if (!scrollAnchor.current) return;
-        const [sWidth, sHeight, sTop, sLeft] = layout.getTransform(index).slice();
+        const [sWidth, sHeight, sTop, sLeft] = layout.getTransform(index);
         // Correct for padding of .masonry element: otherwise it doesn't completely scroll to the top
         const top = sTop === 0 && padding ? sTop - padding : sTop;
 
