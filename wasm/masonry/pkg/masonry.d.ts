@@ -6,10 +6,9 @@
 * # Safety
 *
 * Do not import this function as it is already imported into the web worker thread (see
-* `create_web_worker`).
-* @returns {number}
+* `worker.js`).
 */
-export function compute(): number;
+export function compute(): void;
 /**
 */
 export enum MasonryType {
@@ -24,11 +23,10 @@ export class MasonryWorker {
 /**
 * Creates a new web worker from the path to `masonry.js` and `masonry_bg.wasm`.
 * @param {number} num_items
-* @param {Worker} worker
 */
-  constructor(num_items: number, worker: Worker);
+  constructor(num_items: number);
 /**
-* Computes the transforms of all items and returns the height of the container.
+* Computes the transforms of all items.
 *
 * # Safety
 *
@@ -42,6 +40,11 @@ export class MasonryWorker {
 * @returns {Promise<any>}
 */
   compute(width: number, kind: number, thumbnail_size: number, padding: number): Promise<any>;
+/**
+* Returns height of the container from the most recent computation.
+* @returns {number}
+*/
+  get_height(): number;
 /**
 * Set the number of items that need to be computed.
 *
@@ -84,17 +87,14 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly __wbg_masonryworker_free: (a: number) => void;
-  readonly masonryworker_new: (a: number, b: number) => number;
+  readonly masonryworker_new: (a: number) => number;
   readonly masonryworker_compute: (a: number, b: number, c: number, d: number, e: number) => number;
+  readonly masonryworker_get_height: (a: number) => number;
   readonly masonryworker_resize: (a: number, b: number) => void;
   readonly masonryworker_set_dimension: (a: number, b: number, c: number, d: number) => void;
   readonly masonryworker_get_transform: (a: number, b: number) => number;
-  readonly compute: () => number;
+  readonly compute: () => void;
   readonly memory: WebAssembly.Memory;
-  readonly __wbindgen_export_1: WebAssembly.Table;
-  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h4fe7e1dc040e9e90: (a: number, b: number, c: number) => void;
-  readonly __wbindgen_exn_store: (a: number) => void;
-  readonly wasm_bindgen__convert__closures__invoke2_mut__h6973e140705c80d6: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_start: () => void;
 }
 

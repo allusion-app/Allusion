@@ -21,15 +21,6 @@ function takeObject(idx) {
     return ret;
 }
 
-function addHeapObject(obj) {
-    if (heap_next === heap.length) heap.push(heap.length + 1);
-    const idx = heap_next;
-    heap_next = heap[idx];
-
-    heap[idx] = obj;
-    return idx;
-}
-
 let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
 
 cachedTextDecoder.decode();
@@ -46,57 +37,24 @@ function getStringFromWasm0(ptr, len) {
     return cachedTextDecoder.decode(getUint8Memory0().slice(ptr, ptr + len));
 }
 
-function makeMutClosure(arg0, arg1, dtor, f) {
-    const state = { a: arg0, b: arg1, cnt: 1, dtor };
-    const real = (...args) => {
-        // First up with a closure we increment the internal reference
-        // count. This ensures that the Rust closure environment won't
-        // be deallocated while we're invoking it.
-        state.cnt++;
-        const a = state.a;
-        state.a = 0;
-        try {
-            return f(a, state.b, ...args);
-        } finally {
-            if (--state.cnt === 0) {
-                wasm.__wbindgen_export_1.get(state.dtor)(a, state.b);
+function addHeapObject(obj) {
+    if (heap_next === heap.length) heap.push(heap.length + 1);
+    const idx = heap_next;
+    heap_next = heap[idx];
 
-            } else {
-                state.a = a;
-            }
-        }
-    };
-    real.original = state;
-
-    return real;
+    heap[idx] = obj;
+    return idx;
 }
-function __wbg_adapter_14(arg0, arg1, arg2) {
-    wasm._dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h4fe7e1dc040e9e90(arg0, arg1, addHeapObject(arg2));
-}
-
 /**
 * Function to be called in the web worker thread to compute the new layout.
 *
 * # Safety
 *
 * Do not import this function as it is already imported into the web worker thread (see
-* `create_web_worker`).
-* @returns {number}
+* `worker.js`).
 */
 export function compute() {
-    var ret = wasm.compute();
-    return ret >>> 0;
-}
-
-function handleError(f, args) {
-    try {
-        return f.apply(this, args);
-    } catch (e) {
-        wasm.__wbindgen_exn_store(addHeapObject(e));
-    }
-}
-function __wbg_adapter_31(arg0, arg1, arg2, arg3) {
-    wasm.wasm_bindgen__convert__closures__invoke2_mut__h6973e140705c80d6(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+    wasm.compute();
 }
 
 /**
@@ -127,14 +85,13 @@ export class MasonryWorker {
     /**
     * Creates a new web worker from the path to `masonry.js` and `masonry_bg.wasm`.
     * @param {number} num_items
-    * @param {Worker} worker
     */
-    constructor(num_items, worker) {
-        var ret = wasm.masonryworker_new(num_items, addHeapObject(worker));
+    constructor(num_items) {
+        var ret = wasm.masonryworker_new(num_items);
         return MasonryWorker.__wrap(ret);
     }
     /**
-    * Computes the transforms of all items and returns the height of the container.
+    * Computes the transforms of all items.
     *
     * # Safety
     *
@@ -150,6 +107,14 @@ export class MasonryWorker {
     compute(width, kind, thumbnail_size, padding) {
         var ret = wasm.masonryworker_compute(this.ptr, width, kind, thumbnail_size, padding);
         return takeObject(ret);
+    }
+    /**
+    * Returns height of the container from the most recent computation.
+    * @returns {number}
+    */
+    get_height() {
+        var ret = wasm.masonryworker_get_height(this.ptr);
+        return ret >>> 0;
     }
     /**
     * Set the number of items that need to be computed.
@@ -234,67 +199,35 @@ async function init(input, maybe_memory) {
     imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
         takeObject(arg0);
     };
-    imports.wbg.__wbindgen_cb_drop = function(arg0) {
-        const obj = takeObject(arg0).original;
-        if (obj.cnt-- == 1) {
-            obj.a = 0;
-            return true;
-        }
-        var ret = false;
+    imports.wbg.__wbg_waitAsync_df6dd3a2a5307a2a = function(arg0, arg1, arg2) {
+        var ret = Atomics.waitAsync(getObject(arg0), arg1, arg2);
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbg_async_b131bfa206aa5cd9 = function(arg0) {
+        var ret = getObject(arg0).async;
         return ret;
     };
-    imports.wbg.__wbindgen_object_clone_ref = function(arg0) {
-        var ret = getObject(arg0);
+    imports.wbg.__wbg_value_a932af9bbe40ab5a = function(arg0) {
+        var ret = getObject(arg0).value;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_data_9e55e7d79ab13ef1 = function(arg0) {
-        var ret = getObject(arg0).data;
+    imports.wbg.__wbg_buffer_397eaa4d72ee94dd = function(arg0) {
+        var ret = getObject(arg0).buffer;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_setonmessage_6476b98f78b884f1 = function(arg0, arg1) {
-        getObject(arg0).onmessage = getObject(arg1);
-    };
-    imports.wbg.__wbg_postMessage_19f6e3c6d1114464 = function() { return handleError(function (arg0, arg1) {
-        getObject(arg0).postMessage(getObject(arg1));
-    }, arguments) };
-    imports.wbg.__wbg_of_0df8f35f9ca22da0 = function(arg0) {
-        var ret = Array.of(getObject(arg0));
+    imports.wbg.__wbg_resolve_d23068002f584f22 = function(arg0) {
+        var ret = Promise.resolve(getObject(arg0));
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_call_346669c262382ad7 = function() { return handleError(function (arg0, arg1, arg2) {
-        var ret = getObject(arg0).call(getObject(arg1), getObject(arg2));
+    imports.wbg.__wbg_newwithbyteoffset_ec26a01df688a5a5 = function(arg0, arg1) {
+        var ret = new Int32Array(getObject(arg0), arg1 >>> 0);
         return addHeapObject(ret);
-    }, arguments) };
-    imports.wbg.__wbg_new_b1d61b5687f5e73a = function(arg0, arg1) {
-        try {
-            var state0 = {a: arg0, b: arg1};
-            var cb0 = (arg0, arg1) => {
-                const a = state0.a;
-                state0.a = 0;
-                try {
-                    return __wbg_adapter_31(a, state0.b, arg0, arg1);
-                } finally {
-                    state0.a = a;
-                }
-            };
-            var ret = new Promise(cb0);
-            return addHeapObject(ret);
-        } finally {
-            state0.a = state0.b = 0;
-        }
     };
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
-    imports.wbg.__wbindgen_rethrow = function(arg0) {
-        throw takeObject(arg0);
-    };
     imports.wbg.__wbindgen_memory = function() {
         var ret = wasm.memory;
-        return addHeapObject(ret);
-    };
-    imports.wbg.__wbindgen_closure_wrapper18 = function(arg0, arg1, arg2) {
-        var ret = makeMutClosure(arg0, arg1, 3, __wbg_adapter_14);
         return addHeapObject(ret);
     };
 

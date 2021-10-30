@@ -87,9 +87,7 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
   useEffect(() => {
     (async function onMount() {
       try {
-        if (!worker.isInitialized) {
-          await worker.initialize(numImages);
-        }
+        await worker.initialize(numImages);
         const containerHeight = await worker.compute(
           fileStore.fileList,
           numImages,

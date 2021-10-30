@@ -1,34 +1,29 @@
 use crate::data::{Computation, MasonryConfig, MasonryType};
 use crate::layout::{Layout, Transform};
-use crate::sync::send_computation;
+use crate::sync::{read_output, send_computation};
 
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
 
 #[wasm_bindgen]
 pub struct MasonryWorker {
     layout: Layout,
-    worker: web_sys::Worker,
 }
 
 #[wasm_bindgen]
 impl MasonryWorker {
     #[wasm_bindgen(constructor)]
     /// Creates a new web worker from the path to `masonry.js` and `masonry_bg.wasm`.
-    pub fn new(num_items: usize, worker: web_sys::Worker) -> Result<MasonryWorker, JsValue> {
-        let initial_message = js_sys::Array::of1(&wasm_bindgen::memory());
-        worker.post_message(&initial_message)?;
-        Ok(MasonryWorker {
+    pub fn new(num_items: usize) -> MasonryWorker {
+        MasonryWorker {
             layout: Layout::new(
                 num_items,
                 MasonryConfig::DEFAULT.thumbnail_size,
                 MasonryConfig::DEFAULT.padding,
             ),
-            worker,
-        })
+        }
     }
 
-    /// Computes the transforms of all items and returns the height of the container.
+    /// Computes the transforms of all items.
     ///
     /// # Safety
     ///
@@ -47,6 +42,11 @@ impl MasonryWorker {
             MasonryConfig::new(kind, thumbnail_size, padding),
             &mut self.layout,
         ))
+    }
+
+    /// Returns height of the container from the most recent computation.
+    pub fn get_height(&self) -> u32 {
+        read_output()
     }
 
     /// Set the number of items that need to be computed.

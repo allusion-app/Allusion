@@ -18,26 +18,28 @@ const UNLOCKED: i32 = 1;
 /// # Safety
 ///
 /// Do not import this function as it is already imported into the web worker thread (see
-/// `create_web_worker`).
+/// `worker.js`).
 #[wasm_bindgen]
-pub fn compute() -> u32 {
-    atomic_wait32(&WORKER_THREAD, LOCKED, -1);
-    let computation_ptr = INPUT.load(Ordering::Acquire);
-    let container_height = {
-        if computation_ptr.is_null() {
-            0
-        } else {
-            // SAFETY: The send [`Computation`] is send from the main thread that created that this web
-            // worker. On creation the same memory was used.
-            let computation = unsafe { Box::from_raw(computation_ptr as *mut Computation) };
-            execute(*computation)
-        }
-    };
-    OUTPUT.store(container_height, Ordering::Release);
-    INPUT.store(core::ptr::null_mut(), Ordering::Release);
-    MAIN_THREAD.store(UNLOCKED, Ordering::Release);
-    WORKER_THREAD.store(LOCKED, Ordering::Release);
-    container_height
+pub fn compute() {
+    loop {
+        atomic_wait32(&WORKER_THREAD, LOCKED, -1);
+        let computation_ptr = INPUT.load(Ordering::Acquire);
+        let container_height = {
+            if computation_ptr.is_null() {
+                0
+            } else {
+                // SAFETY: The send [`Computation`] is send from the main thread that created that this web
+                // worker. On creation the same memory was used.
+                let computation = unsafe { Box::from_raw(computation_ptr as *mut Computation) };
+                execute(*computation)
+            }
+        };
+        OUTPUT.store(container_height, Ordering::SeqCst);
+        INPUT.store(core::ptr::null_mut(), Ordering::SeqCst);
+        WORKER_THREAD.store(LOCKED, Ordering::SeqCst);
+        MAIN_THREAD.store(UNLOCKED, Ordering::SeqCst);
+        atomic_notify(&MAIN_THREAD, 1);
+    }
 }
 
 /// Wakes up the web worker thread and "sends" data to receiver.
@@ -46,22 +48,15 @@ pub fn compute() -> u32 {
 // (see [`create_web_worker`]);
 pub fn send_computation(computation: Computation) -> js_sys::Promise {
     let computation = Box::into_raw(Box::new(computation));
-    INPUT.store(computation, Ordering::Release);
-    MAIN_THREAD.store(LOCKED, Ordering::Release);
-    WORKER_THREAD.store(UNLOCKED, Ordering::Release);
+    INPUT.store(computation, Ordering::SeqCst);
+    MAIN_THREAD.store(LOCKED, Ordering::SeqCst);
+    WORKER_THREAD.store(UNLOCKED, Ordering::SeqCst);
     atomic_notify(&WORKER_THREAD, 1);
-    // This happens when you try to avoid dependencies...
-    // Turning a Promise into a Future requires some glue code.
-    js_sys::Promise::new(&mut |resolve, _reject| {
-        let _ = atomic_wait32_async(&MAIN_THREAD, UNLOCKED).then(&Closure::once(move |_| {
-            let r = resolve.call1(&wasm_bindgen::JsValue::NULL, &read_output());
-            debug_assert!(r.is_ok(), "calling resolve should never fail");
-        }));
-    })
+    atomic_wait32_async(&MAIN_THREAD, LOCKED)
 }
 
-pub fn read_output() -> JsValue {
-    JsValue::from(OUTPUT.load(Ordering::Acquire))
+pub fn read_output() -> u32 {
+    OUTPUT.load(Ordering::Acquire)
 }
 
 fn execute(computation: Computation) -> u32 {
@@ -116,6 +111,6 @@ fn atomic_wait32_async(atomic: &AtomicI32, expression: i32) -> js_sys::Promise {
     if result.async_() {
         result.value()
     } else {
-        js_sys::Promise::reject(&JsValue::UNDEFINED)
+        js_sys::Promise::resolve(&result.value())
     }
 }
