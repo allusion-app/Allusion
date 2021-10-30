@@ -111,10 +111,9 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
   useEffect(() => {
     if (containerHeight !== undefined && containerWidth > 100) {
       // todo: could debounce if needed. Or only recompute in increments?
-      console.debug('Masonry: Items changed, computing new layout!');
+      console.debug('Masonry: Items changed. Computing new layout!');
       (async function onItemOrderChange() {
         try {
-          console.time('recompute-layout');
           const containerHeight = await worker.compute(
             fileStore.fileList,
             numImages,
@@ -124,7 +123,6 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
               type: ViewMethodLayoutDict[viewMethod],
             },
           );
-          console.timeEnd('recompute-layout');
           setContainerHeight(containerHeight);
           setLayoutTimestamp(new Date());
           // setForceRerenderObj(new Date()); // doesn't seem necessary anymore, which is nice, because it caused flickering when refetching
@@ -143,14 +141,12 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
         thumbnailSize: number,
         viewMethod: SupportedViewMethod,
       ) {
-        console.debug('Masonry: Environment changed! Recomputing layout!');
+        console.debug('Masonry: Environment changed. Recomputing layout!');
         try {
-          console.time('recompute-layout');
           const containerHeight = await worker.recompute(containerWidth, {
             thumbSize: thumbnailSize,
             type: ViewMethodLayoutDict[viewMethod],
           });
-          console.timeEnd('recompute-layout');
           setContainerHeight(containerHeight);
           setLayoutTimestamp(new Date());
           // no need for force rerender: causes flickering. Rerender already happening due to container height update anyways
