@@ -15,10 +15,7 @@ pub struct MasonryWorker {
 impl MasonryWorker {
     #[wasm_bindgen(constructor)]
     /// Creates a new web worker from the path to `masonry.js` and `masonry_bg.wasm`.
-    pub fn new(
-        num_items: usize,
-        worker: web_sys::Worker
-    ) -> Result<MasonryWorker, JsValue> {
+    pub fn new(num_items: usize, worker: web_sys::Worker) -> Result<MasonryWorker, JsValue> {
         let initial_message = js_sys::Array::of1(&wasm_bindgen::memory());
         worker.post_message(&initial_message)?;
         Ok(MasonryWorker {
@@ -98,4 +95,3 @@ impl MasonryWorker {
         self.layout.get_transform(index)
     }
 }
-
