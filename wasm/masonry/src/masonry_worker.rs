@@ -1,6 +1,3 @@
-use alloc::boxed::Box;
-use alloc::format;
-
 use crate::data::{Computation, MasonryConfig, MasonryType};
 use crate::layout::{Layout, Transform};
 use crate::sync::send_computation;
@@ -20,43 +17,18 @@ impl MasonryWorker {
     /// Creates a new web worker from the path to `masonry.js` and `masonry_bg.wasm`.
     pub fn new(
         num_items: usize,
-        module_path: &str,
-        wasm_path: &str,
+        worker: web_sys::Worker
     ) -> Result<MasonryWorker, JsValue> {
+        let initial_message = js_sys::Array::of1(&wasm_bindgen::memory());
+        worker.post_message(&initial_message)?;
         Ok(MasonryWorker {
             layout: Layout::new(
                 num_items,
                 MasonryConfig::DEFAULT.thumbnail_size,
                 MasonryConfig::DEFAULT.padding,
             ),
-            worker: create_web_worker(module_path, wasm_path)?,
+            worker,
         })
-    }
-
-    /// Initializes the web worker, so it can handle future computations.
-    ///
-    /// # Safety
-    ///
-    /// Calling this function more than once on an instance will immediately panic. It is
-    /// important to `await` the `Promise`, otherwise the first computation will be skipped.
-    // This method is necessary because calling [`Sender.send()`] is actually faster than creating
-    // the web worker and compiling the WebAssembly inside of it. We have to wait until the
-    // WebAssembly module is compiled, so a `Receiver` instance can be created.
-    pub fn init(&mut self) -> js_sys::Promise {
-        let initial_message = js_sys::Array::of1(&wasm_bindgen::memory());
-        js_sys::Promise::new(
-            &mut |resolve: js_sys::Function, _reject: js_sys::Function| {
-                self.worker.set_onmessage(Some(
-                    Closure::once_into_js(move |_event: web_sys::MessageEvent| {
-                        let r = resolve.call0(&wasm_bindgen::JsValue::NULL);
-                        debug_assert!(r.is_ok(), "calling resolve should never fail");
-                    })
-                    .unchecked_ref(),
-                ));
-                let r = self.worker.post_message(&initial_message);
-                debug_assert!(r.is_ok(), "calling Worker.postMessage should never fail");
-            },
-        )
     }
 
     /// Computes the transforms of all items and returns the height of the container.
@@ -73,11 +45,6 @@ impl MasonryWorker {
         thumbnail_size: u16,
         padding: u16,
     ) -> js_sys::Promise {
-        let computation = Box::into_raw(Box::new(Computation::new(
-            width,
-            MasonryConfig::new(kind, thumbnail_size, padding),
-            &mut self.layout,
-        )));
         js_sys::Promise::new(
             &mut |resolve: js_sys::Function, _reject: js_sys::Function| {
                 self.worker.set_onmessage(Some(
@@ -87,7 +54,11 @@ impl MasonryWorker {
                     })
                     .unchecked_ref(),
                 ));
-                send_computation(computation);
+                send_computation(Computation::new(
+                    width,
+                    MasonryConfig::new(kind, thumbnail_size, padding),
+                    &mut self.layout,
+                ));
             },
         )
     }
@@ -128,32 +99,3 @@ impl MasonryWorker {
     }
 }
 
-impl Drop for MasonryWorker {
-    fn drop(&mut self) {
-        self.worker.terminate();
-    }
-}
-
-fn create_web_worker(module_path: &str, wasm_path: &str) -> Result<web_sys::Worker, JsValue> {
-    let worker_script = format!(
-        "import {{ default as init, compute }} from '{module_path}';\
-        self.onmessage = async (event) => {{\
-            await init('{wasm_path}', event.data[0]);\
-            self.postMessage(null);\
-            while (true) {{\
-                self.postMessage(compute());\
-            }}\
-        }};",
-        module_path = module_path,
-        wasm_path = wasm_path
-    );
-    let blob = web_sys::Blob::new_with_blob_sequence_and_options(
-        &js_sys::Array::of1(&JsValue::from_str(&worker_script)),
-        web_sys::BlobPropertyBag::new().type_("text/javascript"),
-    )?;
-    let url = web_sys::Url::create_object_url_with_blob(&blob)?;
-    web_sys::Worker::new_with_options(
-        &url,
-        web_sys::WorkerOptions::new().type_(web_sys::WorkerType::Module),
-    )
-}

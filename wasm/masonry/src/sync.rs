@@ -42,7 +42,8 @@ pub fn compute() -> u32 {
 // I keep writing "send" because we're not sending anything but rather communicate with shared
 // memory. As soon as the memory at index 0 becomes 1 the web worker thread will stop waiting
 // (see [`create_web_worker`]);
-pub fn send_computation(computation: *mut Computation) {
+pub fn send_computation(computation: Computation) {
+    let computation = Box::into_raw(Box::new(computation));
     INPUT.store(computation, Ordering::Release);
     LOCK.store(UNLOCKED, Ordering::Release);
     atomic_notify(&LOCK, 1);

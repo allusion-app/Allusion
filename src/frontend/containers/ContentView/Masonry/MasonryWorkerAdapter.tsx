@@ -2,8 +2,6 @@ import { runInAction } from 'mobx';
 import { ClientFile } from 'src/entities/File';
 // Force Webpack to include worker and WASM file in the build folder!
 import { default as init, MasonryWorker, MasonryType, InitOutput } from 'wasm/masonry/pkg/masonry';
-import MasonryWASM from 'wasm/masonry/pkg/masonry_bg.wasm';
-import MasonryModule from 'wasm/masonry/pkg/masonry.js?file';
 import { ITransform, Layouter } from './layout-helpers';
 
 export interface MasonryOptions {
@@ -30,13 +28,17 @@ export class MasonryWorkerAdapter implements Layouter {
 
     if (!this.WASM) {
       console.debug('initializing WASM...');
-      this.WASM = await init(MasonryWASM);
+      this.WASM = await init(new URL('wasm/masonry/pkg/masonry_bg.wasm', import.meta.url));
     }
 
     if (!this.worker) {
       // Webpack doesn't like folder paths for URL
-      this.worker = new MasonryWorker(numItems, MasonryModule, (MasonryWASM as unknown) as string);
-      await this.worker.init();
+      this.worker = new MasonryWorker(
+        numItems,
+        new Worker(new URL('wasm/masonry/pkg/worker.js', import.meta.url), {
+          type: 'module',
+        }),
+      );
     }
 
     this.prevNumImgs = numItems;

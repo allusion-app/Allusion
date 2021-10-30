@@ -135,11 +135,11 @@ impl Layout {
     // Main idea: Initialize with N columns of identical widths
     // loop over images, put them in the column that has the least height filled
     pub fn compute_vertical(&mut self, container_width: u16) -> u32 {
+        use vertical_masonry::ColumnHeights;
+
         if self.is_empty() || self.thumbnail_size == 0 {
             return 0;
         }
-
-        use vertical_masonry::ColumnHeights;
 
         let (column_width, mut columns) = {
             let container_width = container_width.max(self.thumbnail_size);
