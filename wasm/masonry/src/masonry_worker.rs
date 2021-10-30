@@ -12,7 +12,7 @@ pub struct MasonryWorker {
 #[wasm_bindgen]
 impl MasonryWorker {
     #[wasm_bindgen(constructor)]
-    /// Creates a new web worker from the path to `masonry.js` and `masonry_bg.wasm`.
+    /// Creates a new worker from a worker that was initialized with the `worker.js` script.
     pub fn new(num_items: usize) -> MasonryWorker {
         MasonryWorker {
             layout: Layout::new(

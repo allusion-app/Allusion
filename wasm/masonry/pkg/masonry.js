@@ -83,7 +83,7 @@ export class MasonryWorker {
         wasm.__wbg_masonryworker_free(ptr);
     }
     /**
-    * Creates a new web worker from the path to `masonry.js` and `masonry_bg.wasm`.
+    * Creates a new worker from a worker that was initialized with the `worker.js` script.
     * @param {number} num_items
     */
     constructor(num_items) {
