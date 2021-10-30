@@ -3,7 +3,7 @@ import path from 'path';
 import { debounce } from 'src/frontend/utils';
 
 import Backend from './Backend';
-import { NUM_AUTO_BACKUPS, AUTO_BACKUP_TIMEOUT, INSTANT_BACKUP_FILENAME } from './config';
+import { NUM_AUTO_BACKUPS, AUTO_BACKUP_TIMEOUT } from './config';
 
 /** Returns the date at 00:00 today */
 function getToday(): Date {
@@ -28,25 +28,14 @@ export default class BackupScheduler {
   private lastBackupIndex: number = 0;
   private lastBackupDate: Date = new Date(0);
 
-  private isInstantBackupEnabled?: boolean;
-
   private debouncedCreatePeriodicBackup: () => Promise<void>;
-  private debouncedCreateInstantBackup: () => Promise<void>;
 
   constructor(private backend: Backend) {
     // Wait 10 seconds after a change for any other changes before creating a backup
     this.debouncedCreatePeriodicBackup = debounce(this.createPeriodicBackup, 10000).bind(this);
-
-    // When running the application as a portable executable, save the state immediately
-    // after any change is made, so it can always be recovered on startup,
-    // even when running on a different device
-    // (needed since IndexedDB is stored in AppData: not relative to the exectuable)
-    // Saving it after any change has been made, waiting 3 seconds until no changes have been made
-    this.debouncedCreateInstantBackup = debounce(this.createInstantBackup, 3000).bind(this);
   }
 
-  async initialize(backupDirectory: string, instantBackups: boolean): Promise<void> {
-    this.isInstantBackupEnabled = instantBackups;
+  async initialize(backupDirectory: string): Promise<void> {
     this.backupDirectory = backupDirectory;
     await fse.ensureDir(this.backupDirectory);
   }
@@ -106,23 +95,9 @@ export default class BackupScheduler {
     }
   }
 
-  private async createInstantBackup() {
-    const filePath = path.join(this.backupDirectory, INSTANT_BACKUP_FILENAME);
-
-    try {
-      await this.backend.backupDatabaseToFile(filePath);
-      console.log('Created instant backup', filePath);
-    } catch (e) {
-      console.error('Could not create instant backup', filePath, e);
-    }
-  }
-
   notifyChange(): void {
     if (new Date().getTime() > this.lastBackupDate.getTime() + AUTO_BACKUP_TIMEOUT) {
       this.debouncedCreatePeriodicBackup();
-    }
-    if (this.isInstantBackupEnabled) {
-      this.debouncedCreateInstantBackup();
     }
   }
 }

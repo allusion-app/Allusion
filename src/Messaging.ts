@@ -42,7 +42,6 @@ const GET_ZOOM_FACTOR = 'GET_ZOOM_FACTOR';
 const WINDOW_MAXIMIZE = 'WINDOW_MAXIMIZE';
 const WINDOW_UNMAXIMIZE = 'WINDOW_UNMAXIMIZE';
 const IS_MAXIMIZED = 'IS_MAXIMIZED';
-const IS_PORTABLE = 'IS_PORTABLE';
 
 /////////////////// Window system buttons ////////////////////
 const WINDOW_SYSTEM_BUTTON_PRESS = 'WINDOW_SYSTEM_BUTTON_PRESS';
@@ -204,8 +203,6 @@ export class RendererMessenger {
 
   static isMaximized = (): boolean => ipcRenderer.sendSync(IS_MAXIMIZED);
 
-  static isPortable = (): boolean => ipcRenderer.sendSync(IS_PORTABLE);
-
   static getVersion = (): string => ipcRenderer.sendSync(GET_VERSION);
 
   static checkForUpdates = async () => ipcRenderer.invoke(CHECK_FOR_UPDATES);
@@ -307,16 +304,13 @@ export class MainMessenger {
   static onIsMaximized = (cb: () => boolean) =>
     ipcMain.on(IS_MAXIMIZED, (e) => (e.returnValue = cb()));
 
-  static onIsPortable = (cb: () => boolean) =>
-    ipcMain.on(IS_PORTABLE, (e) => (e.returnValue = cb()));
-
   static onGetVersion = (cb: () => string) =>
     ipcMain.on(GET_VERSION, (e) => (e.returnValue = cb()));
 
   static onCheckForUpdates = (cb: () => void) => ipcMain.handle(CHECK_FOR_UPDATES, cb);
 
   static onToggleCheckUpdatesOnStartup = (cb: () => void) =>
-    ipcMain.handle(TOGGLE_CHECK_UPDATES_ON_STARTUP, cb);
+    ipcMain.on(TOGGLE_CHECK_UPDATES_ON_STARTUP, cb);
 
   static onIsCheckUpdatesOnStartupEnabled = (cb: () => boolean) =>
     ipcMain.on(IS_CHECK_UPDATES_ON_STARTUP_ENABLED, (e) => (e.returnValue = cb()));

@@ -368,6 +368,8 @@ const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: IT
           : IconSet.FOLDER_CLOSE
         : IconSet.HIDDEN}
       <div>{nodeData.name}</div>
+      {/* TODO: search button on locations/tags with long names is inaccessible */}
+      {/* TODO: discussed click/search behavior. Should restore previous method: remove search button, search by clicking on the label itself, but keep button for tag tree */}
       <button onClick={handleClick} className="btn btn-icon" aria-hidden={!isSearched}>
         {isSearched ? IconSet.SEARCH : IconSet.SEARCH_ADD}
       </button>
