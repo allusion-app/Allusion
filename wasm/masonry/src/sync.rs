@@ -1,5 +1,13 @@
-use alloc::boxed::Box;
-use core::sync::atomic::{AtomicI32, AtomicPtr, AtomicU32, Ordering};
+//! Thread synchronization
+//!
+//! This whole module is akin to a channel (e.g. [`std::sync::mpsc::channel()`]). However, it uses
+//! statics to avoid sending a receiver to the web worker. As it stands now, there is no nice
+//! [`std::thread::spawn()`] abstraction and it probably won't be added any time.
+//! ```
+use core::{
+    cell::Cell,
+    sync::atomic::{AtomicI32, Ordering},
+};
 
 use wasm_bindgen::{prelude::*, JsCast};
 
@@ -7,8 +15,8 @@ use crate::data::{Computation, MasonryType};
 
 static MAIN_THREAD: AtomicI32 = AtomicI32::new(UNLOCKED);
 static WORKER_THREAD: AtomicI32 = AtomicI32::new(LOCKED);
-static INPUT: AtomicPtr<Computation> = AtomicPtr::new(core::ptr::null_mut());
-static OUTPUT: AtomicU32 = AtomicU32::new(0);
+static INPUT: Data<Option<Computation>> = Data::new(None);
+static OUTPUT: Data<u32> = Data::new(0);
 
 const LOCKED: i32 = 0;
 const UNLOCKED: i32 = 1;
@@ -20,22 +28,13 @@ const UNLOCKED: i32 = 1;
 /// Do not import this function as it is already imported into the web worker thread (see
 /// `worker.js`).
 #[wasm_bindgen]
-pub fn compute() {
+pub fn run() {
     loop {
         atomic_wait32(&WORKER_THREAD, LOCKED, -1);
-        let computation_ptr = INPUT.load(Ordering::SeqCst);
-        let container_height = {
-            if computation_ptr.is_null() {
-                0
-            } else {
-                // SAFETY: The send [`Computation`] is send from the main thread that created that this web
-                // worker. On creation the same memory was used.
-                let computation = unsafe { Box::from_raw(computation_ptr as *mut Computation) };
-                execute(*computation)
-            }
-        };
-        OUTPUT.store(container_height, Ordering::SeqCst);
-        INPUT.store(core::ptr::null_mut(), Ordering::SeqCst);
+        if let Some(computation) = INPUT.replace(None) {
+            OUTPUT.set(execute(computation));
+        }
+        // Put the worker thread back to sleep and notify the main thread that work is finished.
         WORKER_THREAD.store(LOCKED, Ordering::SeqCst);
         MAIN_THREAD.store(UNLOCKED, Ordering::SeqCst);
         atomic_notify(&MAIN_THREAD, 1);
@@ -43,20 +42,17 @@ pub fn compute() {
 }
 
 /// Wakes up the web worker thread and "sends" data to receiver.
-// I keep writing "send" because we're not sending anything but rather communicate with shared
-// memory. As soon as the memory at index 0 becomes 1 the web worker thread will stop waiting
-// (see [`create_web_worker`]);
 pub fn send_computation(computation: Computation) -> js_sys::Promise {
-    let computation = Box::into_raw(Box::new(computation));
-    INPUT.store(computation, Ordering::SeqCst);
+    INPUT.set(Some(computation));
+    // Wake up the worker thread and make the main thread wait for the worker thread.
     MAIN_THREAD.store(LOCKED, Ordering::SeqCst);
     WORKER_THREAD.store(UNLOCKED, Ordering::SeqCst);
     atomic_notify(&WORKER_THREAD, 1);
     atomic_wait32_async(&MAIN_THREAD, LOCKED)
 }
 
-pub fn read_output() -> u32 {
-    OUTPUT.load(Ordering::SeqCst)
+pub fn receive_output() -> u32 {
+    OUTPUT.get()
 }
 
 fn execute(computation: Computation) -> u32 {
@@ -114,3 +110,29 @@ fn atomic_wait32_async(atomic: &AtomicI32, expression: i32) -> js_sys::Promise {
         js_sys::Promise::resolve(&result.value())
     }
 }
+
+/// Wrapper around `Cell` to make it possible to use in statics.
+struct Data<T>(Cell<T>);
+
+impl<T> Data<T> {
+    const fn new(value: T) -> Data<T> {
+        Data(Cell::new(value))
+    }
+
+    fn set(&self, value: T) {
+        self.0.set(value);
+    }
+
+    fn replace(&self, value: T) -> T {
+        self.0.replace(value)
+    }
+}
+
+impl<T: Copy> Data<T> {
+    fn get(&self) -> T {
+        self.0.get()
+    }
+}
+
+/// Static values need to be sync.
+unsafe impl<T> Sync for Data<T> {}

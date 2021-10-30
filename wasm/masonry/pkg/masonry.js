@@ -53,8 +53,8 @@ function addHeapObject(obj) {
 * Do not import this function as it is already imported into the web worker thread (see
 * `worker.js`).
 */
-export function compute() {
-    wasm.compute();
+export function run() {
+    wasm.run();
 }
 
 /**
@@ -96,7 +96,7 @@ export class MasonryWorker {
     * # Safety
     *
     * The returned `Promise` must be `await`ed. Calls to any other method of [`MasonryWorker`]
-    * while the `Promise` is still pending can lead to undefined behaviour. As long as the value
+    * while the `Promise` is still pending will lead to undefined behaviour. As long as the value
     * is `await`ed you can enjoy lock free concurrency.
     * @param {number} width
     * @param {number} kind

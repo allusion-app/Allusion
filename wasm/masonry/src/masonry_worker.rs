@@ -1,6 +1,6 @@
 use crate::data::{Computation, MasonryConfig, MasonryType};
 use crate::layout::{Layout, Transform};
-use crate::sync::{read_output, send_computation};
+use crate::sync::{receive_output, send_computation};
 
 use wasm_bindgen::prelude::*;
 
@@ -28,7 +28,7 @@ impl MasonryWorker {
     /// # Safety
     ///
     /// The returned `Promise` must be `await`ed. Calls to any other method of [`MasonryWorker`]
-    /// while the `Promise` is still pending can lead to undefined behaviour. As long as the value
+    /// while the `Promise` is still pending will lead to undefined behaviour. As long as the value
     /// is `await`ed you can enjoy lock free concurrency.
     pub fn compute(
         &mut self,
@@ -46,7 +46,7 @@ impl MasonryWorker {
 
     /// Returns height of the container from the most recent computation.
     pub fn get_height(&self) -> u32 {
-        read_output()
+        receive_output()
     }
 
     /// Set the number of items that need to be computed.

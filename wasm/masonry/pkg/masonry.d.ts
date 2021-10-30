@@ -8,7 +8,7 @@
 * Do not import this function as it is already imported into the web worker thread (see
 * `worker.js`).
 */
-export function compute(): void;
+export function run(): void;
 /**
 */
 export enum MasonryType {
@@ -31,7 +31,7 @@ export class MasonryWorker {
 * # Safety
 *
 * The returned `Promise` must be `await`ed. Calls to any other method of [`MasonryWorker`]
-* while the `Promise` is still pending can lead to undefined behaviour. As long as the value
+* while the `Promise` is still pending will lead to undefined behaviour. As long as the value
 * is `await`ed you can enjoy lock free concurrency.
 * @param {number} width
 * @param {number} kind
@@ -93,7 +93,7 @@ export interface InitOutput {
   readonly masonryworker_resize: (a: number, b: number) => void;
   readonly masonryworker_set_dimension: (a: number, b: number, c: number, d: number) => void;
   readonly masonryworker_get_transform: (a: number, b: number) => number;
-  readonly compute: () => void;
+  readonly run: () => void;
   readonly memory: WebAssembly.Memory;
   readonly __wbindgen_start: () => void;
 }

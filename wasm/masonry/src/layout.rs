@@ -109,8 +109,9 @@ impl Layout {
             if row_width > max_width {
                 // If it exceeds it, scale all current items in the row accordingly and start a new row.
                 // width | height | top | left
+                let factor = container_width / f32::from(row_width as u16);
                 let factor = {
-                    let mut f = F32x4::from(container_width / f32::from(row_width as u16));
+                    let mut f = F32x4::from(factor);
                     f.set::<2>(1.0); // Do not scale top
                     f
                 };
@@ -316,7 +317,7 @@ mod vertical_masonry {
             };
             Self {
                 heights: {
-                    let mut heights = vec![U32x4::from(0); len].into_boxed_slice();
+                    let mut heights = vec![U32x4::ZERO; len].into_boxed_slice();
                     let last: &mut [u32; 4] = heights.last_mut().unwrap_or_abort().into();
                     last[padded_offset..].fill(u32::MAX);
                     heights
@@ -339,7 +340,7 @@ mod vertical_masonry {
                 indices += increment;
 
                 // compare
-                let less: Mask = values.lt(min_values);
+                let less: Mask = values.less_than(min_values);
 
                 // update
                 min_values = values.min(min_values);

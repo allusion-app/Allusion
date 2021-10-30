@@ -7,6 +7,6 @@ export function masonryworker_get_height(a: number): number;
 export function masonryworker_resize(a: number, b: number): void;
 export function masonryworker_set_dimension(a: number, b: number, c: number, d: number): void;
 export function masonryworker_get_transform(a: number, b: number): number;
-export function compute(): void;
+export function run(): void;
 export const memory: WebAssembly.Memory;
 export function __wbindgen_start(): void;
