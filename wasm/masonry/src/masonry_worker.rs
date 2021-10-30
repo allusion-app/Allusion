@@ -42,22 +42,11 @@ impl MasonryWorker {
         thumbnail_size: u16,
         padding: u16,
     ) -> js_sys::Promise {
-        js_sys::Promise::new(
-            &mut |resolve: js_sys::Function, _reject: js_sys::Function| {
-                self.worker.set_onmessage(Some(
-                    Closure::once_into_js(move |event: web_sys::MessageEvent| {
-                        let r = resolve.call1(&wasm_bindgen::JsValue::NULL, &event.data());
-                        debug_assert!(r.is_ok(), "calling resolve should never fail");
-                    })
-                    .unchecked_ref(),
-                ));
-                send_computation(Computation::new(
-                    width,
-                    MasonryConfig::new(kind, thumbnail_size, padding),
-                    &mut self.layout,
-                ));
-            },
-        )
+        send_computation(Computation::new(
+            width,
+            MasonryConfig::new(kind, thumbnail_size, padding),
+            &mut self.layout,
+        ))
     }
 
     /// Set the number of items that need to be computed.

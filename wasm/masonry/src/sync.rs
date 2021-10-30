@@ -1,13 +1,14 @@
 use alloc::boxed::Box;
-use core::sync::atomic::{AtomicI32, AtomicPtr, Ordering};
+use core::sync::atomic::{AtomicI32, AtomicPtr, AtomicU32, Ordering};
 
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::data::{Computation, MasonryType};
 
-static LOCK: AtomicI32 = AtomicI32::new(0);
+static MAIN_THREAD: AtomicI32 = AtomicI32::new(UNLOCKED);
+static WORKER_THREAD: AtomicI32 = AtomicI32::new(LOCKED);
 static INPUT: AtomicPtr<Computation> = AtomicPtr::new(core::ptr::null_mut());
-// static OUTPUT: AtomicU32 = AtomicU32::new(0);
+static OUTPUT: AtomicU32 = AtomicU32::new(0);
 
 const LOCKED: i32 = 0;
 const UNLOCKED: i32 = 1;
@@ -20,7 +21,7 @@ const UNLOCKED: i32 = 1;
 /// `create_web_worker`).
 #[wasm_bindgen]
 pub fn compute() -> u32 {
-    atomic_wait32(&LOCK, LOCKED, -1);
+    atomic_wait32(&WORKER_THREAD, LOCKED, -1);
     let computation_ptr = INPUT.load(Ordering::Acquire);
     let container_height = {
         if computation_ptr.is_null() {
@@ -32,9 +33,10 @@ pub fn compute() -> u32 {
             execute(*computation)
         }
     };
-    // OUTPUT.store(container_height, Ordering::Release);
+    OUTPUT.store(container_height, Ordering::Release);
     INPUT.store(core::ptr::null_mut(), Ordering::Release);
-    LOCK.store(LOCKED, Ordering::Release);
+    MAIN_THREAD.store(UNLOCKED, Ordering::Release);
+    WORKER_THREAD.store(LOCKED, Ordering::Release);
     container_height
 }
 
@@ -42,16 +44,25 @@ pub fn compute() -> u32 {
 // I keep writing "send" because we're not sending anything but rather communicate with shared
 // memory. As soon as the memory at index 0 becomes 1 the web worker thread will stop waiting
 // (see [`create_web_worker`]);
-pub fn send_computation(computation: Computation) {
+pub fn send_computation(computation: Computation) -> js_sys::Promise {
     let computation = Box::into_raw(Box::new(computation));
     INPUT.store(computation, Ordering::Release);
-    LOCK.store(UNLOCKED, Ordering::Release);
-    atomic_notify(&LOCK, 1);
+    MAIN_THREAD.store(LOCKED, Ordering::Release);
+    WORKER_THREAD.store(UNLOCKED, Ordering::Release);
+    atomic_notify(&WORKER_THREAD, 1);
+    // This happens when you try to avoid dependencies...
+    // Turning a Promise into a Future requires some glue code.
+    js_sys::Promise::new(&mut |resolve, _reject| {
+        let _ = atomic_wait32_async(&MAIN_THREAD, UNLOCKED).then(&Closure::once(move |_| {
+            let r = resolve.call1(&wasm_bindgen::JsValue::NULL, &read_output());
+            debug_assert!(r.is_ok(), "calling resolve should never fail");
+        }));
+    })
 }
 
-// pub fn read_result() -> JsValue {
-//     JsValue::from(OUTPUT.load(Ordering::Acquire))
-// }
+pub fn read_output() -> JsValue {
+    JsValue::from(OUTPUT.load(Ordering::Acquire))
+}
 
 fn execute(computation: Computation) -> u32 {
     let (width, config, layout) = {
@@ -80,4 +91,31 @@ fn atomic_wait32(atomic: &AtomicI32, expression: i32, timeout_ns: i64) -> i32 {
 
 fn atomic_notify(atomic: &AtomicI32, waiters: u32) -> u32 {
     unsafe { core::arch::wasm32::memory_atomic_notify(atomic.as_mut_ptr(), waiters) }
+}
+
+fn atomic_wait32_async(atomic: &AtomicI32, expression: i32) -> js_sys::Promise {
+    #[wasm_bindgen]
+    extern "C" {
+        type Atomics;
+        type WaitAsyncResult;
+
+        #[wasm_bindgen(static_method_of = Atomics, js_name = waitAsync)]
+        fn wait_async(buf: &js_sys::Int32Array, index: i32, value: i32) -> WaitAsyncResult;
+
+        #[wasm_bindgen(method, getter, structural, js_name = async)]
+        fn async_(this: &WaitAsyncResult) -> bool;
+
+        #[wasm_bindgen(method, getter, structural)]
+        fn value(this: &WaitAsyncResult) -> js_sys::Promise;
+    }
+
+    let memory = wasm_bindgen::memory().unchecked_into::<js_sys::WebAssembly::Memory>();
+    let array =
+        js_sys::Int32Array::new_with_byte_offset(&memory.buffer(), atomic.as_mut_ptr() as u32);
+    let result = Atomics::wait_async(&array, 0, expression);
+    if result.async_() {
+        result.value()
+    } else {
+        js_sys::Promise::reject(&JsValue::UNDEFINED)
+    }
 }
