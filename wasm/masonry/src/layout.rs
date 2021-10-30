@@ -97,11 +97,7 @@ impl Layout {
             // Correct aspect ratio for very wide/narrow images
             let width = self.aspect_ratios[end].correct_width(height);
 
-            let transform: &mut [u32; 4] = (&mut self.transforms[end].0).into();
-            transform[0] = width;
-            transform[1] = height;
-            transform[2] = top;
-            transform[3] = row_width;
+            self.transforms[end].0 = U32x4::new(width, height, top, row_width);
 
             row_width += width + padding;
 
@@ -166,11 +162,7 @@ impl Layout {
                 columns.set_min_column(shortest_column_index, top + height + padding);
             }
 
-            let transform: &mut [u32; 4] = (&mut transform.0).into();
-            transform[0] = item_width;
-            transform[1] = height;
-            transform[2] = top;
-            transform[3] = left;
+            transform.0 = U32x4::new(item_width, height, top, left);
         }
         columns.max_height()
     }
@@ -302,7 +294,7 @@ mod vertical_masonry {
 
     pub struct ColumnHeights {
         heights: Box<[U32x4]>,
-        padded_offset: usize,
+        padding_mask: Mask,
     }
 
     impl ColumnHeights {
@@ -310,19 +302,21 @@ mod vertical_masonry {
             // If the number of columns cannot be divided by 4, it is padded with u32::MAX.
             // This way it won't effect the search in Self::min_index().
             let rest = columns % 4;
-            let (len, padded_offset) = if rest == 0 {
-                (columns / 4, 4)
+            let (len, padding_mask) = if rest == 0 {
+                (columns / 4, U32x4::ZERO)
             } else {
-                ((columns / 4) + 1, rest)
+                (
+                    (columns / 4) + 1,
+                    U32x4::from(rest as u32).less_than(U32x4::new(1, 2, 3, 4)),
+                )
             };
             Self {
                 heights: {
                     let mut heights = vec![U32x4::ZERO; len].into_boxed_slice();
-                    let last: &mut [u32; 4] = heights.last_mut().unwrap_or_abort().into();
-                    last[padded_offset..].fill(u32::MAX);
+                    *heights.last_mut().unwrap_or_abort() = padding_mask;
                     heights
                 },
-                padded_offset,
+                padding_mask,
             }
         }
 
@@ -361,7 +355,7 @@ mod vertical_masonry {
             // never happen because the passed index is the shortest column index.
             let slice = core::slice::from_raw_parts_mut(
                 self.heights.as_mut_ptr() as *mut u32,
-                self.heights.len() * 4,
+                self.heights.len() << 2, // x * 4
             );
             *slice.get_unchecked_mut(index as usize) = value;
         }
@@ -370,8 +364,8 @@ mod vertical_masonry {
             // Re-interpret last U32x4 as array of u32 and set padding columns to 0.
             // Otherwise, Self::max_height() will always return u32::MAX (see Self::new()).
             {
-                let last: &mut [u32; 4] = self.heights.last_mut().unwrap_or_abort().into();
-                last[self.padded_offset..].fill(0);
+                let last = self.heights.last_mut().unwrap_or_abort();
+                *last = U32x4::ZERO.blend(*last, self.padding_mask);
             }
 
             let (&first, heights) = self.heights.split_first().unwrap_or_abort();

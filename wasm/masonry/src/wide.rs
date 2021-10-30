@@ -72,12 +72,6 @@ impl From<U32x4> for [u32; 4] {
     }
 }
 
-impl From<&mut U32x4> for &mut [u32; 4] {
-    fn from(value: &mut U32x4) -> Self {
-        unsafe { &mut *(value as *mut _ as *mut _) }
-    }
-}
-
 impl AddAssign for U32x4 {
     fn add_assign(&mut self, rhs: Self) {
         self.0 = u32x4_add(self.0, rhs.0);
