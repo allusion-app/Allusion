@@ -23,7 +23,7 @@ const UNLOCKED: i32 = 1;
 pub fn compute() {
     loop {
         atomic_wait32(&WORKER_THREAD, LOCKED, -1);
-        let computation_ptr = INPUT.load(Ordering::Acquire);
+        let computation_ptr = INPUT.load(Ordering::SeqCst);
         let container_height = {
             if computation_ptr.is_null() {
                 0
@@ -56,7 +56,7 @@ pub fn send_computation(computation: Computation) -> js_sys::Promise {
 }
 
 pub fn read_output() -> u32 {
-    OUTPUT.load(Ordering::Acquire)
+    OUTPUT.load(Ordering::SeqCst)
 }
 
 fn execute(computation: Computation) -> u32 {
