@@ -129,14 +129,10 @@ export class MasonryWorker {
         wasm.masonryworker_resize(this.ptr, new_len);
     }
     /**
-    * Set the dimension of one item at the given index.
+    * Set the dimension of one item at the given index if it is smaller than the item count.
     *
     * You have to set the dimensions of the items if you want to compute a vertical or horizontal
     * masonry layout. For grid layout this is not necessary.
-    *
-    * # Panics
-    *
-    * If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
     * @param {number} index
     * @param {number} src_width
     * @param {number} src_height
@@ -149,9 +145,10 @@ export class MasonryWorker {
     *
     * The [`Transform`] object can be used to set the absolute position of an element.
     *
-    * # Panics
+    * # Safety
     *
     * If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
+    * return a null pointer. Reading the WebAssembly.Memory will only return garbage.
     * @param {number} index
     * @returns {number}
     */
@@ -196,12 +193,12 @@ async function init(input, maybe_memory) {
 
     const imports = {};
     imports.wbg = {};
-    imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
-        takeObject(arg0);
-    };
     imports.wbg.__wbg_waitAsync_df6dd3a2a5307a2a = function(arg0, arg1, arg2) {
         var ret = Atomics.waitAsync(getObject(arg0), arg1, arg2);
         return addHeapObject(ret);
+    };
+    imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
+        takeObject(arg0);
     };
     imports.wbg.__wbg_async_b131bfa206aa5cd9 = function(arg0) {
         var ret = getObject(arg0).async;
@@ -219,8 +216,8 @@ async function init(input, maybe_memory) {
         var ret = Promise.resolve(getObject(arg0));
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_newwithbyteoffset_ec26a01df688a5a5 = function(arg0, arg1) {
-        var ret = new Int32Array(getObject(arg0), arg1 >>> 0);
+    imports.wbg.__wbg_newwithbyteoffsetandlength_c6cf704931530b90 = function(arg0, arg1, arg2) {
+        var ret = new Int32Array(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {

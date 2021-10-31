@@ -39,12 +39,14 @@ impl Layout {
         }
     }
 
-    pub fn get_transform(&self, index: usize) -> &Transform {
-        &self.transforms[index]
+    pub fn get_transform(&self, index: usize) -> Option<&Transform> {
+        self.transforms.get(index)
     }
 
     pub fn set_dimension(&mut self, index: usize, src_width: u16, src_height: u16) {
-        self.aspect_ratios[index].set(src_width, src_height);
+        if let Some(aspect_ratio) = self.aspect_ratios.get_mut(index) {
+            aspect_ratio.set(src_width, src_height);
+        }
     }
 
     pub fn set_thumbnail_size(&mut self, thumbnail_size: u16) {
@@ -62,14 +64,8 @@ impl Layout {
         self.num_items = new_len;
         let len = self.transforms.len().min(self.aspect_ratios.len());
         if new_len > len {
-            self.transforms
-                .reserve(new_len.saturating_sub(self.transforms.capacity()));
-            self.aspect_ratios
-                .reserve(new_len.saturating_sub(self.aspect_ratios.capacity()));
-            for _ in len..new_len {
-                self.transforms.push(Transform::default());
-                self.aspect_ratios.push(AspectRatio::default());
-            }
+            self.transforms.resize_with(new_len, Default::default);
+            self.aspect_ratios.resize_with(new_len, Default::default);
         }
     }
 
@@ -183,9 +179,8 @@ impl Layout {
         let item_size = row_height - u32::from(self.padding);
 
         let rows = {
-            let len = self.num_items;
             self.transforms
-                .get_mut(..len)
+                .get_mut(..self.num_items)
                 .unwrap_or_abort()
                 .chunks_mut(n_columns)
         };

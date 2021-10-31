@@ -48,7 +48,7 @@ export class MasonryWorkerAdapter implements Layouter {
   ): Promise<number | undefined> {
     const worker = this.worker;
     if (worker === undefined) {
-      return Promise.reject();
+      return Promise.reject('Worker is uninitialized.');
     }
 
     if (this.prevNumImgs !== numImgs) {
@@ -76,7 +76,7 @@ export class MasonryWorkerAdapter implements Layouter {
     opts: Partial<MasonryOptions>,
   ): Promise<number | undefined> {
     if (this.worker === undefined) {
-      return Promise.reject();
+      return Promise.reject('Worker is uninitialized.');
     }
     await this.worker.compute(
       containerWidth,
@@ -87,16 +87,10 @@ export class MasonryWorkerAdapter implements Layouter {
     return this.worker.get_height();
   }
 
-  free() {
-    this.worker?.free();
-    this.worker = undefined;
-    this.memory = undefined;
-  }
-
   // This method will be available in the custom VirtualizedRenderer component as layout.getItemLayout
   getTransform(index: number): ITransform {
     if (this.worker === undefined || this.memory === undefined) {
-      return [0, 0, 0, 0];
+      throw new Error('Worker is uninitialized.');
     }
     const ptr = this.worker.get_transform(index);
     return (new Uint32Array(this.memory.buffer, ptr, 4) as unknown) as ITransform;

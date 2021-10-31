@@ -59,15 +59,10 @@ impl MasonryWorker {
         self.layout.resize(new_len);
     }
 
-    /// Set the dimension of one item at the given index.
+    /// Set the dimension of one item at the given index if it is smaller than the item count.
     ///
     /// You have to set the dimensions of the items if you want to compute a vertical or horizontal
     /// masonry layout. For grid layout this is not necessary.
-    ///
-    /// # Panics
-    ///
-    /// If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
-    //// panic because of an out of bounds error.
     pub fn set_dimension(&mut self, index: usize, src_width: u16, src_height: u16) {
         self.layout.set_dimension(index, src_width, src_height);
     }
@@ -76,11 +71,15 @@ impl MasonryWorker {
     ///
     /// The [`Transform`] object can be used to set the absolute position of an element.
     ///
-    /// # Panics
+    /// # Safety
     ///
     /// If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
-    //// panic because of an out of bounds error.
+    /// return a null pointer. Reading the WebAssembly.Memory will only return garbage.
     pub fn get_transform(&self, index: usize) -> *const Transform {
-        self.layout.get_transform(index)
+        // This match will be optimized away because Option<&T> implements null pointer optimization.
+        match self.layout.get_transform(index) {
+            Some(transform) => transform,
+            None => core::ptr::null()
+        }
     }
 }

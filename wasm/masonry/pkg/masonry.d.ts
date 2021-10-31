@@ -56,14 +56,10 @@ export class MasonryWorker {
 */
   resize(new_len: number): void;
 /**
-* Set the dimension of one item at the given index.
+* Set the dimension of one item at the given index if it is smaller than the item count.
 *
 * You have to set the dimensions of the items if you want to compute a vertical or horizontal
 * masonry layout. For grid layout this is not necessary.
-*
-* # Panics
-*
-* If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
 * @param {number} index
 * @param {number} src_width
 * @param {number} src_height
@@ -74,9 +70,10 @@ export class MasonryWorker {
 *
 * The [`Transform`] object can be used to set the absolute position of an element.
 *
-* # Panics
+* # Safety
 *
 * If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
+* return a null pointer. Reading the WebAssembly.Memory will only return garbage.
 * @param {number} index
 * @returns {number}
 */
