@@ -19,7 +19,7 @@ pub struct Layout {
 #[derive(Clone, Default)]
 pub struct Transform(U32x4);
 
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Default)]
 struct AspectRatio {
     width: u8,
     height: u8,
@@ -39,7 +39,7 @@ impl Layout {
         }
     }
 
-    pub fn get_transform(&self, index: usize) -> *const Transform {
+    pub fn get_transform(&self, index: usize) -> &Transform {
         &self.transforms[index]
     }
 
@@ -320,7 +320,7 @@ mod vertical_masonry {
             }
         }
 
-        // (min_value, min_index)
+        /// Returns the shortest column as (value, index) pair.
         pub fn min_column(&self) -> (u32, u32) {
             let (&first, heights) = self.heights.split_first().unwrap_or_abort();
 
@@ -354,15 +354,14 @@ mod vertical_masonry {
             // If the index is out of bounds, chaos will fall upon us but this should
             // never happen because the passed index is the shortest column index.
             let slice = core::slice::from_raw_parts_mut(
-                self.heights.as_mut_ptr() as *mut u32,
-                self.heights.len() << 2, // x * 4
+                self.heights.as_mut_ptr().cast::<u32>(),
+                self.heights.len() * 4,
             );
             *slice.get_unchecked_mut(index as usize) = value;
         }
 
         pub fn max_height(mut self) -> u32 {
-            // Re-interpret last U32x4 as array of u32 and set padding columns to 0.
-            // Otherwise, Self::max_height() will always return u32::MAX (see Self::new()).
+            // Set padding columns to 0 or Self::max_height() will always return u32::MAX (see Self::new()).
             {
                 let last = self.heights.last_mut().unwrap_or_abort();
                 *last = U32x4::ZERO.blend(*last, self.padding_mask);
@@ -371,7 +370,7 @@ mod vertical_masonry {
             let (&first, heights) = self.heights.split_first().unwrap_or_abort();
 
             heights
-                .into_iter()
+                .iter()
                 .fold(first, |max, &x| max.max(x))
                 .to_array()
                 .into_iter()

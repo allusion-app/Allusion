@@ -9,7 +9,7 @@ use core::{
     sync::atomic::{AtomicI32, Ordering},
 };
 
-use wasm_bindgen::{prelude::*, JsCast};
+use wasm_bindgen::prelude::*;
 
 use crate::data::{Computation, MasonryType};
 
@@ -51,6 +51,7 @@ pub fn send_computation(computation: Computation) -> js_sys::Promise {
     atomic_wait32_async(&MAIN_THREAD, LOCKED)
 }
 
+/// Returns the result of the most recent computation.
 pub fn receive_output() -> u32 {
     OUTPUT.get()
 }
@@ -100,10 +101,10 @@ fn atomic_wait32_async(atomic: &AtomicI32, expression: i32) -> js_sys::Promise {
         fn value(this: &WaitAsyncResult) -> js_sys::Promise;
     }
 
-    let memory = wasm_bindgen::memory().unchecked_into::<js_sys::WebAssembly::Memory>();
-    let array =
-        js_sys::Int32Array::new_with_byte_offset(&memory.buffer(), atomic.as_mut_ptr() as u32);
-    let result = Atomics::wait_async(&array, 0, expression);
+    let result = unsafe {
+        let buffer = js_sys::Int32Array::view_mut_raw(atomic.as_mut_ptr(), 1);
+        Atomics::wait_async(&buffer, 0, expression)
+    };
     if result.async_() {
         result.value()
     } else {

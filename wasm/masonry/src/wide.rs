@@ -1,5 +1,9 @@
 use core::{
-    arch::wasm32::*,
+    arch::wasm32::{
+        f32x4_convert_u32x4, f32x4_mul, f32x4_replace_lane, f32x4_splat, u32x4, u32x4_add,
+        u32x4_extract_lane, u32x4_lt, u32x4_max, u32x4_min, u32x4_replace_lane, u32x4_splat,
+        u32x4_trunc_sat_f32x4, v128, v128_bitselect,
+    },
     ops::{AddAssign, Mul},
 };
 
@@ -68,7 +72,7 @@ impl From<F32x4> for U32x4 {
 
 impl From<U32x4> for [u32; 4] {
     fn from(value: U32x4) -> Self {
-        unsafe { *(&value as *const _ as *const _) }
+        unsafe { *(&value as *const U32x4 as *const [u32; 4]) }
     }
 }
 

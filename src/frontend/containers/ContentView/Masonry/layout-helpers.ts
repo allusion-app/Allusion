@@ -14,10 +14,7 @@ export interface Layouter {
  * @param overshoot Whether to overshoot: return the first or last image at the specified height
  */
 export function findViewportEdge(height: number, length: number, layout: Layouter): number {
-  // easy base case
-  if (height <= 0) {
-    return 0;
-  }
+  if (height <= 0) return 0; // easy base case
 
   // TODO: Could exploit the assumption that the images are ordered linearly in top-offset,
   // by making the initial guess at height/maxHeight
@@ -29,9 +26,7 @@ export function findViewportEdge(height: number, length: number, layout: Layoute
   while (true) {
     iteration++;
     let stepSize = length / Math.pow(2, iteration);
-    if (stepSize < 1) {
-      return nextLookup;
-    }
+    if (stepSize < 1) return nextLookup;
     stepSize = Math.round(stepSize);
     const [, tHeight, tTop] = layout.getTransform(nextLookup);
     if (tTop > height) {

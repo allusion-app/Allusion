@@ -101,12 +101,13 @@ const VirtualizedRenderer = observer(
       (index: number, block: 'nearest' | 'start' | 'end' | 'center' = 'nearest') => {
         if (!scrollAnchor.current) return;
         const [sWidth, sHeight, sTop, sLeft] = layout.getTransform(index);
-        // Correct for padding of .masonry element: otherwise it doesn't completely scroll to the top
-        const top = sTop === 0 && padding ? sTop - padding : sTop;
 
         // Scroll to invisible element, positioned at selected item,
         // just for scroll automatisation with scrollIntoView
-        scrollAnchor.current.style.transform = `translate(${sLeft}px,${top}px)`;
+        scrollAnchor.current.style.transform = `translate(${sLeft}px,${
+          // Correct for padding of masonry element, otherwise it doesn't completely scroll to the top.
+          sTop === 0 && padding ? sTop - padding : sTop
+        }px)`;
         scrollAnchor.current.style.width = sWidth + 'px';
         scrollAnchor.current.style.height = sHeight + 'px';
         // TODO: adding behavior: 'smooth' would be nice, but it's disorienting when layout changes a lot. Add threshold for when the delta firstItemIndex than X?

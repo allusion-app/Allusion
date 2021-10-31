@@ -23,6 +23,8 @@ export class MasonryWorkerAdapter implements Layouter {
   private prevNumImgs: number = 0;
 
   async initialize(numItems: number) {
+    this.prevNumImgs = numItems;
+
     if (this.memory !== undefined && this.worker !== undefined) {
       return;
     }
@@ -31,14 +33,11 @@ export class MasonryWorkerAdapter implements Layouter {
     const wasm = await init(new URL('wasm/masonry/pkg/masonry_bg.wasm', import.meta.url));
     this.memory = wasm.memory;
 
-    // Webpack doesn't like folder paths for URL
     const worker = new Worker(new URL('wasm/masonry/pkg/worker.js', import.meta.url), {
       type: 'module',
     });
     worker.postMessage(this.memory);
     this.worker = new MasonryWorker(numItems);
-
-    this.prevNumImgs = numItems;
   }
 
   async compute(

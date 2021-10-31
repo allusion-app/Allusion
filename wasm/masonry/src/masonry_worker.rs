@@ -17,8 +17,8 @@ impl MasonryWorker {
         MasonryWorker {
             layout: Layout::new(
                 num_items,
-                MasonryConfig::DEFAULT.thumbnail_size,
-                MasonryConfig::DEFAULT.padding,
+                MasonryConfig::DEFAULT_THUMBNAIL_SIZE,
+                MasonryConfig::DEFAULT_PADDING,
             ),
         }
     }
