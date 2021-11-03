@@ -1,4 +1,4 @@
-import { ITransform } from './MasonryWorkerAdapter';
+export type ITransform = Readonly<[width: number, height: number, top: number, left: number]>;
 
 export interface Layouter {
   getTransform: (index: number) => ITransform;
@@ -13,13 +13,11 @@ export interface Layouter {
  * @param layout The layout of the images
  * @param overshoot Whether to overshoot: return the first or last image at the specified height
  */
-export function findViewportEdge(
-  height: number,
-  length: number,
-  layout: Layouter,
-  overshoot: boolean,
-): number {
-  if (height <= 0) return 0; // easy base case
+export function findViewportEdge(height: number, length: number, layout: Layouter): number {
+  // easy base case
+  if (height <= 0) {
+    return 0;
+  }
 
   // TODO: Could exploit the assumption that the images are ordered linearly in top-offset,
   // by making the initial guess at height/maxHeight
@@ -31,11 +29,13 @@ export function findViewportEdge(
   while (true) {
     iteration++;
     let stepSize = length / Math.pow(2, iteration);
-    if (stepSize < 1) return nextLookup;
+    if (stepSize < 1) {
+      return nextLookup;
+    }
     stepSize = Math.round(stepSize);
-    const t = layout.getTransform(nextLookup);
-    if (t.top > height) {
-      if (t.top + t.height > height) {
+    const [, tHeight, tTop] = layout.getTransform(nextLookup);
+    if (tTop > height) {
+      if (tTop + tHeight > height) {
         // looked up too far, go back:
         nextLookup -= stepSize;
       } else {
@@ -43,7 +43,7 @@ export function findViewportEdge(
         return nextLookup;
       }
     } else {
-      if (t.top + t.height > height) {
+      if (tTop + tHeight > height) {
         // TODO: this image is intersecting with the target heigth: check whether to over/undershoot
         return nextLookup;
       } else {

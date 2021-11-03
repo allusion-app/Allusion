@@ -1,16 +1,8 @@
 import { runInAction } from 'mobx';
 import { ClientFile } from 'src/entities/File';
 // Force Webpack to include worker and WASM file in the build folder!
-import { default as init, MasonryWorker, MasonryType, InitOutput } from 'wasm/masonry/pkg/masonry';
-import MasonryWASM from 'wasm/masonry/pkg/masonry_bg.wasm';
-import MasonryModule from 'wasm/masonry/pkg/masonry.js?file';
-
-export interface ITransform {
-  width: number;
-  height: number;
-  top: number;
-  left: number;
-}
+import { default as init, MasonryWorker, MasonryType } from 'wasm/masonry/pkg/masonry';
+import { ITransform, Layouter } from './layout-helpers';
 
 export interface MasonryOptions {
   type: MasonryType;
@@ -24,29 +16,29 @@ const defaultOpts: MasonryOptions = {
   padding: 8,
 };
 
-export class MasonryWorkerAdapter {
+export class MasonryWorkerAdapter implements Layouter {
   private worker?: MasonryWorker;
-  private WASM?: InitOutput;
-  isInitialized = false;
+  private memory?: WebAssembly.Memory;
 
   private prevNumImgs: number = 0;
 
   async initialize(numItems: number) {
-    console.debug('adapter initializing');
-
-    if (!this.WASM) {
-      console.debug('initializing WASM...');
-      this.WASM = await init(MasonryWASM);
+    if (this.memory !== undefined && this.worker !== undefined) {
+      return;
     }
 
-    if (!this.worker) {
-      // Webpack doesn't like folder paths for URL
-      this.worker = new MasonryWorker(numItems, MasonryModule, (MasonryWASM as unknown) as string);
-      await this.worker.init();
-    }
+    console.debug('initializing masonry worker...');
+    const wasm = await init(new URL('wasm/masonry/pkg/masonry_bg.wasm', import.meta.url));
+    this.memory = wasm.memory;
+
+    // Webpack doesn't like folder paths for URL
+    const worker = new Worker(new URL('wasm/masonry/pkg/worker.js', import.meta.url), {
+      type: 'module',
+    });
+    worker.postMessage(this.memory);
+    this.worker = new MasonryWorker(numItems);
 
     this.prevNumImgs = numItems;
-    this.isInitialized = true;
   }
 
   async compute(
@@ -56,7 +48,7 @@ export class MasonryWorkerAdapter {
     opts: Partial<MasonryOptions>,
   ): Promise<number | undefined> {
     const worker = this.worker;
-    if (!worker) {
+    if (worker === undefined) {
       return Promise.reject();
     }
 
@@ -71,45 +63,43 @@ export class MasonryWorkerAdapter {
       }
     });
 
-    return worker.compute(
+    await worker.compute(
       containerWidth,
       opts.type || defaultOpts.type,
       opts.thumbSize || defaultOpts.thumbSize,
       opts.padding || defaultOpts.padding,
     );
+    return worker.get_height();
   }
 
   async recompute(
     containerWidth: number,
     opts: Partial<MasonryOptions>,
   ): Promise<number | undefined> {
-    if (!this.worker) {
+    if (this.worker === undefined) {
       return Promise.reject();
     }
-    return this.worker.compute(
+    await this.worker.compute(
       containerWidth,
       opts.type || defaultOpts.type,
       opts.thumbSize || defaultOpts.thumbSize,
       opts.padding || defaultOpts.padding,
     );
+    return this.worker.get_height();
   }
 
   free() {
     this.worker?.free();
     this.worker = undefined;
-    this.isInitialized = false;
+    this.memory = undefined;
   }
 
   // This method will be available in the custom VirtualizedRenderer component as layout.getItemLayout
   getTransform(index: number): ITransform {
-    if (!this.worker) {
-      return {
-        width: 0,
-        height: 0,
-        left: 0,
-        top: 0,
-      };
+    if (this.worker === undefined || this.memory === undefined) {
+      return [0, 0, 0, 0];
     }
-    return this.worker.get_transform(index);
+    const ptr = this.worker.get_transform(index);
+    return (new Uint32Array(this.memory.buffer, ptr, 4) as unknown) as ITransform;
   }
 }

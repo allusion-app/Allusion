@@ -1,13 +1,22 @@
-use alloc::boxed::Box;
-use core::sync::atomic::{AtomicI32, AtomicPtr, Ordering};
+//! Thread synchronization
+//!
+//! This whole module is akin to a channel (e.g. [`std::sync::mpsc::channel()`]). However, it uses
+//! statics to avoid sending a receiver to the web worker. As it stands now, there is no nice
+//! [`std::thread::spawn()`] abstraction and it probably won't be added any time.
+//! ```
+use core::{
+    cell::Cell,
+    sync::atomic::{AtomicI32, Ordering},
+};
 
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::{prelude::*, JsCast};
 
 use crate::data::{Computation, MasonryType};
 
-static LOCK: AtomicI32 = AtomicI32::new(0);
-static INPUT: AtomicPtr<Computation> = AtomicPtr::new(core::ptr::null_mut());
-// static OUTPUT: AtomicU32 = AtomicU32::new(0);
+static MAIN_THREAD: AtomicI32 = AtomicI32::new(UNLOCKED);
+static WORKER_THREAD: AtomicI32 = AtomicI32::new(LOCKED);
+static INPUT: Data<Option<Computation>> = Data::new(None);
+static OUTPUT: Data<u32> = Data::new(0);
 
 const LOCKED: i32 = 0;
 const UNLOCKED: i32 = 1;
@@ -17,40 +26,34 @@ const UNLOCKED: i32 = 1;
 /// # Safety
 ///
 /// Do not import this function as it is already imported into the web worker thread (see
-/// `create_web_worker`).
+/// `worker.js`).
 #[wasm_bindgen]
-pub fn compute() -> u32 {
-    atomic_wait32(&LOCK, LOCKED, -1);
-    let computation_ptr = INPUT.load(Ordering::Acquire);
-    let container_height = {
-        if computation_ptr.is_null() {
-            0
-        } else {
-            // SAFETY: The send [`Computation`] is send from the main thread that created that this web
-            // worker. On creation the same memory was used.
-            let computation = unsafe { Box::from_raw(computation_ptr as *mut Computation) };
-            execute(*computation)
+pub fn run() {
+    loop {
+        atomic_wait32(&WORKER_THREAD, LOCKED, -1);
+        if let Some(computation) = INPUT.replace(None) {
+            OUTPUT.set(execute(computation));
         }
-    };
-    // OUTPUT.store(container_height, Ordering::Release);
-    INPUT.store(core::ptr::null_mut(), Ordering::Release);
-    LOCK.store(LOCKED, Ordering::Release);
-    container_height
+        // Put the worker thread back to sleep and notify the main thread that work is finished.
+        WORKER_THREAD.store(LOCKED, Ordering::SeqCst);
+        MAIN_THREAD.store(UNLOCKED, Ordering::SeqCst);
+        atomic_notify(&MAIN_THREAD, 1);
+    }
 }
 
 /// Wakes up the web worker thread and "sends" data to receiver.
-// I keep writing "send" because we're not sending anything but rather communicate with shared
-// memory. As soon as the memory at index 0 becomes 1 the web worker thread will stop waiting
-// (see [`create_web_worker`]);
-pub fn send_computation(computation: *mut Computation) {
-    INPUT.store(computation, Ordering::Release);
-    LOCK.store(UNLOCKED, Ordering::Release);
-    atomic_notify(&LOCK, 1);
+pub fn send_computation(computation: Computation) -> js_sys::Promise {
+    INPUT.set(Some(computation));
+    // Wake up the worker thread and make the main thread wait for the worker thread.
+    MAIN_THREAD.store(LOCKED, Ordering::SeqCst);
+    WORKER_THREAD.store(UNLOCKED, Ordering::SeqCst);
+    atomic_notify(&WORKER_THREAD, 1);
+    atomic_wait32_async(&MAIN_THREAD, LOCKED)
 }
 
-// pub fn read_result() -> JsValue {
-//     JsValue::from(OUTPUT.load(Ordering::Acquire))
-// }
+pub fn receive_output() -> u32 {
+    OUTPUT.get()
+}
 
 fn execute(computation: Computation) -> u32 {
     let (width, config, layout) = {
@@ -80,3 +83,56 @@ fn atomic_wait32(atomic: &AtomicI32, expression: i32, timeout_ns: i64) -> i32 {
 fn atomic_notify(atomic: &AtomicI32, waiters: u32) -> u32 {
     unsafe { core::arch::wasm32::memory_atomic_notify(atomic.as_mut_ptr(), waiters) }
 }
+
+fn atomic_wait32_async(atomic: &AtomicI32, expression: i32) -> js_sys::Promise {
+    #[wasm_bindgen]
+    extern "C" {
+        type Atomics;
+        type WaitAsyncResult;
+
+        #[wasm_bindgen(static_method_of = Atomics, js_name = waitAsync)]
+        fn wait_async(buf: &js_sys::Int32Array, index: i32, value: i32) -> WaitAsyncResult;
+
+        #[wasm_bindgen(method, getter, structural, js_name = async)]
+        fn async_(this: &WaitAsyncResult) -> bool;
+
+        #[wasm_bindgen(method, getter, structural)]
+        fn value(this: &WaitAsyncResult) -> js_sys::Promise;
+    }
+
+    let memory = wasm_bindgen::memory().unchecked_into::<js_sys::WebAssembly::Memory>();
+    let array =
+        js_sys::Int32Array::new_with_byte_offset(&memory.buffer(), atomic.as_mut_ptr() as u32);
+    let result = Atomics::wait_async(&array, 0, expression);
+    if result.async_() {
+        result.value()
+    } else {
+        js_sys::Promise::resolve(&result.value())
+    }
+}
+
+/// Wrapper around `Cell` to make it possible to use in statics.
+struct Data<T>(Cell<T>);
+
+impl<T> Data<T> {
+    const fn new(value: T) -> Data<T> {
+        Data(Cell::new(value))
+    }
+
+    fn set(&self, value: T) {
+        self.0.set(value);
+    }
+
+    fn replace(&self, value: T) -> T {
+        self.0.replace(value)
+    }
+}
+
+impl<T: Copy> Data<T> {
+    fn get(&self) -> T {
+        self.0.get()
+    }
+}
+
+/// Static values need to be sync.
+unsafe impl<T> Sync for Data<T> {}

@@ -27,8 +27,8 @@ cachedTextDecoder.decode();
 
 let cachegetUint8Memory0 = null;
 function getUint8Memory0() {
-    if (cachegetUint8Memory0 === null || cachegetUint8Memory0.buffer !== wasm.__wbindgen_export_0.buffer) {
-        cachegetUint8Memory0 = new Uint8Array(wasm.__wbindgen_export_0.buffer);
+    if (cachegetUint8Memory0 === null || cachegetUint8Memory0.buffer !== wasm.memory.buffer) {
+        cachegetUint8Memory0 = new Uint8Array(wasm.memory.buffer);
     }
     return cachegetUint8Memory0;
 }
@@ -45,119 +45,16 @@ function addHeapObject(obj) {
     heap[idx] = obj;
     return idx;
 }
-
-function makeMutClosure(arg0, arg1, dtor, f) {
-    const state = { a: arg0, b: arg1, cnt: 1, dtor };
-    const real = (...args) => {
-        // First up with a closure we increment the internal reference
-        // count. This ensures that the Rust closure environment won't
-        // be deallocated while we're invoking it.
-        state.cnt++;
-        const a = state.a;
-        state.a = 0;
-        try {
-            return f(a, state.b, ...args);
-        } finally {
-            if (--state.cnt === 0) {
-                wasm.__wbindgen_export_1.get(state.dtor)(a, state.b);
-
-            } else {
-                state.a = a;
-            }
-        }
-    };
-    real.original = state;
-
-    return real;
-}
-function __wbg_adapter_16(arg0, arg1, arg2) {
-    wasm.wasm_bindgen__convert__closures__invoke1_mut__hae1aa38dc1391970(arg0, arg1, addHeapObject(arg2));
-}
-
-let WASM_VECTOR_LEN = 0;
-
-let cachedTextEncoder = new TextEncoder('utf-8');
-
-const encodeString = function (arg, view) {
-    const buf = cachedTextEncoder.encode(arg);
-    view.set(buf);
-    return {
-        read: arg.length,
-        written: buf.length
-    };
-};
-
-function passStringToWasm0(arg, malloc, realloc) {
-
-    if (realloc === undefined) {
-        const buf = cachedTextEncoder.encode(arg);
-        const ptr = malloc(buf.length);
-        getUint8Memory0().subarray(ptr, ptr + buf.length).set(buf);
-        WASM_VECTOR_LEN = buf.length;
-        return ptr;
-    }
-
-    let len = arg.length;
-    let ptr = malloc(len);
-
-    const mem = getUint8Memory0();
-
-    let offset = 0;
-
-    for (; offset < len; offset++) {
-        const code = arg.charCodeAt(offset);
-        if (code > 0x7F) break;
-        mem[ptr + offset] = code;
-    }
-
-    if (offset !== len) {
-        if (offset !== 0) {
-            arg = arg.slice(offset);
-        }
-        ptr = realloc(ptr, len, len = offset + arg.length * 3);
-        const view = getUint8Memory0().subarray(ptr + offset, ptr + len);
-        const ret = encodeString(arg, view);
-
-        offset += ret.written;
-    }
-
-    WASM_VECTOR_LEN = offset;
-    return ptr;
-}
 /**
 * Function to be called in the web worker thread to compute the new layout.
 *
 * # Safety
 *
 * Do not import this function as it is already imported into the web worker thread (see
-* `create_web_worker`).
-* @returns {number}
+* `worker.js`).
 */
-export function compute() {
-    var ret = wasm.compute();
-    return ret >>> 0;
-}
-
-function handleError(f) {
-    return function () {
-        try {
-            return f.apply(this, arguments);
-
-        } catch (e) {
-            wasm.__wbindgen_exn_store(addHeapObject(e));
-        }
-    };
-}
-
-let cachegetInt32Memory0 = null;
-function getInt32Memory0() {
-    if (cachegetInt32Memory0 === null || cachegetInt32Memory0.buffer !== wasm.__wbindgen_export_0.buffer) {
-        cachegetInt32Memory0 = new Int32Array(wasm.__wbindgen_export_0.buffer);
-    }
-    return cachegetInt32Memory0;
-}
-function __wbg_adapter_50(arg0, arg1, arg2, arg3) {
-    wasm.wasm_bindgen__convert__closures__invoke2_mut__h04b557a7effa519a(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+export function run() {
+    wasm.run();
 }
 
 /**
@@ -186,39 +83,20 @@ export class MasonryWorker {
         wasm.__wbg_masonryworker_free(ptr);
     }
     /**
-    * Creates a new web worker from the path to `masonry.js` and `masonry_bg.wasm`.
+    * Creates a new worker from a worker that was initialized with the `worker.js` script.
     * @param {number} num_items
-    * @param {string} module_path
-    * @param {string} wasm_path
     */
-    constructor(num_items, module_path, wasm_path) {
-        var ptr0 = passStringToWasm0(module_path, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len0 = WASM_VECTOR_LEN;
-        var ptr1 = passStringToWasm0(wasm_path, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len1 = WASM_VECTOR_LEN;
-        var ret = wasm.masonryworker_new(num_items, ptr0, len0, ptr1, len1);
+    constructor(num_items) {
+        var ret = wasm.masonryworker_new(num_items);
         return MasonryWorker.__wrap(ret);
     }
     /**
-    * Initializes the web worker, so it can handle future computations.
-    *
-    * # Safety
-    *
-    * Calling this function more than once on an instance will immediately panic. It is
-    * important to `await` the `Promise`, otherwise the first computation will be skipped.
-    * @returns {Promise<any>}
-    */
-    init() {
-        var ret = wasm.masonryworker_init(this.ptr);
-        return takeObject(ret);
-    }
-    /**
-    * Computes the transforms of all items and returns the height of the container.
+    * Computes the transforms of all items.
     *
     * # Safety
     *
     * The returned `Promise` must be `await`ed. Calls to any other method of [`MasonryWorker`]
-    * while the `Promise` is still pending can lead to undefined behaviour. As long as the value
+    * while the `Promise` is still pending will lead to undefined behaviour. As long as the value
     * is `await`ed you can enjoy lock free concurrency.
     * @param {number} width
     * @param {number} kind
@@ -229,6 +107,14 @@ export class MasonryWorker {
     compute(width, kind, thumbnail_size, padding) {
         var ret = wasm.masonryworker_compute(this.ptr, width, kind, thumbnail_size, padding);
         return takeObject(ret);
+    }
+    /**
+    * Returns height of the container from the most recent computation.
+    * @returns {number}
+    */
+    get_height() {
+        var ret = wasm.masonryworker_get_height(this.ptr);
+        return ret >>> 0;
     }
     /**
     * Set the number of items that need to be computed.
@@ -259,7 +145,7 @@ export class MasonryWorker {
         wasm.masonryworker_set_dimension(this.ptr, index, src_width, src_height);
     }
     /**
-    * Returns the transform of the item at the given index.
+    * Returns a pointer to the transform of the item at the given index.
     *
     * The [`Transform`] object can be used to set the absolute position of an element.
     *
@@ -267,11 +153,11 @@ export class MasonryWorker {
     *
     * If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
     * @param {number} index
-    * @returns {any}
+    * @returns {number}
     */
     get_transform(index) {
         var ret = wasm.masonryworker_get_transform(this.ptr, index);
-        return takeObject(ret);
+        return ret;
     }
 }
 
@@ -307,113 +193,41 @@ async function load(module, imports) {
 }
 
 async function init(input, maybe_memory) {
-    if (typeof input === 'undefined') {
-        input = new URL('masonry_bg.wasm', import.meta.url);
-    }
+
     const imports = {};
     imports.wbg = {};
     imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
         takeObject(arg0);
     };
-    imports.wbg.__wbindgen_cb_drop = function(arg0) {
-        const obj = takeObject(arg0).original;
-        if (obj.cnt-- == 1) {
-            obj.a = 0;
-            return true;
-        }
-        var ret = false;
+    imports.wbg.__wbg_waitAsync_df6dd3a2a5307a2a = function(arg0, arg1, arg2) {
+        var ret = Atomics.waitAsync(getObject(arg0), arg1, arg2);
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbg_async_b131bfa206aa5cd9 = function(arg0) {
+        var ret = getObject(arg0).async;
         return ret;
     };
-    imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
-        var ret = getStringFromWasm0(arg0, arg1);
+    imports.wbg.__wbg_value_a932af9bbe40ab5a = function(arg0) {
+        var ret = getObject(arg0).value;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_object_clone_ref = function(arg0) {
-        var ret = getObject(arg0);
+    imports.wbg.__wbg_buffer_397eaa4d72ee94dd = function(arg0) {
+        var ret = getObject(arg0).buffer;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_newwithblobsequenceandoptions_2fda24fb77fd3cd5 = handleError(function(arg0, arg1) {
-        var ret = new Blob(getObject(arg0), getObject(arg1));
-        return addHeapObject(ret);
-    });
-    imports.wbg.__wbg_data_b7536deeccc3c114 = function(arg0) {
-        var ret = getObject(arg0).data;
+    imports.wbg.__wbg_resolve_d23068002f584f22 = function(arg0) {
+        var ret = Promise.resolve(getObject(arg0));
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_createObjectURL_edd61e4503694e62 = handleError(function(arg0, arg1) {
-        var ret = URL.createObjectURL(getObject(arg1));
-        var ptr0 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        var len0 = WASM_VECTOR_LEN;
-        getInt32Memory0()[arg0 / 4 + 1] = len0;
-        getInt32Memory0()[arg0 / 4 + 0] = ptr0;
-    });
-    imports.wbg.__wbg_setonmessage_c939dadfb4a56419 = function(arg0, arg1) {
-        getObject(arg0).onmessage = getObject(arg1);
-    };
-    imports.wbg.__wbg_newwithoptions_174c000ca3f1e310 = handleError(function(arg0, arg1, arg2) {
-        var ret = new Worker(getStringFromWasm0(arg0, arg1), getObject(arg2));
+    imports.wbg.__wbg_newwithbyteoffset_ec26a01df688a5a5 = function(arg0, arg1) {
+        var ret = new Int32Array(getObject(arg0), arg1 >>> 0);
         return addHeapObject(ret);
-    });
-    imports.wbg.__wbg_postMessage_a9a8b804156efaa3 = handleError(function(arg0, arg1) {
-        getObject(arg0).postMessage(getObject(arg1));
-    });
-    imports.wbg.__wbg_terminate_0bfb6ab3b09a7c5e = function(arg0) {
-        getObject(arg0).terminate();
-    };
-    imports.wbg.__wbg_call_cb478d88f3068c91 = handleError(function(arg0, arg1) {
-        var ret = getObject(arg0).call(getObject(arg1));
-        return addHeapObject(ret);
-    });
-    imports.wbg.__wbg_of_cacc3125a318cc13 = function(arg0) {
-        var ret = Array.of(getObject(arg0));
-        return addHeapObject(ret);
-    };
-    imports.wbg.__wbg_call_f5e0576f61ee7461 = handleError(function(arg0, arg1, arg2) {
-        var ret = getObject(arg0).call(getObject(arg1), getObject(arg2));
-        return addHeapObject(ret);
-    });
-    imports.wbg.__wbg_new_d14bf16e62c6b3d5 = function() {
-        var ret = new Object();
-        return addHeapObject(ret);
-    };
-    imports.wbg.__wbg_set_61642586f7156f4a = handleError(function(arg0, arg1, arg2) {
-        var ret = Reflect.set(getObject(arg0), getObject(arg1), getObject(arg2));
-        return ret;
-    });
-    imports.wbg.__wbg_parse_13ee9d835244eb72 = handleError(function(arg0, arg1) {
-        var ret = JSON.parse(getStringFromWasm0(arg0, arg1));
-        return addHeapObject(ret);
-    });
-    imports.wbg.__wbg_new_3ea8490cd276c848 = function(arg0, arg1) {
-        try {
-            var state0 = {a: arg0, b: arg1};
-            var cb0 = (arg0, arg1) => {
-                const a = state0.a;
-                state0.a = 0;
-                try {
-                    return __wbg_adapter_50(a, state0.b, arg0, arg1);
-                } finally {
-                    state0.a = a;
-                }
-            };
-            var ret = new Promise(cb0);
-            return addHeapObject(ret);
-        } finally {
-            state0.a = state0.b = 0;
-        }
     };
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
-    imports.wbg.__wbindgen_rethrow = function(arg0) {
-        throw takeObject(arg0);
-    };
     imports.wbg.__wbindgen_memory = function() {
-        var ret = wasm.__wbindgen_export_0;
-        return addHeapObject(ret);
-    };
-    imports.wbg.__wbindgen_closure_wrapper27 = function(arg0, arg1, arg2) {
-        var ret = makeMutClosure(arg0, arg1, 3, __wbg_adapter_16);
+        var ret = wasm.memory;
         return addHeapObject(ret);
     };
 
