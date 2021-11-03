@@ -9,7 +9,7 @@
 
   border-bottom: 0.0625rem solid var(--border-color);
 
-  span {
+  > span {
     height: 100%;
     display: inline-flex;
     align-items: center;
@@ -17,15 +17,25 @@
     flex-grow: 1;
     transition: margin 0.2s ease-in-out;
 
+    > span {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      min-width: 0;    
+    }
+
     // Center the text
     // Style for Windows+Linux: overwritten in block below for data-os='darwin':
 
     // same width as the 3 system buttons on the right, so text is centered
     margin-left: 108px;
+    max-width: calc(100% - 2 * 108px);
 
     // But not for a narrow window, it would overlap with buttons, so position it off-center
     @media only screen and (max-width: 320px) {
       margin-left: 0;
+      max-width: calc(100% - 108px);
+      padding-left: 4px;
     }
   }
 }
@@ -33,13 +43,14 @@
 // Conditional based on OS:
 [data-os='darwin'] {
   #window-titlebar {
-    span {
+    > span {
       // Opposite on OSX: buttons are on the left, but don't take up space in CSS: it's overlaid by the OS
-      margin-left: 0px;
+      margin-left: 108px;
+      max-width: calc(100% - 2 * 108px);
 
       // So, only make it off-center when the window is narrow
       @media only screen and (max-width: 320px) {
-        margin-left: 108px;
+        max-width: calc(100% - 108px);
       }
     }
   }
