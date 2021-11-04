@@ -3,13 +3,13 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo } from 'react';
 import fse from 'fs-extra';
 import { ClientFile } from 'src/entities/File';
+import { ellipsize, encodeFilePath, humanFileSize } from 'src/frontend/utils';
+import { IconButton, IconSet, Tag } from 'widgets';
+import { ITransform } from './Masonry/layout-helpers';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Poll, usePromise, Result } from 'src/frontend/hooks/usePromise';
-import { ellipsize, encodeFilePath, humanFileSize } from 'src/frontend/utils';
-import { IconButton, IconSet, Tag } from 'widgets';
 import { CommandDispatcher, MousePointerEvent } from './Commands';
-import { ITransform } from './Masonry/MasonryWorkerAdapter';
 
 interface ItemProps {
   file: ClientFile;
@@ -28,7 +28,7 @@ export const MasonryCell = observer(
     file,
     mounted,
     forceNoThumbnail,
-    transform: { height, width, left, top },
+    transform: [width, height, top, left],
   }: MasonryItemProps) => {
     const { uiStore, fileStore } = useStore();
     const style = { height, width, transform: `translate(${left}px,${top}px)` };

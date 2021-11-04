@@ -23,11 +23,8 @@ pub struct MasonryConfig {
 }
 
 impl MasonryConfig {
-    pub const DEFAULT: MasonryConfig = MasonryConfig {
-        kind: MasonryType::Grid,
-        thumbnail_size: 300,
-        padding: 8,
-    };
+    pub const DEFAULT_THUMBNAIL_SIZE: u16 = 300;
+    pub const DEFAULT_PADDING: u16 = 8;
 
     pub fn new(kind: MasonryType, thumbnail_size: u16, padding: u16) -> MasonryConfig {
         MasonryConfig {

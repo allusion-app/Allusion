@@ -55,9 +55,9 @@ const VirtualizedRenderer = observer(
         const yOffset = viewport?.scrollTop || 0;
         const viewportHeight = viewport?.clientHeight || 0;
 
-        const firstImageIndex = findViewportEdge(yOffset, numImages, layout, false);
-        const start = findViewportEdge(yOffset - overdraw, numImages, layout, false);
-        const end = findViewportEdge(yOffset + viewportHeight + overdraw, numImages, layout, true);
+        const firstImageIndex = findViewportEdge(yOffset, numImages, layout);
+        const start = findViewportEdge(yOffset - overdraw, numImages, layout);
+        const end = findViewportEdge(yOffset + viewportHeight + overdraw, numImages, layout);
 
         setStartRenderIndex(start);
         // hard limit of 512 images at once, for safety reasons (we don't want any exploding computers). Might be bad for people with 4k screens and small thumbnails...
@@ -100,17 +100,16 @@ const VirtualizedRenderer = observer(
     const scrollToIndex = useCallback(
       (index: number, block: 'nearest' | 'start' | 'end' | 'center' = 'nearest') => {
         if (!scrollAnchor.current) return;
-        const s = { ...layout.getTransform(index) };
+        const [sWidth, sHeight, sTop, sLeft] = layout.getTransform(index);
 
-        // Correct for padding of .masonry element: otherwise it doesn't completely scroll to the top
-        if (s.top === 0 && padding) {
-          s.top -= padding;
-        }
         // Scroll to invisible element, positioned at selected item,
         // just for scroll automatisation with scrollIntoView
-        scrollAnchor.current.style.transform = `translate(${s.left}px,${s.top}px)`;
-        scrollAnchor.current.style.width = s.width + 'px';
-        scrollAnchor.current.style.height = s.height + 'px';
+        scrollAnchor.current.style.transform = `translate(${sLeft}px,${
+          // Correct for padding of masonry element, otherwise it doesn't completely scroll to the top.
+          sTop === 0 && padding ? sTop - padding : sTop
+        }px)`;
+        scrollAnchor.current.style.width = sWidth + 'px';
+        scrollAnchor.current.style.height = sHeight + 'px';
         // TODO: adding behavior: 'smooth' would be nice, but it's disorienting when layout changes a lot. Add threshold for when the delta firstItemIndex than X?
         // Also, it doesn't work when scrolling by keeping arrow key held down
         scrollAnchor.current?.scrollIntoView({ block, inline: 'nearest' });
@@ -170,8 +169,8 @@ const VirtualizedRenderer = observer(
                 // Otherwise you'll see very low res images. This is usually only the case for images with extreme aspect ratios
                 // TODO: Not the best solution; could generate multiple thumbnails of other resolutions
                 forceNoThumbnail={
-                  transform.width > thumbnailMaxSize ||
-                  transform.height > thumbnailMaxSize ||
+                  transform[0] > thumbnailMaxSize ||
+                  transform[1] > thumbnailMaxSize ||
                   // Not using thumbnails for gifs, since they're mostly used for animations, which doesn't get preserved in thumbnails
                   im.extension === 'gif'
                 }

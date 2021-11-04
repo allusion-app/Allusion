@@ -15,7 +15,8 @@
     "build": "rimraf dist && yarn production && yarn logo",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "build:wasm": "wasm-pack build wasm/masonry --target web"
+    "install:wasm": "cargo install wasm-bindgen-cli --version 0.2.78",
+    "build:masonry": "yarn install:wasm && cd wasm/masonry && cargo build --release && wasm-bindgen --out-dir pkg --target web --omit-default-module-path --remove-name-section --remove-producers-section target/wasm32-unknown-unknown/release/masonry.wasm"
   },
   "build": {
     "appId": "com.allusion-app.allusion",
@@ -89,7 +90,7 @@
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",
     "css-loader": "^5.2.0",
-    "electron": "^11.1.1",
+    "electron": "15.0.0",
     "electron-builder": "^22.10.5",
     "eslint": "^7.18.0",
     "eslint-config-prettier": "^8.1.0",

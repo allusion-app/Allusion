@@ -24,7 +24,7 @@ export function debounce<F extends (...args: any) => any>(func: F, wait: number 
   return (function (this: any, ...args: any[]) {
     clearTimeout(timeoutID);
 
-    timeoutID = window.setTimeout(() => func.apply(this, args), wait);
+    timeoutID = (setTimeout(() => func.apply(this, args), wait) as unknown) as number;
   } as any) as F;
 }
 

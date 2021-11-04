@@ -7,7 +7,7 @@ impl<T> UnwrapOrAbort<T> for Option<T> {
     fn unwrap_or_abort(self) -> T {
         match self {
             Some(v) => v,
-            None => unsafe { core::arch::wasm32::unreachable() },
+            None => core::arch::wasm32::unreachable(),
         }
     }
 }
@@ -17,7 +17,7 @@ impl<T, E> UnwrapOrAbort<T> for Result<T, E> {
     fn unwrap_or_abort(self) -> T {
         match self {
             Ok(v) => v,
-            Err(_) => unsafe { core::arch::wasm32::unreachable() },
+            Err(_) => core::arch::wasm32::unreachable(),
         }
     }
 }

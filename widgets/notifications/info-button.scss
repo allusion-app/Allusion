@@ -6,7 +6,7 @@
     padding: 0;
     margin-inline-start: 0.5rem;
 
-    &::-webkit-details-marker {
+    &::before {
       transform: none;
       margin: 0;
       mask-image: url(~resources/icons/questionmark.svg);

@@ -50,22 +50,22 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
       }
       // Find the image that's below/above the center of the current image
       const curTransform = worker.getTransform(index);
-      const curTransformCenter = curTransform.left + curTransform.width / 2;
+      const curTransformCenter = curTransform[3] + curTransform[0] / 2;
       const maxLookAhead = 100;
       const numFiles = fileStore.fileList.length;
 
       if (e.key === 'ArrowUp') {
         for (let i = index - 1; i > Math.max(0, i - maxLookAhead); i--) {
-          const t = worker.getTransform(i);
-          if (t.left < curTransformCenter && t.left + t.width > curTransformCenter) {
+          const [tWidth, , , tLeft] = worker.getTransform(i);
+          if (tLeft < curTransformCenter && tLeft + tWidth > curTransformCenter) {
             index = i;
             break;
           }
         }
       } else if (e.key === 'ArrowDown' && index < numFiles - 1) {
         for (let i = index + 1; i < Math.min(i + maxLookAhead, numFiles); i++) {
-          const t = worker.getTransform(i);
-          if (t.left < curTransformCenter && t.left + t.width > curTransformCenter) {
+          const [tWidth, , , tLeft] = worker.getTransform(i);
+          if (tLeft < curTransformCenter && tLeft + tWidth > curTransformCenter) {
             index = i;
             break;
           }
@@ -87,9 +87,7 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
   useEffect(() => {
     (async function onMount() {
       try {
-        if (!worker.isInitialized) {
-          await worker.initialize(numImages);
-        }
+        await worker.initialize(numImages);
         const containerHeight = await worker.compute(
           fileStore.fileList,
           numImages,
@@ -113,10 +111,9 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
   useEffect(() => {
     if (containerHeight !== undefined && containerWidth > 100) {
       // todo: could debounce if needed. Or only recompute in increments?
-      console.debug('Masonry: Items changed, computing new layout!');
+      console.debug('Masonry: Items changed. Computing new layout!');
       (async function onItemOrderChange() {
         try {
-          console.time('recompute-layout');
           const containerHeight = await worker.compute(
             fileStore.fileList,
             numImages,
@@ -126,7 +123,6 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
               type: ViewMethodLayoutDict[viewMethod],
             },
           );
-          console.timeEnd('recompute-layout');
           setContainerHeight(containerHeight);
           setLayoutTimestamp(new Date());
           // setForceRerenderObj(new Date()); // doesn't seem necessary anymore, which is nice, because it caused flickering when refetching
@@ -145,14 +141,12 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
         thumbnailSize: number,
         viewMethod: SupportedViewMethod,
       ) {
-        console.debug('Masonry: Environment changed! Recomputing layout!');
+        console.debug('Masonry: Environment changed. Recomputing layout!');
         try {
-          console.time('recompute-layout');
           const containerHeight = await worker.recompute(containerWidth, {
             thumbSize: thumbnailSize,
             type: ViewMethodLayoutDict[viewMethod],
           });
-          console.timeEnd('recompute-layout');
           setContainerHeight(containerHeight);
           setLayoutTimestamp(new Date());
           // no need for force rerender: causes flickering. Rerender already happening due to container height update anyways

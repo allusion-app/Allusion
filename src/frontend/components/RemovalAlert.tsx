@@ -120,13 +120,14 @@ export const MoveFilesToTrashBin = observer(() => {
   const { fileStore, uiStore } = useStore();
   const selection = uiStore.fileSelection;
 
-  const handleConfirm = action(() => {
+  const handleConfirm = action(async () => {
     uiStore.closeMoveFilesToTrash();
     const files = [];
     for (const file of selection) {
-      if (shell.moveItemToTrash(file.absolutePath)) {
+      try {
+        await shell.trashItem(file.absolutePath);
         files.push(file);
-      } else {
+      } catch (error) {
         console.warn('Could not move file to trash', file.absolutePath);
       }
     }
