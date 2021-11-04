@@ -79,7 +79,7 @@ impl MasonryWorker {
         // This match will be optimized away because Option<&T> implements null pointer optimization.
         match self.layout.get_transform(index) {
             Some(transform) => transform,
-            None => core::ptr::null()
+            None => core::ptr::null(),
         }
     }
 }

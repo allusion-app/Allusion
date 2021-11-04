@@ -38,8 +38,9 @@ impl U32x4 {
         u32x4_extract_lane::<N>(self.0)
     }
 
-    pub fn set<const N: usize>(&mut self, value: u32) {
-        self.0 = u32x4_replace_lane::<N>(self.0, value);
+    #[must_use]
+    pub fn set<const N: usize>(self, value: u32) -> U32x4 {
+        U32x4(u32x4_replace_lane::<N>(self.0, value))
     }
 
     /// Compares lanes with < operator.
@@ -83,8 +84,9 @@ impl AddAssign for U32x4 {
 }
 
 impl F32x4 {
-    pub fn set<const N: usize>(&mut self, value: f32) {
-        self.0 = f32x4_replace_lane::<N>(self.0, value);
+    #[must_use]
+    pub fn set<const N: usize>(&mut self, value: f32) -> F32x4 {
+        F32x4(f32x4_replace_lane::<N>(self.0, value))
     }
 }
 

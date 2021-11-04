@@ -80,8 +80,9 @@ impl Layout {
             return 0;
         }
 
+        let container_width = container_width.max(self.thumbnail_size);
         let height = u32::from(self.thumbnail_size);
-        let max_width = u32::from(container_width).max(height);
+        let max_width = u32::from(container_width);
         let container_width = f32::from(container_width);
         let padding = u32::from(self.padding);
 
@@ -102,11 +103,7 @@ impl Layout {
                 // If it exceeds it, scale all current items in the row accordingly and start a new row.
                 // width | height | top | left
                 let factor = container_width / f32::from(row_width as u16);
-                let factor = {
-                    let mut f = F32x4::from(factor);
-                    f.set::<2>(1.0); // Do not scale top
-                    f
-                };
+                let factor = F32x4::from(factor).set::<2>(1.0); // Do not scale top
                 for transform in self.transforms.get_mut(start..=end).unwrap_or_abort() {
                     transform.0 = U32x4::from(F32x4::from(transform.0) * factor);
                 }
@@ -178,12 +175,11 @@ impl Layout {
         };
         let item_size = row_height - u32::from(self.padding);
 
-        let rows = {
-            self.transforms
-                .get_mut(..self.num_items)
-                .unwrap_or_abort()
-                .chunks_mut(n_columns)
-        };
+        let rows = self
+            .transforms
+            .get_mut(..self.num_items)
+            .unwrap_or_abort()
+            .chunks_mut(n_columns);
 
         // width | height | top | left
         let mut item_transform = U32x4::new(item_size, item_size, 0, 0);
@@ -195,7 +191,7 @@ impl Layout {
                 item_transform += increment_left;
             }
             item_transform += increment_top;
-            item_transform.set::<3>(0); // Reset left offset
+            item_transform = item_transform.set::<3>(0); // Reset left offset
         }
         // Return total height of the grid
         item_transform.get::<2>()
