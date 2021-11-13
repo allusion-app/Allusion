@@ -1,20 +1,26 @@
+import { observer } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
 import { RendererMessenger, WindowSystemButtonPress } from 'src/Messaging';
 import { IconSet } from 'widgets/Icons';
+import { useStore } from '../contexts/StoreContext';
 
 const PLATFORM = process.platform;
 
-const WindowsTitlebar = () => {
+const WindowsTitlebar = observer(() => {
+  const { uiStore } = useStore();
   return (
     <div id="window-titlebar">
       <div id="window-resize-area" />
 
-      <span>Allusion</span>
+      {/* Extra span needed for ellipsis; isn't compatible with display: flex */}
+      <span>
+        <span>{uiStore.windowTitle}</span>
+      </span>
 
       {PLATFORM !== 'darwin' && <WindowSystemButtons />}
     </div>
   );
-};
+});
 
 export default WindowsTitlebar;
 

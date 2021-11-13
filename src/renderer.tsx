@@ -110,6 +110,11 @@ if (IS_PREVIEW_WINDOW) {
   } catch (e) {
     console.error('Cannot load window preferences', e);
   }
+
+  // Change window title to filename when changing the selected file
+  observe(rootStore.uiStore, 'windowTitle', ({ object }) => {
+    document.title = object.get();
+  });
 }
 
 window.addEventListener('beforeunload', () => {
