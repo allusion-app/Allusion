@@ -533,13 +533,26 @@ MainMessenger.onDragExport((absolutePaths) => {
     return;
   }
 
-  let previewIcon = nativeImage.createFromPath(absolutePaths[0]);
+  // TODO: should use the thumbnail used in the renderer process here, so formats not natively supported (e.g. webp) can be used as well
+  let previewIcon = nativeImage.createEmpty();
+  try {
+    previewIcon = nativeImage.createFromPath(absolutePaths[0]);
+  } catch (e) {
+    console.error('Could not create drag icon', absolutePaths[0], e);
+  }
+
   const isPreviewEmpty = previewIcon.isEmpty();
   if (!isPreviewEmpty) {
     // Resize preview to something resonable: taking into account aspect ratio
     const ratio = previewIcon.getAspectRatio();
-    previewIcon =
-      ratio > 1 ? previewIcon.resize({ width: 200 }) : previewIcon.resize({ height: 200 });
+    const size = previewIcon.getSize();
+    const targetThumbSize = 200;
+    if (size.width > targetThumbSize || size.height > targetThumbSize) {
+      previewIcon =
+        ratio > 1
+          ? previewIcon.resize({ width: targetThumbSize })
+          : previewIcon.resize({ height: targetThumbSize });
+    }
   }
 
   // Need to cast item as `any` since the types are not correct. The `files` field is allowed but

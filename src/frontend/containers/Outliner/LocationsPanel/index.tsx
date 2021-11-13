@@ -330,7 +330,7 @@ const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: IT
   const existingSearchCrit = uiStore.searchCriteriaList.find(
     (c: any) => c.value === pathAsSearchPath(nodeData.path),
   );
-  const isSearched = Boolean(existingSearchCrit);
+  // const isSearched = Boolean(existingSearchCrit);
 
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -400,7 +400,7 @@ const Location = observer(
     const existingSearchCrit = uiStore.searchCriteriaList.find(
       (c: any) => c.value === pathAsSearchPath(nodeData.path),
     );
-    const isSearched = Boolean(existingSearchCrit);
+    // const isSearched = Boolean(existingSearchCrit);
 
     const handleClick = useCallback(
       (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
