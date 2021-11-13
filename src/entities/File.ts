@@ -1,4 +1,3 @@
-import fse from 'fs-extra';
 import ImageSize from 'image-size';
 import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import {
@@ -11,6 +10,7 @@ import {
 } from 'mobx';
 import Path from 'path';
 import FileStore from 'src/frontend/stores/FileStore';
+import { FileStats } from 'src/frontend/stores/LocationStore';
 import { promisify } from 'util';
 import { ID, IResource, ISerializable } from './ID';
 import { ClientTag } from './Tag';
@@ -32,8 +32,11 @@ export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 
 /** Retrieved file meta data information */
 interface IMetaData {
-  name: string; // Duplicate data; also in path. Used for DB queries
-  extension: string; // in lowercase, without the dot
+  /** Duplicate data; also exists as part of the absolutePath. Used for DB queries */
+  name: string;
+  /** in lowercase, without the dot */
+  extension: string;
+  /** Size in bytes */
   size: number;
   width: number;
   height: number;
@@ -44,7 +47,7 @@ interface IMetaData {
 /* A File as it is represented in the Database */
 export interface IFile extends IMetaData, IResource {
   locationId: ID;
-  // Relative path from location
+  /** Path relative to Location */
   relativePath: string;
   absolutePath: string;
   tags: ID[];
@@ -52,6 +55,11 @@ export interface IFile extends IMetaData, IResource {
   dateAdded: Date;
   /** When the file was modified in Allusion, not related to OS modified date */
   dateModified: Date;
+  /**
+   * When the file was last indexed in Allusion: concerning the metadata and thumbnail.
+   * If the system's modified date of the file exceeds this date, those properties shoudld be re-initialized
+   **/
+  dateLastIndexed: Date;
 }
 
 /**
@@ -73,8 +81,9 @@ export class ClientFile implements ISerializable<IFile> {
   readonly width: number;
   readonly height: number;
   readonly dateAdded: Date;
-  readonly dateModified: Date;
   readonly dateCreated: Date;
+  readonly dateModified: Date;
+  readonly dateLastIndexed: Date;
   readonly name: string;
   readonly extension: string;
   /** Same as "name", but without extension */
@@ -95,8 +104,9 @@ export class ClientFile implements ISerializable<IFile> {
     this.width = fileProps.width;
     this.height = fileProps.height;
     this.dateAdded = fileProps.dateAdded;
-    this.dateModified = fileProps.dateModified;
     this.dateCreated = fileProps.dateCreated;
+    this.dateModified = fileProps.dateModified;
+    this.dateLastIndexed = fileProps.dateLastIndexed;
     this.name = fileProps.name;
     this.extension = fileProps.extension;
 
@@ -180,8 +190,9 @@ export class ClientFile implements ISerializable<IFile> {
       width: this.width,
       height: this.height,
       dateAdded: this.dateAdded,
-      dateModified: this.dateModified,
       dateCreated: this.dateCreated,
+      dateModified: this.dateModified,
+      dateLastIndexed: this.dateLastIndexed,
       name: this.name,
       extension: this.extension,
     };
@@ -195,8 +206,8 @@ export class ClientFile implements ISerializable<IFile> {
 }
 
 /** Should be called when after constructing a file before sending it to the backend. */
-export async function getMetaData(path: string): Promise<IMetaData> {
-  const stats = await fse.stat(path);
+export async function getMetaData(stats: FileStats): Promise<IMetaData> {
+  const path = stats.absolutePath;
   let dimensions: ISizeCalculationResult | undefined;
   try {
     dimensions = await sizeOf(path);
@@ -213,6 +224,6 @@ export async function getMetaData(path: string): Promise<IMetaData> {
     size: stats.size,
     width: (dimensions && dimensions.width) || 0,
     height: (dimensions && dimensions.height) || 0,
-    dateCreated: stats.birthtime,
+    dateCreated: stats.dateCreated,
   };
 }
