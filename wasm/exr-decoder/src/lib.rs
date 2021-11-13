@@ -37,7 +37,7 @@ fn decode_buffer(bytes: &[u8]) -> Result<ImageBuffer, exr::error::Error> {
             // This will never overflow because the max offset is isize::MAX - 3.
             // Vec::with_capacity will panic if more than isize::MAX bytes are allocated.
             let offset = (self.width * y + x) << 2; // x << 2 == x * 4
-            let [r, g, b] = self.color_mapper.map_gamut((r, g, b)).into_array();
+            let [r, g, b] = self.color_mapper.map_gamut((r, g, b));
             self.buffer[offset + 3] = ColorMapper::map_tone(a);
             self.buffer[offset] = ColorMapper::map_tone(r);
             self.buffer[offset + 1] = ColorMapper::map_tone(g);

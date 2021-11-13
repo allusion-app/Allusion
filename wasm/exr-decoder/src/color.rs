@@ -45,33 +45,7 @@ pub const XYZ_TO_SRGB: Matrix3 = Matrix3([
     [0.05563009, -0.20397688, 1.0569714],
 ]);
 
-pub struct Vec3([f32; 3]);
-
-impl Vec3 {
-    fn new(x: f32, y: f32, z: f32) -> Vec3 {
-        Vec3([x, y, z])
-    }
-
-    fn from_xy(x: f32, y: f32) -> Vec3 {
-        Vec3([x, y, 1.0 - (x + y)])
-    }
-
-    fn x(&self) -> f32 {
-        self.0[0]
-    }
-
-    fn y(&self) -> f32 {
-        self.0[1]
-    }
-
-    fn z(&self) -> f32 {
-        self.0[2]
-    }
-
-    pub fn into_array(self) -> [f32; 3] {
-        self.0
-    }
-}
+pub type Vec3 = [f32; 3];
 
 pub struct Matrix3([[f32; 3]; 3]);
 
@@ -92,7 +66,7 @@ impl Matrix3 {
 
         // the inverse of inMat is (1 / determinant) * adjoint(inMat)
         let inv_det = determinant.recip();
-        let output = [
+        Matrix3([
             [
                 inv_det * minor00,
                 inv_det * (c * h - b * i),
@@ -108,15 +82,12 @@ impl Matrix3 {
                 inv_det * (b * g - a * h),
                 inv_det * (a * e - b * d),
             ],
-        ];
-        Matrix3(output)
+        ])
     }
 
     fn mul_vec(&self, in_vec: Vec3) -> Vec3 {
-        Vec3(
-            self.0
-                .map(|xyz| xyz[0] * in_vec.x() + xyz[1] * in_vec.y() + xyz[2] * in_vec.z()),
-        )
+        self.0
+            .map(|xyz| xyz[0].mul_add(in_vec[0], xyz[1].mul_add(in_vec[1], xyz[2] * in_vec[2])))
     }
 }
 
@@ -129,21 +100,17 @@ fn calc_color_space_conversion_rgb_to_xyz(
     }: Chromaticities,
 ) -> Matrix3 {
     // generate xyz chromaticity coordinates (x + y + z = 1) from xy coordinates
-    let r = Vec3::from_xy(red.x(), red.y());
-    let g = Vec3::from_xy(green.x(), green.y());
-    let b = Vec3::from_xy(blue.x(), blue.y());
+    let rz = 1.0 - (red.x() + red.y());
+    let gz = 1.0 - (green.x() + green.y());
+    let bz = 1.0 - (blue.x() + blue.y());
 
     // Convert white xyz coordinate to XYZ coordinate by letting that the white
     // point have and XYZ relative luminance of 1.0. Relative luminance is the Y
     // component of and XYZ color.
     //   XYZ = xyz * (Y / y)
     let w = {
-        let y = white.y();
-        let mut w = Vec3::from_xy(white.x(), white.y());
-        for v in w.0.iter_mut() {
-            *v /= y;
-        }
-        w
+        let wz = 1.0 - (white.x() + white.y());
+        [white.x() / white.y(), white.y() / white.y(), wz / white.y()]
     };
 
     // Solve for the transformation matrix 'M' from RGB to XYZ
@@ -172,15 +139,15 @@ fn calc_color_space_conversion_rgb_to_xyz(
     // can compute 'M' from 'N' and 'S'
 
     let mut matrix = Matrix3([
-        [r.x(), g.x(), b.x()],
-        [r.y(), g.y(), b.y()],
-        [r.z(), g.z(), b.z()],
+        [red.x(), green.x(), blue.x()],
+        [red.y(), green.y(), blue.y()],
+        [rz, gz, bz],
     ]);
     let scale = matrix.invert().mul_vec(w);
     for xyz in matrix.0.iter_mut() {
-        xyz[0] *= scale.x();
-        xyz[1] *= scale.y();
-        xyz[2] *= scale.z();
+        xyz[0] *= scale[0];
+        xyz[1] *= scale[1];
+        xyz[2] *= scale[2];
     }
     matrix
 }
@@ -188,7 +155,7 @@ fn calc_color_space_conversion_rgb_to_xyz(
 /// Convert a linear sRGB color to an sRGB color.
 fn gamma_compress_s_rgb(mut color: Vec3) -> Vec3 {
     // Convert a linear sRGB color channel to a sRGB color channel.
-    for c in color.0.iter_mut() {
+    for c in color.iter_mut() {
         let linear = *c;
         *c = if linear <= 0.0031308 {
             12.92 * linear
@@ -220,7 +187,7 @@ impl ColorMapper {
     pub fn map_gamut(&self, (red, green, blue): (f32, f32, f32)) -> Vec3 {
         // The passed color must be non-linear because the exr format does not assume a viewing
         // condition which requires applying a transfer function.
-        let linear_rgb = Vec3::new(red, green, blue);
+        let linear_rgb = [red, green, blue];
         let xyz = self.color_to_xyz.mul_vec(linear_rgb);
 
         // Very few browsers actually support color spaces other than SRGB. In the future a
