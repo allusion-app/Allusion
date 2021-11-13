@@ -42,7 +42,8 @@ export const Dialog = (props: DialogProps) => {
 
   useEffect(() => {
     if (dialog.current) {
-      open ? dialog.current.showModal() : dialog.current.close();
+      const elemHack = dialog.current as any; // fixme: Updated TS doesn't support HTMLDialogElement anymore?
+      open ? elemHack.showModal?.() : elemHack.close?.();
     }
   }, [open]);
 

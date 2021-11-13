@@ -1,4 +1,5 @@
 import { Transaction } from 'dexie';
+import { IFile } from 'src/entities/File';
 import { IDBVersioningConfig } from './DBRepository';
 
 // The name of the IndexedDB
@@ -42,6 +43,19 @@ export const dbConfig: IDBVersioningConfig[] = [
         .modify((location: any) => {
           location.subLocations = [];
           return location;
+        });
+    },
+  },
+  {
+    // Version 6, 13-11-21: Added lastIndexed date to File for recreating thumbnails
+    version: 6,
+    collections: [],
+    upgrade: async (tx: Transaction): Promise<void> => {
+      tx.table('files')
+        .toCollection()
+        .modify((file: IFile) => {
+          file.dateLastIndexed = file.dateAdded;
+          return file;
         });
     },
   },

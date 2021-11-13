@@ -229,33 +229,32 @@ class LocationStore {
       // --> update metadata (resolution, size) and recreate thumbnail
       // This can be accomplished by comparing the dateLastIndexed of the file in DB to dateModified of the file on disk
       const updatedFiles: IFile[] = [];
+      const thumbnailDirectory = runInAction(() => this.rootStore.uiStore.thumbnailDirectory);
       for (const dbFile of dbFiles) {
         const diskFile = diskFileMap.get(dbFile.absolutePath);
-        if (diskFile && dbFile.dateLastIndexed.getTime() < diskFile.dateModified.getTime()) {
-          console.debug('Re-indexing file', dbFile.absolutePath);
-          let newFile = {
+        if (
+          diskFile &&
+          dbFile.dateLastIndexed.getTime() < diskFile.dateModified.getTime() &&
+          diskFile.size !== dbFile.size
+        ) {
+          const newFile: IFile = {
             ...dbFile,
-            size: diskFile.size,
-            dateModified: diskFile.dateModified,
+            // Recreate metadata which checks the resolution of the image
+            ...(await getMetaData(diskFile)),
             dateLastIndexed: new Date(),
           };
-          if (diskFile.size !== dbFile.size) {
-            // Delete thumbnail if size has changed, will be re-created automatically when needed
-            const thumbPath = getThumbnailPath(
-              dbFile.absolutePath,
-              this.rootStore.uiStore.thumbnailDirectory,
-            );
-            fse.remove(thumbPath).catch(console.error);
 
-            // Recreate metadata which checks the resolution of the image
-            const meta = await getMetaData(diskFile);
-            newFile = { ...newFile, ...meta };
-          }
+          // Delete thumbnail if size has changed, will be re-created automatically when needed
+          const thumbPath = getThumbnailPath(dbFile.absolutePath, thumbnailDirectory);
+          fse.remove(thumbPath).catch(console.error);
 
           updatedFiles.push(newFile);
         }
       }
-      await this.backend.saveFiles(updatedFiles);
+      if (updatedFiles.length > 0) {
+        console.debug('Re-indexed files changed on disk', updatedFiles);
+        await this.backend.saveFiles(updatedFiles);
+      }
 
       foundNewFiles = foundNewFiles || newFiles.length > 0;
     }
