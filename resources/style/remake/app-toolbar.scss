@@ -44,6 +44,12 @@
     }
   }
 
+  // TODO: Would be nice to make tags slightly shorter height as usual (1.25rem -> 1.1),
+  // so that the top edge of the tags below will be visible, indicating the user can scroll down
+  // But it doesn't look nice off-center if there are no tags below
+  // .tag .label {
+    // height: 1.1rem;
+  // }
 }
 
 .deletion-confirmation-list {

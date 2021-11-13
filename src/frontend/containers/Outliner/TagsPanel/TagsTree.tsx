@@ -75,7 +75,9 @@ const Label = (props: ILabelProps) =>
       // Only show red outline when input field is in focus and text is invalid
     />
   ) : (
-    <div data-tooltip={props.tooltip}>{props.text}</div>
+    <div className="label-text" data-tooltip={props.tooltip}>
+      {props.text}
+    </div>
   );
 
 interface ITagItemProps {
@@ -292,6 +294,7 @@ const TagItem = observer((props: ITagItemProps) => {
     (event: React.MouseEvent) => {
       runInAction(() => {
         event.stopPropagation();
+        // TODO:
         if (nodeData.isSearched) {
           // if already searched, un-search
           const crit = uiStore.searchCriteriaList.find(
@@ -358,6 +361,7 @@ const TagItem = observer((props: ITagItemProps) => {
           className="btn btn-icon"
           aria-hidden={!nodeData.isSearched}
         >
+          {/* TODO: would be nice to have SEARCH_REMOVE when hovering already searched item. And a different one for ctrl and shift click? That's not very common behavior, shouldn't do that */}
           {nodeData.isSearched ? IconSet.SEARCH : IconSet.SEARCH_ADD}
         </button>
       )}
