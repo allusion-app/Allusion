@@ -6,10 +6,9 @@
 * # Safety
 *
 * Do not import this function as it is already imported into the web worker thread (see
-* `create_web_worker`).
-* @returns {number}
+* `worker.js`).
 */
-export function compute(): number;
+export function run(): void;
 /**
 */
 export enum MasonryType {
@@ -22,29 +21,17 @@ export enum MasonryType {
 export class MasonryWorker {
   free(): void;
 /**
-* Creates a new web worker from the path to `masonry.js` and `masonry_bg.wasm`.
+* Creates a new worker from a worker that was initialized with the `worker.js` script.
 * @param {number} num_items
-* @param {string} module_path
-* @param {string} wasm_path
 */
-  constructor(num_items: number, module_path: string, wasm_path: string);
+  constructor(num_items: number);
 /**
-* Initializes the web worker, so it can handle future computations.
-*
-* # Safety
-*
-* Calling this function more than once on an instance will immediately panic. It is
-* important to `await` the `Promise`, otherwise the first computation will be skipped.
-* @returns {Promise<any>}
-*/
-  init(): Promise<any>;
-/**
-* Computes the transforms of all items and returns the height of the container.
+* Computes the transforms of all items.
 *
 * # Safety
 *
 * The returned `Promise` must be `await`ed. Calls to any other method of [`MasonryWorker`]
-* while the `Promise` is still pending can lead to undefined behaviour. As long as the value
+* while the `Promise` is still pending will lead to undefined behaviour. As long as the value
 * is `await`ed you can enjoy lock free concurrency.
 * @param {number} width
 * @param {number} kind
@@ -53,6 +40,11 @@ export class MasonryWorker {
 * @returns {Promise<any>}
 */
   compute(width: number, kind: number, thumbnail_size: number, padding: number): Promise<any>;
+/**
+* Returns height of the container from the most recent computation.
+* @returns {number}
+*/
+  get_height(): number;
 /**
 * Set the number of items that need to be computed.
 *
@@ -64,51 +56,42 @@ export class MasonryWorker {
 */
   resize(new_len: number): void;
 /**
-* Set the dimension of one item at the given index.
+* Set the dimension of one item at the given index if it is smaller than the item count.
 *
 * You have to set the dimensions of the items if you want to compute a vertical or horizontal
 * masonry layout. For grid layout this is not necessary.
-*
-* # Panics
-*
-* If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
 * @param {number} index
 * @param {number} src_width
 * @param {number} src_height
 */
   set_dimension(index: number, src_width: number, src_height: number): void;
 /**
-* Returns the transform of the item at the given index.
+* Returns a pointer to the transform of the item at the given index.
 *
 * The [`Transform`] object can be used to set the absolute position of an element.
 *
-* # Panics
+* # Safety
 *
 * If the index is greater than any number passed to [`MasonryWorker::resize()`], it will
+* return a null pointer. Reading the WebAssembly.Memory will only return garbage.
 * @param {number} index
-* @returns {any}
+* @returns {number}
 */
-  get_transform(index: number): any;
+  get_transform(index: number): number;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly __wbg_masonryworker_free: (a: number) => void;
-  readonly masonryworker_new: (a: number, b: number, c: number, d: number, e: number) => number;
-  readonly masonryworker_init: (a: number) => number;
+  readonly masonryworker_new: (a: number) => number;
   readonly masonryworker_compute: (a: number, b: number, c: number, d: number, e: number) => number;
+  readonly masonryworker_get_height: (a: number) => number;
   readonly masonryworker_resize: (a: number, b: number) => void;
   readonly masonryworker_set_dimension: (a: number, b: number, c: number, d: number) => void;
   readonly masonryworker_get_transform: (a: number, b: number) => number;
-  readonly compute: () => number;
-  readonly __wbindgen_export_0: WebAssembly.Memory;
-  readonly __wbindgen_export_1: WebAssembly.Table;
-  readonly wasm_bindgen__convert__closures__invoke1_mut__hae1aa38dc1391970: (a: number, b: number, c: number) => void;
-  readonly __wbindgen_malloc: (a: number) => number;
-  readonly __wbindgen_realloc: (a: number, b: number, c: number) => number;
-  readonly __wbindgen_exn_store: (a: number) => void;
-  readonly wasm_bindgen__convert__closures__invoke2_mut__h04b557a7effa519a: (a: number, b: number, c: number, d: number) => void;
+  readonly run: () => void;
+  readonly memory: WebAssembly.Memory;
   readonly __wbindgen_start: () => void;
 }
 
@@ -121,4 +104,4 @@ export interface InitOutput {
 *
 * @returns {Promise<InitOutput>}
 */
-export default function init (module_or_path?: InitInput | Promise<InitInput>, maybe_memory?: WebAssembly.Memory): Promise<InitOutput>;
+export default function init (module_or_path: InitInput | Promise<InitInput>, maybe_memory?: WebAssembly.Memory): Promise<InitOutput>;

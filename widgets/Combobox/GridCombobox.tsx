@@ -266,6 +266,7 @@ export const GridCombobox = ({
             index += 1;
             return renderOption(option, index, isSelected(option, value));
           })}
+          {optgroup.options.length === 0 && <i>No matches found</i>}
         </Optgroup>
       ));
     }
@@ -301,6 +302,7 @@ export const GridCombobox = ({
         onKeyDown={handleKeydown}
         onBlur={close}
       />
+      {/* TODO: might not fit in its container (e.g. long tag names in Advanced Search). Move to portal? */}
       <div
         ref={popup}
         data-popover

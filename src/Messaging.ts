@@ -9,7 +9,6 @@ import { ViewMethod } from './frontend/stores/UiStore';
 /**
  * All types of messages between the main and renderer process in one place, with type safety.
  */
-
 type SYSTEM_PATHS =
   | 'home'
   | 'appData'
@@ -24,8 +23,7 @@ type SYSTEM_PATHS =
   | 'music'
   | 'pictures'
   | 'videos'
-  | 'logs'
-  | 'pepperFlashSystemPlugin';
+  | 'logs';
 
 /////////////////// General ////////////////////
 export const INITIALIZED = 'INITIALIZED';

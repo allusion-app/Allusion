@@ -354,7 +354,7 @@ const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: IT
     <div
       className="tree-content-label"
       aria-disabled={nodeData.isExcluded}
-      // onClick={handleClick}
+      onClick={handleClick}
       onContextMenu={handleContextMenu}
       onDragEnter={handleDragEnter}
       onDrop={handleDrop}
@@ -367,12 +367,12 @@ const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: IT
           ? IconSet.FOLDER_OPEN
           : IconSet.FOLDER_CLOSE
         : IconSet.HIDDEN}
-      <div>{nodeData.name}</div>
-      {/* TODO: search button on locations/tags with long names is inaccessible */}
-      {/* TODO: discussed click/search behavior. Should restore previous method: remove search button, search by clicking on the label itself, but keep button for tag tree */}
-      <button onClick={handleClick} className="btn btn-icon" aria-hidden={!isSearched}>
-        {isSearched ? IconSet.SEARCH : IconSet.SEARCH_ADD}
-      </button>
+      <div className="label-text">{nodeData.name}</div>
+      {/* Indicates whether this item is being searched */}
+      {/* TODO: disabled for now; Feels very unnatural in combination with the indicator+button of the Tag */}
+      {/* <span className="indicator" aria-hidden={!isSearched}>
+        {isSearched ? IconSet.SEARCH : null}
+      </span> */}
     </div>
   );
 });
@@ -423,6 +423,7 @@ const Location = observer(
     return (
       <div
         className="tree-content-label"
+        onClick={handleClick}
         onContextMenu={handleContextMenu}
         onDragEnter={handleDragEnter}
         onDrop={handleDrop}
@@ -433,14 +434,15 @@ const Location = observer(
             ? IconSet.FOLDER_OPEN
             : IconSet.FOLDER_CLOSE
           : IconSet.LOADING}
-        <div>{nodeData.name}</div>
+        <div className="label-text">{nodeData.name}</div>
         {nodeData.isBroken ? (
           <span onClick={() => uiStore.openLocationRecovery(nodeData.id)}>{IconSet.WARNING}</span>
-        ) : (
-          <button onClick={handleClick} className="btn btn-icon" aria-hidden={!isSearched}>
-            {isSearched ? IconSet.SEARCH : IconSet.SEARCH_ADD}
-          </button>
-        )}
+        ) : // Indicates whether this item is being searched
+        // TODO: disabled for now; Feels very unnatural in combination with the indicator+button of the Tag
+        // <span className="indicator" aria-hidden={!isSearched}>
+        //   {isSearched ? IconSet.SEARCH : null}
+        // </span>
+        null}
       </div>
     );
   },
