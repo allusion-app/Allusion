@@ -15,6 +15,7 @@ import { LayoutMenuItems, SortMenuItems } from '../AppToolbar/Menus';
 import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { runInAction } from 'mobx';
 import { MoveFilesToTrashBin } from 'src/frontend/components/RemovalAlert';
+import useIsWindowMaximized from 'src/frontend/hooks/useIsWindowMaximized';
 
 const ContentView = observer(() => {
   const {
@@ -41,6 +42,7 @@ const Content = observer(() => {
   const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState({ width: 1, height: 1 });
   const container = useRef<HTMLDivElement>(null);
+  const isMaximized = useIsWindowMaximized();
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) => {
@@ -97,6 +99,7 @@ const Content = observer(() => {
     <div
       ref={container}
       id="gallery-content"
+      className={isMaximized ? '' : 'unmaximized'}
       tabIndex={-1}
       data-show-filename={uiStore.isThumbnailFilenameOverlayEnabled}
       data-selected-file-dropping={isDroppingTagOnSelection}

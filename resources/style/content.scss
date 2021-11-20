@@ -3,6 +3,12 @@
   width: 100%;
   height: 100%;
   overflow: hidden;
+  
+  &.unmaximized {
+    // Ensure scrollbar isn't right up to the window edge when window is not fully maximized
+    // the cursor events of the window edge interfere with the narrow scrollbar
+    padding-right: 4px;
+  }
 }
 
 // WIP > better general thumbsize. See if we kind find better size ratio for different screensize.
@@ -21,6 +27,7 @@
 // If selected, and any other selected image is a drop target: normal yellow border
 // (as an indication that dropping a tag will apply it to all selected files)
 #gallery-content[data-selected-file-dropping='true'] {
+
   .masonry {
     [aria-selected='true'] > .thumbnail {
       background-color: var(--accent-color-yellow);
