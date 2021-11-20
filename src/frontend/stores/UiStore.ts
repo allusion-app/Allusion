@@ -227,12 +227,6 @@ class UiStore {
   }
 
   @action.bound setFirstItem(index: number = 0) {
-    console.log(
-      'setFirstItem',
-      index,
-      isFinite(index),
-      index < this.rootStore.fileStore.fileList.length,
-    );
     if (isFinite(index) && index < this.rootStore.fileStore.fileList.length) {
       this.firstItem = index;
       this.updateWindowTitle();

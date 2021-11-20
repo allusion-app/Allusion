@@ -124,7 +124,6 @@ export const Row = ({ id, value, selected, onClick, icon, tooltip, children }: R
     id={id}
     role="row"
     aria-selected={selected}
-    // TODO: for QuickSearch: it doesn't trigger onClick, but does on Enter?? Almost as if the container detects onClick and unmounts before the event can rich this div
     onClick={onClick}
     tabIndex={-1} // Important for focus handling!
     data-tooltip={tooltip}
