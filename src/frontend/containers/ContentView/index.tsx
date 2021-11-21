@@ -13,8 +13,8 @@ import Layout from './LayoutSwitcher';
 
 import { LayoutMenuItems, SortMenuItems } from '../AppToolbar/Menus';
 import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
-import { runInAction } from 'mobx';
 import { MoveFilesToTrashBin } from 'src/frontend/components/RemovalAlert';
+import { useAction } from 'src/frontend/hooks/mobx';
 import useIsWindowMaximized from 'src/frontend/hooks/useIsWindowMaximized';
 
 const ContentView = observer(() => {
@@ -71,29 +71,21 @@ const Content = observer(() => {
   const isDroppingTagOnSelection =
     dndData.target !== undefined && uiStore.fileSelection.has(dndData.target);
 
-  const clearFileSelection = useCallback(
-    (e: React.MouseEvent | React.KeyboardEvent) => {
-      const isSlideMode = runInAction(() => uiStore.isSlideMode);
-      const isLayout = e.currentTarget.firstElementChild?.contains(e.target as Node);
-      if (!isSlideMode && isLayout) {
-        uiStore.clearFileSelection();
-      }
-    },
-    [uiStore],
-  );
+  const clearFileSelection = useAction((e: React.MouseEvent | React.KeyboardEvent) => {
+    const isLayout = e.currentTarget.firstElementChild?.contains(e.target as Node);
+    if (!uiStore.isSlideMode && isLayout) {
+      uiStore.clearFileSelection();
+    }
+  });
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        const isSlideMode = runInAction(() => uiStore.isSlideMode);
-        if (!isSlideMode) {
-          uiStore.clearFileSelection();
-          e.stopPropagation();
-        }
+  const handleKeyDown = useAction((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      if (!uiStore.isSlideMode) {
+        uiStore.clearFileSelection();
+        e.stopPropagation();
       }
-    },
-    [uiStore],
-  );
+    }
+  });
 
   return (
     <div

@@ -6,6 +6,7 @@ import { AppToaster } from 'src/frontend/components/Toaster';
 import LocationStore, { FileStats } from 'src/frontend/stores/LocationStore';
 import { FolderWatcherWorker } from 'src/frontend/workers/folderWatcher.worker';
 import { RendererMessenger } from 'src/Messaging';
+import { IMG_EXTENSIONS_TYPE } from './File';
 import { ID, IResource, ISerializable } from './ID';
 
 export interface ILocation extends IResource {
@@ -81,6 +82,9 @@ export class ClientLocation implements ISerializable<ILocation> {
   // true when the path no longer exists (broken link)
   @observable isBroken = false;
 
+  /** The file extensions for the files to be watched */
+  extensions: IMG_EXTENSIONS_TYPE[];
+
   readonly subLocations = observable<ClientSubLocation>([]);
   /** A cached list of all sublocations that are excluded (isExcluded === true) */
   protected readonly excludedPaths: ClientSubLocation[] = [];
@@ -95,11 +99,13 @@ export class ClientLocation implements ISerializable<ILocation> {
     path: string,
     dateAdded: Date,
     subLocations: ISubLocation[] = [],
+    extensions: IMG_EXTENSIONS_TYPE[],
   ) {
     this.store = store;
     this.id = id;
     this.path = path;
     this.dateAdded = dateAdded;
+    this.extensions = extensions;
 
     this.subLocations.push(
       ...subLocations.map(
@@ -294,7 +300,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     const WorkerFactory = wrap<typeof FolderWatcherWorker>(worker);
     this.worker = await new WorkerFactory();
     // Make a list of all files in this directory, which will be returned when all subdirs have been traversed
-    const initialFiles = await this.worker.watch(directory);
+    const initialFiles = await this.worker.watch(directory, this.extensions);
 
     // Filter out images from excluded sub-locations
     // TODO: Could also put them in the chokidar ignore property

@@ -29,13 +29,14 @@ const Checkbox = (props: ICheckbox) => {
   const { label, defaultChecked, checked, onChange } = props;
   return (
     <label className="checkbox">
-      {label}
       <input
         type="checkbox"
         defaultChecked={defaultChecked}
         checked={checked}
         onChange={onChange}
       />
+      &nbsp;
+      {label}
     </label>
   );
 };

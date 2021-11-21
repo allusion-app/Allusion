@@ -2,7 +2,8 @@ import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
-import { getMetaData, IFile } from 'src/entities/File';
+import ExifIO from 'src/backend/ExifIO';
+import { getMetaData, IFile, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { generateId, ID } from 'src/entities/ID';
 import { ClientLocation, ClientSubLocation, ILocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
@@ -11,6 +12,9 @@ import { RendererMessenger } from 'src/Messaging';
 import { getThumbnailPath, promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
 import fse from 'fs-extra';
+
+const PREFERENCES_STORAGE_KEY = 'location-store-preferences';
+type Preferences = { extensions: IMG_EXTENSIONS_TYPE[] };
 
 /**
  * Compares metadata of two files to determine whether the files are (likely to be) identical
@@ -31,6 +35,10 @@ class LocationStore {
 
   readonly locationList = observable<ClientLocation>([]);
 
+  // Allow users to disable certain file types. Global option for now, needs restart
+  // TODO: Maybe per location/sub-location?
+  enabledFileExtensions = observable(new Set<IMG_EXTENSIONS_TYPE>());
+
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
@@ -39,10 +47,26 @@ class LocationStore {
   }
 
   @action async init() {
+    // Restore preferences
+    try {
+      const prefs = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) || '') as Preferences;
+      (prefs.extensions || IMG_EXTENSIONS).forEach((ext) => this.enabledFileExtensions.add(ext));
+    } catch (e) {
+      IMG_EXTENSIONS.forEach((ext) => this.enabledFileExtensions.add(ext));
+    }
+
     // Get dirs from backend
     const dirs = await this.backend.fetchLocations('dateAdded', FileOrder.Asc);
     const locations = dirs.map(
-      (dir) => new ClientLocation(this, dir.id, dir.path, dir.dateAdded, dir.subLocations),
+      (dir) =>
+        new ClientLocation(
+          this,
+          dir.id,
+          dir.path,
+          dir.dateAdded,
+          dir.subLocations,
+          runInAction(() => this.enabledFileExtensions.toJSON()),
+        ),
     );
     runInAction(() => this.locationList.replace(locations));
   }
@@ -130,7 +154,7 @@ class LocationStore {
       // Find all files that have been created (those on disk but not in DB)
       const createdPaths = diskFiles.filter((f) => !dbFilesPathSet.has(f.absolutePath));
       const createdFiles = await Promise.all(
-        createdPaths.map((path) => pathToIFile(path, location)),
+        createdPaths.map((path) => pathToIFile(path, location, this.rootStore.exifTool)),
       );
 
       // Find all files of this location that have been removed (those in DB but not on disk anymore)
@@ -240,7 +264,7 @@ class LocationStore {
           const newFile: IFile = {
             ...dbFile,
             // Recreate metadata which checks the resolution of the image
-            ...(await getMetaData(diskFile)),
+            ...(await getMetaData(diskFile, this.rootStore.exifTool)),
             dateLastIndexed: new Date(),
           };
 
@@ -291,6 +315,7 @@ class LocationStore {
       newPath,
       location.dateAdded,
       location.subLocations,
+      runInAction(() => this.enabledFileExtensions.toJSON()),
     );
     this.set(index, newLocation);
     await this.initLocation(newLocation);
@@ -307,7 +332,14 @@ class LocationStore {
   }
 
   @action.bound async create(path: string): Promise<ClientLocation> {
-    const location = new ClientLocation(this, generateId(), path, new Date(), []);
+    const location = new ClientLocation(
+      this,
+      generateId(),
+      path,
+      new Date(),
+      [],
+      runInAction(() => this.enabledFileExtensions.toJSON()),
+    );
     await this.backend.createLocation(location.serialize());
     runInAction(() => this.locationList.push(location));
     return location;
@@ -359,7 +391,7 @@ class LocationStore {
     // TODO: Should make N configurable, or determine based on the system/disk performance
     const N = 50;
     const files = await promiseAllLimit(
-      filePaths.map((path) => () => pathToIFile(path, location)),
+      filePaths.map((path) => () => pathToIFile(path, location, this.rootStore.exifTool)),
       N,
       showProgressToaster,
       () => isCancelled,
@@ -390,8 +422,16 @@ class LocationStore {
     this.rootStore.fileStore.refetchFileCounts();
   }
 
+  @action.bound setSupportedImageExtensions(extensions: Set<IMG_EXTENSIONS_TYPE>) {
+    this.enabledFileExtensions.replace(extensions);
+    localStorage.setItem(
+      PREFERENCES_STORAGE_KEY,
+      JSON.stringify({ extensions: this.enabledFileExtensions.toJSON() } as Preferences, null, 2),
+    );
+  }
+
   @action async addFile(fileStats: FileStats, location: ClientLocation) {
-    const file = await pathToIFile(fileStats, location);
+    const file = await pathToIFile(fileStats, location, this.rootStore.exifTool);
     await this.backend.createFilesFromPath(fileStats.absolutePath, [file]);
 
     AppToaster.show({ message: 'New images have been detected.', timeout: 5000 }, 'new-images');
@@ -452,7 +492,7 @@ export type FileStats = {
   size: number;
 };
 
-async function pathToIFile(stats: FileStats, loc: ClientLocation): Promise<IFile> {
+async function pathToIFile(stats: FileStats, loc: ClientLocation, exifIO: ExifIO): Promise<IFile> {
   const now = new Date();
   return {
     absolutePath: stats.absolutePath,
@@ -463,7 +503,7 @@ async function pathToIFile(stats: FileStats, loc: ClientLocation): Promise<IFile
     dateAdded: now,
     dateModified: now,
     dateLastIndexed: now,
-    ...(await getMetaData(stats)),
+    ...(await getMetaData(stats, exifIO)),
   };
 }
 

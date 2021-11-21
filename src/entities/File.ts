@@ -1,5 +1,3 @@
-import ImageSize from 'image-size';
-import { ISizeCalculationResult } from 'image-size/dist/types/interface';
 import {
   action,
   IReactionDisposer,
@@ -9,17 +7,16 @@ import {
   reaction,
 } from 'mobx';
 import Path from 'path';
+import ExifIO from 'src/backend/ExifIO';
 import FileStore from 'src/frontend/stores/FileStore';
 import { FileStats } from 'src/frontend/stores/LocationStore';
-import { promisify } from 'util';
 import { ID, IResource, ISerializable } from './ID';
 import { ClientTag } from './Tag';
-
-const sizeOf = promisify(ImageSize);
 
 export const IMG_EXTENSIONS = [
   'gif',
   'png',
+  'apng', // animated png
   'jpg',
   'jpeg',
   'jfif',
@@ -27,6 +24,15 @@ export const IMG_EXTENSIONS = [
   'tif',
   'tiff',
   'bmp',
+  'svg',
+  'psd', // Photoshop
+  'kra', // Krita
+  // 'xcf', // Gimp
+  'exr', // OpenEXR
+  // 'raw', there are many RAW file extensions :( https://fileinfo.com/filetypes/camera_raw
+  // 'avif',
+  // 'heic', // not supported by Sharp out of the box https://github.com/lovell/sharp/issues/2871
+  // TODO: 'blend', raw, etc.?
 ] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 
@@ -35,7 +41,7 @@ interface IMetaData {
   /** Duplicate data; also exists as part of the absolutePath. Used for DB queries */
   name: string;
   /** in lowercase, without the dot */
-  extension: string;
+  extension: IMG_EXTENSIONS_TYPE;
   /** Size in bytes */
   size: number;
   width: number;
@@ -85,7 +91,7 @@ export class ClientFile implements ISerializable<IFile> {
   readonly dateModified: Date;
   readonly dateLastIndexed: Date;
   readonly name: string;
-  readonly extension: string;
+  readonly extension: IMG_EXTENSIONS_TYPE;
   /** Same as "name", but without extension */
   readonly filename: string;
 
@@ -206,24 +212,16 @@ export class ClientFile implements ISerializable<IFile> {
 }
 
 /** Should be called when after constructing a file before sending it to the backend. */
-export async function getMetaData(stats: FileStats): Promise<IMetaData> {
+export async function getMetaData(stats: FileStats, exifIO: ExifIO): Promise<IMetaData> {
   const path = stats.absolutePath;
-  let dimensions: ISizeCalculationResult | undefined;
-  try {
-    dimensions = await sizeOf(path);
-  } catch (e) {
-    if (!dimensions) {
-      console.error('Could not find dimensions for ', path, e, stats);
-    }
-    // TODO: Remove image? Probably unsupported file type
-  }
+  const dimensions = await exifIO.getDimensions(path);
 
   return {
     name: Path.basename(path),
-    extension: Path.extname(path).slice(1).toLowerCase(),
+    extension: Path.extname(path).slice(1).toLowerCase() as IMG_EXTENSIONS_TYPE,
     size: stats.size,
-    width: (dimensions && dimensions.width) || 0,
-    height: (dimensions && dimensions.height) || 0,
+    width: dimensions?.width ?? 0,
+    height: dimensions?.height ?? 0,
     dateCreated: stats.dateCreated,
   };
 }

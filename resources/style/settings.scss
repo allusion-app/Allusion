@@ -9,6 +9,18 @@
       flex-basis: 0;
     }
   }
+  
+  .checkbox-set-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    align-content: flex-start;
+    
+    .item {
+      flex-basis: 20%;
+      padding-bottom: 0.5rem;
+    }
+  }
 }
 
 .key-combo-editor {

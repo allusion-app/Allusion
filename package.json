@@ -15,8 +15,8 @@
     "build": "rimraf dist && yarn production && yarn logo",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "install:wasm": "cargo install wasm-bindgen-cli --version 0.2.78",
-    "build:masonry": "yarn install:wasm && cd wasm/masonry && cargo build --release && wasm-bindgen --out-dir pkg --target web --omit-default-module-path --remove-name-section --remove-producers-section target/wasm32-unknown-unknown/release/masonry.wasm"
+    "build:masonry": "cargo install wasm-bindgen-cli --version 0.2.78 && cd wasm/masonry && cargo build --release && wasm-bindgen --out-dir pkg --target web --omit-default-module-path --remove-name-section --remove-producers-section target/wasm32-unknown-unknown/release/masonry.wasm",
+    "build:exr": "cd wasm/exr-decoder && wasm-pack build --target web"
   },
   "build": {
     "appId": "com.allusion-app.allusion",
@@ -85,6 +85,7 @@
     "@types/react": "^17.0.3",
     "@types/react-dom": "^17.0.3",
     "@types/react-window": "^1.8.2",
+    "@types/utif": "^3.0.1",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",
@@ -121,16 +122,17 @@
     "dexie-export-import": "^1.0.0",
     "electron-updater": "^4.3.8",
     "fs-extra": "^9.1.0",
-    "image-size": "^0.9.7",
     "mobx": "^6.3.3",
     "mobx-react-lite": "^3.2.1",
     "node-exiftool": "^2.3.0",
+    "node-stream-zip": "^1.15.0",
     "react": "^16.14.0",
     "react-colorful": "^5.1.1",
     "react-dom": "^16.14.0",
     "react-popper": "^2.2.5",
     "react-window": "^1.8.6",
     "sourcemapped-stacktrace": "^1.1.11",
+    "utif": "^3.1.0",
     "uuid": "^8.3.2"
   }
 }

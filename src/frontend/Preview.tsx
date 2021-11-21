@@ -8,7 +8,7 @@ import ContentView from './containers/ContentView';
 import { IconSet, Toggle } from 'widgets';
 import { Toolbar, ToolbarButton } from 'widgets/menus';
 
-import { useWorkerListener } from './ThumbnailGeneration';
+import { useWorkerListener } from './image/ThumbnailGeneration';
 import { Tooltip } from './containers/AppToolbar/PrimaryCommands';
 
 const PreviewApp = observer(() => {

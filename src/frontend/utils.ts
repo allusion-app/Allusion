@@ -2,8 +2,12 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require('path');
 import fse from 'fs-extra';
+import { thumbnailFormat } from 'src/config';
 
-import { thumbnailType, thumbnailMaxSize } from 'src/config';
+////////////////////
+//// Type utils ////
+////////////////////
+export type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
 
 ////////////////////////
 //// Time-out utils ////
@@ -378,11 +382,14 @@ export const getThumbnailPath = (filePath: string, thumbnailDirectory: string): 
   // Hash is needed to avoid files with the same name to clash with each other, when they come from different paths
   const hash = hashString(filePath);
 
-  return path.join(thumbnailDirectory, `${baseFilename}-${hash}.${thumbnailType}`);
+  return path.join(thumbnailDirectory, `${baseFilename}-${hash}.${thumbnailFormat}`);
 };
 
 /** Use this for any <img src attribute! */
 export function encodeFilePath(filePath: string): string {
+  if (filePath.startsWith('data:image') || filePath.startsWith('blob:')) {
+    return filePath;
+  }
   // Take into account weird file names like "C:/Images/https_%2F%2Fcdn/.../my-image.jpg"
   const basename = path.basename(filePath);
   const basepath = filePath.substr(0, filePath.length - basename.length);
@@ -396,11 +403,7 @@ export function encodeFilePath(filePath: string): string {
     params = filename.substr(paramsIndex);
     filename = filename.substr(0, paramsIndex);
   }
-  return `${basepath}${encodeURIComponent(filename)}${params}`;
-}
-
-export function needsThumbnail(width: number, height: number) {
-  return width > thumbnailMaxSize || height > thumbnailMaxSize;
+  return `file://${basepath}${encodeURIComponent(filename)}${params}`;
 }
 
 export const isDirEmpty = async (dir: string) => {

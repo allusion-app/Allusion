@@ -8,15 +8,25 @@ import {
   getDefaultBackupDirectory,
   getDefaultThumbnailDirectory,
 } from 'src/config';
+import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
 import { WINDOW_STORAGE_KEY } from 'src/renderer';
-import { Button, ButtonGroup, IconButton, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
+import {
+  Button,
+  ButtonGroup,
+  Checkbox,
+  IconButton,
+  IconSet,
+  Radio,
+  RadioGroup,
+  Toggle,
+} from 'widgets';
 import { Callout } from 'widgets/notifications';
 import { Alert, DialogButton } from 'widgets/popovers';
 import PopupWindow from '../../components/PopupWindow';
 import { useStore } from '../../contexts/StoreContext';
-import { moveThumbnailDir } from '../../ThumbnailGeneration';
+import { moveThumbnailDir } from '../../image/ThumbnailGeneration';
 import { getFilenameFriendlyFormattedDateTime, getThumbnailPath, isDirEmpty } from '../../utils';
 import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';
@@ -149,7 +159,7 @@ const Zoom = () => {
 
 const ImportExport = observer(() => {
   const rootStore = useStore();
-  const { fileStore, tagStore } = rootStore;
+  const { fileStore, tagStore, exifTool } = rootStore;
   const [isConfirmingMetadataExport, setConfirmingMetadataExport] = useState(false);
   const [isConfirmingFileImport, setConfirmingFileImport] = useState<{
     path: string;
@@ -218,12 +228,12 @@ const ImportExport = observer(() => {
         <legend>
           Hierarchical separator, e.g.{' '}
           <pre style={{ display: 'inline' }}>
-            {['Food', 'Fruit', 'Apple'].join(fileStore.exifTool.hierarchicalSeparator)}
+            {['Food', 'Fruit', 'Apple'].join(exifTool.hierarchicalSeparator)}
           </pre>
         </legend>
         <select
-          value={fileStore.exifTool.hierarchicalSeparator}
-          onChange={(e) => fileStore.exifTool.setHierarchicalSeparator(e.target.value)}
+          value={exifTool.hierarchicalSeparator}
+          onChange={(e) => exifTool.setHierarchicalSeparator(e.target.value)}
         >
           <option value="|">|</option>
           <option value="/">/</option>
@@ -327,6 +337,98 @@ const ImportExport = observer(() => {
   );
 });
 
+const ImageFormatPicker = observer(() => {
+  const { locationStore, fileStore } = useStore();
+
+  const [removeDisabledImages, setRemoveDisabledImages] = useState(true);
+  const toggleRemoveDisabledImages = useCallback(() => setRemoveDisabledImages((val) => !val), []);
+
+  const [newEnabledFileExtensions, setNewEnabledFileExtensions] = useState(
+    new Set(locationStore.enabledFileExtensions),
+  );
+  const toggleExtension = useCallback(
+    (ext: IMG_EXTENSIONS_TYPE) => {
+      const newNewEnabledFileExtensions = new Set(newEnabledFileExtensions);
+      if (newEnabledFileExtensions.has(ext)) {
+        newNewEnabledFileExtensions.delete(ext);
+      } else {
+        newNewEnabledFileExtensions.add(ext);
+      }
+      setNewEnabledFileExtensions(newNewEnabledFileExtensions);
+    },
+    [newEnabledFileExtensions],
+  );
+
+  const onSubmit = useCallback(async () => {
+    if (removeDisabledImages) {
+      const extensionsToDelete = IMG_EXTENSIONS.filter((ext) => !newEnabledFileExtensions.has(ext));
+
+      for (const ext of extensionsToDelete) {
+        await fileStore.deleteFilesByExtension(ext);
+      }
+    }
+
+    locationStore.setSupportedImageExtensions(newEnabledFileExtensions);
+
+    window.alert('Allusion will restart to load your new preferences.');
+
+    RendererMessenger.reload();
+  }, [fileStore, locationStore, newEnabledFileExtensions, removeDisabledImages]);
+
+  // TODO: group extensions by type: JPG+JPEG+JFIF, TIF+TIFF, etc
+  return (
+    <>
+      <h2>Image formats</h2>
+      <fieldset>
+        <legend>Image formats to be discovered by Allusion in your Locations</legend>
+        <div className="checkbox-set-container">
+          {IMG_EXTENSIONS.map((ext) => (
+            <div className="item" key={ext}>
+              <Checkbox
+                label={ext}
+                checked={newEnabledFileExtensions.has(ext)}
+                onChange={() => toggleExtension(ext)}
+              />
+            </div>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>
+          There may already be images discovered by Allusion with file extensions you have disabled.
+          <br />
+          Would you like to exclude these images from Allusion after saving, or keep them around?
+        </legend>
+        <Toggle
+          checked={removeDisabledImages}
+          onChange={toggleRemoveDisabledImages}
+          onLabel="Exclude images"
+          offLabel="Keep images"
+        />
+      </fieldset>
+
+      <Button
+        text="Reset"
+        onClick={() => setNewEnabledFileExtensions(new Set(locationStore.enabledFileExtensions))}
+      />
+      <Button
+        text="Save"
+        styling="filled"
+        onClick={onSubmit}
+        disabled={
+          newEnabledFileExtensions.size === 0 ||
+          // Disabled if identical
+          (newEnabledFileExtensions.size === locationStore.enabledFileExtensions.size &&
+            Array.from(newEnabledFileExtensions.values()).every((ext) =>
+              locationStore.enabledFileExtensions.has(ext),
+            ))
+        }
+      />
+    </>
+  );
+});
+
 const BackgroundProcesses = observer(() => {
   const { uiStore, locationStore } = useStore();
 
@@ -398,7 +500,6 @@ const BackgroundProcesses = observer(() => {
             isClipEnabled || importDirectory
               ? toggleClipServer
               : (e) => {
-                  console.log('came here');
                   e.preventDefault();
                   e.stopPropagation();
                   alert(
@@ -549,6 +650,10 @@ const SETTINGS_TABS: () => TabItem[] = () => [
   {
     label: 'Shortcuts',
     content: <Shortcuts />,
+  },
+  {
+    label: 'Image formats',
+    content: <ImageFormatPicker />,
   },
   {
     label: 'Import/Export',

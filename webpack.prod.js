@@ -126,10 +126,6 @@ let rendererConfig = {
         type: 'asset/resource',
       },
       {
-        test: /\.node$/,
-        use: 'node-loader',
-      },
-      {
         test: /\.svg$/,
         oneOf: [
           {

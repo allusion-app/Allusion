@@ -1,8 +1,9 @@
 import { shell } from 'electron';
 import fse from 'fs-extra';
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { useStore } from '../contexts/StoreContext';
+import { Poll, Result, usePromise } from '../hooks/usePromise';
 import { formatDateTime, humanFileSize } from '../utils';
 
 type CommonMetadata = {
@@ -62,82 +63,45 @@ const exifFields: Record<string, { label: string; format?: (val: string) => Reac
 
 const exifTags = Object.keys(exifFields);
 
-interface IImageInfo {
-  /** This is used to avoid making sys calls while the user is scrolling! */
-  suspended?: boolean;
+interface ImageInfoProps {
   file: ClientFile;
 }
 
-const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
-  const { fileStore } = useStore();
+const ImageInfo = ({ file }: ImageInfoProps) => {
+  const { exifTool } = useStore();
 
-  const [fileStats, setFileStats] = useState<CommonMetadata>({
+  const modified: Poll<Result<string, any>> = usePromise(file.absolutePath, async (filePath) => {
+    const stats = await fse.stat(filePath);
+    return formatDateTime(stats.ctime);
+  });
+
+  const fileStats: CommonMetadata = {
     name: file.name,
     dimensions: `${file.width || '?'} x ${file.height || '?'}`,
     size: humanFileSize(file.size),
     imported: formatDateTime(file.dateAdded),
     created: formatDateTime(file.dateCreated),
-    modified: '...',
-  });
+    modified: modified.tag === 'ready' && 'ok' in modified.value ? modified.value.ok : '...',
+  };
 
-  const [exifData, setExifData] = useState<{ [key: string]: ReactNode }>({});
-
-  useEffect(() => {
-    if (suspended) {
-      return;
-    }
-    // Reset file stats when file changes
-    setFileStats({
-      name: file.name,
-      dimensions: `${file.width || '?'} x ${file.height || '?'}`,
-      size: humanFileSize(file.size),
-      imported: formatDateTime(file.dateAdded),
-      created: formatDateTime(file.dateCreated),
-      modified: '...',
-    });
-    // Then look up extra stats
-    const filePath = file.absolutePath;
-    let isMounted = true;
-    fse
-      .stat(filePath)
-      .then((stats) => {
-        if (isMounted) {
-          setFileStats((prev) => ({
-            ...prev,
-            modified: formatDateTime(stats.ctime),
-          }));
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setFileStats((s) => ({
-            ...s,
-            modified: '...',
-          }));
+  const exifData: Poll<Result<{ [key: string]: ReactNode }, any>> = usePromise(
+    file.absolutePath,
+    exifTool,
+    async (filePath, exifTool) => {
+      const tagValues = await exifTool.readExifTags(filePath, exifTags);
+      const extraStats: Record<string, ReactNode> = {};
+      tagValues.forEach((val, i) => {
+        if (val !== '' && val !== undefined) {
+          const field = exifFields[exifTags[i]];
+          extraStats[field.label] = field.format?.(val) || val;
         }
       });
+      return extraStats;
+    },
+  );
 
-    fileStore.exifTool?.initialize().then((exifIO) =>
-      exifIO
-        .readExifTags(filePath, exifTags)
-        .then((tagValues) => {
-          const extraStats: Record<string, ReactNode> = {};
-          tagValues.forEach((val, i) => {
-            if (val !== '' && val !== undefined) {
-              const field = exifFields[exifTags[i]];
-              extraStats[field.label] = field.format?.(val) || val;
-            }
-          });
-          if (isMounted) setExifData(extraStats);
-        })
-        .catch(() => setExifData({})),
-    );
-
-    return () => {
-      isMounted = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file]);
+  const extraStats =
+    exifData.tag === 'ready' && 'ok' in exifData.value ? Object.entries(exifData.value.ok) : [];
 
   // Todo: Would be nice to also add tooltips explaining what these mean (e.g. diff between dimensions & resolution)
   // Or add the units: pixels vs DPI
@@ -150,7 +114,7 @@ const ImageInfo = ({ suspended = false, file }: IImageInfo) => {
             <td>{fileStats[field as keyof CommonMetadata]}</td>
           </tr>
         ))}
-        {Object.entries(exifData).map(([label, value]) => (
+        {extraStats.map(([label, value]) => (
           <tr key={label}>
             <th scope="row">{label}</th>
             <td>{value}</td>

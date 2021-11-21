@@ -9,6 +9,7 @@ dialog {
   top: 0;
   bottom: 0;
   min-width: min(50ch, 80vw);
+  max-width: 120ch;
   max-height: 80vh;
 
   overflow: visible; // allows fly-outs to be visible outside of this dialog

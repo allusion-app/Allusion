@@ -2,14 +2,17 @@ import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
-import ExifIO from 'src/backend/ExifIO';
-import { ClientFile, IFile } from 'src/entities/File';
+import { ClientFile, IFile, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
-import { ClientTagSearchCriteria, SearchCriteria } from 'src/entities/SearchCriteria';
+import {
+  ClientStringSearchCriteria,
+  ClientTagSearchCriteria,
+  SearchCriteria,
+} from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
-import { debounce, getThumbnailPath, needsThumbnail, promiseAllLimit } from '../utils';
+import { debounce, getThumbnailPath, promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
 
 const FILE_STORAGE_KEY = 'Allusion_File';
@@ -27,8 +30,6 @@ const enum Content {
 class FileStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
-
-  public exifTool: ExifIO;
 
   readonly fileList = observable<ClientFile>([]);
   /**
@@ -58,15 +59,12 @@ class FileStore {
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
     this.debouncedRefetch = debounce(this.refetch, 200).bind(this);
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
-
-    this.exifTool = new ExifIO();
   }
 
   @action.bound async readTagsFromFiles() {
     const toastKey = 'read-tags-from-file';
     try {
-      await this.exifTool.initialize();
-      const numFiles = runInAction(() => this.fileList.length);
+      const numFiles = this.fileList.length;
       for (let i = 0; i < numFiles; i++) {
         AppToaster.show(
           {
@@ -75,11 +73,12 @@ class FileStore {
           },
           toastKey,
         );
+        const file = runInAction(() => this.fileList[i]);
 
-        const absolutePath = runInAction(() => this.fileList[i].absolutePath);
+        const absolutePath = file.absolutePath;
 
         try {
-          const tagsNameHierarchies = await this.exifTool.readTags(absolutePath);
+          const tagsNameHierarchies = await this.rootStore.exifTool.readTags(absolutePath);
 
           // Now that we know the tag names in file metadata, add them to the files in Allusion
           // Main idea: Find matching tag with same name, otherwise, insert new
@@ -90,7 +89,7 @@ class FileStore {
             const match = tagStore.findByName(tagHierarchy[tagHierarchy.length - 1]);
             if (match) {
               // If there is a match to the leaf tag, just add it to the file
-              runInAction(() => this.fileList[i].addTag(match));
+              file.addTag(match);
             } else {
               // If there is no direct match to the leaf, insert it in the tag hierarchy: first check if any of its parents exist
               let curTag = tagStore.root;
@@ -102,7 +101,7 @@ class FileStore {
                   curTag = await tagStore.create(curTag, nodeName);
                 }
               }
-              this.fileList[i].addTag(curTag);
+              file.addTag(curTag);
             }
           }
         } catch (e) {
@@ -125,23 +124,19 @@ class FileStore {
         },
         toastKey,
       );
-    } finally {
-      await this.exifTool.close();
     }
   }
 
   @action.bound async writeTagsToFiles() {
     const toastKey = 'write-tags-to-file';
     try {
-      await this.exifTool.initialize();
-      const numFiles = runInAction(() => this.fileList.length);
+      const numFiles = this.fileList.length;
       const tagFilePairs = runInAction(() =>
         this.fileList.map((f) => ({
           absolutePath: f.absolutePath,
           tagHierarchy: Array.from(f.tags).map(action((t) => t.treePath.map((t) => t.name))),
         })),
       );
-      console.log(tagFilePairs);
       let lastToastVal = '0';
       for (let i = 0; i < tagFilePairs.length; i++) {
         const newToastVal = ((100 * i) / numFiles).toFixed(0);
@@ -158,7 +153,7 @@ class FileStore {
 
         const { absolutePath, tagHierarchy } = tagFilePairs[i];
         try {
-          await this.exifTool.writeTags(absolutePath, tagHierarchy);
+          await this.rootStore.exifTool.writeTags(absolutePath, tagHierarchy);
         } catch (e) {
           console.error('Could not write tags to', absolutePath, tagHierarchy, e);
         }
@@ -179,8 +174,6 @@ class FileStore {
         },
         toastKey,
       );
-    } finally {
-      this.exifTool.close();
     }
   }
 
@@ -260,6 +253,21 @@ class FileStore {
       this.refetch();
     } catch (err) {
       console.error('Could not remove files', err);
+    }
+  }
+
+  @action async deleteFilesByExtension(ext: IMG_EXTENSIONS_TYPE): Promise<void> {
+    try {
+      const crit = new ClientStringSearchCriteria('extension', ext, 'equals');
+      const files = await this.backend.searchFiles(crit.serialize(), 'id', FileOrder.Asc);
+      console.log('Files to delete', ext, files);
+      await this.backend.removeFiles(files.map((f) => f.id));
+
+      for (const file of files) {
+        this.removeThumbnail(file.absolutePath);
+      }
+    } catch (e) {
+      console.error('Could not delete files bye extension', ext);
     }
   }
 
@@ -579,7 +587,7 @@ class FileStore {
       const file = new ClientFile(this, f);
       // Initialize the thumbnail path so the image can be loaded immediately when it mounts.
       // To ensure the thumbnail actually exists, the `ensureThumbnail` function should be called
-      file.thumbnailPath = needsThumbnail(f.width, f.height)
+      file.thumbnailPath = this.rootStore.imageLoader.needsThumbnail(f)
         ? getThumbnailPath(f.absolutePath, this.rootStore.uiStore.thumbnailDirectory)
         : f.absolutePath;
       return file;

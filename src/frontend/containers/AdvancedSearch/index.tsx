@@ -1,5 +1,4 @@
-import React, { useCallback, useState, useEffect, useRef, memo, RefObject } from 'react';
-import { autorun } from 'mobx';
+import React, { useCallback, useState, useRef, memo, RefObject } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { ID } from 'src/entities/ID';
@@ -9,6 +8,7 @@ import { KeySelector, OperatorSelector, ValueInput } from './Inputs';
 import { Criteria, defaultQuery, fromCriteria, generateCriteriaId, intoCriteria } from './data';
 import { Dialog } from 'widgets/popovers';
 import { Callout, InfoButton } from 'widgets/notifications';
+import { useAutorun } from 'src/frontend/hooks/mobx';
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore, tagStore } = useStore();
@@ -17,19 +17,17 @@ export const AdvancedSearchDialog = observer(() => {
 
   // Initialize form with current queries. When the form is closed, all inputs
   // are unmounted to save memory.
-  useEffect(() => {
-    return autorun(() => {
-      const map = new Map();
-      if (uiStore.isAdvancedSearchOpen) {
-        for (const criteria of uiStore.searchCriteriaList) {
-          const [id, query] = fromCriteria(criteria);
-          map.set(id, query);
-        }
-        requestAnimationFrame(() => requestAnimationFrame(() => keySelector.current?.focus()));
+  useAutorun(() => {
+    const map = new Map();
+    if (uiStore.isAdvancedSearchOpen) {
+      for (const criteria of uiStore.searchCriteriaList) {
+        const [id, query] = fromCriteria(criteria);
+        map.set(id, query);
       }
-      setQuery(map);
-    });
-  }, [uiStore]);
+      requestAnimationFrame(() => requestAnimationFrame(() => keySelector.current?.focus()));
+    }
+    setQuery(map);
+  });
 
   const search = useCallback(() => {
     uiStore.replaceSearchCriterias(

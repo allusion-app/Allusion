@@ -6,6 +6,8 @@ import FileStore from './FileStore';
 import TagStore from './TagStore';
 import UiStore from './UiStore';
 import LocationStore from './LocationStore';
+import ExifIO from 'src/backend/ExifIO';
+import ImageLoader from '../image/ImageLoader';
 
 import { RendererMessenger } from 'src/Messaging';
 
@@ -29,6 +31,8 @@ class RootStore {
   readonly fileStore: FileStore;
   readonly locationStore: LocationStore;
   readonly uiStore: UiStore;
+  readonly exifTool: ExifIO;
+  readonly imageLoader: ImageLoader;
   readonly clearDatabase: () => Promise<void>;
 
   constructor(private backend: Backend) {
@@ -36,6 +40,8 @@ class RootStore {
     this.fileStore = new FileStore(backend, this);
     this.locationStore = new LocationStore(backend, this);
     this.uiStore = new UiStore(this);
+    this.exifTool = new ExifIO();
+    this.imageLoader = new ImageLoader(this.exifTool);
 
     // SAFETY: The backend instance has the same lifetime as the RootStore.
     this.clearDatabase = async () => {
@@ -51,6 +57,8 @@ class RootStore {
     // The tag store needs to be awaited because file entites have references
     // to tag entities.
     await this.tagStore.init();
+
+    await Promise.all([this.exifTool.initialize(), this.imageLoader.init()]);
 
     // The preview window is opened while the locations are already watched. The
     // files are fetched based on the file selection.
