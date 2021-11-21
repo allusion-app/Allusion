@@ -429,7 +429,7 @@ const Location = observer(
         onDrop={handleDrop}
         onDragLeave={handleDragLeave}
       >
-        {nodeData.isInitialized
+        {nodeData.isInitialized && !nodeData.isRefreshing
           ? expansion[nodeData.id]
             ? IconSet.FOLDER_OPEN
             : IconSet.FOLDER_CLOSE

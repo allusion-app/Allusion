@@ -79,6 +79,8 @@ export class ClientLocation implements ISerializable<ILocation> {
   private isReady = false;
   // whether initialization has started or has been completed
   @observable isInitialized = false;
+  // whether sub-locations are being refreshed
+  @observable isRefreshing = false;
   // true when the path no longer exists (broken link)
   @observable isBroken = false;
 
@@ -216,7 +218,10 @@ export class ClientLocation implements ISerializable<ILocation> {
   }
 
   async refreshSublocations(): Promise<void> {
-    // TODO: Can also get this from watching
+    // Trigger loading icon
+    runInAction(() => (this.isRefreshing = false));
+
+    // TODO: Can also get this from watching
     const directoryTree = await getDirectoryTree(this.path);
 
     // Replaces the subLocations on every subLocation recursively
@@ -247,6 +252,8 @@ export class ClientLocation implements ISerializable<ILocation> {
         }
       }
       loc.subLocations.replace(newSublocations);
+
+      this.isRefreshing = true;
     };
 
     const rootItem: IDirectoryTreeItem = {
