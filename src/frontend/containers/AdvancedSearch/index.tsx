@@ -91,16 +91,16 @@ const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: Qu
           A criteria is made of three components:
           <ul>
             <li>
-              <b>key</b> (meta data of a file),
+              <b>key</b> (a property of the image file),
             </li>
             <li>
-              <b>operator</b> (decides how the meta data value is compared) and
+              <b>operator</b> (decides how the property value is compared) and
             </li>
             <li>
               the matching <b>value</b>.
             </li>
           </ul>
-          Every file that matches the criteria is shown.
+          Every image that matches the criteria is shown.
           <br />
           <br />
           You can edit the inputs for each component and add the criteria to the query by pressing
@@ -172,7 +172,7 @@ const QueryEditor = memo(function QueryEditor({ query, setQuery }: QueryEditorPr
       </div>
       {query.size === 0 ? (
         <Callout icon={IconSet.INFO} header="Empty Query">
-          Your query is currently empty. Add a criteria to enable the <b>Search</b> button.
+          Your query is currently empty. Create a criteria above to enable the <b>Search</b> button.
         </Callout>
       ) : undefined}
       <div id="query-editor-container">

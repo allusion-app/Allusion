@@ -72,12 +72,14 @@ import OPEN_EXTERNAL from 'resources/icons/open-external.svg';
 import PLUS from 'resources/icons/plus.svg';
 import PREVIEW from 'resources/icons/preview.svg';
 import RELOAD from 'resources/icons/reload.svg';
+import RELOAD_COMPACT from 'resources/icons/reload-compact.svg';
 import REPLACE from 'resources/icons/replace.svg';
 import SEARCH from 'resources/icons/search.svg';
 import SEARCH_ADD from 'resources/icons/search-add.svg';
 import SEARCH_ALL from 'resources/icons/search-all.svg';
 import SEARCH_ANY from 'resources/icons/search-any.svg';
 import SEARCH_EXTENDED from 'resources/icons/search-extended.svg';
+import SEARCH_REMOVE from 'resources/icons/search-remove.svg';
 import SELECT_ALL_CHECKED from 'resources/icons/select-all-checked.svg';
 // import SELECT_ALL_ROUND from 'resources/icons/select-all-round.svg';
 // import SELECT_ALL_ROUND_CHECKED from 'resources/icons/select-all-round-checked.svg';
@@ -174,12 +176,14 @@ const IconSet = {
   PLUS: toSvg(PLUS),
   PREVIEW: toSvg(PREVIEW),
   RELOAD: toSvg(RELOAD),
+  RELOAD_COMPACT: toSvg(RELOAD_COMPACT),
   REPLACE: toSvg(REPLACE),
   SEARCH: toSvg(SEARCH),
   SEARCH_ADD: toSvg(SEARCH_ADD),
   SEARCH_ALL: toSvg(SEARCH_ALL),
   SEARCH_ANY: toSvg(SEARCH_ANY),
   SEARCH_EXTENDED: toSvg(SEARCH_EXTENDED),
+  SEARCH_REMOVE: toSvg(SEARCH_REMOVE),
   SELECT_ALL_CHECKED: toSvg(SELECT_ALL_CHECKED),
   // SELECT_ALL_ROUND: toSvg(SELECT_ALL_ROUND),
   // SELECT_ALL_ROUND_CHECKED: toSvg(SELECT_ALL_ROUND_CHECKED),

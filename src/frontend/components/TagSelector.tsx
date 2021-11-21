@@ -17,7 +17,7 @@ export interface TagSelectorProps {
   onClear: () => void;
   disabled?: boolean;
   extraIconButtons?: ReactElement;
-  renderCreateOption: (
+  renderCreateOption?: (
     inputText: string,
     resetTextBox: () => void,
   ) => ReactElement<RowProps> | ReactElement<RowProps>[];
@@ -76,8 +76,7 @@ const TagSelector = (props: TagSelectorProps) => {
   const handleBlur = useRef((e: React.FocusEvent<HTMLDivElement>) => {
     // If anything is blurred, and the new focus is not the input nor the flyout, close the flyout
     const isFocusingOption =
-      e.relatedTarget instanceof HTMLElement &&
-      e.relatedTarget.classList.contains('combobox-popup-option');
+      e.relatedTarget instanceof HTMLElement && e.relatedTarget.matches('div[role="row"]');
     if (isFocusingOption || e.relatedTarget === inputRef.current) {
       return;
     }
@@ -110,7 +109,7 @@ const TagSelector = (props: TagSelectorProps) => {
       aria-expanded={isOpen}
       aria-haspopup="grid"
       aria-owns={gridId}
-      className="input multiautocomplete"
+      className="input multiautocomplete tag-selector"
       onBlur={handleBlur}
     >
       <Flyout
@@ -182,7 +181,7 @@ interface SuggestedTagsListProps {
   selection: readonly ClientTag[];
   toggleSelection: (isSelected: boolean, tag: ClientTag) => void;
   resetTextBox: () => void;
-  renderCreateOption: (
+  renderCreateOption?: (
     inputText: string,
     resetTextBox: () => void,
   ) => ReactElement<RowProps> | ReactElement<RowProps>[];
@@ -220,7 +219,7 @@ const SuggestedTagsList = observer(
             />
           );
         })}
-        {suggestions.length === 0 && renderCreateOption(query, resetTextBox)}
+        {suggestions.length === 0 && renderCreateOption?.(query, resetTextBox)}
       </Grid>
     );
   },

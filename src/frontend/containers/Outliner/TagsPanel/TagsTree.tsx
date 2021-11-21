@@ -20,6 +20,7 @@ import { IExpansionState } from '../../types';
 import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
 import TreeItemRevealer from '../TreeItemRevealer';
 import { TagItemContextMenu } from './ContextMenu';
+import SearchButton from './SearchButton';
 import { Action, Factory, reducer, State } from './state';
 
 export class TagsTreeItemRevealer extends TreeItemRevealer {
@@ -75,7 +76,9 @@ const Label = (props: ILabelProps) =>
       // Only show red outline when input field is in focus and text is invalid
     />
   ) : (
-    <div data-tooltip={props.tooltip}>{props.text}</div>
+    <div className="label-text" data-tooltip={props.tooltip}>
+      {props.text}
+    </div>
   );
 
 interface ITagItemProps {
@@ -292,6 +295,7 @@ const TagItem = observer((props: ITagItemProps) => {
     (event: React.MouseEvent) => {
       runInAction(() => {
         event.stopPropagation();
+        // TODO:
         if (nodeData.isSearched) {
           // if already searched, un-search
           const crit = uiStore.searchCriteriaList.find(
@@ -352,15 +356,7 @@ const TagItem = observer((props: ITagItemProps) => {
         onSubmit={submit}
         tooltip={`${nodeData.treePath.map((t) => t.name).join(' › ')} (${nodeData.fileCount})`}
       />
-      {!isEditing && (
-        <button
-          onClick={handleQuickQuery}
-          className="btn btn-icon"
-          aria-hidden={!nodeData.isSearched}
-        >
-          {nodeData.isSearched ? IconSet.SEARCH : IconSet.SEARCH_ADD}
-        </button>
-      )}
+      {!isEditing && <SearchButton onClick={handleQuickQuery} isSearched={nodeData.isSearched} />}
     </div>
   );
 });

@@ -23,9 +23,10 @@ function getWeekStart(): Date {
 }
 
 export default class BackupScheduler {
+  private backupDirectory: string = '';
+
   private lastBackupIndex: number = 0;
   private lastBackupDate: Date = new Date(0);
-  private backupDirectory: string = '';
 
   private debouncedCreatePeriodicBackup: () => Promise<void>;
 

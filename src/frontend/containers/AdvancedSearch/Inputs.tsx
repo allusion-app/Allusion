@@ -1,6 +1,5 @@
 import { action } from 'mobx';
-import { observer } from 'mobx-react-lite';
-import React, { ForwardedRef, forwardRef } from 'react';
+import React, { ForwardedRef, forwardRef, useState } from 'react';
 import { IMG_EXTENSIONS } from 'src/entities/File';
 import {
   BinaryOperators,
@@ -11,11 +10,10 @@ import {
   TagOperators,
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
+import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { camelCaseToSpaced } from 'src/frontend/utils';
-import { GridOptionCell, GridCombobox, GridOption } from 'widgets';
-import { IconSet } from 'widgets/Icons';
-import { defaultQuery, Criteria, Key, Operator, Value, TagValue } from './data';
+import { Criteria, defaultQuery, Key, Operator, TagValue, Value } from './data';
 
 type SetCriteria = (fn: (criteria: Criteria) => Criteria) => void;
 
@@ -128,89 +126,119 @@ const PathInput = ({ labelledby, value, dispatch }: ValueInput<string>) => {
     />
   );
 };
-const TagInput = observer(({ labelledby, value, dispatch }: ValueInput<TagValue>) => {
-  const { tagStore } = useStore();
-  const data: TagOptions[] = [
-    { label: 'System Tags', options: [{ id: undefined, name: 'Untagged' }] },
-    { label: 'My Tags', options: tagStore.tagList },
-  ];
 
-  const handleChange = (v: TagOption) => {
-    const id = v.id;
-    dispatch((criteria) => {
-      criteria.value = id;
-      return { ...criteria };
-    });
+const TagInput = ({ value, dispatch }: ValueInput<TagValue>) => {
+  const { tagStore } = useStore();
+  const [selection, setSelection] = useState(value !== undefined ? tagStore.get(value) : undefined);
+
+  const handleSelect = action((t: ClientTag) => {
+    dispatch(setValue(t.id));
+    setSelection(t);
+  });
+
+  const handleDeselect = () => {
+    dispatch(setValue(undefined));
+    setSelection(undefined);
   };
 
+  // TODO: tooltips don't work; they're behind the dialog, arghghgh
   return (
-    <GridCombobox
-      value={value}
-      isSelected={(option: TagOption, selection: TagValue) => option.id === selection}
-      onChange={handleChange}
-      data={data}
-      colcount={2}
-      labelFromOption={labelFromOption}
-      renderOption={renderOption}
-      textboxLabelledby={labelledby}
+    <TagSelector
+      selection={selection ? [selection] : []}
+      onSelect={handleSelect}
+      onDeselect={handleDeselect}
+      onClear={handleDeselect}
     />
   );
-});
-
-interface TagOptions {
-  label: string;
-  options: readonly TagOption[];
-}
-
-interface TagOption {
-  id: TagValue;
-  name: string;
-}
-
-const labelFromOption = action((t: ClientTag) => t.name);
-
-const renderOption = (tag: TagOption | ClientTag, index: number, selection: boolean) => {
-  if (tag instanceof ClientTag) {
-    return renderTagOption(tag, index, selection);
-  } else {
-    return renderSystemTag(tag, index, selection);
-  }
 };
 
-const renderSystemTag = (tag: TagOption, index: number, selection: boolean) => {
-  const id = tag.id ?? '';
-  return (
-    <GridOption key={id} rowIndex={index} selected={selection || undefined}>
-      <GridOptionCell id={id} colIndex={1} colspan={2}>
-        {tag.name}
-      </GridOptionCell>
-    </GridOption>
-  );
-};
+// TODO: needs some more work:
+//  - default value of Untagged is unintuitive (you need to manually clear the text field first in order to pick a tag)
+//  - and doesn't support large nested tag names well (width of popout is too wide). Maybe already fixed this when reverting to old TagSelector?
 
-const renderTagOption = action((tag: ClientTag, index: number, selection: boolean) => {
-  const id = tag.id;
-  const path = tag.treePath.map((t: ClientTag) => t.name).join(' › ') ?? [];
-  const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
+// const TagInput = observer(({ labelledby, value, dispatch }: ValueInput<TagValue>) => {
+//   const { tagStore } = useStore();
+//   const data: TagOptions[] = [
+//     { label: 'System Tags', options: [{ id: undefined, name: 'Untagged' }] },
+//     { label: 'My Tags', options: tagStore.tagList },
+//   ];
 
-  return (
-    <GridOption key={id} rowIndex={index} selected={selection || undefined} data-tooltip={path}>
-      <GridOptionCell id={id} colIndex={1}>
-        <span
-          className="combobox-popup-option-icon"
-          style={{ color: tag.viewColor }}
-          aria-hidden={true}
-        >
-          {IconSet.TAG}
-        </span>
-        {tag.name}
-      </GridOptionCell>
-      <GridOptionCell className="tag-option-hint" id={id + '-hint'} colIndex={2}>
-        {hint}
-      </GridOptionCell>
-    </GridOption>
-  );
-});
+//   const handleChange = (v: TagOption) => {
+//     const id = v.id;
+//     dispatch((criteria) => {
+//       criteria.value = id;
+//       return { ...criteria };
+//     });
+//   };
+
+//   return (
+//     <GridCombobox
+//       value={value}
+//       isSelected={(option: TagOption, selection: TagValue) => option.id === selection}
+//       onChange={handleChange}
+//       data={data}
+//       colcount={2}
+//       labelFromOption={labelFromOption}
+//       renderOption={renderOption}
+//       textboxLabelledby={labelledby}
+//     />
+//   );
+// });
+
+// interface TagOptions {
+//   label: string;
+//   options: readonly TagOption[];
+// }
+
+// interface TagOption {
+//   id: TagValue;
+//   name: string;
+// }
+
+// const labelFromOption = action((t: ClientTag) => t.name);
+
+// const renderOption = (tag: TagOption | ClientTag, index: number, selection: boolean) => {
+//   if (tag instanceof ClientTag) {
+//     return renderTagOption(tag, index, selection);
+//   } else {
+//     return renderSystemTag(tag, index, selection);
+//   }
+// };
+
+// const renderSystemTag = (tag: TagOption, index: number, selection: boolean) => {
+//   const id = tag.id ?? '';
+//   return (
+//     <GridOption key={id} rowIndex={index} selected={selection || undefined}>
+//       <GridOptionCell id={id} colIndex={1} colspan={2}>
+//         {tag.name}
+//       </GridOptionCell>
+//     </GridOption>
+//   );
+// };
+
+// const renderTagOption = action((tag: ClientTag, index: number, selection: boolean) => {
+//   const id = tag.id;
+//   const path = tag.treePath.map((t: ClientTag) => t.name).join(' › ') ?? [];
+//   const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
+
+//   return (
+//     <GridOption key={id} rowIndex={index} selected={selection || undefined} data-tooltip={path}>
+//       <GridOptionCell id={id} colIndex={1}>
+//         <span
+//           className="combobox-popup-option-icon"
+//           style={{ color: tag.viewColor }}
+//           aria-hidden={true}
+//         >
+//           {IconSet.TAG}
+//         </span>
+//         {tag.name}
+//       </GridOptionCell>
+//       <GridOptionCell className="tag-option-hint" id={id + '-hint'} colIndex={2}>
+//         {hint}
+//       </GridOptionCell>
+//     </GridOption>
+//   );
+// });
 
 const ExtensionInput = ({ labelledby, value, dispatch }: ValueInput<string>) => (
   <select

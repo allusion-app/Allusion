@@ -9,8 +9,9 @@ import { ClientLocation, ClientSubLocation, ILocation } from 'src/entities/Locat
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
-import { promiseAllLimit } from '../utils';
+import { getThumbnailPath, promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
+import fse from 'fs-extra';
 
 const PREFERENCES_STORAGE_KEY = 'location-store-preferences';
 type Preferences = { extensions: IMG_EXTENSIONS_TYPE[] };
@@ -128,14 +129,17 @@ class LocationStore {
         );
       }, 10000);
 
+      // TODO: get stats from chokidar too: no need to fse.stat(). Then check whether file has been modified and needs a new thumbnail
       console.debug('Location init...');
-      const filePaths = await location.init();
-      const filePathsSet = new Set(filePaths);
+      const diskFiles = await location.init();
+      const diskFileMap = new Map<string, FileStats>(
+        diskFiles?.map((f) => [f.absolutePath, f]) ?? [],
+      );
 
       clearTimeout(readyTimeout);
       AppToaster.dismiss('retry-init');
 
-      if (filePaths === undefined) {
+      if (diskFiles === undefined) {
         AppToaster.show(
           {
             message: `Cannot find Location "${location.name}"`,
@@ -148,14 +152,14 @@ class LocationStore {
 
       console.log('Finding created files...');
       // Find all files that have been created (those on disk but not in DB)
-      const createdPaths = filePaths.filter((path) => !dbFilesPathSet.has(path));
+      const createdPaths = diskFiles.filter((f) => !dbFilesPathSet.has(f.absolutePath));
       const createdFiles = await Promise.all(
         createdPaths.map((path) => pathToIFile(path, location, this.rootStore.exifTool)),
       );
 
       // Find all files of this location that have been removed (those in DB but not on disk anymore)
       const missingFiles = dbFiles.filter(
-        (file) => file.locationId === location.id && !filePathsSet.has(file.absolutePath),
+        (file) => file.locationId === location.id && !diskFileMap.has(file.absolutePath),
       );
 
       // Find matches between removed and created images (different name/path but same characteristics)
@@ -245,8 +249,37 @@ class LocationStore {
         await this.backend.createFilesFromPath(location.path, newFiles);
       }
 
-      // TODO: Also update files that have changed, e.g. when overwriting a file (with same filename)
-      // Look at modified date? Or file size? For these ones, update metadata (resolution, size) and recreate thumbnail
+      // Also update files that have changed, e.g. when overwriting a file (with same filename)
+      // --> update metadata (resolution, size) and recreate thumbnail
+      // This can be accomplished by comparing the dateLastIndexed of the file in DB to dateModified of the file on disk
+      const updatedFiles: IFile[] = [];
+      const thumbnailDirectory = runInAction(() => this.rootStore.uiStore.thumbnailDirectory);
+      for (const dbFile of dbFiles) {
+        const diskFile = diskFileMap.get(dbFile.absolutePath);
+        if (
+          diskFile &&
+          dbFile.dateLastIndexed.getTime() < diskFile.dateModified.getTime() &&
+          diskFile.size !== dbFile.size
+        ) {
+          const newFile: IFile = {
+            ...dbFile,
+            // Recreate metadata which checks the resolution of the image
+            ...(await getMetaData(diskFile, this.rootStore.exifTool)),
+            dateLastIndexed: new Date(),
+          };
+
+          // Delete thumbnail if size has changed, will be re-created automatically when needed
+          const thumbPath = getThumbnailPath(dbFile.absolutePath, thumbnailDirectory);
+          fse.remove(thumbPath).catch(console.error);
+
+          updatedFiles.push(newFile);
+        }
+      }
+      if (updatedFiles.length > 0) {
+        console.debug('Re-indexed files changed on disk', updatedFiles);
+        await this.backend.saveFiles(updatedFiles);
+      }
+
       foundNewFiles = foundNewFiles || newFiles.length > 0;
     }
 
@@ -397,9 +430,9 @@ class LocationStore {
     );
   }
 
-  @action async addFile(path: string, location: ClientLocation) {
-    const file = await pathToIFile(path, location, this.rootStore.exifTool);
-    await this.backend.createFilesFromPath(path, [file]);
+  @action async addFile(fileStats: FileStats, location: ClientLocation) {
+    const file = await pathToIFile(fileStats, location, this.rootStore.exifTool);
+    await this.backend.createFilesFromPath(fileStats.absolutePath, [file]);
 
     AppToaster.show({ message: 'New images have been detected.', timeout: 5000 }, 'new-images');
     // might be called a lot when moving many images into a folder, so debounce it
@@ -449,16 +482,28 @@ class LocationStore {
   }
 }
 
-async function pathToIFile(path: string, loc: ClientLocation, exifIO: ExifIO): Promise<IFile> {
+export type FileStats = {
+  absolutePath: string;
+  /** When file was last modified on disk */
+  dateModified: Date;
+  /** When file was created on disk */
+  dateCreated: Date;
+  /** Current size of the file in bytes */
+  size: number;
+};
+
+async function pathToIFile(stats: FileStats, loc: ClientLocation, exifIO: ExifIO): Promise<IFile> {
+  const now = new Date();
   return {
-    absolutePath: path,
-    relativePath: path.replace(loc.path, ''),
+    absolutePath: stats.absolutePath,
+    relativePath: stats.absolutePath.replace(loc.path, ''),
     id: generateId(),
     locationId: loc.id,
     tags: [],
-    dateAdded: new Date(),
-    dateModified: new Date(),
-    ...(await getMetaData(path, exifIO)),
+    dateAdded: now,
+    dateModified: now,
+    dateLastIndexed: now,
+    ...(await getMetaData(stats, exifIO)),
   };
 }
 

@@ -9,7 +9,6 @@ import { ViewMethod } from './frontend/stores/UiStore';
 /**
  * All types of messages between the main and renderer process in one place, with type safety.
  */
-
 type SYSTEM_PATHS =
   | 'home'
   | 'appData'
@@ -24,8 +23,7 @@ type SYSTEM_PATHS =
   | 'music'
   | 'pictures'
   | 'videos'
-  | 'logs'
-  | 'pepperFlashSystemPlugin';
+  | 'logs';
 
 /////////////////// General ////////////////////
 export const INITIALIZED = 'INITIALIZED';
@@ -118,6 +116,8 @@ export interface IRunInBackgroundMessage {
 
 export const GET_VERSION = 'GET_VERSION';
 export const CHECK_FOR_UPDATES = 'CHECK_FOR_UPDATES';
+export const TOGGLE_CHECK_UPDATES_ON_STARTUP = 'TOGGLE_CHECK_UPDATES_ON_STARTUP';
+export const IS_CHECK_UPDATES_ON_STARTUP_ENABLED = 'IS_CHECK_UPDATES_ON_STARTUP_ENABLED';
 
 // Static methods for type safe IPC messages between renderer and main process
 export class RendererMessenger {
@@ -204,6 +204,12 @@ export class RendererMessenger {
   static getVersion = (): string => ipcRenderer.sendSync(GET_VERSION);
 
   static checkForUpdates = async () => ipcRenderer.invoke(CHECK_FOR_UPDATES);
+
+  static isCheckUpdatesOnStartupEnabled = (): boolean =>
+    ipcRenderer.sendSync(IS_CHECK_UPDATES_ON_STARTUP_ENABLED);
+
+  static toggleCheckUpdatesOnStartup = (): void =>
+    ipcRenderer.send(TOGGLE_CHECK_UPDATES_ON_STARTUP);
 }
 
 export class MainMessenger {
@@ -220,8 +226,8 @@ export class MainMessenger {
   static onOpenDialog = (dialog: Electron.Dialog) =>
     ipcMain.handle(OPEN_DIALOG, (_, options) => dialog.showOpenDialog(options));
 
-  static onGetPath = (app: Electron.App) =>
-    ipcMain.handle(GET_PATH, (_, name) => app.getPath(name));
+  static onGetPath = (cb: (name: SYSTEM_PATHS) => string) =>
+    ipcMain.handle(GET_PATH, (_, name) => cb(name));
 
   static onSetFullScreen = (cb: (isFullScreen: boolean) => void) =>
     ipcMain.handle(SET_FULL_SCREEN, (_, isFullScreen) => cb(isFullScreen));
@@ -300,4 +306,10 @@ export class MainMessenger {
     ipcMain.on(GET_VERSION, (e) => (e.returnValue = cb()));
 
   static onCheckForUpdates = (cb: () => void) => ipcMain.handle(CHECK_FOR_UPDATES, cb);
+
+  static onToggleCheckUpdatesOnStartup = (cb: () => void) =>
+    ipcMain.on(TOGGLE_CHECK_UPDATES_ON_STARTUP, cb);
+
+  static onIsCheckUpdatesOnStartupEnabled = (cb: () => boolean) =>
+    ipcMain.on(IS_CHECK_UPDATES_ON_STARTUP_ENABLED, (e) => (e.returnValue = cb()));
 }

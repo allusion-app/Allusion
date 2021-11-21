@@ -77,15 +77,18 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
     uiStore.setFirstItem(Math.min(uiStore.firstItem + 1, fileStore.fileList.length - 1)),
   );
 
-  // Detect left/right arrow keys to scroll between images
+  // Detect left/right arrow keys to scroll between images. Top/down is already handled in the layout that's open in the background
   useEffect(() => {
     const handleUserKeyPress = (event: KeyboardEvent) => {
       if (event.key === 'ArrowLeft') {
         decrImgIndex();
+        event.stopPropagation();
       } else if (event.key === 'ArrowRight') {
         incrImgIndex();
+        event.stopPropagation();
       } else if (event.key === 'Escape' || event.key === 'Backspace') {
         uiStore.disableSlideMode();
+        event.stopPropagation();
       }
     };
     window.addEventListener('keydown', handleUserKeyPress);

@@ -3,7 +3,7 @@ import fse from 'fs-extra';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
 import { AppToaster } from 'src/frontend/components/Toaster';
-import LocationStore from 'src/frontend/stores/LocationStore';
+import LocationStore, { FileStats } from 'src/frontend/stores/LocationStore';
 import { FolderWatcherWorker } from 'src/frontend/workers/folderWatcher.worker';
 import { RendererMessenger } from 'src/Messaging';
 import { IMG_EXTENSIONS_TYPE } from './File';
@@ -127,7 +127,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     return SysPath.basename(this.path);
   }
 
-  @action async init(): Promise<string[] | undefined> {
+  @action async init(): Promise<FileStats[] | undefined> {
     const pathExists = await fse.pathExists(this.path);
     await this.refreshSublocations();
     runInAction(() => (this.isInitialized = true));
@@ -259,24 +259,31 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.store.save(this.serialize());
   }
 
-  private async watch(directory: string): Promise<string[]> {
+  private async watch(directory: string): Promise<FileStats[]> {
     console.debug('Loading folder watcher worker...', directory);
     const worker = new Worker(
       new URL('src/frontend/workers/folderWatcher.worker', import.meta.url),
     );
-    worker.onmessage = ({ data: { type, value } }: { data: { type: string; value: string } }) => {
-      if (type === 'add') {
+    worker.onmessage = ({
+      data,
+    }: {
+      data: { type: 'remove' | 'error'; value: string } | { type: 'add'; value: FileStats };
+    }) => {
+      if (data.type === 'add') {
+        const { absolutePath } = data.value;
         // Filter out files located in any excluded subLocations
-        if (this.excludedPaths.some((subLoc) => value.startsWith(subLoc.path))) {
-          console.debug('File added to excluded sublocation', value);
+        if (this.excludedPaths.some((subLoc) => data.value.absolutePath.startsWith(subLoc.path))) {
+          console.debug('File added to excluded sublocation', absolutePath);
         } else {
-          console.log(`File ${value} has been added after initialization`);
-          this.store.addFile(value, this);
+          console.log(`File ${absolutePath} has been added after initialization`);
+          this.store.addFile(data.value, this);
         }
-      } else if (type === 'remove') {
+      } else if (data.type === 'remove') {
+        const { value } = data;
         console.log(`Location "${this.name}": File ${value} has been removed.`);
         this.store.hideFile(value);
-      } else if (type === 'error') {
+      } else if (data.type === 'error') {
+        const { value } = data;
         console.error('Location watch error:', value);
         AppToaster.show(
           {
@@ -298,7 +305,8 @@ export class ClientLocation implements ISerializable<ILocation> {
     // Filter out images from excluded sub-locations
     // TODO: Could also put them in the chokidar ignore property
     return initialFiles.filter(
-      (path) => !this.excludedPaths.some((subLoc) => path.startsWith(subLoc.path)),
+      ({ absolutePath }) =>
+        !this.excludedPaths.some((subLoc) => absolutePath.startsWith(subLoc.path)),
     );
   }
 }

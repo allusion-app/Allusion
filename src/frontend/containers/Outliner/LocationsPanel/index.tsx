@@ -330,7 +330,7 @@ const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: IT
   const existingSearchCrit = uiStore.searchCriteriaList.find(
     (c: any) => c.value === pathAsSearchPath(nodeData.path),
   );
-  const isSearched = Boolean(existingSearchCrit);
+  // const isSearched = Boolean(existingSearchCrit);
 
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -354,7 +354,7 @@ const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: IT
     <div
       className="tree-content-label"
       aria-disabled={nodeData.isExcluded}
-      // onClick={handleClick}
+      onClick={handleClick}
       onContextMenu={handleContextMenu}
       onDragEnter={handleDragEnter}
       onDrop={handleDrop}
@@ -367,10 +367,12 @@ const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: IT
           ? IconSet.FOLDER_OPEN
           : IconSet.FOLDER_CLOSE
         : IconSet.HIDDEN}
-      <div>{nodeData.name}</div>
-      <button onClick={handleClick} className="btn btn-icon" aria-hidden={!isSearched}>
-        {isSearched ? IconSet.SEARCH : IconSet.SEARCH_ADD}
-      </button>
+      <div className="label-text">{nodeData.name}</div>
+      {/* Indicates whether this item is being searched */}
+      {/* TODO: disabled for now; Feels very unnatural in combination with the indicator+button of the Tag */}
+      {/* <span className="indicator" aria-hidden={!isSearched}>
+        {isSearched ? IconSet.SEARCH : null}
+      </span> */}
     </div>
   );
 });
@@ -398,7 +400,7 @@ const Location = observer(
     const existingSearchCrit = uiStore.searchCriteriaList.find(
       (c: any) => c.value === pathAsSearchPath(nodeData.path),
     );
-    const isSearched = Boolean(existingSearchCrit);
+    // const isSearched = Boolean(existingSearchCrit);
 
     const handleClick = useCallback(
       (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -421,6 +423,7 @@ const Location = observer(
     return (
       <div
         className="tree-content-label"
+        onClick={handleClick}
         onContextMenu={handleContextMenu}
         onDragEnter={handleDragEnter}
         onDrop={handleDrop}
@@ -431,14 +434,15 @@ const Location = observer(
             ? IconSet.FOLDER_OPEN
             : IconSet.FOLDER_CLOSE
           : IconSet.LOADING}
-        <div>{nodeData.name}</div>
+        <div className="label-text">{nodeData.name}</div>
         {nodeData.isBroken ? (
           <span onClick={() => uiStore.openLocationRecovery(nodeData.id)}>{IconSet.WARNING}</span>
-        ) : (
-          <button onClick={handleClick} className="btn btn-icon" aria-hidden={!isSearched}>
-            {isSearched ? IconSet.SEARCH : IconSet.SEARCH_ADD}
-          </button>
-        )}
+        ) : // Indicates whether this item is being searched
+        // TODO: disabled for now; Feels very unnatural in combination with the indicator+button of the Tag
+        // <span className="indicator" aria-hidden={!isSearched}>
+        //   {isSearched ? IconSet.SEARCH : null}
+        // </span>
+        null}
       </div>
     );
   },
@@ -596,7 +600,7 @@ const LocationsPanel = observer(() => {
         <Toolbar controls="location-list" isCompact>
           {locationStore.locationList.length > 0 && (
             <ToolbarButton
-              icon={IconSet.RELOAD}
+              icon={IconSet.RELOAD_COMPACT}
               text="Refresh"
               onClick={action(() =>
                 locationStore.locationList.forEach((loc) =>

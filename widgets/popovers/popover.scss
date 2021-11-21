@@ -12,6 +12,8 @@ dialog {
   max-width: 120ch;
   max-height: 80vh;
 
+  overflow: visible; // allows fly-outs to be visible outside of this dialog
+
   &[open] {
     @keyframes appear {
       from {

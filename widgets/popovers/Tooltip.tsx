@@ -58,14 +58,15 @@ export const TooltipLayer = () => {
         const x = e.clientX;
         const y = e.clientY;
         virtualElement.current = {
-          getBoundingClientRect: () => ({
-            width: 4,
-            height: 4,
-            top: y,
-            right: x,
-            bottom: y,
-            left: x,
-          }),
+          getBoundingClientRect: () =>
+            ({
+              width: 4,
+              height: 4,
+              top: y,
+              right: x,
+              bottom: y,
+              left: x,
+            } as DOMRect),
           contextElement: target,
         };
       }

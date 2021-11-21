@@ -116,6 +116,8 @@ class UiStore {
   // Theme
   @observable theme: 'light' | 'dark' = 'dark';
 
+  @observable windowTitle = 'Allusion';
+
   // UI
   @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = true;
@@ -215,9 +217,19 @@ class UiStore {
     this.setThumbnailShape('letterbox');
   }
 
+  @action updateWindowTitle() {
+    if (this.isSlideMode) {
+      const activeFile = this.rootStore.fileStore.fileList[this.firstItem];
+      this.windowTitle = `${activeFile.filename}.${activeFile.extension} - Allusion`;
+    } else {
+      this.windowTitle = 'Allusion';
+    }
+  }
+
   @action.bound setFirstItem(index: number = 0) {
-    if (isFinite(index)) {
+    if (isFinite(index) && index < this.rootStore.fileStore.fileList.length) {
       this.firstItem = index;
+      this.updateWindowTitle();
     }
   }
 
@@ -247,6 +259,7 @@ class UiStore {
 
   @action.bound disableSlideMode() {
     this.isSlideMode = false;
+    this.updateWindowTitle();
   }
 
   @action.bound toggleSlideMode() {

@@ -4,6 +4,7 @@ import { Stats } from 'fs';
 import SysPath from 'path';
 import { RECURSIVE_DIR_WATCH_DEPTH } from 'src/config';
 import { IMG_EXTENSIONS_TYPE } from 'src/entities/File';
+import { FileStats } from '../stores/LocationStore';
 
 const ctx: Worker = self as any;
 
@@ -75,12 +76,12 @@ export class FolderWatcherWorker {
     const watcher = this.watcher;
 
     // Make a list of all files in this directory, which will be returned when all subdirs have been traversed
-    const initialFiles: string[] = [];
+    const initialFiles: FileStats[] = [];
 
-    return new Promise<string[]>((resolve) => {
+    return new Promise<FileStats[]>((resolve) => {
       watcher
-        .on('add', async (path) => {
-          // TODO: We already get file stats here as second arg, no need to get those later for importing in DB
+        // we can assume stats exist since we passed alwaysStat: true to chokidar
+        .on('add', async (path, stats: Stats) => {
           if (this.isCancelled) {
             console.log('Cancelling file watching');
             await watcher.close();
@@ -92,7 +93,12 @@ export class FolderWatcherWorker {
             if (this.isReady) {
               ctx.postMessage({ type: 'add', value: path });
             } else {
-              initialFiles.push(path);
+              initialFiles.push({
+                absolutePath: path,
+                dateCreated: stats?.birthtime,
+                dateModified: stats?.mtime,
+                size: stats?.size,
+              });
             }
           }
         })

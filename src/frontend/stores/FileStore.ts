@@ -508,7 +508,7 @@ class FileStore {
     // or construct a new client file
     const [newClientFiles, reusedStatus] = this.filesFromBackend(backendFiles);
 
-    // Dispose of Client files that are not re-used
+    // Dispose of Client files that are not re-used (to get rid of MobX observers)
     for (const file of this.fileList) {
       if (!reusedStatus.has(file.id)) {
         file.dispose();
@@ -526,7 +526,11 @@ class FileStore {
     // TODO: Should make N configurable, or determine based on the system/disk performance
     // NOTE: This is _not_ await intentionally, since we want to show the files to the user as soon as possible
     runInAction(() => {
-      this.fileList.replace(newClientFiles);
+      // TODO: restores this line later, currently broken for large lists, see https://github.com/mobxjs/mobx/pull/3189 (look ma, I'm contributing to open source!)
+      // this.fileList.replace(newClientFiles);
+      this.fileList.clear();
+      this.fileList.push(...newClientFiles);
+
       this.cleanFileSelection();
       this.updateFileListState(); // update index & untagged image counter
       this.fileListLastModified = new Date();

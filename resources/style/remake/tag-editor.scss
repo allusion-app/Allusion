@@ -49,4 +49,8 @@
   margin-inline-start: 1rem;
   color: var(--text-color-muted);
   font-size: smaller;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
