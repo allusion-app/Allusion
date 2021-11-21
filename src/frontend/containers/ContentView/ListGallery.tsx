@@ -163,7 +163,7 @@ const Header = () => {
   const setColumnWidth = useRef((name: string, value: number) => {
     const list = header.current?.parentElement;
     if (list) {
-      list.style.setProperty(`--col-${name}-width`, `${Math.max(value, 100)}px`);
+      list.style.setProperty(`--col-${name}-width`, `${Math.min(Math.max(value, 100), 800)}px`);
     }
   }).current;
 
@@ -269,8 +269,7 @@ function useHeaderResize(
       }
 
       const boundingRect = header.current.getBoundingClientRect();
-
-      onResize(boundingRect.width + (e.screenX - boundingRect.right));
+      onResize(boundingRect.width + (e.clientX - boundingRect.right));
     };
 
     window.addEventListener('mouseup', handleMouseUp, true);
