@@ -150,7 +150,7 @@
   > .label-text {
     text-overflow: ellipsis;
     white-space: nowrap;
-    overflow: hidden;
+    overflow: clip visible;
     width: 100%;
     line-height: 1;
     padding-bottom: 0px;

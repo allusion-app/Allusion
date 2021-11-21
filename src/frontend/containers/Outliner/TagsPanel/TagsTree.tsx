@@ -19,6 +19,7 @@ import { IExpansionState } from '../../types';
 import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
 import TreeItemRevealer from '../TreeItemRevealer';
 import { TagItemContextMenu } from './ContextMenu';
+import SearchButton from './SearchButton';
 import { Action, Factory, reducer, State } from './state';
 
 export class TagsTreeItemRevealer extends TreeItemRevealer {
@@ -355,16 +356,7 @@ const TagItem = observer((props: ITagItemProps) => {
         onSubmit={submit}
         tooltip={`${nodeData.treePath.map((t) => t.name).join(' › ')} (${nodeData.fileCount})`}
       />
-      {!isEditing && (
-        <button
-          onClick={handleQuickQuery}
-          className="btn btn-icon"
-          aria-hidden={!nodeData.isSearched}
-        >
-          {/* TODO: would be nice to have SEARCH_REMOVE when hovering already searched item. And a different one for ctrl and shift click? That's not very common behavior, shouldn't do that */}
-          {nodeData.isSearched ? IconSet.SEARCH : IconSet.SEARCH_ADD}
-        </button>
-      )}
+      {!isEditing && <SearchButton onClick={handleQuickQuery} isSearched={nodeData.isSearched} />}
     </div>
   );
 });
