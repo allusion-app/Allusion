@@ -2,7 +2,7 @@ import { shell } from 'electron';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   chromeExtensionUrl,
   getDefaultBackupDirectory,
@@ -97,6 +97,11 @@ const Appearance = observer(() => {
 
       <div className="input-group">
         <RadioGroup name="Shape">
+          {/* TODO: Tooltips don't work here, even with <Overlay /> in <Settings /> */}
+          {/* <span data-tooltip="The layout method for images that do not fit exactly in their thumbnail container. Mainly affects the Grid layout.">
+            {IconSet.INFO}
+            Test test
+          </span> */}
           <Radio
             label="Square"
             checked={uiStore.thumbnailShape === 'square'}
@@ -480,6 +485,16 @@ const Advanced = observer(() => {
       changeThumbnailDirectory(newDir);
     }
   };
+
+  const [isAutoUpdateEnabled, setAutoUpdateEnabled] = useState(
+    RendererMessenger.isCheckUpdatesOnStartupEnabled(),
+  );
+
+  const toggleAutoUpdate = useCallback(() => {
+    RendererMessenger.toggleCheckUpdatesOnStartup();
+    setAutoUpdateEnabled((isOn) => !isOn);
+  }, []);
+
   return (
     <>
       <h2>Storage</h2>
@@ -516,6 +531,12 @@ const Advanced = observer(() => {
           text="Toggle DevTools"
         />
       </ButtonGroup>
+
+      <h2>Automatic updates</h2>
+      <fieldset>
+        <legend>Check for updates when starting Allusion</legend>
+        <Toggle checked={isAutoUpdateEnabled} onChange={toggleAutoUpdate} />
+      </fieldset>
     </>
   );
 });

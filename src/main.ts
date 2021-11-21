@@ -23,6 +23,21 @@ import { ITag, ROOT_TAG_ID } from './entities/Tag';
 import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 import { Rectangle } from 'electron/main';
 
+// TODO: change this when running in portable mode, see portable-improvements branch
+const basePath = app.getPath('userData');
+
+const preferencesFilePath = path.join(basePath, 'preferences.json');
+const windowStateFilePath = path.join(basePath, 'windowState.json');
+
+type PreferencesFile = {
+  checkForUpdatesOnStartup?: boolean;
+};
+let preferences: PreferencesFile = {};
+const updatePreferences = (prefs: PreferencesFile) => {
+  preferences = prefs;
+  fse.writeJSONSync(preferencesFilePath, prefs);
+};
+
 let mainWindow: BrowserWindow | null = null;
 let previewWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
@@ -45,6 +60,24 @@ function initialize() {
 
   createWindow();
   createPreviewWindow();
+
+  // Initialize preferences file and its consequences
+  try {
+    if (!fse.pathExists(basePath)) {
+      fse.mkdirSync(basePath);
+    }
+    try {
+      preferences = fse.readJSONSync(preferencesFilePath);
+    } catch (e) {
+      // Auto update enabled by default
+      preferences = { checkForUpdatesOnStartup: true };
+    }
+    if (preferences.checkForUpdatesOnStartup) {
+      autoUpdater.checkForUpdates();
+    }
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 function createWindow() {
@@ -418,10 +451,20 @@ if (isDev()) {
 }
 
 autoUpdater.on('error', (error) => {
-  dialog.showErrorBox(
-    'Auto-update error: ',
-    error == null ? 'unknown' : (error.stack || error).toString(),
-  );
+  let errorMsg: string = (error.stack || error).toString() || 'Reason unknown, try again later.';
+
+  // In case of no network connection...
+  if (errorMsg.includes('INTERNET_DISCONNECTED')) {
+    // no need to show an error dialog on startup
+    if (!hasCheckedForUpdateOnStartup) {
+      hasCheckedForUpdateOnStartup = true;
+      return;
+    }
+    // Otherwise this error occured during a manual update check from the user, show a friendlier message
+    errorMsg = 'There seems to be an issue with your internet connection.';
+  }
+  dialog.showErrorBox('Auto-update error: ', errorMsg);
+  hasCheckedForUpdateOnStartup = true;
 });
 
 autoUpdater.on('update-available', async (info: UpdateInfo) => {
@@ -429,14 +472,16 @@ autoUpdater.on('update-available', async (info: UpdateInfo) => {
     return;
   }
 
-  const message = `Update available: ${info.releaseName || info.version}:\nDo you want update now?`;
+  const message = `Update available: ${
+    info.releaseName || info.version
+  }:\nDo you wish to update now?`;
   // info.releaseNotes attribute is HTML, could show that in renderer at some point
 
   const dialogResult = await dialog.showMessageBox(mainWindow, {
     type: 'info',
     title: 'Found Updates',
     message,
-    buttons: ['Sure', 'No', 'Open release page'],
+    buttons: ['Yes', 'No', 'Open release page'],
   });
 
   if (dialogResult.response === 0) {
@@ -573,7 +618,7 @@ MainMessenger.onReload(forceRelaunch);
 
 MainMessenger.onOpenDialog(dialog);
 
-MainMessenger.onGetPath(app);
+MainMessenger.onGetPath((path) => app.getPath(path));
 
 MainMessenger.onIsFullScreen(() => mainWindow?.isFullScreen() ?? false);
 
@@ -619,6 +664,15 @@ MainMessenger.onGetVersion(getVersion);
 
 MainMessenger.onCheckForUpdates(() => autoUpdater.checkForUpdates());
 
+MainMessenger.onToggleCheckUpdatesOnStartup(() => {
+  updatePreferences({
+    ...preferences,
+    checkForUpdatesOnStartup: !preferences.checkForUpdatesOnStartup,
+  });
+});
+
+MainMessenger.onIsCheckUpdatesOnStartupEnabled(() => !!preferences.checkForUpdatesOnStartup);
+
 // Helper functions and variables/constants
 
 const IS_MAC = process.platform === 'darwin';
@@ -637,8 +691,6 @@ function getMainWindowDisplay() {
   }
   return screen.getPrimaryDisplay();
 }
-
-const windowStateFilePath = path.join(app.getPath('userData'), 'windowState.json');
 
 // Based on https://github.com/electron/electron/issues/526
 function getPreviousWindowState(): Electron.Rectangle & { isMaximized?: boolean } {

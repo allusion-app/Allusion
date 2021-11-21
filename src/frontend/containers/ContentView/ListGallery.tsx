@@ -96,6 +96,8 @@ const ListGallery = observer(({ contentRect, select, lastSelectionIndex }: Galle
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileStore, select]);
 
+  // TODO: resizing columns is broken
+
   return (
     <FixedSizeList
       useIsScrolling
