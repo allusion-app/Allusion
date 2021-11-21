@@ -515,10 +515,6 @@ autoUpdater.on('update-downloaded', async () => {
   setImmediate(() => autoUpdater.quitAndInstall());
 });
 
-// Check for updates on startup
-// TODO: Make this disableable
-autoUpdater.checkForUpdates();
-
 //---------------------------------------------------------------------------------//
 // Messaging: Sending and receiving messages between the main and renderer process //
 //---------------------------------------------------------------------------------//
