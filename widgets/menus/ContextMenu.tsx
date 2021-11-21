@@ -28,14 +28,14 @@ export interface IContextMenu {
  */
 export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = true }: IContextMenu) => {
   const container = useRef<HTMLDivElement>(null);
-  const boundingRect = useRef({
-    width: 0,
-    height: 0,
-    top: y,
-    right: x,
-    bottom: y,
-    left: x,
-  });
+  const boundingRect = useRef<DOMRect>(
+    DOMRect.fromRect({
+      width: 0,
+      height: 0,
+      x,
+      y,
+    }),
+  );
   const [virtualElement, setVirtualElement] = useState({
     getBoundingClientRect: () => boundingRect.current,
   });
@@ -47,13 +47,14 @@ export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = true }:
       container.current.focus();
 
       // Update bounding rect
-      const rect = boundingRect.current;
-      rect.top = y;
-      rect.right = x;
-      rect.bottom = y;
-      rect.left = x;
+      const rect = DOMRect.fromRect({
+        width: boundingRect.current.width,
+        height: boundingRect.current.height,
+        x,
+        y,
+      });
       setVirtualElement({
-        getBoundingClientRect: () => boundingRect.current,
+        getBoundingClientRect: () => rect,
       });
     }
   }, [isOpen, x, y]);
