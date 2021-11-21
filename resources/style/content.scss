@@ -121,6 +121,13 @@
 }
 
 // Fallback images
+.image-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 .image-error,
 .image-placeholder {
   height: 100%;

@@ -103,14 +103,14 @@ class ImageLoader {
         }
         if (!success) {
           // There might not be an embedded thumbnail
-          return false;
+          throw new Error('Could not generate or extract thumbnail');
         } else {
           updateThumbnailPath(file, thumbnailPath);
         }
         break;
       default:
         console.warn('Unsupported extension', file.absolutePath, file.extension);
-        return false;
+        throw new Error('Unsupported extension ' + file.absolutePath);
     }
     return true;
   }

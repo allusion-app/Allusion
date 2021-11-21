@@ -219,7 +219,7 @@ export class ClientLocation implements ISerializable<ILocation> {
 
   async refreshSublocations(): Promise<void> {
     // Trigger loading icon
-    runInAction(() => (this.isRefreshing = false));
+    runInAction(() => (this.isRefreshing = true));
 
     // TODO: Can also get this from watching
     const directoryTree = await getDirectoryTree(this.path);
@@ -253,7 +253,7 @@ export class ClientLocation implements ISerializable<ILocation> {
       }
       loc.subLocations.replace(newSublocations);
 
-      this.isRefreshing = true;
+      this.isRefreshing = false;
     };
 
     const rootItem: IDirectoryTreeItem = {

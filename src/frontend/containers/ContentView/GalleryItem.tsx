@@ -1,6 +1,6 @@
 import { action, when } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import fse from 'fs-extra';
 import { ClientFile } from 'src/entities/File';
 import { ellipsize, encodeFilePath, humanFileSize } from 'src/frontend/utils';
@@ -105,7 +105,10 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
         // The thumbnailPath of an image is always set, but may not exist yet.
         // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`.
         if (freshlyGenerated) {
-          await when(() => file.thumbnailPath.endsWith('?v=1'));
+          await when(() => file.thumbnailPath.endsWith('?v=1'), { timeout: 5000 });
+          if (!getThumbnail(file).endsWith('?v=1')) {
+            throw new Error('Thumbnail generation timeout.');
+          }
         }
         return getThumbnail(file);
       } else {
@@ -119,11 +122,33 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
     },
   );
 
+  // Even though all thumbnail errors should be caught in the above usePromise,
+  // there is a chance that the image cannot be loaded, and we don't want to show broken image icons
+  const fileId = file.id;
+  const fileIdRef = useRef(fileId);
+  const [loadError, setLoadError] = useState(false);
+  const handleImageError = useCallback(() => {
+    if (fileIdRef.current === fileId) setLoadError(true);
+  }, [fileId]);
+  useEffect(() => {
+    fileIdRef.current = fileId;
+    setLoadError(false);
+  }, [fileId]);
+
   if (!mounted) {
     return <span className="image-placeholder" />;
+  } else if (loadError) {
+    return <span className="image-loading" />;
   } else if (imageSource.tag === 'ready') {
     if ('ok' in imageSource.value) {
-      return <img src={encodeFilePath(imageSource.value.ok)} alt="" data-file-id={file.id} />;
+      return (
+        <img
+          src={encodeFilePath(imageSource.value.ok)}
+          alt=""
+          data-file-id={file.id}
+          onError={handleImageError}
+        />
+      );
     } else {
       return <span className="image-error" />;
     }

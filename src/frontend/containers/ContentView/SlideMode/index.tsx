@@ -301,7 +301,7 @@ interface ImageFallbackProps {
 
 const ImageFallback = ({ error, absolutePath }: ImageFallbackProps) => {
   return (
-    <div style={CONTAINER_DEFAULT_STYLE}>
+    <div style={CONTAINER_DEFAULT_STYLE} className="image-fallback">
       <div style={{ maxHeight: 360, maxWidth: 360 }} className="image-error" />
       <br />
       <span>Could not load {error ? '' : 'full '}image </span>
