@@ -603,7 +603,7 @@ const LocationsPanel = observer(() => {
         <Toolbar controls="location-list" isCompact>
           {locationStore.locationList.length > 0 && (
             <ToolbarButton
-              icon={IconSet.RELOAD}
+              icon={IconSet.RELOAD_COMPACT}
               text="Refresh"
               onClick={action(() =>
                 locationStore.locationList.forEach((loc) =>
