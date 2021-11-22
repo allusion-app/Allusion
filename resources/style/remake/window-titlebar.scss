@@ -4,8 +4,8 @@
   width: 100%;
   display: flex;
 
-  background-color: #14181a;
-  color: #888;
+  background-color: var(--titlebar-background-color);
+  color: var(--titlebar-color);
 
   border-bottom: 0.0625rem solid var(--border-color);
 
@@ -66,7 +66,7 @@
     width: 36px;
 
     &:hover {
-      background-color: #1f2224;
+      background-color: var(--titlebar-background-color-alt);
     }
 
     &:last-child:hover {
