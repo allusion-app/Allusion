@@ -805,6 +805,13 @@ class UiStore {
     return undefined;
   }
 
+  /** Return {@link UiStore.firstItem}: first item visible in viewport, and the current item in SlideMode */
+  @computed get firstFileInView(): ClientFile | undefined {
+    return this.firstItem < this.rootStore.fileStore.fileList.length
+      ? this.rootStore.fileStore.fileList[this.firstItem]
+      : undefined;
+  }
+
   @action private viewAllContent() {
     this.rootStore.fileStore.fetchAllFiles();
   }

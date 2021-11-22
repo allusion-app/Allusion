@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { observe } from 'mobx';
+import { observe, runInAction } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -45,12 +45,17 @@ backend
 if (IS_PREVIEW_WINDOW) {
   RendererMessenger.onReceivePreviewFiles(
     ({ ids, thumbnailDirectory, viewMethod, activeImgId }) => {
-      rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
       rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
       rootStore.uiStore.setMethod(viewMethod);
       rootStore.uiStore.enableSlideMode();
-      rootStore.uiStore.isInspectorOpen && rootStore.uiStore.toggleInspector();
-      rootStore.fileStore.fetchFilesByIDs(ids);
+
+      runInAction(() => {
+        if (rootStore.uiStore.isInspectorOpen) rootStore.uiStore.toggleInspector();
+      });
+
+      rootStore.fileStore.fetchFilesByIDs(ids).then(() => {
+        rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
+      });
     },
   );
 

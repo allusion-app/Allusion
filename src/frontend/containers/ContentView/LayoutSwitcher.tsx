@@ -159,7 +159,7 @@ const Layout = ({ contentRect, showContextMenu }: LayoutProps) => {
   return (
     <>
       {overviewElem}
-      {delayedSlideMode && <SlideMode contentRect={contentRect} />}
+      {delayedSlideMode && uiStore.firstFileInView && <SlideMode contentRect={contentRect} />}
     </>
   );
 };

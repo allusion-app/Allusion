@@ -117,7 +117,7 @@ const Content = observer(() => {
             </>
           )}
           {externalMenu && <MenuDivider />}
-          {externalMenu}{' '}
+          {externalMenu}
         </Menu>
       </ContextMenu>
 

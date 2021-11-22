@@ -44,8 +44,8 @@ interface SlideViewProps {
 
 const SlideView = observer(({ width, height }: SlideViewProps) => {
   const { uiStore, fileStore, imageLoader } = useStore();
-  const file = useComputed(() => fileStore.fileList[uiStore.firstItem]).get();
-  const eventManager = useMemo(() => new CommandDispatcher(file), [file]);
+  const file = uiStore.firstFileInView;
+  const eventManager = useMemo(() => (file ? new CommandDispatcher(file) : undefined), [file]);
   const isFirst = useComputed(() => uiStore.firstItem === 0);
   const isLast = useComputed(() => uiStore.firstItem === fileStore.fileList.length - 1);
 
@@ -101,14 +101,14 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
   useEffect(() => {
     let isEffectRunning = true;
     const dispose = autorun(() => {
-      if (!isLast.get()) {
+      if (!isLast.get() && uiStore.firstItem + 1 < fileStore.fileList.length) {
         const nextImg = new Image();
         const nextFile = fileStore.fileList[uiStore.firstItem + 1];
         imageLoader
           .getImageSrc(nextFile)
           .then((src) => isEffectRunning && src && (nextImg.src = encodeFilePath(src)));
       }
-      if (!isFirst.get()) {
+      if (!isFirst.get() && fileStore.fileList.length > 0) {
         const prevImg = new Image();
         const prevFile = fileStore.fileList[uiStore.firstItem - 1];
         imageLoader
@@ -123,6 +123,7 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
   }, [fileStore, isFirst, isLast, uiStore, imageLoader]);
 
   const transitionStart: SlideTransform | undefined = useMemo(() => {
+    if (!file) return undefined;
     const thumbEl = document.querySelector(`[data-file-id="${file.id}"]`);
     const container = document.querySelector('#gallery-content');
     if (thumbEl && container) {
@@ -136,25 +137,27 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
     }
     return undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file.id]);
+  }, [file?.id]);
 
   return (
     <div
       id="zoomable-image"
       style={{ width, height }}
-      onContextMenu={eventManager.showSlideContextMenu}
-      onDrop={eventManager.drop}
+      onContextMenu={eventManager?.showSlideContextMenu}
+      onDrop={eventManager?.drop}
       tabIndex={-1}
     >
-      <ZoomableImage
-        file={file}
-        thumbnailSrc={file.thumbnailPath}
-        width={width}
-        height={height}
-        transitionStart={transitionStart}
-        transitionEnd={uiStore.isSlideMode ? undefined : transitionStart}
-        onClose={uiStore.disableSlideMode}
-      />
+      {file && (
+        <ZoomableImage
+          file={file}
+          thumbnailSrc={file.thumbnailPath}
+          width={width}
+          height={height}
+          transitionStart={transitionStart}
+          transitionEnd={uiStore.isSlideMode ? undefined : transitionStart}
+          onClose={uiStore.disableSlideMode}
+        />
+      )}
       <NavigationButtons
         isStart={isFirst.get()}
         isEnd={isLast.get()}
@@ -192,6 +195,7 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
     file,
     thumbnailSrc,
     async (file, thumbnailPath) => {
+      if (!file) return thumbnailPath;
       const src = await imageLoader.getImageSrc(file);
       return src ?? thumbnailPath;
     },
