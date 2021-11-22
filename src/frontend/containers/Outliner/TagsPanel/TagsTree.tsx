@@ -295,7 +295,6 @@ const TagItem = observer((props: ITagItemProps) => {
     (event: React.MouseEvent) => {
       runInAction(() => {
         event.stopPropagation();
-        // TODO:
         if (nodeData.isSearched) {
           // if already searched, un-search
           const crit = uiStore.searchCriteriaList.find(
@@ -307,7 +306,7 @@ const TagItem = observer((props: ITagItemProps) => {
         } else {
           // otherwise, search it
           const query = new ClientTagSearchCriteria(tagStore, 'tags', nodeData.id, nodeData.name);
-          if (event.ctrlKey) {
+          if (event.ctrlKey || event.metaKey) {
             if (!nodeData.isSearched) {
               uiStore.addSearchCriteria(query);
             }

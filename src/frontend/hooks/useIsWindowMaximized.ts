@@ -8,13 +8,6 @@ const useIsWindowMaximized = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      console.log(
-        'resize',
-        window.outerWidth,
-        window.outerHeight,
-        screen.availWidth,
-        screen.availHeight,
-      );
       setIsWindowMaximized(
         window.outerWidth === screen.availWidth && window.outerHeight === screen.availHeight,
       );
