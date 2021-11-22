@@ -13,7 +13,7 @@
   overflow: hidden;
 
   .label {
-    overflow: hidden;
+    overflow: clip visible;
     text-overflow: ellipsis;
   }
 

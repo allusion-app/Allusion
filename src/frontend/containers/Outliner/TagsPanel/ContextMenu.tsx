@@ -2,7 +2,6 @@ import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { HexColorPicker } from 'react-colorful';
 
-import { formatTagCountText } from 'src/frontend/utils';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -86,9 +85,7 @@ interface IContextMenuProps {
 export const TagItemContextMenu = observer((props: IContextMenuProps) => {
   const { tag, dispatch, pos } = props;
   const { tagStore, uiStore } = useStore();
-  const tags = uiStore.getTagContextItems(tag.id);
-  let contextText = formatTagCountText(tags.length);
-  contextText = contextText && ` (${contextText})`;
+  const ctxTags = uiStore.getTagContextItems(tag.id);
 
   return (
     <Menu>
@@ -116,11 +113,11 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         onClick={() => dispatch(Factory.confirmMerge(tag))}
         text="Merge with"
         icon={IconSet.TAG_GROUP}
-        disabled={tag.subTags.length > 0}
+        disabled={ctxTags.some((tag) => tag.subTags.length > 0)}
       />
       <MenuItem
         onClick={() => dispatch(Factory.confirmDeletion(tag))}
-        text={`Delete${contextText}`}
+        text="Delete"
         icon={IconSet.DELETE}
       />
       <MenuDivider />
