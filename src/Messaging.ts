@@ -39,6 +39,8 @@ const SET_ZOOM_FACTOR = 'SET_ZOOM_FACTOR';
 const GET_ZOOM_FACTOR = 'GET_ZOOM_FACTOR';
 const WINDOW_MAXIMIZE = 'WINDOW_MAXIMIZE';
 const WINDOW_UNMAXIMIZE = 'WINDOW_UNMAXIMIZE';
+const WINDOW_FOCUS = 'WINDOW_FOCUS';
+const WINDOW_BLUR = 'WINDOW_BLUR';
 const IS_MAXIMIZED = 'IS_MAXIMIZED';
 
 /////////////////// Window system buttons ////////////////////
@@ -196,6 +198,10 @@ export class RendererMessenger {
 
   static onUnmaximize = (cb: () => void) => ipcRenderer.on(WINDOW_UNMAXIMIZE, () => cb());
 
+  static onFocus = (cb: () => void) => ipcRenderer.on(WINDOW_FOCUS, () => cb());
+
+  static onBlur = (cb: () => void) => ipcRenderer.on(WINDOW_BLUR, () => cb());
+
   static pressWindowSystemButton = (button: WindowSystemButtonPress) =>
     ipcRenderer.send(WINDOW_SYSTEM_BUTTON_PRESS, button);
 
@@ -295,6 +301,10 @@ export class MainMessenger {
   static maximize = (wc: WebContents) => wc.send(WINDOW_MAXIMIZE);
 
   static unmaximize = (wc: WebContents) => wc.send(WINDOW_UNMAXIMIZE);
+
+  static focus = (wc: WebContents) => wc.send(WINDOW_FOCUS);
+
+  static blur = (wc: WebContents) => wc.send(WINDOW_BLUR);
 
   static onWindowSystemButtonPressed = (cb: (button: WindowSystemButtonPress) => void) =>
     ipcMain.on(WINDOW_SYSTEM_BUTTON_PRESS, (_, button: WindowSystemButtonPress) => cb(button));

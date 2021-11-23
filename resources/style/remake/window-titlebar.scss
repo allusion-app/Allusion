@@ -6,6 +6,10 @@
 
   background-color: var(--titlebar-background-color);
   color: var(--titlebar-color);
+  &.inactive {
+    // Dim the titlebar, indicating the window is not focused anymore
+    filter: brightness(0.93);
+  }
 
   border-bottom: 0.0625rem solid var(--border-color);
 

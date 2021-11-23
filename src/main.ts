@@ -306,6 +306,16 @@ function createWindow() {
     }
   });
 
+  mainWindow.addListener(
+    'focus',
+    () => mainWindow !== null && MainMessenger.focus(mainWindow.webContents),
+  );
+
+  mainWindow.addListener(
+    'blur',
+    () => mainWindow !== null && MainMessenger.blur(mainWindow.webContents),
+  );
+
   if (clipServer === null) {
     clipServer = new ClipServer(importExternalImage, addTagsToFile, getTags);
   }

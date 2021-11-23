@@ -8,8 +8,15 @@ const PLATFORM = process.platform;
 
 const WindowsTitlebar = observer(() => {
   const { uiStore } = useStore();
+
+  const [isFocused, setIsFocused] = useState(true);
+  useEffect(() => {
+    RendererMessenger.onFocus(() => setIsFocused(true));
+    RendererMessenger.onBlur(() => setIsFocused(false));
+  }, []);
+
   return (
-    <div id="window-titlebar">
+    <div id="window-titlebar" className={isFocused ? undefined : 'inactive'}>
       <div id="window-resize-area" />
 
       {/* Extra span needed for ellipsis; isn't compatible with display: flex */}

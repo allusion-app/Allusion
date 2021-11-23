@@ -120,6 +120,9 @@ if (IS_PREVIEW_WINDOW) {
   observe(rootStore.uiStore, 'windowTitle', ({ object }) => {
     document.title = object.get();
   });
+
+  // Dim the titlebar when the window is unfocused
+  
 }
 
 window.addEventListener('beforeunload', () => {
