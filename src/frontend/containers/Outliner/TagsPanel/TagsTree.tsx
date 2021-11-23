@@ -257,6 +257,11 @@ const TagItem = observer((props: ITagItemProps) => {
           ? 0
           : 'middle'; // Not dragged at top or bottom, but in middle
 
+        // Expand the tag if it's not already expanded
+        if (!expansion[nodeData.id]) {
+          dispatch(Factory.setExpansion((val) => ({ ...val, [nodeData.id]: true })));
+        }
+
         // Note to self: 'pos' does not start from 0! It is +1'd. So, here we -1 it again
         if (dndData.source?.isSelected) {
           if (relativeMovePos === 'middle') {
