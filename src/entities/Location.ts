@@ -22,6 +22,10 @@ export interface ISubLocation {
   subLocations: ISubLocation[];
 }
 
+/** Sorts alphanumerically, "natural" sort */
+const sort = (a: ISubLocation, b: ISubLocation) =>
+  a.name.localeCompare(b.name, undefined, { numeric: true });
+
 export class ClientSubLocation implements ISubLocation {
   @observable
   name: string;
@@ -39,16 +43,18 @@ export class ClientSubLocation implements ISubLocation {
     this.name = name;
     this.isExcluded = excluded;
     this.subLocations.push(
-      ...subLocations.map(
-        (subLoc) =>
-          new ClientSubLocation(
-            this.location,
-            SysPath.join(path, subLoc.name),
-            subLoc.name,
-            subLoc.isExcluded,
-            subLoc.subLocations,
-          ),
-      ),
+      ...subLocations
+        .sort(sort)
+        .map(
+          (subLoc) =>
+            new ClientSubLocation(
+              this.location,
+              SysPath.join(path, subLoc.name),
+              subLoc.name,
+              subLoc.isExcluded,
+              subLoc.subLocations,
+            ),
+        ),
     );
 
     makeObservable(this);
@@ -110,16 +116,18 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.extensions = extensions;
 
     this.subLocations.push(
-      ...subLocations.map(
-        (subLoc) =>
-          new ClientSubLocation(
-            this,
-            SysPath.join(this.path, subLoc.name),
-            subLoc.name,
-            subLoc.isExcluded,
-            subLoc.subLocations,
-          ),
-      ),
+      ...subLocations
+        .sort(sort)
+        .map(
+          (subLoc) =>
+            new ClientSubLocation(
+              this,
+              SysPath.join(this.path, subLoc.name),
+              subLoc.name,
+              subLoc.isExcluded,
+              subLoc.subLocations,
+            ),
+        ),
     );
 
     makeObservable(this);
@@ -251,7 +259,7 @@ export class ClientLocation implements ISerializable<ILocation> {
           subLoc.subLocations.replace([]);
         }
       }
-      loc.subLocations.replace(newSublocations);
+      loc.subLocations.replace(newSublocations.sort(sort));
 
       this.isRefreshing = false;
     };

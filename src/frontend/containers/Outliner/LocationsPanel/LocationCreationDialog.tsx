@@ -193,6 +193,8 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
           <legend>Included Subdirectories of {location.name}</legend>
           {!sublocationsLoaded ? (
             <i>{IconSet.LOADING} loading...</i>
+          ) : location.subLocations.length === 0 ? (
+            <p>No subdirectories found.</p>
           ) : (
             <SubLocationInclusionTree location={location} />
           )}
