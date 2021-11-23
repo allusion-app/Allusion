@@ -461,16 +461,18 @@ if (isDev()) {
 }
 
 autoUpdater.on('error', (error) => {
+  // Don't show error messages on startup
+  if (!hasCheckedForUpdateOnStartup) {
+    hasCheckedForUpdateOnStartup = true;
+    console.error('Auto-update error', error);
+    return;
+  }
+
   let errorMsg: string = (error.stack || error).toString() || 'Reason unknown, try again later.';
 
   // In case of no network connection...
   if (errorMsg.includes('INTERNET_DISCONNECTED')) {
-    // no need to show an error dialog on startup
-    if (!hasCheckedForUpdateOnStartup) {
-      hasCheckedForUpdateOnStartup = true;
-      return;
-    }
-    // Otherwise this error occured during a manual update check from the user, show a friendlier message
+    // This error occured during a manual update check from the user, show a friendlier message
     errorMsg = 'There seems to be an issue with your internet connection.';
   }
   dialog.showErrorBox('Auto-update error: ', errorMsg);

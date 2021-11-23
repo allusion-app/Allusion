@@ -52,7 +52,10 @@ class LocationStore {
       const prefs = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) || '') as Preferences;
       (prefs.extensions || IMG_EXTENSIONS).forEach((ext) => this.enabledFileExtensions.add(ext));
     } catch (e) {
+      // If no preferences found, use defaults
       IMG_EXTENSIONS.forEach((ext) => this.enabledFileExtensions.add(ext));
+      // By default, disable EXR for now (experimental)
+      this.enabledFileExtensions.delete('exr');
     }
 
     // Get dirs from backend

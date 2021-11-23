@@ -2,7 +2,7 @@ import { shell } from 'electron';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { ReactNode, useCallback, useEffect, useState } from 'react';
 import {
   chromeExtensionUrl,
   getDefaultBackupDirectory,
@@ -337,6 +337,23 @@ const ImportExport = observer(() => {
   );
 });
 
+const imageFormatInts: Partial<Record<IMG_EXTENSIONS_TYPE, ReactNode>> = {
+  exr: (
+    <span
+      // TODO: Get TooltipLayer working in PopupWindow: tried a bunch of things but no bueno
+      title="Experimental: May slow down the application when enabled (disabled by default)"
+      className="info-icon"
+    >
+      {IconSet.WARNING}
+    </span>
+  ),
+  psd: (
+    <span title="Only a low-resolution thumbnail will be available" className="info-icon">
+      {IconSet.INFO}
+    </span>
+  ),
+};
+
 const ImageFormatPicker = observer(() => {
   const { locationStore, fileStore } = useStore();
 
@@ -389,6 +406,7 @@ const ImageFormatPicker = observer(() => {
                 checked={newEnabledFileExtensions.has(ext)}
                 onChange={() => toggleExtension(ext)}
               />
+              {imageFormatInts[ext] && <> {imageFormatInts[ext]}</>}
             </div>
           ))}
         </div>

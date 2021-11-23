@@ -3,12 +3,12 @@ import React from 'react';
 import { TooltipLayer } from 'widgets/popovers';
 import { useStore } from './contexts/StoreContext';
 
-const Overlay = observer(() => {
+const Overlay = observer(({ document = window.document }: { document?: Document }) => {
   const { uiStore } = useStore();
 
   return (
     <div className={uiStore.theme}>
-      <TooltipLayer />
+      <TooltipLayer document={document} />
     </div>
   );
 });

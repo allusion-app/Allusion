@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
+import Overlay from '../Overlay';
 
 const PLATFORM = process.platform;
 interface IPopupWindowProps {
@@ -45,7 +46,12 @@ const PopupWindow: React.FC<IPopupWindowProps> = (props) => {
   }, []);
 
   if (win) {
-    return ReactDOM.createPortal(props.children, containerEl);
+    return ReactDOM.createPortal(
+      <>
+        {props.children} <Overlay document={win.document} />
+      </>,
+      containerEl,
+    );
   }
   return null;
 };

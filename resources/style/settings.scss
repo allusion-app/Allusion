@@ -85,3 +85,10 @@
   overflow: auto;
   padding: 0.5rem 2rem 0.5rem 1.25rem;
 }
+
+.info-icon {
+  &:hover {
+    cursor: help;
+    color: var(--text-color-strong);
+  }
+}

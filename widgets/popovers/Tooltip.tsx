@@ -2,7 +2,7 @@ import { Placement, VirtualElement } from '@popperjs/core';
 import React, { useEffect, useRef, useState } from 'react';
 import { usePopper } from 'react-popper';
 
-export const TooltipLayer = () => {
+export const TooltipLayer = ({ document }: { document: Document }) => {
   const popoverElement = useRef<HTMLDivElement>(null);
   const virtualElement = useRef<VirtualElement | null>(null);
   const popperOptions = useRef({
@@ -116,7 +116,7 @@ export const TooltipLayer = () => {
       document.removeEventListener('blur', handleHide, true);
       document.removeEventListener('keydown', handleEscape, true);
     };
-  }, [forceUpdate]);
+  }, [document, forceUpdate]);
 
   return (
     <div
