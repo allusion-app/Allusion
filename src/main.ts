@@ -520,11 +520,26 @@ autoUpdater.on('update-not-available', () => {
 });
 
 autoUpdater.on('update-downloaded', async () => {
+  if (mainWindow !== null && !mainWindow.isDestroyed()) {
+    mainWindow.setProgressBar(10); // indeterminate mode until application is restarted
+  }
   await dialog.showMessageBox({
     title: 'Install Updates',
     message: 'Updates downloaded, Allusion will restart...',
   });
   setImmediate(() => autoUpdater.quitAndInstall());
+});
+
+// Show the auto-update download progress in the task bar
+autoUpdater.on('download-progress', (progressObj: { percent: number }) => {
+  if (mainWindow === null || mainWindow.isDestroyed()) {
+    return;
+  }
+  if (tray && !tray.isDestroyed()) {
+    tray.setToolTip(`Allusion - Downloading update ${progressObj.percent.toFixed(0)}%`);
+  }
+  // TODO: could also do this for other tasks (e.g. importing folders)
+  mainWindow.setProgressBar(progressObj.percent / 100);
 });
 
 //---------------------------------------------------------------------------------//
