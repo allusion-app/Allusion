@@ -110,6 +110,17 @@ const TagEditor = () => {
     inputRef.current?.focus();
   });
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // Prevent backspace from navigating back to main view when having an image open
+      if (e.key === 'Backspace') {
+        e.stopPropagation();
+      }
+      handleGridFocus(e);
+    },
+    [handleGridFocus],
+  );
+
   return (
     <div
       ref={panelRef}
@@ -126,7 +137,7 @@ const TagEditor = () => {
         value={inputText}
         aria-autocomplete="list"
         onChange={handleInput}
-        onKeyDown={handleGridFocus}
+        onKeyDown={handleKeyDown}
         className="input"
         aria-controls={POPUP_ID}
         aria-activedescendant={activeDescendant}
