@@ -15,14 +15,25 @@
   overflow: auto;
   resize: vertical;
 
+  // Intended layout behavior:
+  // - Input element has a static height
+  // - The tag checklist grows to fit the available space, until a max-height is reached
+  // - The applied tags section has a static height of 1.5 rows of tags,
+  //   and grows when the tag check-list has reached max-height
+  //   TODO: preferably: this section first fits to its content up to 3.5 rows (so only 1 row if there is 1 row of tags)
+  //   could figure out the CSS: we need something like min-height: calc(max(1.5rem, min(fit-content, 3.5rem)))
+  //   maybe with the fit-content() property coming soon? https://developer.mozilla.org/en-US/docs/Web/CSS/min-height#:~:text=5.0-,fit%2Dcontent(),-Experimental
+
   > input {
     margin: 0.5rem;
     width: auto;
     height: auto;
+    min-height: fit-content; // prevents weird slight resize when checklist shrinks when resizing parent
   }
 
+  // Checklist of all available tags
   [role='grid'] {
-    flex: 1;
+    flex: 0 1 calc(16rem + 1px); // expand to fill available space, don't shrink unless absolutaly necessary
     border-top: 0.0625rem solid var(--border-color);
     border-bottom: 0.0625rem solid var(--border-color);
     max-width: unset;
@@ -34,14 +45,17 @@
     }
   }
 
+  // The tags applied to the selected images
   > div:last-child {
+    flex: 1 1 auto; // shrink to make room for other elements, but grow if there is space available (other other elements reached their max height)
     margin: 0.5rem;
-    min-height: 1.375rem;
-    max-height: 3.5rem;
+    height: 3.375rem;
+    min-height: 2.375rem;
+    // preferably: min-height calc(max(min(3.75rem, fit-content), 1.375rem)), but doesn't work
     overflow: auto;
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-content: flex-start;
   }
 }
 

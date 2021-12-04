@@ -21,6 +21,8 @@ export interface TagSelectorProps {
     inputText: string,
     resetTextBox: () => void,
   ) => ReactElement<RowProps> | ReactElement<RowProps>[];
+  multiline?: boolean;
+  showTagContextMenu?: (e: React.MouseEvent<HTMLElement>, tag: ClientTag) => void;
 }
 
 const TagSelector = (props: TagSelectorProps) => {
@@ -29,10 +31,12 @@ const TagSelector = (props: TagSelectorProps) => {
     onSelect,
     onDeselect,
     onTagClick,
+    showTagContextMenu,
     onClear,
     disabled,
     extraIconButtons,
     renderCreateOption,
+    multiline,
   } = props;
   const gridId = useRef(generateWidgetId('__suggestions')).current;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -86,6 +90,8 @@ const TagSelector = (props: TagSelectorProps) => {
 
   const handleFocus = useRef(() => setIsOpen(true)).current;
 
+  const handleBackgroundClick = useCallback(() => inputRef.current?.focus(), []);
+
   const resetTextBox = useRef(() => {
     inputRef.current?.focus();
     setQuery('');
@@ -109,8 +115,9 @@ const TagSelector = (props: TagSelectorProps) => {
       aria-expanded={isOpen}
       aria-haspopup="grid"
       aria-owns={gridId}
-      className="input multiautocomplete tag-selector"
+      className={`input multiautocomplete tag-selector ${multiline ? 'multiline' : ''}`}
       onBlur={handleBlur}
+      onClick={handleBackgroundClick}
     >
       <Flyout
         isOpen={isOpen}
@@ -121,7 +128,13 @@ const TagSelector = (props: TagSelectorProps) => {
           <div className="multiautocomplete-input">
             <div className="input-wrapper">
               {selection.map((t) => (
-                <SelectedTag key={t.id} tag={t} onDeselect={onDeselect} onTagClick={onTagClick} />
+                <SelectedTag
+                  key={t.id}
+                  tag={t}
+                  onDeselect={onDeselect}
+                  onTagClick={onTagClick}
+                  showContextMenu={showTagContextMenu}
+                />
               ))}
               <input
                 disabled={disabled}
@@ -161,16 +174,18 @@ interface SelectedTagProps {
   tag: ClientTag;
   onDeselect: (item: ClientTag) => void;
   onTagClick?: (item: ClientTag) => void;
+  showContextMenu?: (e: React.MouseEvent<HTMLElement>, item: ClientTag) => void;
 }
 
 const SelectedTag = observer((props: SelectedTagProps) => {
-  const { tag, onDeselect, onTagClick } = props;
+  const { tag, onDeselect, onTagClick, showContextMenu } = props;
   return (
     <Tag
       text={tag.name}
       color={tag.viewColor}
       onRemove={() => onDeselect(tag)}
       onClick={onTagClick !== undefined ? () => onTagClick(tag) : undefined}
+      onContextMenu={showContextMenu !== undefined ? (e) => showContextMenu(e, tag) : undefined}
     />
   );
 });
