@@ -60,7 +60,7 @@ export const defaultHotkeyMap: IHotkeyMap = {
   openTagEditor: 't',
   selectAll: 'mod + a',
   deselectAll: 'mod + d',
-  viewSlide: 'alt + 0',
+  viewSlide: 'enter', // TODO: backspace and escape are hardcoded hotkeys to exist slide mode
   viewList: 'alt + 1',
   viewGrid: 'alt + 2',
   viewMasonryVertical: 'alt + 3',

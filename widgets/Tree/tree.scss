@@ -38,10 +38,10 @@
       transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .spacer {
+      flex: 1 0 auto;
       height: 1rem;
       width: 1rem;
       margin-right: 0.25rem;
-      flex-shrink: 0;
     }
   }
 

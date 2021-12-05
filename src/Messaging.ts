@@ -32,6 +32,7 @@ const TOGGLE_DEV_TOOLS = 'TOGGLE_DEV_TOOLS';
 const RELOAD = 'RELOAD';
 const OPEN_DIALOG = 'OPEN_DIALOG';
 const GET_PATH = 'GET_PATH';
+const TRASH_FILE = 'TRASH_FILE';
 const SET_FULL_SCREEN = 'SET_FULL_SCREEN';
 const IS_FULL_SCREEN = 'IS_FULL_SCREEN';
 const FULL_SCREEN_CHANGED = 'FULL_SCREEN_CHANGED';
@@ -137,6 +138,9 @@ export class RendererMessenger {
 
   static getPath = (name: SYSTEM_PATHS): Promise<string> => ipcRenderer.invoke(GET_PATH, name);
 
+  static trashFile = (absolutePath: string): Promise<Error | undefined> =>
+    ipcRenderer.invoke(TRASH_FILE, absolutePath);
+
   static setFullScreen = (isFullScreen: boolean) =>
     ipcRenderer.invoke(SET_FULL_SCREEN, isFullScreen);
 
@@ -234,6 +238,15 @@ export class MainMessenger {
 
   static onGetPath = (cb: (name: SYSTEM_PATHS) => string) =>
     ipcMain.handle(GET_PATH, (_, name) => cb(name));
+
+  static onTrashFile = (cb: (absolutePath: string) => Promise<void>) =>
+    ipcMain.handle(TRASH_FILE, async (_, absolutePath) => {
+      try {
+        await cb(absolutePath);
+      } catch (e) {
+        return e;
+      }
+    });
 
   static onSetFullScreen = (cb: (isFullScreen: boolean) => void) =>
     ipcMain.handle(SET_FULL_SCREEN, (_, isFullScreen) => cb(isFullScreen));

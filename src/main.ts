@@ -520,11 +520,61 @@ autoUpdater.on('update-not-available', () => {
 });
 
 autoUpdater.on('update-downloaded', async () => {
+  if (mainWindow !== null && !mainWindow.isDestroyed()) {
+    mainWindow.setProgressBar(10); // indeterminate mode until application is restarted
+  }
   await dialog.showMessageBox({
     title: 'Install Updates',
     message: 'Updates downloaded, Allusion will restart...',
   });
   setImmediate(() => autoUpdater.quitAndInstall());
+});
+
+// Show the auto-update download progress in the task bar
+autoUpdater.on('download-progress', (progressObj: { percent: number }) => {
+  if (mainWindow === null || mainWindow.isDestroyed()) {
+    return;
+  }
+  if (tray && !tray.isDestroyed()) {
+    tray.setToolTip(`Allusion - Downloading update ${progressObj.percent.toFixed(0)}%`);
+  }
+  // TODO: could also do this for other tasks (e.g. importing folders)
+  mainWindow.setProgressBar(progressObj.percent / 100);
+});
+
+// Handling uncaught exceptions:
+process.on('uncaughtException', async (error) => {
+  console.error('Uncaught exception', error);
+
+  const errorMessage = `An unexpected error occurred. Please file a bug report if you think this needs fixing!\n${
+    error?.stack?.includes(error.message) ? '' : `${error.name}: ${error.message.slice(0, 200)}\n`
+  }\n${error.stack?.slice(0, 300)}`;
+
+  try {
+    if (mainWindow != null && !mainWindow.isDestroyed()) {
+      // Show a dialog prompting the user to either restart, continue on or quit
+      const dialogResult = await dialog.showMessageBox(mainWindow, {
+        type: 'error',
+        title: 'Unexpected error',
+        message: errorMessage,
+        buttons: ['Restart Allusion', 'Quit Allusion', 'Try to keep running'],
+      });
+      if (dialogResult.response === 0) {
+        forceRelaunch(); // Restart
+      } else if (dialogResult.response === 1) {
+        app.exit(0); // Quit
+      } else if (dialogResult.response === 2) {
+        // Keep running
+      }
+    } else {
+      // No main window, show a fallback dialog
+      dialog.showErrorBox('Unexpected error', errorMessage);
+      app.exit(1);
+    }
+  } catch (e) {
+    console.error('Could not show error dialog', e);
+    process.exit(1);
+  }
 });
 
 //---------------------------------------------------------------------------------//
@@ -627,6 +677,8 @@ MainMessenger.onReload(forceRelaunch);
 MainMessenger.onOpenDialog(dialog);
 
 MainMessenger.onGetPath((path) => app.getPath(path));
+
+MainMessenger.onTrashFile((absolutePath) => shell.trashItem(absolutePath));
 
 MainMessenger.onIsFullScreen(() => mainWindow?.isFullScreen() ?? false);
 

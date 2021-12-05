@@ -1,7 +1,7 @@
 {
   "name": "allusion",
   "productName": "Allusion",
-  "version": "1.0.0-rc6",
+  "version": "1.0.0-rc6.1",
   "description": "A tool for managing your visual library",
   "main": "build/main.bundle.js",
   "scripts": {
@@ -90,7 +90,7 @@
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",
     "css-loader": "^5.2.0",
-    "electron": "15.0.0",
+    "electron": "^15.3.3",
     "electron-builder": "^22.10.5",
     "eslint": "^7.18.0",
     "eslint-config-prettier": "^8.1.0",

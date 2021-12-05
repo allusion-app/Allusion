@@ -90,15 +90,17 @@ export class FolderWatcherWorker {
 
           const ext = SysPath.extname(path).toLowerCase().split('.')[1];
           if (extensions.includes(ext as IMG_EXTENSIONS_TYPE)) {
+            const fileStats: FileStats = {
+              absolutePath: path,
+              dateCreated: stats?.birthtime,
+              dateModified: stats?.mtime,
+              size: stats?.size,
+            };
+
             if (this.isReady) {
-              ctx.postMessage({ type: 'add', value: path });
+              ctx.postMessage({ type: 'add', value: fileStats });
             } else {
-              initialFiles.push({
-                absolutePath: path,
-                dateCreated: stats?.birthtime,
-                dateModified: stats?.mtime,
-                size: stats?.size,
-              });
+              initialFiles.push(fileStats);
             }
           }
         })
@@ -109,10 +111,10 @@ export class FolderWatcherWorker {
           this.isReady = true;
           resolve(initialFiles);
 
-          // TODO: Clear memory: initialFiles no longer needed
-          // Update: tried it, didn't work as expected: list was emptied before sent back to main thread
-          // maybe send a message from main thread after initialization is finished instead?
-          // initialFiles.splice(0, initialFiles.length);
+          // Clear memory: initialFiles no longer needed
+          // Doing this immediately after resolving will resolve with an empty list for some reason
+          // So, do it with a timeout. Would be nicer to do it after an acknowledgement from the main thread
+          setTimeout(() => initialFiles.splice(0, initialFiles.length), 5000);
         })
         .on('error', (error) => {
           console.error('Error fired in watcher', directory, error);

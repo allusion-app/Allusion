@@ -1,10 +1,23 @@
 ///////////////////////////////// Inspector /////////////////////////////////
 #inspector {
   background-color: var(--background-color);
-  overflow: hidden;
+  overflow: hidden auto; // show a Y scrollbar if inspector is too small in height to fit min-height of its content
+
+  display: flex;
+  flex-direction: column;
 
   > * {
     padding: 0.25rem 0.5rem;
+
+    // Tags section should shrink to fit its parent if the inspector is small in height
+    &:last-child {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow: hidden;
+      // so that the tags section remains visible when inspector is very small in height: inspector should overflow with a scrollbar
+      min-height: 6rem;
+    }
   }
 
   header {

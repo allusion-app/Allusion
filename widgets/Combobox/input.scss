@@ -7,6 +7,7 @@
     display: flex;
     flex-grow: 1;
     flex-wrap: wrap;
+    overflow-x: hidden; // prevent tags with really long names from extending the width of the input
   }
 
   input {
@@ -45,6 +46,11 @@
   &.multiautocomplete {
     max-height: 1.75rem;
     overflow: hidden auto;
+  }
+
+  &.multiline {
+    height: unset;
+    max-height: 100vh;
   }
 }
 

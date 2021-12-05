@@ -89,12 +89,13 @@ const Layout = ({ contentRect, showContextMenu }: LayoutProps) => {
       }
       if (e.key === 'ArrowLeft' && index > 0) {
         index -= 1;
-        // TODO: when the activeElement GalleryItem goes out of view, focus will be handed over to the body element:
-        // -> Gallery keyboard shortkeys stop working. So, force focus on container
-        FocusManager.focusGallery();
+        // When the activeElement GalleryItem goes out of view, focus will be handed over to the body element:
+        // -> Gallery keyboard shortkeys stop working. So, force focus on Gallery container instead
+        // But not when the TagEditor overlay is open: it will close onBlur
+        if (!uiStore.isToolbarTagPopoverOpen) FocusManager.focusGallery();
       } else if (e.key === 'ArrowRight' && index < fileStore.fileList.length - 1) {
         index += 1;
-        FocusManager.focusGallery();
+        if (!uiStore.isToolbarTagPopoverOpen) FocusManager.focusGallery();
       } else {
         return;
       }
