@@ -542,6 +542,41 @@ autoUpdater.on('download-progress', (progressObj: { percent: number }) => {
   mainWindow.setProgressBar(progressObj.percent / 100);
 });
 
+// Handling uncaught exceptions:
+process.on('uncaughtException', async (error) => {
+  console.error('Uncaught exception', error);
+
+  const errorMessage = `An unexpected error occurred. Please file a bug report if you think this needs fixing!\n${
+    error?.stack?.includes(error.message) ? '' : `${error.name}: ${error.message.slice(0, 200)}\n`
+  }\n${error.stack?.slice(0, 300)}`;
+
+  try {
+    if (mainWindow != null && !mainWindow.isDestroyed()) {
+      // Show a dialog prompting the user to either restart, continue on or quit
+      const dialogResult = await dialog.showMessageBox(mainWindow, {
+        type: 'error',
+        title: 'Unexpected error',
+        message: errorMessage,
+        buttons: ['Restart Allusion', 'Quit Allusion', 'Try to keep running'],
+      });
+      if (dialogResult.response === 0) {
+        forceRelaunch(); // Restart
+      } else if (dialogResult.response === 1) {
+        app.exit(0); // Quit
+      } else if (dialogResult.response === 2) {
+        // Keep running
+      }
+    } else {
+      // No main window, show a fallback dialog
+      dialog.showErrorBox('Unexpected error', errorMessage);
+      app.exit(1);
+    }
+  } catch (e) {
+    console.error('Could not show error dialog', e);
+    process.exit(1);
+  }
+});
+
 //---------------------------------------------------------------------------------//
 // Messaging: Sending and receiving messages between the main and renderer process //
 //---------------------------------------------------------------------------------//
