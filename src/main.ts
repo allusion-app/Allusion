@@ -643,6 +643,8 @@ MainMessenger.onOpenDialog(dialog);
 
 MainMessenger.onGetPath((path) => app.getPath(path));
 
+MainMessenger.onTrashFile((absolutePath) => shell.trashItem(absolutePath));
+
 MainMessenger.onIsFullScreen(() => mainWindow?.isFullScreen() ?? false);
 
 MainMessenger.onSetFullScreen((isFullScreen) => mainWindow?.setFullScreen(isFullScreen));

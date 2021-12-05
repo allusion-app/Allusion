@@ -7,7 +7,8 @@ import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
-import { shell } from 'electron';
+import { AppToaster } from './Toaster';
+import { RendererMessenger } from 'src/Messaging';
 
 interface IRemovalProps<T> {
   object: T;
@@ -124,14 +125,27 @@ export const MoveFilesToTrashBin = observer(() => {
     uiStore.closeMoveFilesToTrash();
     const files = [];
     for (const file of selection) {
-      try {
-        await shell.trashItem(file.absolutePath);
+      // File deletion used to be possible in renderer process, not in new electron version
+      // await shell.trashItem(file.absolutePath);
+      // https://github.com/electron/electron/issues/29598
+      const error = await RendererMessenger.trashFile(file.absolutePath);
+      if (!error) {
         files.push(file);
-      } catch (error) {
-        console.warn('Could not move file to trash', file.absolutePath);
+      } else {
+        console.warn('Could not move file to trash', file.absolutePath, error);
       }
     }
     fileStore.deleteFiles(files);
+    if (files.length !== selection.size) {
+      AppToaster.show({
+        message: 'Some files could not be deleted.',
+        clickAction: {
+          onClick: () => RendererMessenger.toggleDevTools(),
+          label: 'More info',
+        },
+        timeout: 8000,
+      });
+    }
   });
 
   const isMulti = selection.size > 1;
