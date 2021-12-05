@@ -120,9 +120,6 @@ if (IS_PREVIEW_WINDOW) {
   observe(rootStore.uiStore, 'windowTitle', ({ object }) => {
     document.title = object.get();
   });
-
-  // Dim the titlebar when the window is unfocused
-  
 }
 
 window.addEventListener('beforeunload', () => {
@@ -153,7 +150,9 @@ ReactDOM.render(
  */
 async function addTagsToFile(filePath: string, tagNames: string[]) {
   const { fileStore, tagStore } = rootStore;
-  const clientFile = fileStore.fileList.find((file) => file.absolutePath === filePath);
+  const clientFile = runInAction(() =>
+    fileStore.fileList.find((file) => file.absolutePath === filePath),
+  );
   if (clientFile) {
     const tags = await Promise.all(
       tagNames.map(async (tagName) => {
