@@ -55,7 +55,12 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
       () => uiStore.firstSelectedFile?.id,
       (id, _, reaction) => {
         if (id !== undefined) {
-          uiStore.setFirstItem(fileStore.getIndex(id));
+          const index = fileStore.getIndex(id);
+          uiStore.setFirstItem(index);
+
+          // Also, select only this file: makes more sense for the TagEditor overlay: shows tags on selected images
+          if (index !== undefined) uiStore.selectFile(fileStore.fileList[index], true);
+
           reaction.dispose();
         }
       },
@@ -66,16 +71,25 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
   // Go back to previous view when pressing the back button (mouse button 5)
   useEffect(() => {
     // Push a dummy state, so that a pop-state event can be activated
+    // TODO: would be nice to also open SlideMode again when pressing forward button: actually store the open image in the window.location?
     history.pushState(null, document.title, location.href);
     const popStateHandler = uiStore.disableSlideMode;
     window.addEventListener('popstate', popStateHandler);
     return () => window.removeEventListener('popstate', popStateHandler);
   }, [uiStore]);
 
-  const decrImgIndex = useAction(() => uiStore.setFirstItem(Math.max(0, uiStore.firstItem - 1)));
-  const incrImgIndex = useAction(() =>
-    uiStore.setFirstItem(Math.min(uiStore.firstItem + 1, fileStore.fileList.length - 1)),
-  );
+  const decrImgIndex = useAction(() => {
+    const index = Math.max(0, uiStore.firstItem - 1);
+    uiStore.setFirstItem(index);
+
+    // Select only this file: TagEditor overlay shows tags on selected images
+    uiStore.selectFile(fileStore.fileList[index], true);
+  });
+  const incrImgIndex = useAction(() => {
+    const index = Math.min(uiStore.firstItem + 1, fileStore.fileList.length - 1);
+    uiStore.setFirstItem();
+    uiStore.selectFile(fileStore.fileList[index], true);
+  });
 
   // Detect left/right arrow keys to scroll between images. Top/down is already handled in the layout that's open in the background
   useEffect(() => {
