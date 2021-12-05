@@ -97,9 +97,11 @@
 
 .tree-content-label {
   display: flex;
+  flex: 1 1 auto;
   align-items: center;
   height: 1.5rem;
   width: 100%;
+  overflow: hidden;
   white-space: nowrap;
 
   span {
@@ -148,10 +150,10 @@
   }
 
   > .label-text {
+    flex: 1;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: clip visible;
-    width: 100%;
     line-height: 1;
     padding-bottom: 0px;
   }
