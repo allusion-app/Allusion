@@ -75,13 +75,18 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
       }
       e.preventDefault();
       select(fileStore.fileList[index], e.ctrlKey || e.metaKey, e.shiftKey);
-      FocusManager.focusGallery();
+
+      // Don't change focus when TagEditor overlay is open: is closes onBlur
+      if (!uiStore.isToolbarTagPopoverOpen) {
+        FocusManager.focusGallery();
+      }
     });
 
     const throttledKeyDown = throttle(onKeyDown, 50);
     window.addEventListener('keydown', throttledKeyDown);
     return () => window.removeEventListener('keydown', throttledKeyDown);
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Initialize on mount
   useEffect(() => {
