@@ -557,6 +557,42 @@ const Shortcuts = observer(() => {
   );
 });
 
+const StartUpBehavior = observer(() => {
+  const { uiStore } = useStore();
+
+  const [isAutoUpdateEnabled, setAutoUpdateEnabled] = useState(
+    RendererMessenger.isCheckUpdatesOnStartupEnabled(),
+  );
+
+  const toggleAutoUpdate = useCallback(() => {
+    RendererMessenger.toggleCheckUpdatesOnStartup();
+    setAutoUpdateEnabled((isOn) => !isOn);
+  }, []);
+
+  return (
+    <>
+      <h2>Start-up behavior</h2>
+      <h3>Remember last search query</h3>
+      <fieldset>
+        <legend>
+          Will restore the search query you had open when you last quit Allusion, so the same images
+          will be shown in the gallery
+        </legend>
+        <Toggle
+          checked={uiStore.isRememberSearchEnabled}
+          onChange={uiStore.toggleRememberSearchQuery}
+        />
+      </fieldset>
+
+      <h3>Automatic updates</h3>
+      <fieldset>
+        <legend>Check for updates when starting Allusion</legend>
+        <Toggle checked={isAutoUpdateEnabled} onChange={toggleAutoUpdate} />
+      </fieldset>
+    </>
+  );
+});
+
 const Advanced = observer(() => {
   const { uiStore, fileStore } = useStore();
   const thumbnailDirectory = uiStore.thumbnailDirectory;
@@ -605,15 +641,6 @@ const Advanced = observer(() => {
     }
   };
 
-  const [isAutoUpdateEnabled, setAutoUpdateEnabled] = useState(
-    RendererMessenger.isCheckUpdatesOnStartupEnabled(),
-  );
-
-  const toggleAutoUpdate = useCallback(() => {
-    RendererMessenger.toggleCheckUpdatesOnStartup();
-    setAutoUpdateEnabled((isOn) => !isOn);
-  }, []);
-
   return (
     <>
       <h2>Storage</h2>
@@ -650,12 +677,6 @@ const Advanced = observer(() => {
           text="Toggle DevTools"
         />
       </ButtonGroup>
-
-      <h2>Automatic updates</h2>
-      <fieldset>
-        <legend>Check for updates when starting Allusion</legend>
-        <Toggle checked={isAutoUpdateEnabled} onChange={toggleAutoUpdate} />
-      </fieldset>
     </>
   );
 });
@@ -668,6 +689,10 @@ const SETTINGS_TABS: () => TabItem[] = () => [
   {
     label: 'Shortcuts',
     content: <Shortcuts />,
+  },
+  {
+    label: 'Start-up behavior',
+    content: <StartUpBehavior />,
   },
   {
     label: 'Image formats',

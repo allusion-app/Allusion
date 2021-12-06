@@ -13,8 +13,8 @@ export interface IResource {
 }
 
 /** Converting client objects into database objects */
-export interface ISerializable<S> {
-  serialize(): S;
+export interface ISerializable<S, P = unknown> {
+  serialize(arg: P): S;
 }
 
 export function generateId(): ID {

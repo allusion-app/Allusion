@@ -5,7 +5,7 @@ import SysPath from 'path';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { IFile } from 'src/entities/File';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
-import { ClientStringSearchCriteria, CustomKeyDict } from 'src/entities/SearchCriteria';
+import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { Collapse } from 'src/frontend/components/Collapse';
 import { LocationRemoval, SubLocationExclusion } from 'src/frontend/components/RemovalAlert';
 import { AppToaster } from 'src/frontend/components/Toaster';
@@ -112,12 +112,7 @@ const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
 const pathAsSearchPath = (path: string) => `${path}${SysPath.sep}`;
 
 const pathCriteria = (path: string) =>
-  new ClientStringSearchCriteria<IFile>(
-    'absolutePath',
-    pathAsSearchPath(path),
-    'startsWith',
-    CustomKeyDict,
-  );
+  new ClientStringSearchCriteria<IFile>('absolutePath', pathAsSearchPath(path), 'startsWith');
 
 const customKeys = (
   search: (path: string) => void,

@@ -95,11 +95,6 @@ if (IS_PREVIEW_WINDOW) {
   RendererMessenger.onClosedPreviewWindow(() => {
     rootStore.uiStore.closePreviewWindow();
   });
-
-  // Load persistent preferences
-  rootStore.uiStore.recoverPersistentPreferences();
-  rootStore.fileStore.recoverPersistentPreferences();
-
   // Recover global preferences
   try {
     const window_preferences = localStorage.getItem(WINDOW_STORAGE_KEY);
