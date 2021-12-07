@@ -40,6 +40,8 @@ class FileStore {
   /** A map of file ID to its index in the file list, for quick lookups by ID */
   private readonly index = new Map<ID, number>();
 
+  private filesToSave: Map<ID, IFile> = new Map();
+
   /** The origin of the current files that are shown */
   @observable private content: Content = Content.All;
   @observable fileOrder: FileOrder = FileOrder.Desc;
@@ -49,6 +51,7 @@ class FileStore {
   @observable numMissingFiles = 0;
 
   debouncedRefetch: () => void;
+  debouncedSaveFiles: (files: Map<ID, IFile>) => Promise<void>;
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
@@ -58,6 +61,7 @@ class FileStore {
     // Store preferences immediately when anything is changed
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
     this.debouncedRefetch = debounce(this.refetch, 200).bind(this);
+    this.debouncedSaveFiles = debounce(this.saveFiles, 100).bind(this);
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
   }
 
@@ -454,7 +458,17 @@ class FileStore {
 
   save(file: IFile) {
     file.dateModified = new Date();
-    this.backend.saveFile(file);
+
+    // Save files in bulk so saving many files at once is faster.
+    // Each file will call this save() method individually after detecting a change on its observable fields,
+    // these can be batched by collecting the changes and debouncing the save operation
+    this.filesToSave.set(file.id, file);
+    this.debouncedSaveFiles(this.filesToSave);
+  }
+
+  private async saveFiles(files: Map<ID, IFile>) {
+    await this.backend.saveFiles(Array.from(files.values()));
+    files.clear();
   }
 
   @action recoverPersistentPreferences() {
