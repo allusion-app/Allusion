@@ -72,13 +72,18 @@ class RootStore {
       const isSlideMode = this.uiStore.isSlideMode;
 
       // There may already be a search already present, recovered from a previous session
-      const fileStorerInit =
-        this.uiStore.searchCriteriaList.length > 0
-          ? this.fileStore.fetchFilesByQuery
-          : this.fileStore.fetchAllFiles;
+      const fileStoreInit =
+        this.uiStore.searchCriteriaList.length === 0
+          ? this.fileStore.fetchAllFiles
+          : () => {
+              // When searching by criteria, the file counts won't be set (only when fetching all files),
+              // so fetch them manually
+              this.fileStore.refetchFileCounts().catch(console.error);
+              return this.fileStore.fetchFilesByQuery();
+            };
 
       // Load the files already in the database so user instantly sees their images
-      fileStorerInit().then(() => {
+      fileStoreInit().then(() => {
         this.tagStore.initializeFileCounts(this.fileStore.fileList);
 
         // If slide mode was recovered from previous session, it's disabled by setContentQuery :/
