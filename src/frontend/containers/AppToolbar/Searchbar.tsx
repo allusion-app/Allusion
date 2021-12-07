@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -36,6 +36,7 @@ import { IconButton, IconSet, Tag, Row } from 'widgets';
 
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useAction, useComputed } from 'src/frontend/hooks/mobx';
+import SearchHistory from './SearchHistory';
 
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore } = useStore();
@@ -95,18 +96,23 @@ const QuickSearchList = observer(() => {
       onTagClick={uiStore.toggleAdvancedSearch}
       onClear={uiStore.clearSearchCriteriaList}
       renderCreateOption={renderCreateOption}
-      extraIconButtons={<SearchMatchButton disabled={selection.get().length < 2} />}
+      extraIconButtons={selection.get().length === 0 ? <SearchHistory /> : <SearchMatchButton />}
     />
   );
 });
 
-const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
+const SearchMatchButton = observer(({ disabled }: { disabled?: boolean }) => {
   const { fileStore, uiStore } = useStore();
 
-  const handleClick = useRef(() => {
-    uiStore.toggleSearchMatchAny();
-    fileStore.refetch();
-  }).current;
+  const handleClick = useCallback(
+    (event: React.MouseEvent) => {
+      uiStore.toggleSearchMatchAny();
+      fileStore.refetch();
+      event.stopPropagation();
+      event.preventDefault();
+    },
+    [fileStore, uiStore],
+  );
 
   return (
     <IconButton
@@ -121,7 +127,7 @@ const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
 
 const CriteriaList = observer(() => {
   const rootStore = useStore();
-  const { fileStore, uiStore } = rootStore;
+  const { uiStore } = rootStore;
   return (
     <div className="input" onClick={uiStore.toggleAdvancedSearch}>
       <div className="multiautocomplete-input">
@@ -139,21 +145,7 @@ const CriteriaList = observer(() => {
           ))}
         </div>
 
-        {uiStore.searchCriteriaList.length > 1 ? (
-          <IconButton
-            icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
-            text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
-            onClick={(e) => {
-              uiStore.toggleSearchMatchAny();
-              fileStore.refetch();
-              e.stopPropagation();
-              e.preventDefault();
-            }}
-            className="btn-icon-large"
-          />
-        ) : (
-          <> </>
-        )}
+        {uiStore.searchCriteriaList.length > 1 ? <SearchMatchButton /> : <> </>}
 
         <IconButton
           icon={IconSet.CLOSE}

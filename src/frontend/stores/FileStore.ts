@@ -12,6 +12,7 @@ import {
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
+import { storeRecentSearch } from '../containers/AppToolbar/SearchHistory';
 import { debounce, getThumbnailPath, promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
 
@@ -384,6 +385,9 @@ class FileStore {
     if (criteria.length === 0) {
       return this.fetchAllFiles();
     }
+
+    storeRecentSearch({ criteria, matchAny: uiStore.searchMatchAny });
+
     try {
       const fetchedFiles = await this.backend.searchFiles(
         criteria as [SearchCriteria<IFile>],

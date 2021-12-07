@@ -61,3 +61,19 @@
     white-space: nowrap;
   }
 }
+
+.recent-search-item {
+  display: flex;
+  flex-direction: column;
+  max-width: 32rem;
+
+  >:first-child{
+    font-size: smaller;
+    color: var(--text-color-muted);
+  }
+
+  >:nth-child(2) {
+    overflow: auto hidden;
+    white-space: nowrap;
+  }
+}
