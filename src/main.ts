@@ -18,7 +18,7 @@ import TrayIcon from '../resources/logo/png/full-color/allusion-logomark-fc-256x
 import AppIcon from '../resources/logo/png/full-color/allusion-logomark-fc-512x512.png';
 import TrayIconMac from '../resources/logo/png/black/allusionTemplate@2x.png'; // filename convention: https://www.electronjs.org/docs/api/native-image#template-image
 import ClipServer, { IImportItem } from './clipper/server';
-import { isDev } from './config';
+import { createBugReport, githubUrl, isDev } from './config';
 import { ITag, ROOT_TAG_ID } from './entities/Tag';
 import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 import { Rectangle } from 'electron/main';
@@ -557,14 +557,21 @@ process.on('uncaughtException', async (error) => {
         type: 'error',
         title: 'Unexpected error',
         message: errorMessage,
-        buttons: ['Restart Allusion', 'Quit Allusion', 'Try to keep running'],
+        buttons: ['Try to keep running', 'File bug report', 'Restart Allusion', 'Quit Allusion'],
       });
       if (dialogResult.response === 0) {
-        forceRelaunch(); // Restart
-      } else if (dialogResult.response === 1) {
-        app.exit(0); // Quit
-      } else if (dialogResult.response === 2) {
         // Keep running
+      } else if (dialogResult.response === 1) {
+        // File bug report
+        const encodedBody = encodeURIComponent(
+          createBugReport(error.stack || error.name + ': ' + error.message, getVersion()),
+        );
+        const url = `${githubUrl}/issues/new?body=${encodedBody}`;
+        shell.openExternal(url);
+      } else if (dialogResult.response === 2) {
+        forceRelaunch(); // Restart
+      } else if (dialogResult.response === 3) {
+        app.exit(0); // Quit
       }
     } else {
       // No main window, show a fallback dialog
@@ -642,6 +649,7 @@ MainMessenger.onDragExport((absolutePaths) => {
     previewIcon = nativeImage.createFromPath(absolutePaths[0]);
   } catch (e) {
     console.error('Could not create drag icon', absolutePaths[0], e);
+    previewIcon = nativeImage.createFromPath(AppIcon);
   }
 
   const isPreviewEmpty = previewIcon.isEmpty();
