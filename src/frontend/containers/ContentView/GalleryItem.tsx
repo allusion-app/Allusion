@@ -165,8 +165,14 @@ export const ThumbnailTags = observer(
       <span
         className="thumbnail-tags"
         onClick={eventManager.select}
-        onContextMenu={eventManager.showContextMenu}
         onDoubleClick={eventManager.preview}
+        onContextMenu={eventManager.showContextMenu}
+        onDragStart={eventManager.dragStart}
+        onDragEnter={eventManager.dragEnter}
+        onDragOver={eventManager.dragOver}
+        onDragLeave={eventManager.dragLeave}
+        onDrop={eventManager.drop}
+        onDragEnd={eventManager.dragEnd}
       >
         {Array.from(file.tags, (tag) => (
           <TagWithHint key={tag.id} tag={tag} onContextMenu={eventManager.showTagContextMenu} />

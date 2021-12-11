@@ -480,7 +480,10 @@
       max-height: 2.8em;
       max-width: 100%;
 
-      > * {
+      // Allow dragging of images to elsewhere here too, just like the .thumbnail itself (drag-export)
+      -webkit-user-drag: element;
+
+      > .tag {
         margin: 0.25em;
       }
     }
