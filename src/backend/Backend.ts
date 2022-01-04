@@ -73,6 +73,12 @@ export default class Backend {
     return files.filter((f) => f !== undefined) as IFile[];
   }
 
+  async fetchFilesByKey(key: keyof IFile, value: any): Promise<IFile[]> {
+    console.info('Backend: Fetching files by key/value...', { key, value });
+    const files = await this.fileRepository.getByKey(key, value);
+    return files as IFile[];
+  }
+
   async fetchLocations(order: keyof ILocation, fileOrder: FileOrder): Promise<ILocation[]> {
     console.info('Backend: Fetching locations...');
     return this.locationRepository.getAll({ order, fileOrder });

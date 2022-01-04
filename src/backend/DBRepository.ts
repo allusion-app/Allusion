@@ -19,7 +19,7 @@ export interface IDBCollectionConfig {
 export interface IDBVersioningConfig {
   version: number;
   collections: IDBCollectionConfig[];
-  upgrade?: (tx: Transaction) => void;
+  upgrade?: (tx: Transaction) => void | Promise<void>;
 }
 
 /**
@@ -30,14 +30,15 @@ export const dbInit = (configs: IDBVersioningConfig[], dbName: string): Dexie =>
   const db = new Dexie(dbName);
 
   // Initialize for each DB version: https://dexie.org/docs/Tutorial/Design#database-versioning
-  configs.forEach(({ version, collections, upgrade }) => {
+  for (const config of configs) {
+    const { version, collections, upgrade } = config;
     const dbSchema: { [key: string]: string } = {};
     collections.forEach(({ name, schema }) => (dbSchema[name] = schema));
     const stores = db.version(version).stores(dbSchema);
     if (upgrade) {
       stores.upgrade(upgrade);
     }
-  });
+  }
 
   return db;
 };
@@ -85,6 +86,13 @@ export default class BaseRepository<T extends IResource> {
 
   public async getByIds(ids: ID[]): Promise<(T | undefined)[]> {
     return this.collection.bulkGet(ids);
+  }
+
+  public async getByKey(key: keyof T, value: any): Promise<T[]> {
+    return this.collection
+      .where(key as string)
+      .equals(value)
+      .toArray();
   }
 
   public async getAll({ count, order, fileOrder }: IDbRequest<T>): Promise<T[]> {

@@ -1,6 +1,7 @@
 import chokidar, { FSWatcher } from 'chokidar';
 import { expose } from 'comlink';
 import { Stats } from 'fs';
+import { BigIntStats } from 'original-fs';
 import SysPath from 'path';
 import { RECURSIVE_DIR_WATCH_DEPTH } from 'src/config';
 import { IMG_EXTENSIONS_TYPE } from 'src/entities/File';
@@ -81,7 +82,7 @@ export class FolderWatcherWorker {
     return new Promise<FileStats[]>((resolve) => {
       watcher
         // we can assume stats exist since we passed alwaysStat: true to chokidar
-        .on('add', async (path, stats: Stats) => {
+        .on('add', async (path, stats: Stats | BigIntStats) => {
           if (this.isCancelled) {
             console.log('Cancelling file watching');
             await watcher.close();
@@ -90,11 +91,22 @@ export class FolderWatcherWorker {
 
           const ext = SysPath.extname(path).toLowerCase().split('.')[1];
           if (extensions.includes(ext as IMG_EXTENSIONS_TYPE)) {
+            /**
+             * Chokidar doesn't detect renames as a unique event, it detects a "remove" and "add" event.
+             * We use the "ino" field of file stats to detect whether a new file is a previously detected file that was moved/renamed
+             * Relevant issue https://github.com/paulmillr/chokidar/issues/303#issuecomment-127039892
+             * Inspiration for using "ino" from https://github.com/chrismaltby/gb-studio/pull/576
+             * The stats given by chokidar is supposedly BigIntStats for Windows (since the ino is a 64 bit integer),
+             * https://github.com/paulmillr/chokidar/issues/844
+             * But my tests don't confirm this: console.log('ino', stats.ino, typeof stats.ino); -> type is number
+             */
+
             const fileStats: FileStats = {
               absolutePath: path,
               dateCreated: stats?.birthtime,
               dateModified: stats?.mtime,
-              size: stats?.size,
+              size: Number(stats?.size),
+              ino: stats.ino?.toString(),
             };
 
             if (this.isReady) {

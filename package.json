@@ -79,7 +79,7 @@
   "devDependencies": {
     "@svgr/webpack": "^5.5.0",
     "@types/chrome": "^0.0.86",
-    "@types/fs-extra": "^9.0.0",
+    "@types/fs-extra": "9.0.13",
     "@types/jest": "^26.0.0",
     "@types/offscreencanvas": "^2019.6.2",
     "@types/react": "^17.0.3",

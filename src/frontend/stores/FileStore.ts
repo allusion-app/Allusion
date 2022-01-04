@@ -2,7 +2,7 @@ import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
 import Backend from 'src/backend/Backend';
 import { FileOrder } from 'src/backend/DBRepository';
-import { ClientFile, IFile, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
+import { ClientFile, IFile, IMG_EXTENSIONS_TYPE, mergeMovedFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
 import {
@@ -51,7 +51,7 @@ class FileStore {
   @observable numMissingFiles = 0;
 
   debouncedRefetch: () => void;
-  debouncedSaveFiles: (files: Map<ID, IFile>) => Promise<void>;
+  debouncedSaveFilesToSave: () => Promise<void>;
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
@@ -61,7 +61,7 @@ class FileStore {
     // Store preferences immediately when anything is changed
     const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
     this.debouncedRefetch = debounce(this.refetch, 200).bind(this);
-    this.debouncedSaveFiles = debounce(this.saveFiles, 100).bind(this);
+    this.debouncedSaveFilesToSave = debounce(this.saveFilesToSave, 100).bind(this);
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
   }
 
@@ -236,6 +236,28 @@ class FileStore {
     this.incrementNumMissingFiles();
     if (file.tags.size === 0) {
       this.decrementNumUntaggedFiles();
+    }
+  }
+
+  /** Replaces a file's data when it is moved or renamed */
+  @action.bound replaceMovedFile(file: ClientFile, newData: IFile) {
+    const index = this.index.get(file.id);
+    if (index !== undefined) {
+      file.dispose();
+
+      const newIFile = mergeMovedFile(file.serialize(), newData);
+
+      // Move thumbnail
+      const { thumbnailDirectory } = this.rootStore.uiStore; // TODO: make a config store for this?
+      const oldThumbnailPath = file.thumbnailPath.replace('?v=1', '');
+      const newThumbPath = getThumbnailPath(newData.absolutePath, thumbnailDirectory);
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      fse.move(oldThumbnailPath, newThumbPath).catch(() => {});
+
+      const newClientFile = new ClientFile(this, newIFile);
+      newClientFile.thumbnailPath = newThumbPath;
+      this.fileList[index] = newClientFile;
+      this.save(newClientFile.serialize());
     }
   }
 
@@ -463,12 +485,13 @@ class FileStore {
     // Each file will call this save() method individually after detecting a change on its observable fields,
     // these can be batched by collecting the changes and debouncing the save operation
     this.filesToSave.set(file.id, file);
-    this.debouncedSaveFiles(this.filesToSave);
+    this.debouncedSaveFilesToSave();
   }
 
-  private async saveFiles(files: Map<ID, IFile>) {
-    await this.backend.saveFiles(Array.from(files.values()));
-    files.clear();
+  private async saveFilesToSave() {
+    await this.backend.saveFiles(Array.from(this.filesToSave.values()));
+    this.filesToSave.clear();
+    this.refetch();
   }
 
   @action recoverPersistentPreferences() {

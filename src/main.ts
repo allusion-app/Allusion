@@ -649,7 +649,6 @@ MainMessenger.onDragExport((absolutePaths) => {
     previewIcon = nativeImage.createFromPath(absolutePaths[0]);
   } catch (e) {
     console.error('Could not create drag icon', absolutePaths[0], e);
-    previewIcon = nativeImage.createFromPath(AppIcon);
   }
 
   const isPreviewEmpty = previewIcon.isEmpty();

@@ -1,6 +1,7 @@
 import { Transaction } from 'dexie';
 import { IFile } from 'src/entities/File';
 import { IDBVersioningConfig } from './DBRepository';
+import fse from 'fs-extra';
 
 // The name of the IndexedDB
 export const DB_NAME = 'Allusion';
@@ -37,7 +38,7 @@ export const dbConfig: IDBVersioningConfig[] = [
     // Version 5, 29-5-21: Added sub-locations
     version: 5,
     collections: [],
-    upgrade: async (tx: Transaction): Promise<void> => {
+    upgrade: (tx: Transaction): void => {
       tx.table('locations')
         .toCollection()
         .modify((location: any) => {
@@ -50,11 +51,31 @@ export const dbConfig: IDBVersioningConfig[] = [
     // Version 6, 13-11-21: Added lastIndexed date to File for recreating thumbnails
     version: 6,
     collections: [],
-    upgrade: async (tx: Transaction): Promise<void> => {
+    upgrade: (tx: Transaction): void => {
       tx.table('files')
         .toCollection()
         .modify((file: IFile) => {
           file.dateLastIndexed = file.dateAdded;
+          return file;
+        });
+    },
+  },
+  {
+    // Version 7, 19-12-21: Added ino to file for detecting added/removed files as a single rename/move event
+    version: 7,
+    collections: [],
+    upgrade: (tx: Transaction): void => {
+      tx.table('files')
+        .toCollection()
+        .modify((file: IFile) => {
+          try {
+            // apparently you can't do async stuff here, even though it is typed to return a PromiseLike :/
+            const stats = fse.statSync(file.absolutePath);
+            // fallback to random value so that it won't be recognized as identical file to others where no ino could be found
+            file.ino = stats.ino.toString() || Math.random().toString();
+          } catch (e) {
+            console.warn(`Could not get ino for ${file.absolutePath}`);
+          }
           return file;
         });
     },
