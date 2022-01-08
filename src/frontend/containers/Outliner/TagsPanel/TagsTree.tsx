@@ -63,6 +63,7 @@ const Label = (props: ILabelProps) =>
         props.onSubmit(e.currentTarget);
       }}
       onKeyDown={(e) => {
+        e.stopPropagation();
         const value = e.currentTarget.value.trim();
         if (e.key === 'Enter' && value.length > 0) {
           props.setText(value);

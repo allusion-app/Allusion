@@ -1,5 +1,6 @@
 import path from 'path';
 import { RendererMessenger } from './Messaging';
+import os from 'os';
 
 export function isDev() {
   return process.env.NODE_ENV === 'development';
@@ -33,3 +34,33 @@ export async function getDefaultBackupDirectory() {
   const userDataPath = await RendererMessenger.getPath('userData');
   return path.join(userDataPath, 'backups');
 }
+
+/**
+ * Creates the body of a bug report
+ * @param error The error message (error.stack if available)
+ * @param version Get through getVersion in the main process or RenderMessenger.getVersion in the renderer process
+ * @returns
+ */
+export const createBugReport = (
+  error: string,
+  version: string,
+) => `<!--- Thanks for wanting to file a bug report! Please check if your issue is not a duplicate before posting -->
+<b>Which actions did you perform before the error occurred?</b>
+...
+
+<b>What did you expect to happen?</b>
+<!--- Feel free to leave this out if irrelevant -->
+...
+
+<b>Stacktrace</b>
+\`\`\`
+${error || 'No error message available'}
+\`\`\`
+
+<b>Runtime info</b>
+<ul>
+<li>Allusion version: v${version}</li>
+<li>Operating system: ${os.type()} ${os.release()}, ${process.platform} ${process.arch}</li>
+<li>Node version: ${process.version}</li>
+</ul>
+`;
