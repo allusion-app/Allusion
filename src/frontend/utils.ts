@@ -470,5 +470,14 @@ export function humanFileSize(bytes: number, si = false, dp = 1) {
   return bytes.toFixed(dp) + ' ' + units[u];
 }
 
+/** Use with care: This modifies the given array! */
+export function shuffleArray<T>(array: T[]): T[] {
+  for (let i = array.length - 1; i > 0; i--) {
+    const rand = Math.floor(Math.random() * (i + 1));
+    [array[i], array[rand]] = [array[rand], array[i]];
+  }
+  return array;
+}
+
 export const IS_MAC = process.platform === 'darwin';
 export const IS_WIN = process.platform === 'win32';

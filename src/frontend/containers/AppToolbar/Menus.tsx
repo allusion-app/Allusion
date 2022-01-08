@@ -1,15 +1,14 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { FileOrder } from 'src/backend/DBRepository';
-
-import { IFile } from 'src/entities/File';
+import { OrderDirection } from 'src/backend/DBRepository';
 
 import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
 import { getThumbnailSize } from '../ContentView/LayoutSwitcher';
 import { MenuDivider, MenuSliderItem } from 'widgets/menus/menu-items';
 import { useStore } from 'src/frontend/contexts/StoreContext';
+import { FileOrder } from 'src/frontend/stores/FileStore';
 
 // Tooltip info
 const enum Tooltip {
@@ -49,7 +48,12 @@ export const ViewCommand = () => {
   );
 };
 
-const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }> = [
+const sortMenuData: Array<{
+  prop: FileOrder;
+  icon: JSX.Element;
+  text: string;
+  hideDirection?: boolean;
+}> = [
   // { prop: 'tags', icon: IconSet.TAG, text: 'Tag' },
   { prop: 'name', icon: IconSet.FILTER_NAME_UP, text: 'Name' },
   { prop: 'absolutePath', icon: IconSet.FOLDER_OPEN, text: 'Path' },
@@ -58,23 +62,24 @@ const sortMenuData: Array<{ prop: keyof IFile; icon: JSX.Element; text: string }
   { prop: 'dateAdded', icon: IconSet.FILTER_DATE, text: 'Date added' },
   { prop: 'dateModified', icon: IconSet.FILTER_DATE, text: 'Date modified' },
   { prop: 'dateCreated', icon: IconSet.FILTER_DATE, text: 'Date created' },
+  { prop: 'random', icon: IconSet.RELOAD_COMPACT, text: 'Random', hideDirection: true },
 ];
 
 export const SortMenuItems = observer(() => {
   const { fileStore } = useStore();
-  const { fileOrder, orderBy, orderFilesBy, switchFileOrder } = fileStore;
-  const orderIcon = fileOrder === FileOrder.Desc ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
+  const { orderDirection: fileOrder, orderBy, orderFilesBy, switchOrderDirection } = fileStore;
+  const orderIcon = fileOrder === OrderDirection.Desc ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
 
   return (
     <MenuRadioGroup>
-      {sortMenuData.map(({ prop, icon, text }) => (
+      {sortMenuData.map(({ prop, icon, text, hideDirection }) => (
         <MenuRadioItem
           key={prop}
           icon={icon}
           text={text}
           checked={orderBy === prop}
-          accelerator={orderBy === prop ? orderIcon : undefined}
-          onClick={() => (orderBy === prop ? switchFileOrder() : orderFilesBy(prop))}
+          accelerator={orderBy === prop && !hideDirection ? orderIcon : undefined}
+          onClick={() => (orderBy === prop ? switchOrderDirection() : orderFilesBy(prop))}
         />
       ))}
     </MenuRadioGroup>

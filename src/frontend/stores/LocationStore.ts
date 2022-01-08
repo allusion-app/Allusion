@@ -1,7 +1,7 @@
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
 import Backend from 'src/backend/Backend';
-import { FileOrder } from 'src/backend/DBRepository';
+import { OrderDirection } from 'src/backend/DBRepository';
 import ExifIO from 'src/backend/ExifIO';
 import { getMetaData, IFile, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { generateId, ID } from 'src/entities/ID';
@@ -59,7 +59,7 @@ class LocationStore {
     }
 
     // Get dirs from backend
-    const dirs = await this.backend.fetchLocations('dateAdded', FileOrder.Asc);
+    const dirs = await this.backend.fetchLocations('dateAdded', OrderDirection.Asc);
     const locations = dirs.map(
       (dir) =>
         new ClientLocation(
@@ -89,7 +89,7 @@ class LocationStore {
     // Get all files in the DB, set up data structures for quick lookups
     // Doing it for all locations, so files moved to another Location on disk, it's properly re-assigned in Allusion too
     // TODO: Could be optimized, at startup we already fetch all files, don't need to fetch them again here
-    const dbFiles: IFile[] = await this.backend.fetchFiles('id', FileOrder.Asc);
+    const dbFiles: IFile[] = await this.backend.fetchFiles('id', OrderDirection.Asc);
     const dbFilesPathSet = new Set(dbFiles.map((f) => f.absolutePath));
     const dbFilesByCreatedDate = new Map<number, IFile[]>();
     for (const file of dbFiles) {
@@ -466,7 +466,7 @@ class LocationStore {
    */
   @action async findLocationFiles(locationId: ID): Promise<IFile[]> {
     const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').serialize();
-    return this.backend.searchFiles(crit, 'id', FileOrder.Asc);
+    return this.backend.searchFiles(crit, 'id', OrderDirection.Asc);
   }
 
   @action async removeSublocationFiles(subLoc: ClientSubLocation): Promise<void> {
@@ -475,7 +475,7 @@ class LocationStore {
       subLoc.path,
       'startsWith',
     ).serialize();
-    const files = await this.backend.searchFiles(crit, 'id', FileOrder.Asc);
+    const files = await this.backend.searchFiles(crit, 'id', OrderDirection.Asc);
     await this.backend.removeFiles(files.map((f) => f.id));
     this.rootStore.fileStore.refetch();
   }
