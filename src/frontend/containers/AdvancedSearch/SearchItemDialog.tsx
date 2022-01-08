@@ -49,11 +49,6 @@ const SearchItemDialog = observer<ISearchItemDialogProps>(({ searchItem, onClose
     onClose();
   }, [name, onClose, query, searchItem, searchMatchAny, searchStore, tagStore]);
 
-  // const handleDelete = useCallback(() => {
-  //   searchStore.remove(searchItem);
-  //   onClose();
-  // }, [onClose, searchItem, searchStore]);
-
   return (
     <Dialog
       open

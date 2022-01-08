@@ -46,7 +46,7 @@ class SearchStore {
   }
 
   @action.bound remove(search: ClientFileSearchItem) {
-    // TODO: dispose?
+    // Do we need to dispose anything? There is no save handler, observable properties should be disposed automatically I believe
     this.backend.removeSearch(search.serialize(this.rootStore));
     return this.searchList.remove(search);
   }
@@ -62,6 +62,15 @@ class SearchStore {
     this.searchList.push(newSearch);
     this.backend.createSearch(newSearch.serialize(this.rootStore));
     return newSearch;
+  }
+
+  @action.bound replaceWithActiveSearch(search: ClientFileSearchItem) {
+    search.setMatchAny(this.rootStore.uiStore.searchMatchAny);
+    search.setCriteria(
+      this.rootStore.uiStore.searchCriteriaList.map((c) =>
+        ClientBaseCriteria.deserialize(c.serialize(this.rootStore)),
+      ),
+    );
   }
 
   save(search: ClientFileSearchItem) {

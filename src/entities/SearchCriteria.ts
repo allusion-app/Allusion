@@ -188,11 +188,14 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
    * A flag for when the tag may be interpreted as a real tag, but contains text created by the application.
    * (this makes is so that "Untagged images" can be italicized)
    **/
-  isSystemTag = (): boolean => {
+  @action.bound isSystemTag = (): boolean => {
     return !this.value && !this.operator.toLowerCase().includes('not');
   };
 
-  getLabel: (dict: SearchKeyDict<T>, rootStore: RootStore) => string = (dict, rootStore) => {
+  @action.bound getLabel: (dict: SearchKeyDict<T>, rootStore: RootStore) => string = (
+    dict,
+    rootStore,
+  ) => {
     if (!this.value && !this.operator.toLowerCase().includes('not')) {
       return 'Untagged images';
     }
@@ -243,12 +246,12 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
     makeObservable(this);
   }
 
-  getLabel: (dict: SearchKeyDict<T>) => string = (dict) =>
+  @action.bound getLabel: (dict: SearchKeyDict<T>) => string = (dict) =>
     `${dict[this.key] || camelCaseToSpaced(this.key as string)} ${
       StringOperatorLabels[this.operator as StringOperatorType] || camelCaseToSpaced(this.operator)
     } "${this.value}"`;
 
-  serialize = (): IStringSearchCriteria<T> => {
+  @action.bound serialize = (): IStringSearchCriteria<T> => {
     return {
       key: this.key,
       valueType: this.valueType,
@@ -278,12 +281,12 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
     this.value = value;
     makeObservable(this);
   }
-  getLabel: () => string = () =>
+  @action.bound getLabel: () => string = () =>
     `${camelCaseToSpaced(this.key as string)} ${
       NumberOperatorSymbols[this.operator as NumberOperatorType] || camelCaseToSpaced(this.operator)
     } ${this.value}`;
 
-  serialize = (): INumberSearchCriteria<T> => {
+  @action.bound serialize = (): INumberSearchCriteria<T> => {
     return {
       key: this.key,
       valueType: this.valueType,
@@ -311,12 +314,12 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
     makeObservable(this);
   }
 
-  getLabel: (dict: SearchKeyDict<T>) => string = (dict) =>
+  @action.bound getLabel: (dict: SearchKeyDict<T>) => string = (dict) =>
     `${dict[this.key] || camelCaseToSpaced(this.key as string)} ${
       NumberOperatorSymbols[this.operator as NumberOperatorType] || camelCaseToSpaced(this.operator)
     } ${this.value.toLocaleDateString()}`;
 
-  serialize = (): IDateSearchCriteria<T> => {
+  @action.bound serialize = (): IDateSearchCriteria<T> => {
     return {
       key: this.key,
       valueType: this.valueType,

@@ -1,9 +1,11 @@
+import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo, useState } from 'react';
 import { generateId } from 'src/entities/ID';
 import { CustomKeyDict, FileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import { Collapse } from 'src/frontend/components/Collapse';
+import { SavedSearchRemoval } from 'src/frontend/components/RemovalAlert';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
@@ -28,6 +30,7 @@ interface ITreeData {
   delete: (location: ClientFileSearchItem) => void;
   edit: (location: ClientFileSearchItem) => void;
   duplicate: (location: ClientFileSearchItem) => void;
+  replace: (location: ClientFileSearchItem) => void;
 }
 
 const toggleExpansion = (nodeData: ClientFileSearchItem, treeData: ITreeData) => {
@@ -102,16 +105,22 @@ const mapItem = (item: ClientFileSearchItem): ITreeItem => ({
 
 interface IContextMenuProps {
   searchItem: ClientFileSearchItem;
-  onDuplicate: (searchItem: ClientFileSearchItem) => void;
-  onDelete: (searchItem: ClientFileSearchItem) => void;
   onEdit: (searchItem: ClientFileSearchItem) => void;
+  onDuplicate: (searchItem: ClientFileSearchItem) => void;
+  onReplace: (searchItem: ClientFileSearchItem) => void;
+  onDelete: (searchItem: ClientFileSearchItem) => void;
 }
 
 const SearchItemContextMenu = observer(
-  ({ searchItem, onDelete, onDuplicate, onEdit }: IContextMenuProps) => {
+  ({ searchItem, onDelete, onDuplicate, onReplace, onEdit }: IContextMenuProps) => {
     return (
       <>
         <MenuItem text="Edit" onClick={() => onEdit(searchItem)} icon={IconSet.EDIT} />
+        <MenuItem
+          text="Replace with current search"
+          onClick={() => onReplace(searchItem)}
+          icon={IconSet.REPLACE}
+        />
         <MenuItem text="Duplicate" onClick={() => onDuplicate(searchItem)} icon={IconSet.PLUS} />
         <MenuItem text="Delete" onClick={() => onDelete(searchItem)} icon={IconSet.DELETE} />
       </>
@@ -122,7 +131,13 @@ const SearchItemContextMenu = observer(
 const SearchItem = observer(
   ({ nodeData, treeData }: { nodeData: ClientFileSearchItem; treeData: ITreeData }) => {
     const { uiStore } = useStore();
-    const { showContextMenu, edit: onEdit, duplicate: onDuplicate, delete: onDelete } = treeData;
+    const {
+      showContextMenu,
+      edit: onEdit,
+      duplicate: onDuplicate,
+      delete: onDelete,
+      replace: onReplace,
+    } = treeData;
     const handleContextMenu = useCallback(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         showContextMenu(
@@ -133,15 +148,16 @@ const SearchItem = observer(
             onEdit={onEdit}
             onDelete={onDelete}
             onDuplicate={onDuplicate}
+            onReplace={onReplace}
           />,
         );
       },
-      [showContextMenu, nodeData, onEdit, onDelete, onDuplicate],
+      [showContextMenu, nodeData, onEdit, onDelete, onDuplicate, onReplace],
     );
 
     const handleClick = useCallback(() => {
       uiStore.replaceSearchCriterias(nodeData.criteria);
-      if (uiStore.searchMatchAny !== nodeData.matchAny) {
+      if (runInAction(() => uiStore.searchMatchAny !== nodeData.matchAny)) {
         uiStore.toggleSearchMatchAny();
       }
     }, [nodeData.criteria, nodeData.matchAny, uiStore]);
@@ -157,7 +173,8 @@ const SearchItem = observer(
 
     return (
       <div className="tree-content-label" onClick={handleClick} onContextMenu={handleContextMenu}>
-        {IconSet.SEARCH}
+        {/* {IconSet.SEARCH} */}
+        {nodeData.matchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
         <div className="label-text">{nodeData.name}</div>
 
         <button className="btn btn-icon" onClick={handleEdit}>
@@ -172,6 +189,8 @@ const SearchItemCriteria = observer(
   ({ nodeData }: { nodeData: FileSearchCriteria; treeData: ITreeData }) => {
     const rootStore = useStore();
     const { uiStore } = rootStore;
+
+    // TODO: context menu for individual criteria of search items?
     // const { showContextMenu, expansion, delete: onDelete } = treeData;
     // const handleContextMenu = useCallback(
     //   (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -220,12 +239,14 @@ interface ISearchTreeProps {
   onEdit: (search: ClientFileSearchItem) => void;
   onDelete: (search: ClientFileSearchItem) => void;
   onDuplicate: (search: ClientFileSearchItem) => void;
+  onReplace: (search: ClientFileSearchItem) => void;
 }
 
 const SavedSearchesList = ({
   onDelete,
   onEdit,
   onDuplicate,
+  onReplace,
   showContextMenu,
 }: ISearchTreeProps) => {
   const rootStore = useStore();
@@ -238,9 +259,10 @@ const SavedSearchesList = ({
       delete: onDelete,
       edit: onEdit,
       duplicate: onDuplicate,
+      replace: onReplace,
       showContextMenu,
     }),
-    [expansion, onDelete, onDuplicate, onEdit, showContextMenu],
+    [expansion, onDelete, onDuplicate, onEdit, onReplace, showContextMenu],
   );
   const [branches, setBranches] = useState<ITreeItem[]>([]);
 
@@ -272,6 +294,10 @@ const SavedSearchesList = ({
   });
 
   // TODO: we probably need drag n drop re-ordering here too, god damnit
+  // what would be a good way to store the order?
+  // - Add an `index` field to the search item? will get messy, will need to redistribute all indices in certain cases...
+  // - Store order separately in localstorage? Would be easiest, but hacky. Need to keep them in sync
+  // same thing applies for Locations
   return (
     <Tree
       id="saved-searches-list"
@@ -300,7 +326,7 @@ const SavedSearchesPanel = observer(() => {
     searchStore.create(
       new ClientFileSearchItem(
         generateId(),
-        'New search',
+        'New search', // TODO: generate name based on criteria?
         uiStore.searchCriteriaList.toJSON().map((c) => c.serialize(rootStore)),
         uiStore.searchMatchAny,
       ),
@@ -309,6 +335,7 @@ const SavedSearchesPanel = observer(() => {
   return (
     <div className={'section'}>
       <header>
+        {/* TODO: maybe call the panel "Bookmarks"? Or "Views"? */}
         <h2 onClick={() => setCollapsed(!isCollapsed)}>Saved Searches</h2>
         <Toolbar controls="saved-searches-list" isCompact>
           <ToolbarButton
@@ -325,6 +352,7 @@ const SavedSearchesPanel = observer(() => {
           onEdit={setEditableSearch}
           onDelete={setDeletableSearch}
           onDuplicate={searchStore.duplicate}
+          onReplace={searchStore.replaceWithActiveSearch}
         />
         {isEmpty && (
           <Callout icon={IconSet.INFO}>Click + to save your current search criteria.</Callout>
@@ -335,6 +363,12 @@ const SavedSearchesPanel = observer(() => {
         <SearchItemDialog
           searchItem={editableSearch}
           onClose={() => setEditableSearch(undefined)}
+        />
+      )}
+      {deletableSearch && (
+        <SavedSearchRemoval
+          object={deletableSearch}
+          onClose={() => setDeletableSearch(undefined)}
         />
       )}
       <ContextMenu

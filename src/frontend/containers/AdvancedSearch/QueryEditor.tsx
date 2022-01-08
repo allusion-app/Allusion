@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite';
 import React, { memo } from 'react';
 import { ID } from 'src/entities/ID';
 import { IconSet } from 'widgets/Icons';
@@ -133,11 +132,14 @@ interface IQueryMatchProps {
   toggle: () => void;
 }
 
-export const QueryMatch = observer<IQueryMatchProps>(({ searchMatchAny, toggle }) => {
+export const QueryMatch: React.FC<IQueryMatchProps> = ({
+  searchMatchAny,
+  toggle,
+}: IQueryMatchProps) => {
   return (
     <RadioGroup name="Match" orientation="horizontal">
       <Radio label="Any" value="any" checked={searchMatchAny} onChange={toggle} />
       <Radio label="All" value="all" checked={!searchMatchAny} onChange={toggle} />
     </RadioGroup>
   );
-});
+};

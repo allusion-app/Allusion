@@ -9,6 +9,7 @@ import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
 import { AppToaster } from './Toaster';
 import { RendererMessenger } from 'src/Messaging';
+import { ClientFileSearchItem } from 'src/entities/SearchItem';
 
 interface IRemovalProps<T> {
   object: T;
@@ -168,6 +169,22 @@ export const MoveFilesToTrashBin = observer(() => {
       }
       onCancel={uiStore.closeMoveFilesToTrash}
       onConfirm={handleConfirm}
+    />
+  );
+});
+
+export const SavedSearchRemoval = observer((props: IRemovalProps<ClientFileSearchItem>) => {
+  const { searchStore } = useStore();
+  return (
+    <RemovalAlert
+      open
+      title="Search item removal"
+      information={`Are you sure you want to delete the search item "${props.object.name}"?`}
+      onCancel={props.onClose}
+      onConfirm={() => {
+        props.onClose();
+        searchStore.remove(props.object);
+      }}
     />
   );
 });
