@@ -1,6 +1,7 @@
 import { action, makeObservable, observable } from 'mobx';
 import Backend from 'src/backend/Backend';
-import { ID } from 'src/entities/ID';
+import { generateId, ID } from 'src/entities/ID';
+import { ClientBaseCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import RootStore from './RootStore';
 
@@ -34,7 +35,7 @@ class SearchStore {
     }
   }
 
-  @action get(search: ID): ClientFileSearchItem | undefined {
+  @action.bound get(search: ID): ClientFileSearchItem | undefined {
     return this.searchList.find((s) => s.id === search);
   }
 
@@ -44,10 +45,23 @@ class SearchStore {
     return search;
   }
 
-  @action remove(search: ClientFileSearchItem) {
+  @action.bound remove(search: ClientFileSearchItem) {
     // TODO: dispose?
     this.backend.removeSearch(search.serialize(this.rootStore));
     return this.searchList.remove(search);
+  }
+
+  @action.bound duplicate(search: ClientFileSearchItem) {
+    const newSearch = new ClientFileSearchItem(
+      generateId(),
+      `${search.name} (copy)`,
+      search.criteria.map((c) => c.serialize(this.rootStore)),
+      search.matchAny,
+    );
+    // TODO: insert below given item or keep it at the end like this?
+    this.searchList.push(newSearch);
+    this.backend.createSearch(newSearch.serialize(this.rootStore));
+    return newSearch;
   }
 
   save(search: ClientFileSearchItem) {

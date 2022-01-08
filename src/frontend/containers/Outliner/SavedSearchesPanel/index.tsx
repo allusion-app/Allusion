@@ -9,7 +9,7 @@ import { useAutorun } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import { emptyFunction, triggerContextMenuEvent } from 'src/frontend/utils';
 import { IconSet } from 'widgets/Icons';
-import { ContextMenu, Menu } from 'widgets/menus';
+import { ContextMenu, Menu, MenuItem } from 'widgets/menus';
 import { Callout } from 'widgets/notifications';
 import { Toolbar, ToolbarButton } from 'widgets/Toolbar';
 import Tree, { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
@@ -27,6 +27,7 @@ interface ITreeData {
   setExpansion: React.Dispatch<IExpansionState>;
   delete: (location: ClientFileSearchItem) => void;
   edit: (location: ClientFileSearchItem) => void;
+  duplicate: (location: ClientFileSearchItem) => void;
 }
 
 const toggleExpansion = (nodeData: ClientFileSearchItem, treeData: ITreeData) => {
@@ -99,24 +100,44 @@ const mapItem = (item: ClientFileSearchItem): ITreeItem => ({
   isExpanded,
 });
 
+interface IContextMenuProps {
+  searchItem: ClientFileSearchItem;
+  onDuplicate: (searchItem: ClientFileSearchItem) => void;
+  onDelete: (searchItem: ClientFileSearchItem) => void;
+  onEdit: (searchItem: ClientFileSearchItem) => void;
+}
+
+const SearchItemContextMenu = observer(
+  ({ searchItem, onDelete, onDuplicate, onEdit }: IContextMenuProps) => {
+    return (
+      <>
+        <MenuItem text="Edit" onClick={() => onEdit(searchItem)} icon={IconSet.EDIT} />
+        <MenuItem text="Duplicate" onClick={() => onDuplicate(searchItem)} icon={IconSet.PLUS} />
+        <MenuItem text="Delete" onClick={() => onDelete(searchItem)} icon={IconSet.DELETE} />
+      </>
+    );
+  },
+);
+
 const SearchItem = observer(
   ({ nodeData, treeData }: { nodeData: ClientFileSearchItem; treeData: ITreeData }) => {
     const { uiStore } = useStore();
-    // const { showContextMenu, expansion, delete: onDelete } = treeData;
-    // const handleContextMenu = useCallback(
-    //   (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    //     showContextMenu(
-    //       event.clientX,
-    //       event.clientY,
-    //       <LocationTreeContextMenu
-    //         location={nodeData}
-    //         onDelete={onDelete}
-    //         onExclude={treeData.exclude}
-    //       />,
-    //     );
-    //   },
-    //   [showContextMenu, nodeData, onDelete, treeData.exclude],
-    // );
+    const { showContextMenu, edit: onEdit, duplicate: onDuplicate, delete: onDelete } = treeData;
+    const handleContextMenu = useCallback(
+      (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        showContextMenu(
+          event.clientX,
+          event.clientY,
+          <SearchItemContextMenu
+            searchItem={nodeData}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onDuplicate={onDuplicate}
+          />,
+        );
+      },
+      [showContextMenu, nodeData, onEdit, onDelete, onDuplicate],
+    );
 
     const handleClick = useCallback(() => {
       uiStore.replaceSearchCriterias(nodeData.criteria);
@@ -135,12 +156,7 @@ const SearchItem = observer(
     );
 
     return (
-      <div
-        className="tree-content-label"
-        onClick={handleClick}
-        // TODO: Context menu
-        // onContextMenu={handleContextMenu}
-      >
+      <div className="tree-content-label" onClick={handleClick} onContextMenu={handleContextMenu}>
         {IconSet.SEARCH}
         <div className="label-text">{nodeData.name}</div>
 
@@ -162,7 +178,7 @@ const SearchItemCriteria = observer(
     //     showContextMenu(
     //       event.clientX,
     //       event.clientY,
-    //       <LocationTreeContextMenu
+    //       <SearchItemContextMenu
     //         location={nodeData}
     //         onDelete={onDelete}
     //         onExclude={treeData.exclude}
@@ -201,11 +217,17 @@ const SearchItemCriteria = observer(
 
 interface ISearchTreeProps {
   showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
-  onEdit: (loc: ClientFileSearchItem) => void;
-  onDelete: (loc: ClientFileSearchItem) => void;
+  onEdit: (search: ClientFileSearchItem) => void;
+  onDelete: (search: ClientFileSearchItem) => void;
+  onDuplicate: (search: ClientFileSearchItem) => void;
 }
 
-const SavedSearchesList = ({ onDelete, onEdit, showContextMenu }: ISearchTreeProps) => {
+const SavedSearchesList = ({
+  onDelete,
+  onEdit,
+  onDuplicate,
+  showContextMenu,
+}: ISearchTreeProps) => {
   const rootStore = useStore();
   const { searchStore, uiStore } = rootStore;
   const [expansion, setExpansion] = useState<IExpansionState>({});
@@ -215,9 +237,10 @@ const SavedSearchesList = ({ onDelete, onEdit, showContextMenu }: ISearchTreePro
       setExpansion,
       delete: onDelete,
       edit: onEdit,
+      duplicate: onDuplicate,
       showContextMenu,
     }),
-    [expansion, onDelete, onEdit, showContextMenu],
+    [expansion, onDelete, onDuplicate, onEdit, showContextMenu],
   );
   const [branches, setBranches] = useState<ITreeItem[]>([]);
 
@@ -301,6 +324,7 @@ const SavedSearchesPanel = observer(() => {
           showContextMenu={show}
           onEdit={setEditableSearch}
           onDelete={setDeletableSearch}
+          onDuplicate={searchStore.duplicate}
         />
         {isEmpty && (
           <Callout icon={IconSet.INFO}>Click + to save your current search criteria.</Callout>
