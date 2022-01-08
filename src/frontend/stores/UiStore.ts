@@ -6,6 +6,7 @@ import { ID } from 'src/entities/ID';
 import {
   ClientBaseCriteria,
   ClientTagSearchCriteria,
+  FileSearchCriteria,
   SearchCriteria,
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
@@ -15,7 +16,6 @@ import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, debounce } from '../utils';
 import RootStore from './RootStore';
 
-export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 export const enum ViewMethod {
   List,
   Grid,

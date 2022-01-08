@@ -6,8 +6,8 @@ import {
   TagOperatorType,
   NumberOperatorType,
   BinaryOperatorType,
+  FileSearchCriteria,
 } from 'src/entities/SearchCriteria';
-import { FileSearchCriteria } from 'src/frontend/stores/UiStore';
 import {
   ClientStringSearchCriteria,
   ClientTagSearchCriteria,

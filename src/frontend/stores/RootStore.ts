@@ -10,6 +10,7 @@ import ExifIO from 'src/backend/ExifIO';
 import ImageLoader from '../image/ImageLoader';
 
 import { RendererMessenger } from 'src/Messaging';
+import SearchStore from './SearchStore';
 
 // This will throw exceptions whenver we try to modify the state directly without an action
 // Actions will batch state modifications -> better for performance
@@ -31,6 +32,7 @@ class RootStore {
   readonly fileStore: FileStore;
   readonly locationStore: LocationStore;
   readonly uiStore: UiStore;
+  readonly searchStore: SearchStore;
   readonly exifTool: ExifIO;
   readonly imageLoader: ImageLoader;
   readonly clearDatabase: () => Promise<void>;
@@ -40,6 +42,7 @@ class RootStore {
     this.fileStore = new FileStore(backend, this);
     this.locationStore = new LocationStore(backend, this);
     this.uiStore = new UiStore(this);
+    this.searchStore = new SearchStore(backend, this);
     this.exifTool = new ExifIO();
     this.imageLoader = new ImageLoader(this.exifTool);
 
@@ -60,7 +63,11 @@ class RootStore {
     // to tag entities.
     await this.tagStore.init();
 
-    await Promise.all([this.exifTool.initialize(), this.imageLoader.init()]);
+    await Promise.all([
+      this.exifTool.initialize(),
+      this.imageLoader.init(),
+      this.searchStore.init(),
+    ]);
 
     // The preview window is opened while the locations are already watched. The
     // files are fetched based on the file selection.
