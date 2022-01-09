@@ -83,7 +83,7 @@ const ToolbarButton = (props: ToolbarButtonProps) => {
       data-collapsible={isCollapsible}
       id={id}
       className="toolbar-button"
-      onClick={disabled ? undefined : onClick}
+      onClick={disabled === true ? undefined : onClick}
       aria-pressed={pressed}
       aria-checked={checked}
       aria-disabled={disabled}

@@ -78,7 +78,7 @@ export const SortMenuItems = observer(() => {
           icon={icon}
           text={text}
           checked={orderBy === prop}
-          accelerator={orderBy === prop && !hideDirection ? orderIcon : undefined}
+          accelerator={orderBy === prop && hideDirection !== true ? orderIcon : undefined}
           onClick={() => (orderBy === prop ? switchOrderDirection() : orderFilesBy(prop))}
         />
       ))}

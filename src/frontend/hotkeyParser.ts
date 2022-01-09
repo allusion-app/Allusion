@@ -23,22 +23,12 @@
 
 import { IS_MAC } from './utils';
 
-export interface IKeyCodeTable {
-  [code: number]: string;
-}
-export interface IKeyCodeReverseTable {
-  [key: string]: number;
-}
-export interface IKeyMap {
-  [key: string]: string;
-}
-
 export interface IKeyCombo {
   key?: string;
   modifiers: number;
 }
 
-export const KeyCodes: IKeyCodeTable = {
+export const KeyCodes: Record<number, string> = {
   8: 'backspace',
   9: 'tab',
   13: 'enter',
@@ -112,7 +102,7 @@ export const KeyCodes: IKeyCodeTable = {
   // eslint-disable-next-line quotes
   222: "'",
 };
-export const Modifiers: IKeyCodeTable = {
+export const Modifiers: Record<number, string> = {
   16: 'shift',
   17: 'ctrl',
   18: 'alt',
@@ -120,13 +110,13 @@ export const Modifiers: IKeyCodeTable = {
   93: 'meta',
   224: 'meta',
 };
-export const ModifierBitMasks: IKeyCodeReverseTable = {
+export const ModifierBitMasks: Record<string, number> = {
   alt: 1,
   ctrl: 2,
   meta: 4,
   shift: 8,
 };
-export const Aliases: IKeyMap = {
+export const Aliases: Record<string, string> = {
   cmd: 'meta',
   command: 'meta',
   escape: 'esc',
@@ -139,7 +129,7 @@ export const Aliases: IKeyMap = {
 };
 // alph sorting is unintuitive here
 // tslint:disable object-literal-sort-keys
-export const ShiftKeys: IKeyMap = {
+export const ShiftKeys: Record<string, string> = {
   '~': '`',
   '!': '1',
   '@': '2',
@@ -197,12 +187,12 @@ export const parseKeyCombo = function (combo: string) {
           '".\n                Valid key combos look like "cmd + plus", "shift+p", or "!"',
       );
     }
-    if (Aliases[piece] != null) {
+    if (piece in Aliases) {
       piece = Aliases[piece];
     }
-    if (ModifierBitMasks[piece] != null) {
+    if (piece in ModifierBitMasks) {
       modifiers += ModifierBitMasks[piece];
-    } else if (ShiftKeys[piece] != null) {
+    } else if (piece in ShiftKeys) {
       modifiers += ModifierBitMasks.shift;
       key = ShiftKeys[piece];
     } else {
@@ -231,9 +221,9 @@ export const getKeyComboString = function (e: KeyboardEvent) {
   }
   // HACKHACK: https://github.com/palantir/blueprint/issues/4165
   const which = e.which;
-  if (Modifiers[which] != null) {
+  if (which in Modifiers) {
     // no action key
-  } else if (KeyCodes[which] != null) {
+  } else if (which in KeyCodes) {
     keys.push(KeyCodes[which]);
   } else {
     // eslint-disable-next-line id-blacklist
@@ -252,9 +242,9 @@ export const getKeyCombo = function (e: KeyboardEvent) {
   let key;
   // HACKHACK: https://github.com/palantir/blueprint/issues/4165
   const which = e.which;
-  if (Modifiers[which] != null) {
+  if (which in Modifiers) {
     // keep key null
-  } else if (KeyCodes[which] != null) {
+  } else if (which in KeyCodes) {
     key = KeyCodes[which];
   } else {
     // eslint-disable-next-line id-blacklist

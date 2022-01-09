@@ -36,7 +36,7 @@ export const TooltipLayer = ({ document }: { document: Document }) => {
   useEffect(() => {
     const handleShow = (e: MouseEvent | FocusEvent): HTMLElement | undefined => {
       const target = e.target;
-      if (!(target instanceof HTMLElement) || !target.dataset['tooltip']) {
+      if (!(target instanceof HTMLElement) || target.dataset['tooltip'] === undefined) {
         return;
       }
       const tooltip = target.dataset['tooltip'];
@@ -85,7 +85,7 @@ export const TooltipLayer = ({ document }: { document: Document }) => {
     const handleHide = (e: MouseEvent | FocusEvent) => {
       if (
         virtualElement.current === null ||
-        virtualElement.current.contextElement?.contains(e.relatedTarget as Node)
+        virtualElement.current.contextElement?.contains(e.relatedTarget as Node) === true
       ) {
         return;
       }

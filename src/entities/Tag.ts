@@ -56,7 +56,7 @@ export class ClientTag implements ISerializable<ITag> {
     this.name = name;
     this.color = color;
     this.fileCount = 0;
-    this.isHidden = isHidden || false;
+    this.isHidden = isHidden === true;
 
     // observe all changes to observable fields
     this.saveHandler = reaction(

@@ -14,7 +14,7 @@ interface RowProps {
 }
 
 export const Row = ({ index, style, data, isScrolling }: RowProps) => {
-  return <ListItem index={index} data={data} style={style} isScrolling={isScrolling || false} />;
+  return <ListItem index={index} data={data} style={style} isScrolling={isScrolling === true} />;
 };
 
 interface ListItemProps {

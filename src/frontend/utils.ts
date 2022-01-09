@@ -50,13 +50,13 @@ export const throttle = (fn: (...args: any) => any, wait: number = 300) => {
  * @param wait How long to wait in between calls
  */
 export function debouncedThrottle<F extends (...args: any) => any>(fn: F, wait = 300) {
-  let last: Date;
+  let last: Date | undefined;
   let deferTimer = 0;
 
   const db = debounce(fn);
   return function debouncedThrottleFn(this: any, ...args: any) {
     const now = new Date();
-    if (!last || now.getTime() < last.getTime() + wait) {
+    if (last !== undefined && now.getTime() < last.getTime() + wait) {
       clearTimeout(deferTimer);
       db.apply(this, args);
       deferTimer = setTimeout(() => {
