@@ -99,9 +99,14 @@ export default class BaseRepository<T extends IResource> {
   }
 
   public async getAll({ count, order, orderDirection }: IDbRequest<T>): Promise<T[]> {
-    const col = order ? this.collection.orderBy(order as string) : this.collection;
+    const col =
+      order && order !== 'random' ? this.collection.orderBy(order as string) : this.collection;
     const res = await (count ? col.limit(count) : col).toArray();
-    return orderDirection === OrderDirection.Desc ? res.reverse() : res;
+    return order === 'random'
+      ? shuffleArray(res)
+      : orderDirection === OrderDirection.Desc
+      ? res.reverse()
+      : res;
   }
 
   public async find(req: IDbQueryRequest<T>): Promise<T[]> {
