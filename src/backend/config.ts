@@ -59,4 +59,14 @@ export const dbConfig: IDBVersioningConfig[] = [
         });
     },
   },
+  {
+    // Version 7, 4-1-22: Added saved searches
+    version: 7,
+    collections: [
+      {
+        name: 'searches',
+        schema: '++id',
+      },
+    ],
+  },
 ];

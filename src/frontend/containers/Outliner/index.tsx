@@ -3,6 +3,7 @@ import React from 'react';
 
 import { useStore } from '../../contexts/StoreContext';
 import LocationsPanel from './LocationsPanel';
+import SavedSearchesPanel from './SavedSearchesPanel';
 import TagsPanel, { OutlinerActionBar } from './TagsPanel';
 
 const Outliner = () => {
@@ -13,6 +14,7 @@ const Outliner = () => {
       <div id="outliner-content">
         <LocationsPanel />
         <TagsPanel />
+        <SavedSearchesPanel />
       </div>
       <OutlinerActionBar />
     </nav>

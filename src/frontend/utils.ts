@@ -319,6 +319,25 @@ export const hexToHSL = (H: string) => {
   return [h, s, l];
 };
 
+// Events
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export const emptyFunction = () => {};
+
+export const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
+  const element = event.currentTarget.querySelector('.tree-content-label');
+  if (element !== null) {
+    event.stopPropagation();
+    const rect = element.getBoundingClientRect();
+    element.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        clientX: rect.right,
+        clientY: rect.top,
+        bubbles: true,
+      }),
+    );
+  }
+};
+
 /*!
  * Get the contrasting color for any hex color
  * (c) 2019 Chris Ferdinandi, MIT License, https://gomakethings.com

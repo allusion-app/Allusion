@@ -1,4 +1,4 @@
-import { configure } from 'mobx';
+import { configure, runInAction } from 'mobx';
 
 import Backend from 'src/backend/Backend';
 
@@ -10,6 +10,7 @@ import ExifIO from 'src/backend/ExifIO';
 import ImageLoader from '../image/ImageLoader';
 
 import { RendererMessenger } from 'src/Messaging';
+import SearchStore from './SearchStore';
 
 // This will throw exceptions whenver we try to modify the state directly without an action
 // Actions will batch state modifications -> better for performance
@@ -31,6 +32,7 @@ class RootStore {
   readonly fileStore: FileStore;
   readonly locationStore: LocationStore;
   readonly uiStore: UiStore;
+  readonly searchStore: SearchStore;
   readonly exifTool: ExifIO;
   readonly imageLoader: ImageLoader;
   readonly clearDatabase: () => Promise<void>;
@@ -40,6 +42,7 @@ class RootStore {
     this.fileStore = new FileStore(backend, this);
     this.locationStore = new LocationStore(backend, this);
     this.uiStore = new UiStore(this);
+    this.searchStore = new SearchStore(backend, this);
     this.exifTool = new ExifIO();
     this.imageLoader = new ImageLoader(this.exifTool);
 
@@ -60,7 +63,11 @@ class RootStore {
     // to tag entities.
     await this.tagStore.init();
 
-    await Promise.all([this.exifTool.initialize(), this.imageLoader.init()]);
+    await Promise.all([
+      this.exifTool.initialize(),
+      this.imageLoader.init(),
+      this.searchStore.init(),
+    ]);
 
     // The preview window is opened while the locations are already watched. The
     // files are fetched based on the file selection.
@@ -69,11 +76,13 @@ class RootStore {
       // It depends on tag store being intialized for reconstructing search criteria
       this.uiStore.recoverPersistentPreferences();
       this.fileStore.recoverPersistentPreferences();
-      const isSlideMode = this.uiStore.isSlideMode;
+      const isSlideMode = runInAction(() => this.uiStore.isSlideMode);
+
+      const numCriterias = runInAction(() => this.uiStore.searchCriteriaList.length);
 
       // There may already be a search already present, recovered from a previous session
       const fileStoreInit =
-        this.uiStore.searchCriteriaList.length === 0
+        numCriterias === 0
           ? this.fileStore.fetchAllFiles
           : () => {
               // When searching by criteria, the file counts won't be set (only when fetching all files),

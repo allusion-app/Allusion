@@ -2,6 +2,7 @@ import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
 import Dexie from 'dexie';
 import fse from 'fs-extra';
 import { getDefaultBackupDirectory } from 'src/config';
+import { IFileSearchItem } from 'src/entities/SearchItem';
 import { IFile } from '../entities/File';
 import { ID } from '../entities/ID';
 import { ILocation } from '../entities/Location';
@@ -21,6 +22,7 @@ export default class Backend {
   private fileRepository: DBRepository<IFile>;
   private tagRepository: DBRepository<ITag>;
   private locationRepository: DBRepository<ILocation>;
+  private searchRepository: DBRepository<IFileSearchItem>;
   private db: Dexie;
   private backupScheduler: BackupScheduler;
 
@@ -31,6 +33,7 @@ export default class Backend {
     this.fileRepository = new DBRepository('files', this.db);
     this.tagRepository = new DBRepository('tags', this.db);
     this.locationRepository = new DBRepository('locations', this.db);
+    this.searchRepository = new DBRepository('searches', this.db);
     this.backupScheduler = new BackupScheduler(this);
   }
 
@@ -78,6 +81,11 @@ export default class Backend {
     return this.locationRepository.getAll({ order, fileOrder });
   }
 
+  async fetchSearches(): Promise<IFileSearchItem[]> {
+    console.info('Backend: Fetching searches...');
+    return this.searchRepository.getAll({});
+  }
+
   async searchFiles(
     criteria: SearchCriteria<IFile> | [SearchCriteria<IFile>],
     order: keyof IFile,
@@ -105,6 +113,12 @@ export default class Backend {
     return this.locationRepository.create(location);
   }
 
+  async createSearch(search: IFileSearchItem): Promise<IFileSearchItem> {
+    console.info('Backend: Create search...', search);
+    this.backupScheduler.notifyChange();
+    return this.searchRepository.create(search);
+  }
+
   async saveTag(tag: ITag): Promise<ITag> {
     console.info('Backend: Saving tag...', tag);
     this.backupScheduler.notifyChange();
@@ -127,6 +141,12 @@ export default class Backend {
     console.info('Backend: Saving location...', location);
     this.backupScheduler.notifyChange();
     return this.locationRepository.update(location);
+  }
+
+  async saveSearch(search: IFileSearchItem): Promise<IFileSearchItem> {
+    console.info('Backend: Saving search...', search);
+    this.backupScheduler.notifyChange();
+    return this.searchRepository.update(search);
   }
 
   async removeTag(tag: ID): Promise<void> {
@@ -199,6 +219,12 @@ export default class Backend {
     await this.removeFiles(filesWithLocation.map((f) => f.id));
     this.backupScheduler.notifyChange();
     return this.locationRepository.remove(location);
+  }
+
+  async removeSearch(search: IFileSearchItem): Promise<void> {
+    console.info('Backend: Removing search...', search);
+    this.backupScheduler.notifyChange();
+    return this.searchRepository.remove(search.id);
   }
 
   async countFiles(

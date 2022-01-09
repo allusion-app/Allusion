@@ -206,7 +206,7 @@ function createWindow() {
       {
         label: 'Quit',
         accelerator: 'Command+Q',
-        click: () => process.exit(0),
+        click: () => app.quit(),
       },
     ],
   });
@@ -220,9 +220,6 @@ function createWindow() {
     label: 'View',
     submenu: [
       {
-        // FIXME: Just reloading window crashes due to an Electron bug related
-        // to WASM.
-        // A restart of the whole electron app circumvents that but not always.
         label: 'Reload',
         accelerator: 'CommandOrControl+R',
         click: forceRelaunch,
@@ -394,7 +391,7 @@ function createTrayMenu() {
       },
       {
         label: 'Quit',
-        click: () => process.exit(0),
+        click: () => app.quit(),
       },
     ]);
     tray.setContextMenu(trayMenu);
@@ -580,7 +577,7 @@ process.on('uncaughtException', async (error) => {
     }
   } catch (e) {
     console.error('Could not show error dialog', e);
-    process.exit(1);
+    app.exit(1);
   }
 });
 
