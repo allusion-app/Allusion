@@ -30,6 +30,7 @@ const mockFile: IFile = {
   dateCreated: new Date(),
   dateLastIndexed: new Date(),
   extension: 'jpg',
+  ino: '1234',
   id: '1234',
   tags: [mockTag.id],
 };

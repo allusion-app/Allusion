@@ -20,7 +20,7 @@ export interface IDBCollectionConfig {
 export interface IDBVersioningConfig {
   version: number;
   collections: IDBCollectionConfig[];
-  upgrade?: (tx: Transaction) => void;
+  upgrade?: (tx: Transaction) => void | Promise<void>;
 }
 
 /**
@@ -31,14 +31,15 @@ export const dbInit = (configs: IDBVersioningConfig[], dbName: string): Dexie =>
   const db = new Dexie(dbName);
 
   // Initialize for each DB version: https://dexie.org/docs/Tutorial/Design#database-versioning
-  configs.forEach(({ version, collections, upgrade }) => {
+  for (const config of configs) {
+    const { version, collections, upgrade } = config;
     const dbSchema: { [key: string]: string } = {};
     collections.forEach(({ name, schema }) => (dbSchema[name] = schema));
     const stores = db.version(version).stores(dbSchema);
     if (upgrade) {
       stores.upgrade(upgrade);
     }
-  });
+  }
 
   return db;
 };
@@ -88,6 +89,13 @@ export default class BaseRepository<T extends IResource> {
 
   public async getByIds(ids: ID[]): Promise<(T | undefined)[]> {
     return this.collection.bulkGet(ids);
+  }
+
+  public async getByKey(key: keyof T, value: any): Promise<T[]> {
+    return this.collection
+      .where(key as string)
+      .equals(value)
+      .toArray();
   }
 
   public async getAll({ count, order, orderDirection }: IDbRequest<T>): Promise<T[]> {
@@ -290,7 +298,7 @@ export default class BaseRepository<T extends IResource> {
     ] as const;
 
     if ((dbStringOperators as readonly string[]).includes(crit.operator)) {
-      const funcName = (crit.operator as unknown) as typeof dbStringOperators[number];
+      const funcName = crit.operator as unknown as typeof dbStringOperators[number];
       return where[funcName](crit.value);
     }
     // Use normal string filter as fallback for functions not supported by the DB

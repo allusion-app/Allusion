@@ -6,9 +6,7 @@ import { useStore } from '../contexts/StoreContext';
 
 const PLATFORM = process.platform;
 
-const WindowsTitlebar = observer(() => {
-  const { uiStore } = useStore();
-
+const WindowsTitlebar = () => {
   const [isFocused, setIsFocused] = useState(true);
   useEffect(() => {
     RendererMessenger.onFocus(() => setIsFocused(true));
@@ -19,13 +17,23 @@ const WindowsTitlebar = observer(() => {
     <div id="window-titlebar" className={isFocused ? undefined : 'inactive'}>
       <div id="window-resize-area" />
 
-      {/* Extra span needed for ellipsis; isn't compatible with display: flex */}
-      <span>
-        <span>{uiStore.windowTitle}</span>
-      </span>
+      <WindowTitlebar />
 
       {PLATFORM !== 'darwin' && <WindowSystemButtons />}
     </div>
+  );
+};
+
+const WindowTitlebar = observer(() => {
+  // This is its own component to avoid rerendering the whole WindowsTitlebar
+
+  const { uiStore } = useStore();
+
+  /* Extra span needed for ellipsis; isn't compatible with display: flex */
+  return (
+    <span>
+      <span>{uiStore.windowTitle}</span>
+    </span>
   );
 });
 
