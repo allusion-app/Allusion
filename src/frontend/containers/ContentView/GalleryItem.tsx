@@ -105,7 +105,7 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
         // The thumbnailPath of an image is always set, but may not exist yet.
         // When the thumbnail is finished generating, the path will be changed to `${thumbnailPath}?v=1`.
         if (freshlyGenerated) {
-          await when(() => file.thumbnailPath.endsWith('?v=1'), { timeout: 8000 });
+          await when(() => file.thumbnailPath.endsWith('?v=1'), { timeout: 10000 });
           if (!getThumbnail(file).endsWith('?v=1')) {
             throw new Error('Thumbnail generation timeout.');
           }

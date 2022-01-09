@@ -421,6 +421,14 @@
   .side-button-right {
     right: 0;
   }
+
+  img {
+    // Let the compositor know that the image will transform for better performance
+    will-change: transform;
+  
+    cursor: pointer;
+    transform-origin: 0 0;
+  }
 }
 
 #content-placeholder {

@@ -52,6 +52,8 @@ interface IMetaData {
 
 /* A File as it is represented in the Database */
 export interface IFile extends IMetaData, IResource {
+  /** Identifier for a file that persists after renaming/moving (retrieved from fs.Stats.ino) */
+  ino: string;
   locationId: ID;
   /** Path relative to Location */
   relativePath: string;
@@ -78,6 +80,7 @@ export class ClientFile implements ISerializable<IFile> {
   private saveHandler: IReactionDisposer;
   private autoSave: boolean = true;
 
+  readonly ino: string;
   readonly id: ID;
   readonly locationId: ID;
   readonly relativePath: string;
@@ -103,6 +106,7 @@ export class ClientFile implements ISerializable<IFile> {
   constructor(store: FileStore, fileProps: IFile) {
     this.store = store;
 
+    this.ino = fileProps.ino;
     this.id = fileProps.id;
     this.locationId = fileProps.locationId;
     this.relativePath = fileProps.relativePath;
@@ -188,6 +192,7 @@ export class ClientFile implements ISerializable<IFile> {
   serialize(): IFile {
     return {
       id: this.id,
+      ino: this.ino,
       locationId: this.locationId,
       relativePath: this.relativePath,
       absolutePath: this.absolutePath,
@@ -223,5 +228,18 @@ export async function getMetaData(stats: FileStats, exifIO: ExifIO): Promise<IMe
     width: dimensions.width,
     height: dimensions.height,
     dateCreated: stats.dateCreated,
+  };
+}
+
+/** Merges an existing IFile file with a newly detected IFile: only the paths of the oldFile will be updated  */
+export function mergeMovedFile(oldFile: IFile, newFile: IFile): IFile {
+  return {
+    ...oldFile,
+    name: newFile.name,
+    extension: newFile.extension,
+    absolutePath: newFile.absolutePath,
+    relativePath: newFile.relativePath,
+    locationId: newFile.locationId,
+    dateModified: new Date(),
   };
 }

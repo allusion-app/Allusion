@@ -481,9 +481,7 @@ export const CONTAINER_DEFAULT_STYLE = {
 
 function imageStyle({ top, left, scale }: ZoomPanState) {
   return {
-    cursor: 'pointer',
     transform: `translate3d(${left}px, ${top}px, 0) scale(${scale})`,
-    transformOrigin: '0 0',
   };
 }
 
