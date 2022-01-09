@@ -9,7 +9,6 @@ import {
 } from 'src/entities/SearchCriteria';
 import { FileSearchCriteria } from 'src/frontend/stores/UiStore';
 import {
-  CustomKeyDict,
   ClientStringSearchCriteria,
   ClientTagSearchCriteria,
   ClientDateSearchCriteria,
@@ -79,7 +78,7 @@ export function fromCriteria(criteria: FileSearchCriteria): [ID, Criteria] {
   } else if (criteria instanceof ClientNumberSearchCriteria && criteria.key === 'size') {
     query.value = criteria.value / BYTES_IN_MB;
   } else if (criteria instanceof ClientTagSearchCriteria && criteria.key === 'tags') {
-    const id = criteria.value.length > 0 ? criteria.value[0] : undefined;
+    const id = criteria.value;
     query.value = id;
   } else {
     return [generateCriteriaId(), query];
@@ -91,31 +90,19 @@ export function fromCriteria(criteria: FileSearchCriteria): [ID, Criteria] {
 
 export function intoCriteria(query: Criteria, tagStore: TagStore): FileSearchCriteria {
   if (query.key === 'name' || query.key === 'absolutePath' || query.key === 'extension') {
-    return new ClientStringSearchCriteria(query.key, query.value, query.operator, CustomKeyDict);
+    return new ClientStringSearchCriteria(query.key, query.value, query.operator);
   } else if (query.key === 'dateAdded') {
-    return new ClientDateSearchCriteria(query.key, query.value, query.operator, CustomKeyDict);
+    return new ClientDateSearchCriteria(query.key, query.value, query.operator);
   } else if (query.key === 'size') {
-    return new ClientNumberSearchCriteria(
-      query.key,
-      query.value * BYTES_IN_MB,
-      query.operator,
-      CustomKeyDict,
-    );
+    return new ClientNumberSearchCriteria(query.key, query.value * BYTES_IN_MB, query.operator);
   } else if (query.key === 'tags') {
     const tag = query.value !== undefined ? tagStore.get(query.value) : undefined;
     if (tag !== undefined) {
-      return new ClientTagSearchCriteria(
-        tagStore,
-        query.key,
-        tag.id,
-        tag.name,
-        query.operator,
-        CustomKeyDict,
-      );
+      return new ClientTagSearchCriteria('tags', tag.id, query.operator);
     } else {
-      return new ClientTagSearchCriteria(tagStore, 'tags');
+      return new ClientTagSearchCriteria('tags');
     }
   } else {
-    return new ClientTagSearchCriteria(tagStore, 'tags');
+    return new ClientTagSearchCriteria('tags');
   }
 }

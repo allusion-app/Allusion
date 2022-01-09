@@ -302,10 +302,10 @@ class FileStore {
     try {
       const { uiStore } = this.rootStore;
       uiStore.clearSearchCriteriaList();
-      const criteria = new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags');
+      const criteria = new ClientTagSearchCriteria('tags');
       uiStore.searchCriteriaList.push(criteria);
       const fetchedFiles = await this.backend.searchFiles(
-        criteria.serialize(),
+        criteria.serialize(this.rootStore),
         this.orderBy,
         this.fileOrder,
         uiStore.searchMatchAny,
@@ -382,7 +382,9 @@ class FileStore {
 
   @action.bound async fetchFilesByQuery() {
     const { uiStore } = this.rootStore;
-    const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) => c.serialize());
+    const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) =>
+      c.serialize(this.rootStore),
+    );
     if (criteria.length === 0) {
       return this.fetchAllFiles();
     }
@@ -490,6 +492,10 @@ class FileStore {
       prefs[field] = this[field];
     }
     localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(prefs));
+  }
+
+  clearPersistentPreferences() {
+    localStorage.removeItem(FILE_STORAGE_KEY);
   }
 
   @action private async removeThumbnail(path: string) {
@@ -639,7 +645,7 @@ class FileStore {
 
   /** Initializes the total and untagged file counters by querying the database with count operations */
   async refetchFileCounts() {
-    const noTagsCriteria = new ClientTagSearchCriteria(this.rootStore.tagStore, 'tags').serialize();
+    const noTagsCriteria = new ClientTagSearchCriteria('tags').serialize(this.rootStore);
     const numUntaggedFiles = await this.backend.countFiles(noTagsCriteria);
     const numTotalFiles = await this.backend.countFiles();
     runInAction(() => {

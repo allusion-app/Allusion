@@ -47,6 +47,8 @@ class RootStore {
     this.clearDatabase = async () => {
       await backend.clearDatabase();
       RendererMessenger.clearDatabase();
+      this.uiStore.clearPersistentPreferences();
+      this.fileStore.clearPersistentPreferences();
     };
   }
 
@@ -63,10 +65,34 @@ class RootStore {
     // The preview window is opened while the locations are already watched. The
     // files are fetched based on the file selection.
     if (!isPreviewWindow) {
+      // Then, restore preferences, which affects how the file store initializes
+      // It depends on tag store being intialized for reconstructing search criteria
+      this.uiStore.recoverPersistentPreferences();
+      this.fileStore.recoverPersistentPreferences();
+      const isSlideMode = this.uiStore.isSlideMode;
+
+      // There may already be a search already present, recovered from a previous session
+      const fileStoreInit =
+        this.uiStore.searchCriteriaList.length === 0
+          ? this.fileStore.fetchAllFiles
+          : () => {
+              // When searching by criteria, the file counts won't be set (only when fetching all files),
+              // so fetch them manually
+              this.fileStore.refetchFileCounts().catch(console.error);
+              return this.fileStore.fetchFilesByQuery();
+            };
+
       // Load the files already in the database so user instantly sees their images
-      this.fileStore
-        .fetchAllFiles()
-        .then(() => this.tagStore.initializeFileCounts(this.fileStore.fileList));
+      fileStoreInit().then(() => {
+        this.tagStore.initializeFileCounts(this.fileStore.fileList);
+
+        // If slide mode was recovered from previous session, it's disabled by setContentQuery :/
+        // hacky workaround
+        if (isSlideMode) {
+          this.uiStore.enableSlideMode();
+        }
+      });
+
       // Then, look for any new or removed images, and refetch if necessary
       this.locationStore.watchLocations().then((foundNewFiles) => {
         if (foundNewFiles) this.fileStore.refetch();
