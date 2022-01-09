@@ -508,10 +508,10 @@ class FileStore {
 
   @action recoverPersistentPreferences() {
     const prefsString = localStorage.getItem(FILE_STORAGE_KEY);
-    if (prefsString) {
+    if (prefsString !== null) {
       try {
         const prefs = JSON.parse(prefsString);
-        this.setOrderDirection(prefs.orderDirection || prefs.fileOrder); // orderDirection used to be called fileOrder, needed for backwards compatibility
+        this.setOrderDirection(prefs.orderDirection ?? prefs.fileOrder); // orderDirection used to be called fileOrder, needed for backwards compatibility
         this.setOrderBy(prefs.orderBy);
       } catch (e) {
         console.log('Cannot parse persistent preferences:', FILE_STORAGE_KEY, e);

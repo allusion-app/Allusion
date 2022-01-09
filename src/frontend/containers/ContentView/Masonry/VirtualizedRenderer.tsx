@@ -112,7 +112,7 @@ const VirtualizedRenderer = observer(
         // just for scroll automatisation with scrollIntoView
         scrollAnchor.current.style.transform = `translate(${sLeft}px,${
           // Correct for padding of masonry element, otherwise it doesn't completely scroll to the top.
-          sTop === 0 && padding ? sTop - padding : sTop
+          sTop === 0 && padding > 0 ? sTop - padding : sTop
         }px)`;
         scrollAnchor.current.style.width = sWidth + 'px';
         scrollAnchor.current.style.height = sHeight + 'px';

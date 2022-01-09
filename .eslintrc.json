@@ -47,7 +47,8 @@
       }
     ],
     "@typescript-eslint/no-unnecessary-condition": "warn",
-    "@typescript-eslint/prefer-string-starts-ends-with": "error"
+    "@typescript-eslint/prefer-string-starts-ends-with": "error",
+    "@typescript-eslint/prefer-nullish-coalescing": "error"
   },
   "overrides": [
     {

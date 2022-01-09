@@ -43,7 +43,7 @@ const QuickSearchList = observer(() => {
   const selection = useComputed(() => {
     const selectedItems: ClientTag[] = [];
     uiStore.searchCriteriaList.forEach((c) => {
-      if (c instanceof ClientTagSearchCriteria && c.value) {
+      if (c instanceof ClientTagSearchCriteria && c.value !== undefined) {
         const item = tagStore.get(c.value);
         if (item !== undefined) {
           selectedItems.push(item);

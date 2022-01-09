@@ -69,7 +69,7 @@ class ExifIO {
   extraArgs = IS_WIN ? ['charset filename=utf8'] : [];
 
   constructor() {
-    this.hierarchicalSeparator = localStorage.getItem('hierarchical-separator') || '|';
+    this.hierarchicalSeparator = localStorage.getItem('hierarchical-separator') ?? '|';
 
     makeObservable(this);
   }
@@ -115,8 +115,8 @@ class ExifIO {
 
   /** Merges the HierarchicalSubject, Subject and Keywords into one list of tags, removing any duplicates */
   static convertMetadataToHierarchy(entry: exiftool.IMetadata, separator: string): string[][] {
-    const parseExifFieldAsString = (val: any) =>
-      Array.isArray(val) ? val : val?.toString() ? [val.toString()] : [];
+    const parseExifFieldAsString = (val?: string | string[]) =>
+      Array.isArray(val) ? val : val !== undefined ? [val] : [];
 
     const tagHierarchy = parseExifFieldAsString(entry.HierarchicalSubject);
     const subject = parseExifFieldAsString(entry.Subject);
@@ -155,13 +155,13 @@ class ExifIO {
     );
   }
 
-  async readExifTags(filepath: string, tags: string[]): Promise<(string | undefined)[]> {
+  async readExifTags(filepath: string, tags: string[]): Promise<Array<string | undefined>> {
     const metadata = await ep.readMetadata(filepath, [...tags, ...this.extraArgs]);
     if (metadata.error || metadata.data === null || metadata.data.length === 0) {
       throw new Error(metadata.error || 'No metadata entry');
     }
     const entry = metadata.data[0];
-    return tags.map((t) => entry[t]?.toString() || undefined);
+    return tags.map((t) => entry[t]?.toString() ?? undefined);
   }
 
   /** Reads file metadata for all files in a folder (and recursively for its subfolders) */

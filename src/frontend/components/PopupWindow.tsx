@@ -64,7 +64,7 @@ function copyStyles(sourceDoc: Document, targetDoc: Document) {
   for (let i = 0; i < sourceDoc.styleSheets.length; i++) {
     const styleSheet = sourceDoc.styleSheets[i];
     // production mode bundles CSS in one file
-    if (styleSheet.href) {
+    if (styleSheet.href !== null) {
       const linkElement = targetDoc.createElement('link');
       linkElement.rel = 'stylesheet';
       linkElement.href = styleSheet.href;

@@ -1,5 +1,5 @@
 import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
-import Dexie from 'dexie';
+import Dexie, { IndexableType } from 'dexie';
 import fse from 'fs-extra';
 import { getDefaultBackupDirectory } from 'src/config';
 import { IFileSearchItem } from 'src/entities/SearchItem';
@@ -77,7 +77,7 @@ export default class Backend {
     return files.filter((f) => f !== undefined) as IFile[];
   }
 
-  async fetchFilesByKey(key: keyof IFile, value: any): Promise<IFile[]> {
+  async fetchFilesByKey(key: keyof IFile, value: IndexableType): Promise<IFile[]> {
     console.info('Backend: Fetching files by key/value...', { key, value });
     const files = await this.fileRepository.getByKey(key, value);
     return files as IFile[];

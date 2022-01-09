@@ -174,23 +174,25 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [containerWidth, handleResize, thumbnailSize, viewMethod]);
 
-  return !(containerHeight && layoutTimestamp) ? (
-    <></>
-  ) : (
-    <VirtualizedRenderer
-      className="masonry"
-      // Force a complete re-render when the layout has been changed
-      key={forceRerenderObj.getTime()}
-      containerWidth={containerWidth}
-      containerHeight={containerHeight}
-      images={fileStore.fileList}
-      layout={worker}
-      overscan={thumbnailSize * 3}
-      lastSelectionIndex={lastSelectionIndex}
-      layoutUpdateDate={layoutTimestamp}
-      padding={MASONRY_PADDING}
-    />
-  );
+  if (containerHeight === undefined || containerHeight === 0) {
+    return null;
+  } else {
+    return (
+      <VirtualizedRenderer
+        className="masonry"
+        // Force a complete re-render when the layout has been changed
+        key={forceRerenderObj.getTime()}
+        containerWidth={containerWidth}
+        containerHeight={containerHeight}
+        images={fileStore.fileList}
+        layout={worker}
+        overscan={thumbnailSize * 3}
+        lastSelectionIndex={lastSelectionIndex}
+        layoutUpdateDate={layoutTimestamp}
+        padding={MASONRY_PADDING}
+      />
+    );
+  }
 });
 
 MasonryRenderer.displayName = 'MasonryRenderer';

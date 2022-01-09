@@ -110,7 +110,7 @@ export const MenuSliderItem = ({
 
   return (
     <li role="menuitemslider" tabIndex={-1} onFocus={handleFocus}>
-      {label && <label htmlFor={id}>{label}</label>}
+      {label !== undefined && <label htmlFor={id}>{label}</label>}
 
       <div className="slider">
         <input

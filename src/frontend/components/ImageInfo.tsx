@@ -77,7 +77,7 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
 
   const fileStats: CommonMetadata = {
     name: file.name,
-    dimensions: `${file.width || '?'} x ${file.height || '?'}`,
+    dimensions: `${file.width} x ${file.height}`,
     size: humanFileSize(file.size),
     imported: formatDateTime(file.dateAdded),
     created: formatDateTime(file.dateCreated),
@@ -93,7 +93,7 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
       tagValues.forEach((val, i) => {
         if (val !== '' && val !== undefined) {
           const field = exifFields[exifTags[i]];
-          extraStats[field.label] = field.format?.(val) || val;
+          extraStats[field.label] = field.format?.(val) ?? val;
         }
       });
       return extraStats;

@@ -1,4 +1,4 @@
-import Dexie, { Transaction, WhereClause } from 'dexie';
+import Dexie, { IndexableType, Transaction, WhereClause } from 'dexie';
 import { shuffleArray } from 'src/frontend/utils';
 
 import { ID, IResource } from '../entities/ID';
@@ -91,7 +91,7 @@ export default class BaseRepository<T extends IResource> {
     return this.collection.bulkGet(ids);
   }
 
-  public async getByKey(key: keyof T, value: any): Promise<T[]> {
+  public async getByKey(key: keyof T, value: IndexableType): Promise<T[]> {
     return this.collection
       .where(key as string)
       .equals(value)
@@ -100,8 +100,10 @@ export default class BaseRepository<T extends IResource> {
 
   public async getAll({ count, order, orderDirection }: IDbRequest<T>): Promise<T[]> {
     const col =
-      order && order !== 'random' ? this.collection.orderBy(order as string) : this.collection;
-    const res = await (count ? col.limit(count) : col).toArray();
+      order !== undefined && order !== 'random'
+        ? this.collection.orderBy(order as string)
+        : this.collection;
+    const res = await (count !== undefined ? col.limit(count) : col).toArray();
     return order === 'random'
       ? shuffleArray(res)
       : orderDirection === OrderDirection.Desc
@@ -111,7 +113,7 @@ export default class BaseRepository<T extends IResource> {
 
   public async find(req: IDbQueryRequest<T>): Promise<T[]> {
     const { order, orderDirection } = req;
-    let table = await this._find(req, req.matchAny ? 'or' : 'and');
+    let table = await this._find(req, req.matchAny === true ? 'or' : 'and');
     table = orderDirection === OrderDirection.Desc ? table.reverse() : table;
 
     if (order === 'random') {
@@ -120,7 +122,7 @@ export default class BaseRepository<T extends IResource> {
       // table.reverse() can be an order of magnitude slower as a javascript .reverse() call at the end
       // (tested at ~5000 items, 500ms instead of 100ms)
       // easy to verify here https://jsfiddle.net/dfahlander/xf2zrL4p
-      const res = await (order ? table.sortBy(order as string) : table.toArray());
+      const res = await (order !== undefined ? table.sortBy(order as string) : table.toArray());
       return order === OrderDirection.Desc ? res.reverse() : res;
     }
 

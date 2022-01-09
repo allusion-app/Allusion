@@ -52,7 +52,7 @@ const generateAndStoreThumbnail = async (filePath: string, thumbnailFilePath: st
     await fse.outputFile(thumbnailFilePath, Buffer.from(thumbnailData));
     return thumbnailFilePath;
   }
-  return '';
+  return undefined;
 };
 
 // The worker context
@@ -76,7 +76,7 @@ async function processMessage(data: IThumbnailMessage) {
       const thumbnailPath = await generateAndStoreThumbnail(filePath, thumbnailFilePath);
       const response: IThumbnailMessageResponse = {
         fileId,
-        thumbnailPath: thumbnailPath || filePath,
+        thumbnailPath: thumbnailPath ?? filePath,
       };
       ctx.postMessage(response);
       curParallelThumbnails--;
