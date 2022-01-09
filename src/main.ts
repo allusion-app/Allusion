@@ -18,7 +18,7 @@ import TrayIcon from '../resources/logo/png/full-color/allusion-logomark-fc-256x
 import AppIcon from '../resources/logo/png/full-color/allusion-logomark-fc-512x512.png';
 import TrayIconMac from '../resources/logo/png/black/allusionTemplate@2x.png'; // filename convention: https://www.electronjs.org/docs/api/native-image#template-image
 import ClipServer, { IImportItem } from './clipper/server';
-import { isDev } from './config';
+import { createBugReport, githubUrl, isDev } from './config';
 import { ITag, ROOT_TAG_ID } from './entities/Tag';
 import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 import { Rectangle } from 'electron/main';
@@ -554,14 +554,21 @@ process.on('uncaughtException', async (error) => {
         type: 'error',
         title: 'Unexpected error',
         message: errorMessage,
-        buttons: ['Restart Allusion', 'Quit Allusion', 'Try to keep running'],
+        buttons: ['Try to keep running', 'File bug report', 'Restart Allusion', 'Quit Allusion'],
       });
       if (dialogResult.response === 0) {
-        forceRelaunch(); // Restart
-      } else if (dialogResult.response === 1) {
-        app.exit(0); // Quit
-      } else if (dialogResult.response === 2) {
         // Keep running
+      } else if (dialogResult.response === 1) {
+        // File bug report
+        const encodedBody = encodeURIComponent(
+          createBugReport(error.stack || error.name + ': ' + error.message, getVersion()),
+        );
+        const url = `${githubUrl}/issues/new?body=${encodedBody}`;
+        shell.openExternal(url);
+      } else if (dialogResult.response === 2) {
+        forceRelaunch(); // Restart
+      } else if (dialogResult.response === 3) {
+        app.exit(0); // Quit
       }
     } else {
       // No main window, show a fallback dialog
@@ -628,41 +635,29 @@ MainMessenger.onSendPreviewFiles((msg) => {
 // Set native window theme (frame, menu bar)
 MainMessenger.onSetTheme((msg) => (nativeTheme.themeSource = msg.theme));
 
-MainMessenger.onDragExport((absolutePaths) => {
+MainMessenger.onDragExport(async (absolutePaths) => {
   if (mainWindow === null || absolutePaths.length === 0) {
     return;
   }
 
-  // TODO: should use the thumbnail used in the renderer process here, so formats not natively supported (e.g. webp) can be used as well
   let previewIcon = nativeImage.createEmpty();
   try {
-    previewIcon = nativeImage.createFromPath(absolutePaths[0]);
+    previewIcon = await nativeImage.createThumbnailFromPath(absolutePaths[0], {
+      width: 200,
+      height: 200,
+    });
   } catch (e) {
     console.error('Could not create drag icon', absolutePaths[0], e);
   }
 
-  const isPreviewEmpty = previewIcon.isEmpty();
-  if (!isPreviewEmpty) {
-    // Resize preview to something resonable: taking into account aspect ratio
-    const ratio = previewIcon.getAspectRatio();
-    const size = previewIcon.getSize();
-    const targetThumbSize = 200;
-    if (size.width > targetThumbSize || size.height > targetThumbSize) {
-      previewIcon =
-        ratio > 1
-          ? previewIcon.resize({ width: targetThumbSize })
-          : previewIcon.resize({ height: targetThumbSize });
-    }
-  }
-
-  // Need to cast item as `any` since the types are not correct. The `files` field is allowed but
-  // not according to the electron documentation where it is `file`.
   mainWindow.webContents.startDrag({
+    file: absolutePaths[0],
     files: absolutePaths,
     // Just show the first image as a thumbnail for now
     // TODO: Show some indication that multiple images are dragged, would be cool to show a stack of the first few of them
-    icon: isPreviewEmpty ? AppIcon : previewIcon,
-  } as any);
+    // TODO: The icon doesn't seem to work at all since we upgraded Electron a while back
+    icon: previewIcon,
+  });
 });
 
 MainMessenger.onClearDatabase(forceRelaunch);

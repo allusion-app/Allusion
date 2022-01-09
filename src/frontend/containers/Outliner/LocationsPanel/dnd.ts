@@ -42,7 +42,6 @@ export function handleDragLeave(event: React.DragEvent<HTMLDivElement>) {
 }
 
 export async function storeDroppedImage(e: React.DragEvent, directory: string) {
-  e.persist();
   const dropData = await getDropData(e);
   for (const dataItem of dropData) {
     let fileData: IStoreFileMessage | undefined;

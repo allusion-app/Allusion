@@ -82,7 +82,7 @@ let rendererConfig = {
         exclude: /\.module\.scss$/,
         use: [
           'style-loader',
-          'css-loader?sourceMap',
+          { loader: 'css-loader', options: { sourceMap: true } },
           { loader: 'sass-loader', options: { sourceMap: true } },
         ],
       },
@@ -110,10 +110,6 @@ let rendererConfig = {
       {
         test: /\.wasm$/,
         type: 'asset/resource',
-      },
-      {
-        test: /.node$/,
-        loader: 'node-loader',
       },
       {
         test: /\.js$/,
