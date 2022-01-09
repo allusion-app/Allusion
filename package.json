@@ -91,7 +91,7 @@
     "@typescript-eslint/parser": "^5.9.0",
     "css-loader": "^6.5.1",
     "electron": "^15.3.3",
-    "electron-builder": "^22.10.5",
+    "electron-builder": "^22.14.5",
     "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
