@@ -3,7 +3,7 @@ import { IFile } from 'src/entities/File';
 import { IDBVersioningConfig } from './DBRepository';
 
 // The name of the IndexedDB
-export const DB_NAME = 'Allusion3';
+export const DB_NAME = 'Allusion';
 
 export const NUM_AUTO_BACKUPS = 6;
 
@@ -61,7 +61,7 @@ export const dbConfig: IDBVersioningConfig[] = [
   },
   {
     // Version 7, 4-1-22: Added saved searches
-    version: 8,
+    version: 7,
     collections: [
       {
         name: 'searches',
