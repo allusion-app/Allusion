@@ -323,6 +323,25 @@ export const hexToHSL = (H: string) => {
   return [h, s, l];
 };
 
+// Events
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export const emptyFunction = () => {};
+
+export const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
+  const element = event.currentTarget.querySelector('.tree-content-label');
+  if (element !== null) {
+    event.stopPropagation();
+    const rect = element.getBoundingClientRect();
+    element.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        clientX: rect.right,
+        clientY: rect.top,
+        bubbles: true,
+      }),
+    );
+  }
+};
+
 /*!
  * Get the contrasting color for any hex color
  * (c) 2019 Chris Ferdinandi, MIT License, https://gomakethings.com
@@ -453,6 +472,15 @@ export function humanFileSize(bytes: number, si = false, dp = 1) {
   } while (Math.round(Math.abs(bytes) * r) / r >= thresh && u < units.length - 1);
 
   return bytes.toFixed(dp) + ' ' + units[u];
+}
+
+/** Use with care: This modifies the given array! */
+export function shuffleArray<T>(array: T[]): T[] {
+  for (let i = array.length - 1; i > 0; i--) {
+    const rand = Math.floor(Math.random() * (i + 1));
+    [array[i], array[rand]] = [array[rand], array[i]];
+  }
+  return array;
 }
 
 export const IS_MAC = process.platform === 'darwin';

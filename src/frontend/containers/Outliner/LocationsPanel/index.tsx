@@ -15,6 +15,7 @@ import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import LocationStore from 'src/frontend/stores/LocationStore';
+import { triggerContextMenuEvent, emptyFunction } from 'src/frontend/utils';
 import { RendererMessenger } from 'src/Messaging';
 import { IconSet, Tree } from 'widgets';
 import { ContextMenu, Menu, MenuDivider, MenuItem, Toolbar, ToolbarButton } from 'widgets/menus';
@@ -89,24 +90,6 @@ const toggleExpansion = (nodeData: ClientLocation | ClientSubLocation, treeData:
 
 const isExpanded = (nodeData: ClientLocation | ClientSubLocation, treeData: ITreeData) =>
   treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.path];
-
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const emptyFunction = () => {};
-
-const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
-  const element = event.currentTarget.querySelector('.tree-content-label');
-  if (element !== null) {
-    event.stopPropagation();
-    const rect = element.getBoundingClientRect();
-    element.dispatchEvent(
-      new MouseEvent('contextmenu', {
-        clientX: rect.right,
-        clientY: rect.top,
-        bubbles: true,
-      }),
-    );
-  }
-};
 
 /** Add an additional / or \ in order to enforce files only in the specific directory are found, not in those starting with same name */
 const pathAsSearchPath = (path: string) => `${path}${SysPath.sep}`;

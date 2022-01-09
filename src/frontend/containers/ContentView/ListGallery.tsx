@@ -11,7 +11,7 @@ import React, {
   forwardRef,
 } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
-import { FileOrder } from 'src/backend/DBRepository';
+import { OrderDirection } from 'src/backend/DBRepository';
 import { ClientFile, IFile } from 'src/entities/File';
 import { debouncedThrottle } from 'src/frontend/utils';
 import { GalleryProps } from './LayoutSwitcher';
@@ -219,13 +219,13 @@ const SortableHeader = observer(({ title, sortKey, setColumnWidth }: SortableHea
   const { fileStore } = useStore();
   const isSortedBy = fileStore.orderBy === sortKey;
   const sortOrder = isSortedBy
-    ? fileStore.fileOrder === FileOrder.Desc
+    ? fileStore.orderDirection === OrderDirection.Desc
       ? 'descending'
       : 'ascending'
     : undefined;
 
   const handleClick = isSortedBy
-    ? fileStore.switchFileOrder
+    ? fileStore.switchOrderDirection
     : () => fileStore.orderFilesBy(sortKey);
 
   const header = useRef<HTMLDivElement>(null);
