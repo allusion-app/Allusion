@@ -638,41 +638,29 @@ MainMessenger.onSendPreviewFiles((msg) => {
 // Set native window theme (frame, menu bar)
 MainMessenger.onSetTheme((msg) => (nativeTheme.themeSource = msg.theme));
 
-MainMessenger.onDragExport((absolutePaths) => {
+MainMessenger.onDragExport(async (absolutePaths) => {
   if (mainWindow === null || absolutePaths.length === 0) {
     return;
   }
 
-  // TODO: should use the thumbnail used in the renderer process here, so formats not natively supported (e.g. webp) can be used as well
   let previewIcon = nativeImage.createEmpty();
   try {
-    previewIcon = nativeImage.createFromPath(absolutePaths[0]);
+    previewIcon = await nativeImage.createThumbnailFromPath(absolutePaths[0], {
+      width: 200,
+      height: 200,
+    });
   } catch (e) {
     console.error('Could not create drag icon', absolutePaths[0], e);
   }
 
-  const isPreviewEmpty = previewIcon.isEmpty();
-  if (!isPreviewEmpty) {
-    // Resize preview to something resonable: taking into account aspect ratio
-    const ratio = previewIcon.getAspectRatio();
-    const size = previewIcon.getSize();
-    const targetThumbSize = 200;
-    if (size.width > targetThumbSize || size.height > targetThumbSize) {
-      previewIcon =
-        ratio > 1
-          ? previewIcon.resize({ width: targetThumbSize })
-          : previewIcon.resize({ height: targetThumbSize });
-    }
-  }
-
-  // Need to cast item as `any` since the types are not correct. The `files` field is allowed but
-  // not according to the electron documentation where it is `file`.
   mainWindow.webContents.startDrag({
+    file: absolutePaths[0],
     files: absolutePaths,
     // Just show the first image as a thumbnail for now
     // TODO: Show some indication that multiple images are dragged, would be cool to show a stack of the first few of them
-    icon: isPreviewEmpty ? AppIcon : previewIcon,
-  } as any);
+    // TODO: The icon doesn't seem to work at all since we upgraded Electron a while back
+    icon: previewIcon,
+  });
 });
 
 MainMessenger.onClearDatabase(forceRelaunch);

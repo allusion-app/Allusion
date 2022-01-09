@@ -121,10 +121,6 @@ let rendererConfig = {
         type: 'asset/resource',
       },
       {
-        test: /.node$/,
-        loader: 'node-loader',
-      },
-      {
         test: /\.js$/,
         resourceQuery: /file/,
         type: 'asset/resource',

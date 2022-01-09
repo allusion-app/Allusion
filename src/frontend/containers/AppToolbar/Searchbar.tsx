@@ -17,7 +17,7 @@ const Searchbar = observer(() => {
       (crit) =>
         crit.key === 'tags' &&
         crit.operator === 'containsRecursively' &&
-        (crit as ClientTagSearchCriteria<any>).value.length,
+        (crit as ClientTagSearchCriteria<any>).value,
     );
 
   return <div className="searchbar">{isQuickSearch ? <QuickSearchList /> : <CriteriaList />}</div>;
@@ -43,8 +43,8 @@ const QuickSearchList = observer(() => {
   const selection = useComputed(() => {
     const selectedItems: ClientTag[] = [];
     uiStore.searchCriteriaList.forEach((c) => {
-      if (c instanceof ClientTagSearchCriteria && c.value.length === 1) {
-        const item = tagStore.get(c.value[0]);
+      if (c instanceof ClientTagSearchCriteria && c.value) {
+        const item = tagStore.get(c.value);
         if (item) {
           selectedItems.push(item);
         }
@@ -54,12 +54,12 @@ const QuickSearchList = observer(() => {
   });
 
   const handleSelect = useAction((item: Readonly<ClientTag>) =>
-    uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', item.id, item.name)),
+    uiStore.addSearchCriteria(new ClientTagSearchCriteria('tags', item.id, 'containsRecursively')),
   );
 
   const handleDeselect = useAction((item: Readonly<ClientTag>) => {
     const crit = uiStore.searchCriteriaList.find(
-      (c) => c instanceof ClientTagSearchCriteria && c.value.includes(item.id),
+      (c) => c instanceof ClientTagSearchCriteria && c.value === item.id,
     );
     if (crit) {
       uiStore.removeSearchCriteria(crit);
@@ -74,9 +74,7 @@ const QuickSearchList = observer(() => {
         value={`Search in file paths for "${query}"`}
         onClick={() => {
           resetTextBox();
-          uiStore.addSearchCriteria(
-            new ClientStringSearchCriteria('absolutePath', query, undefined, CustomKeyDict),
-          );
+          uiStore.addSearchCriteria(new ClientStringSearchCriteria('absolutePath', query));
         }}
       />,
       <Row
@@ -122,15 +120,16 @@ const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
 });
 
 const CriteriaList = observer(() => {
-  const { fileStore, uiStore } = useStore();
+  const rootStore = useStore();
+  const { fileStore, uiStore } = rootStore;
   return (
     <div className="input" onClick={uiStore.toggleAdvancedSearch}>
       <div className="multiautocomplete-input">
         <div className="input-wrapper">
           {uiStore.searchCriteriaList.map((c, i) => (
             <Tag
-              key={`${i}-${c.toString()}`}
-              text={c.toString()}
+              key={`${i}-${c.getLabel(CustomKeyDict, rootStore)}`}
+              text={c.getLabel(CustomKeyDict, rootStore)}
               onRemove={() => uiStore.removeSearchCriteriaByIndex(i)}
               // Italicize system tags (for now only "Untagged images")
               className={

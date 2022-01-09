@@ -102,7 +102,7 @@ interface ITagItemProps {
  * query. Handling filter mode or replacing the search criteria list is up to
  * the component.
  */
-const toggleQuery = (nodeData: ClientTag, uiStore: UiStore, tagStore: TagStore) => {
+const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
   if (nodeData.isSearched) {
     // if it already exists, then remove it
     const alreadySearchedCrit = uiStore.searchCriteriaList.find((c) =>
@@ -114,7 +114,7 @@ const toggleQuery = (nodeData: ClientTag, uiStore: UiStore, tagStore: TagStore) 
       );
     }
   } else {
-    uiStore.addSearchCriteria(new ClientTagSearchCriteria(tagStore, 'tags', nodeData.id));
+    uiStore.addSearchCriteria(new ClientTagSearchCriteria('tags', nodeData.id));
   }
 };
 
@@ -125,7 +125,7 @@ document.body.appendChild(PreviewTag);
 
 const TagItem = observer((props: ITagItemProps) => {
   const { nodeData, dispatch, expansion, isEditing, submit, pos, select, showContextMenu } = props;
-  const { uiStore, tagStore } = useStore();
+  const { uiStore } = useStore();
   const dndData = useTagDnD();
 
   const handleContextMenu = useCallback(
@@ -306,14 +306,14 @@ const TagItem = observer((props: ITagItemProps) => {
         if (nodeData.isSearched) {
           // if already searched, un-search
           const crit = uiStore.searchCriteriaList.find(
-            (c) => c instanceof ClientTagSearchCriteria && c.value.includes(nodeData.id),
+            (c) => c instanceof ClientTagSearchCriteria && c.value === nodeData.id,
           );
           if (crit) {
             uiStore.removeSearchCriteria(crit);
           }
         } else {
           // otherwise, search it
-          const query = new ClientTagSearchCriteria(tagStore, 'tags', nodeData.id, nodeData.name);
+          const query = new ClientTagSearchCriteria('tags', nodeData.id, 'containsRecursively');
           if (event.ctrlKey || event.metaKey) {
             if (!nodeData.isSearched) {
               uiStore.addSearchCriteria(query);
@@ -324,7 +324,7 @@ const TagItem = observer((props: ITagItemProps) => {
         }
       });
     },
-    [nodeData, tagStore, uiStore],
+    [nodeData, uiStore],
   );
 
   const handleRename = useCallback(() => dispatch(Factory.enableEditing(nodeData.id)), [
@@ -444,7 +444,7 @@ const customKeys = (
 
     case 'Enter':
       event.stopPropagation();
-      toggleQuery(nodeData, uiStore, tagStore);
+      toggleQuery(nodeData, uiStore);
       break;
 
     case 'Delete':
