@@ -4,7 +4,7 @@ jest.mock('./DBRepository');
 import Backend from './Backend';
 import { ITag, ROOT_TAG_ID } from '../entities/Tag';
 import { IFile } from '../entities/File';
-import { FileOrder } from './DBRepository';
+import { OrderDirection } from './DBRepository';
 
 const backend = new Backend();
 
@@ -53,7 +53,7 @@ describe('Backend', () => {
       await backend.createFile({ ...mockFile, id: '1' });
       await backend.createFile({ ...mockFile, id: '2' });
       await backend.removeTag(mockTag.id);
-      const dbFiles = await backend.fetchFiles('id', FileOrder.Desc);
+      const dbFiles = await backend.fetchFiles('id', OrderDirection.Desc);
       expect(dbFiles).toHaveLength(2);
       expect(dbFiles[0].tags).toHaveLength(0);
       expect(dbFiles[1].tags).toHaveLength(0);
