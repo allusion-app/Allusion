@@ -1,4 +1,5 @@
 import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
+import Dexie from 'dexie';
 import fse from 'fs-extra';
 import { getDefaultBackupDirectory } from 'src/config';
 import { IFileSearchItem } from 'src/entities/SearchItem';
@@ -23,7 +24,7 @@ export default class Backend {
   private tagRepository: DBRepository<ITag>;
   private locationRepository: DBRepository<ILocation>;
   private searchRepository: DBRepository<IFileSearchItem>;
-  private db: Dexie.Dexie;
+  private db: Dexie;
   private backupScheduler: BackupScheduler;
 
   constructor() {

@@ -76,6 +76,7 @@ class RootStore {
       // It depends on tag store being intialized for reconstructing search criteria
       this.uiStore.recoverPersistentPreferences();
       this.fileStore.recoverPersistentPreferences();
+      const isSlideMode = runInAction(() => this.uiStore.isSlideMode);
 
       const numCriterias = runInAction(() => this.uiStore.searchCriteriaList.length);
 
@@ -96,7 +97,6 @@ class RootStore {
 
         // If slide mode was recovered from previous session, it's disabled by setContentQuery :/
         // hacky workaround
-        const isSlideMode = runInAction(() => this.uiStore.isSlideMode);
         if (isSlideMode) {
           this.uiStore.enableSlideMode();
         }

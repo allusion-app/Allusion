@@ -107,7 +107,8 @@ export type SearchCriteria<T> =
   | IDateSearchCriteria<T>;
 
 export abstract class ClientBaseCriteria<T>
-  implements IBaseSearchCriteria<T>, ISerializable<SearchCriteria<T>, RootStore> {
+  implements IBaseSearchCriteria<T>, ISerializable<SearchCriteria<T>, RootStore>
+{
   @observable public key: keyof T;
   @observable public valueType: 'number' | 'date' | 'string' | 'array';
   @observable public operator: OperatorType;

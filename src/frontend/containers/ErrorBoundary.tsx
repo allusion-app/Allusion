@@ -3,7 +3,7 @@ import { shell } from 'electron';
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 
 import { RendererMessenger } from 'src/Messaging';
-import { githubUrl } from 'src/config';
+import { createBugReport, githubUrl } from 'src/config';
 
 import { useStore } from '../contexts/StoreContext';
 
@@ -94,17 +94,9 @@ class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBoundaryS
   }
 
   openIssueURL() {
-    const encodedBody = encodeURIComponent(`<!--- Please check if your issue is not a duplicate before posting -->
-<b>Which actions did you perform before the error occurred?</b>
-...
-
-<b>What did you expect to happen?</b>
-...
-
-<b>Stacktrace</b>
-\`\`\`
-${this.state.error}
-\`\`\``);
+    const encodedBody = encodeURIComponent(
+      createBugReport(this.state.error, RendererMessenger.getVersion()),
+    );
     const url = `${githubUrl}/issues/new?body=${encodedBody}`;
     shell.openExternal(url);
   }
