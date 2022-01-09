@@ -56,8 +56,10 @@ class LocationStore {
   @action async init() {
     // Restore preferences
     try {
-      const prefs = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) ?? '') as Preferences;
-      (prefs.extensions || IMG_EXTENSIONS).forEach((ext) => this.enabledFileExtensions.add(ext));
+      const prefs = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) ?? '');
+      const extensions =
+        'extensions' in prefs ? (prefs.extensions as typeof IMG_EXTENSIONS) : IMG_EXTENSIONS;
+      extensions.forEach((ext) => this.enabledFileExtensions.add(ext));
     } catch (e) {
       // If no preferences found, use defaults
       IMG_EXTENSIONS.forEach((ext) => this.enabledFileExtensions.add(ext));
@@ -91,7 +93,9 @@ class LocationStore {
     const progressToastKey = 'progress';
     let foundNewFiles = false;
     const len = this.locationList.length;
-    const getLocation = action((index: number) => this.locationList[index]);
+    const getLocation: (index: number) => ClientLocation = action(
+      (index: number) => this.locationList[index],
+    );
 
     // Get all files in the DB, set up data structures for quick lookups
     // Doing it for all locations, so files moved to another Location on disk, it's properly re-assigned in Allusion too
@@ -180,7 +184,7 @@ class LocationStore {
       // Also look for duplicate files: when a files is renamed/moved it will become a new entry, should be de-duplicated
       const dbMatches = missingFiles.map((missingDbFile, i) => {
         if (createdMatches[i] !== undefined) {
-          return false;
+          return undefined;
         } // skip missing files that match with a newly created file
         // Quick lookup for files with same created date,
         const candidates = dbFilesByCreatedDate.get(missingDbFile.dateCreated.getTime()) ?? [];
@@ -195,7 +199,7 @@ class LocationStore {
 
         // If no match, try looking without filename in case the file was renamed (prone to errors, but better than nothing)
         return (
-          matchWithName !== undefined ||
+          matchWithName ??
           candidates.find(
             (otherDbFile) =>
               missingDbFile !== otherDbFile &&
@@ -240,7 +244,7 @@ class LocationStore {
         const files: IFile[] = [];
         for (let i = 0; i < dbMatches.length; i++) {
           const match = dbMatches[i];
-          if (match) {
+          if (match !== undefined) {
             files.push({
               ...match,
               tags: Array.from(new Set([...missingFiles[i].tags, ...match.tags])),
@@ -454,14 +458,16 @@ class LocationStore {
     // Check if file is being moved/renamed (which is detected as a "add" event followed by "remove" event)
     const match = runInAction(() => fileStore.fileList.find((f) => f.ino === fileStats.ino));
     const dbMatch =
-      match != null ? undefined : (await this.backend.fetchFilesByKey('ino', fileStats.ino))?.[0];
+      match !== undefined
+        ? undefined
+        : (await this.backend.fetchFilesByKey('ino', fileStats.ino))[0];
 
-    if (match != null) {
+    if (match !== undefined) {
       if (fileStats.absolutePath === match.absolutePath) {
         return;
       }
       fileStore.replaceMovedFile(match, file);
-    } else if (dbMatch) {
+    } else if (dbMatch !== undefined) {
       const newIFile = mergeMovedFile(dbMatch, file);
       this.rootStore.fileStore.save(newIFile);
     } else {
@@ -480,7 +486,7 @@ class LocationStore {
     const fileStore = this.rootStore.fileStore;
     const clientFile = fileStore.fileList.find((f) => f.absolutePath === path);
 
-    if (clientFile != null) {
+    if (clientFile !== undefined) {
       fileStore.hideFile(clientFile);
       fileStore.debouncedRefetch();
     }
