@@ -22,7 +22,7 @@ const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | nu
   const canvas = new OffscreenCanvas(width, height);
 
   const ctx2D = canvas.getContext('2d');
-  if (!ctx2D) {
+  if (ctx2D === null) {
     console.warn('No canvas context 2D (should never happen)');
     return null;
   }
@@ -48,7 +48,7 @@ const generateAndStoreThumbnail = async (filePath: string, thumbnailFilePath: st
   }
 
   const thumbnailData = await generateThumbnailData(filePath);
-  if (thumbnailData) {
+  if (thumbnailData !== null) {
     await fse.outputFile(thumbnailFilePath, Buffer.from(thumbnailData));
     return thumbnailFilePath;
   }

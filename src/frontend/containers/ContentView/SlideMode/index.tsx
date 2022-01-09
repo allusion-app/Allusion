@@ -45,7 +45,10 @@ interface SlideViewProps {
 const SlideView = observer(({ width, height }: SlideViewProps) => {
   const { uiStore, fileStore, imageLoader } = useStore();
   const file = uiStore.firstFileInView;
-  const eventManager = useMemo(() => (file ? new CommandDispatcher(file) : undefined), [file]);
+  const eventManager = useMemo(
+    () => (file !== undefined ? new CommandDispatcher(file) : undefined),
+    [file],
+  );
   const isFirst = useComputed(() => uiStore.firstItem === 0);
   const isLast = useComputed(() => uiStore.firstItem === fileStore.fileList.length - 1);
 
@@ -59,7 +62,9 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
           uiStore.setFirstItem(index);
 
           // Also, select only this file: makes more sense for the TagEditor overlay: shows tags on selected images
-          if (index !== undefined) uiStore.selectFile(fileStore.fileList[index], true);
+          if (index !== undefined) {
+            uiStore.selectFile(fileStore.fileList[index], true);
+          }
 
           reaction.dispose();
         }
@@ -137,10 +142,12 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
   }, [fileStore, isFirst, isLast, uiStore, imageLoader]);
 
   const transitionStart: SlideTransform | undefined = useMemo(() => {
-    if (!file) return undefined;
+    if (file === undefined) {
+      return undefined;
+    }
     const thumbEl = document.querySelector(`[data-file-id="${file.id}"]`);
     const container = document.querySelector('#gallery-content');
-    if (thumbEl && container) {
+    if (thumbEl !== null && container !== null) {
       const thumbElRect = thumbEl.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
       return createTransform(
@@ -161,7 +168,7 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
       onDrop={eventManager?.drop}
       tabIndex={-1}
     >
-      {file && (
+      {file !== undefined && (
         <ZoomableImage
           file={file}
           thumbnailSrc={file.thumbnailPath}
@@ -209,7 +216,6 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
     file,
     thumbnailSrc,
     async (file, thumbnailPath) => {
-      if (!file) return thumbnailPath;
       const src = await imageLoader.getImageSrc(file);
       return src ?? thumbnailPath;
     },

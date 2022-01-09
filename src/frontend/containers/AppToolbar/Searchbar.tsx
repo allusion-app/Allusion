@@ -45,7 +45,7 @@ const QuickSearchList = observer(() => {
     uiStore.searchCriteriaList.forEach((c) => {
       if (c instanceof ClientTagSearchCriteria && c.value) {
         const item = tagStore.get(c.value);
-        if (item) {
+        if (item !== undefined) {
           selectedItems.push(item);
         }
       }
@@ -61,7 +61,7 @@ const QuickSearchList = observer(() => {
     const crit = uiStore.searchCriteriaList.find(
       (c) => c instanceof ClientTagSearchCriteria && c.value === item.id,
     );
-    if (crit) {
+    if (crit !== undefined) {
       uiStore.removeSearchCriteria(crit);
     }
   });

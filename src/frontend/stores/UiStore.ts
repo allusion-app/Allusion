@@ -341,7 +341,7 @@ class UiStore {
     this.isPreviewOpen = true;
 
     // remove focus from element so closing preview with spacebar does not trigger any ui elements
-    if (document.activeElement && document.activeElement instanceof HTMLElement) {
+    if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
   }
@@ -465,7 +465,7 @@ class UiStore {
     if (this.fileSelection.has(file)) {
       this.fileSelection.delete(file);
     } else {
-      if (clear) {
+      if (clear === true) {
         this.fileSelection.clear();
       }
       this.fileSelection.add(file);
@@ -473,7 +473,7 @@ class UiStore {
   }
 
   @action.bound selectFileRange(start: number, end: number, additive?: boolean) {
-    if (!additive) {
+    if (additive !== true) {
       this.fileSelection.clear();
     }
     for (let i = start; i <= end; i++) {
@@ -511,7 +511,7 @@ class UiStore {
   /** Selects a range of tags, where indices correspond to the flattened tag list. */
   @action.bound selectTagRange(start: number, end: number, additive?: boolean) {
     const tagTreeList = this.rootStore.tagStore.tagList;
-    if (!additive) {
+    if (additive !== true) {
       this.tagSelection.replace(tagTreeList.slice(start, end + 1));
       return;
     }
@@ -560,7 +560,7 @@ class UiStore {
     // If an id is given, check whether it belongs to a tag or collection
     if (activeItemId) {
       const selectedTag = tagStore.get(activeItemId);
-      if (selectedTag) {
+      if (selectedTag !== undefined) {
         if (selectedTag.isSelected) {
           isContextTheSelection = true;
         } else {
@@ -584,7 +584,7 @@ class UiStore {
     const { tagStore } = this.rootStore;
 
     const target = tagStore.get(id);
-    if (!target) {
+    if (target === undefined) {
       throw new Error('Invalid target to move to');
     }
 
@@ -697,7 +697,7 @@ class UiStore {
   }
 
   @action.bound processGlobalShortCuts(e: KeyboardEvent) {
-    if ((e.target as HTMLElement).matches?.('input')) {
+    if ((e.target as HTMLElement).matches('input')) {
       return;
     }
     const combo = getKeyCombo(e);
@@ -722,7 +722,7 @@ class UiStore {
       e.preventDefault(); // prevent scrolling with space when opening the preview window
       // Search
     } else if (matches(hotkeyMap.search)) {
-      (document.querySelector('.searchbar input') as HTMLElement)?.focus();
+      (document.querySelector('.searchbar input') as HTMLElement).focus();
     } else if (matches(hotkeyMap.advancedSearch)) {
       this.toggleAdvancedSearch();
       // View
@@ -780,14 +780,24 @@ class UiStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        if (prefs.theme) this.setTheme(prefs.theme);
+        if (prefs.theme) {
+          this.setTheme(prefs.theme);
+        }
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.isInspectorOpen = Boolean(prefs.isInspectorOpen);
-        if (prefs.thumbnailDirectory) this.setThumbnailDirectory(prefs.thumbnailDirectory);
-        if (prefs.importDirectory) this.setImportDirectory(prefs.importDirectory);
+        if (prefs.thumbnailDirectory) {
+          this.setThumbnailDirectory(prefs.thumbnailDirectory);
+        }
+        if (prefs.importDirectory) {
+          this.setImportDirectory(prefs.importDirectory);
+        }
         this.setMethod(Number(prefs.method));
-        if (prefs.thumbnailSize) this.setThumbnailSize(prefs.thumbnailSize);
-        if (prefs.thumbnailShape) this.setThumbnailShape(prefs.thumbnailShape);
+        if (prefs.thumbnailSize) {
+          this.setThumbnailSize(prefs.thumbnailSize);
+        }
+        if (prefs.thumbnailShape) {
+          this.setThumbnailShape(prefs.thumbnailShape);
+        }
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
         this.isThumbnailFilenameOverlayEnabled = Boolean(
           prefs.isThumbnailFilenameOverlayEnabled ?? false,

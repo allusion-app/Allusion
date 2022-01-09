@@ -34,7 +34,7 @@ interface RadioGroupProps {
 const RadioGroup = ({ name, orientation = 'vertical', children }: RadioGroupProps) => {
   const group = useRef<HTMLFieldSetElement>(null);
   useEffect(() => {
-    if (group.current) {
+    if (group.current !== null) {
       const radios = group.current.querySelectorAll('input[type="radio"]');
       radios.forEach((r) => r.setAttribute('name', name));
     }

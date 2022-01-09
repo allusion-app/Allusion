@@ -18,7 +18,7 @@ interface IRendererProps {
   /** Render images outside of the viewport within this margin (pixels) */
   overscan?: number;
   layoutUpdateDate: Date;
-  padding?: number;
+  padding: number;
   /** The index of the currently selected image, or the "last selected" image when a range is selected */
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
 }
@@ -49,11 +49,13 @@ const VirtualizedRenderer = observer(
     const { isSlideMode, firstItem } = uiStore;
 
     const determineRenderRegion = useCallback(
-      (numImages: number, overdraw: number, setFirstItem = true) => {
-        if (!isMountedRef.current) return;
+      (numImages: number, overdraw: number, setFirstItem: boolean) => {
+        if (isMountedRef.current !== true) {
+          return;
+        }
         const viewport = wrapperRef.current;
-        const yOffset = viewport?.scrollTop || 0;
-        const viewportHeight = viewport?.clientHeight || 0;
+        const yOffset = viewport?.scrollTop ?? 0;
+        const viewportHeight = viewport?.clientHeight ?? 0;
 
         const firstImageIndex = findViewportEdge(yOffset, numImages, layout);
         const start = findViewportEdge(yOffset - overdraw, numImages, layout);
@@ -64,7 +66,9 @@ const VirtualizedRenderer = observer(
         setEndRenderIndex(Math.min(end, start + 512));
 
         // store the first item in the viewport in the UIStore so that switching between view modes retains the scroll position
-        if (setFirstItem) uiStore.setFirstItem(firstImageIndex);
+        if (setFirstItem) {
+          uiStore.setFirstItem(firstImageIndex);
+        }
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [],
@@ -72,7 +76,7 @@ const VirtualizedRenderer = observer(
 
     const throttledRedetermine = useRef(
       debouncedThrottle(
-        (numImages: number, overdraw: number, setFirstItem?: boolean) =>
+        (numImages: number, overdraw: number, setFirstItem: boolean) =>
           determineRenderRegion(numImages, overdraw, setFirstItem),
         100,
       ),
@@ -90,7 +94,7 @@ const VirtualizedRenderer = observer(
       () =>
         throttledRedetermine.current(
           numImages,
-          overscan || 0,
+          overscan,
           // dont't scroll set first item while in slide mode due to scrolling, since it's controlled over there
           !isSlideMode,
         ),
@@ -99,7 +103,9 @@ const VirtualizedRenderer = observer(
 
     const scrollToIndex = useCallback(
       (index: number, block: 'nearest' | 'start' | 'end' | 'center' = 'nearest') => {
-        if (!scrollAnchor.current) return;
+        if (scrollAnchor.current === null) {
+          return;
+        }
         const [sWidth, sHeight, sTop, sLeft] = layout.getTransform(index);
 
         // Scroll to invisible element, positioned at selected item,
@@ -112,16 +118,17 @@ const VirtualizedRenderer = observer(
         scrollAnchor.current.style.height = sHeight + 'px';
         // TODO: adding behavior: 'smooth' would be nice, but it's disorienting when layout changes a lot. Add threshold for when the delta firstItemIndex than X?
         // Also, it doesn't work when scrolling by keeping arrow key held down
-        scrollAnchor.current?.scrollIntoView({ block, inline: 'nearest' });
+        scrollAnchor.current.scrollIntoView({ block, inline: 'nearest' });
         scrollAnchor.current.style.transform = ''; // reset so that the scroll position can't become stuck at bottom when amount of shown images decreases
       },
       [layout, padding],
     );
 
     // The index currently selected image, or the "last selected" image when a range is selected,
-    const lastSelIndex = lastSelectionIndex.current
-      ? Math.min(lastSelectionIndex.current, numImages - 1)
-      : undefined;
+    const lastSelIndex =
+      lastSelectionIndex.current !== undefined
+        ? Math.min(lastSelectionIndex.current, numImages - 1)
+        : undefined;
 
     // When layout updates, scroll to firstImage (e.g. resize or thumbnail size changed)
     // This also sets the initial scroll position on initial render, for when coming from another view mode

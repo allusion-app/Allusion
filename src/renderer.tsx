@@ -50,7 +50,9 @@ if (IS_PREVIEW_WINDOW) {
       rootStore.uiStore.enableSlideMode();
 
       runInAction(() => {
-        if (rootStore.uiStore.isInspectorOpen) rootStore.uiStore.toggleInspector();
+        if (rootStore.uiStore.isInspectorOpen) {
+          rootStore.uiStore.toggleInspector();
+        }
       });
 
       rootStore.fileStore.fetchFilesByIDs(ids).then(() => {
@@ -67,7 +69,7 @@ if (IS_PREVIEW_WINDOW) {
       rootStore.uiStore.enableSlideMode();
 
       // remove focus from element so closing preview with spacebar does not trigger any ui elements
-      if (document.activeElement && document.activeElement instanceof HTMLElement) {
+      if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
 
@@ -88,7 +90,7 @@ if (IS_PREVIEW_WINDOW) {
     const index = object.get();
     if (!isNaN(index) && index >= 0 && index < rootStore.fileStore.fileList.length) {
       const file = rootStore.fileStore.fileList[index];
-      document.title = `${file?.absolutePath || '?'} • ${PREVIEW_WINDOW_BASENAME}`;
+      document.title = `${file.absolutePath || '?'} • ${PREVIEW_WINDOW_BASENAME}`;
     }
   });
 } else {
@@ -148,7 +150,7 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
   const clientFile = runInAction(() =>
     fileStore.fileList.find((file) => file.absolutePath === filePath),
   );
-  if (clientFile) {
+  if (clientFile !== undefined) {
     const tags = await Promise.all(
       tagNames.map(async (tagName) => {
         const clientTag = tagStore.findByName(tagName);

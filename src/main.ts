@@ -63,7 +63,7 @@ function initialize() {
 
   // Initialize preferences file and its consequences
   try {
-    if (!fse.pathExists(basePath)) {
+    if (!fse.pathExistsSync(basePath)) {
       fse.mkdirSync(basePath);
     }
     try {
@@ -72,7 +72,7 @@ function initialize() {
       // Auto update enabled by default
       preferences = { checkForUpdatesOnStartup: true };
     }
-    if (preferences.checkForUpdatesOnStartup) {
+    if (preferences.checkForUpdatesOnStartup === true) {
       autoUpdater.checkForUpdates();
     }
   } catch (e) {
@@ -113,7 +113,7 @@ function createWindow() {
   // Customize new window opening
   // https://www.electronjs.org/docs/api/window-open
   mainWindow.webContents.setWindowOpenHandler(({ frameName }) => {
-    if (mainWindow === null || mainWindow?.isDestroyed()) {
+    if (mainWindow === null || mainWindow.isDestroyed()) {
       return { action: 'deny' };
     }
 
@@ -149,7 +149,7 @@ function createWindow() {
   });
 
   mainWindow.webContents.on('did-create-window', (childWindow) => {
-    if (mainWindow === null || mainWindow?.isDestroyed()) {
+    if (mainWindow === null || mainWindow.isDestroyed()) {
       return;
     }
 
@@ -161,7 +161,7 @@ function createWindow() {
     }
 
     mainWindow.webContents.once('will-navigate', () => {
-      if (!childWindow?.isDestroyed()) {
+      if (!childWindow.isDestroyed()) {
         childWindow.close(); // close when main window is reloaded
       }
     });
@@ -230,7 +230,7 @@ function createWindow() {
         label: 'Actual Size',
         accelerator: 'CommandOrControl+0',
         click: (_, browserWindow) => {
-          if (browserWindow) {
+          if (browserWindow !== undefined) {
             browserWindow.webContents.zoomFactor = 1;
           }
         },
@@ -271,7 +271,7 @@ function createWindow() {
   mainWindow.loadURL(`file://${__dirname}/index.html`);
 
   // then maximize the window if it was previously
-  if (previousWindowState.isMaximized) {
+  if (previousWindowState.isMaximized === true) {
     mainWindow.maximize();
   }
 
@@ -532,7 +532,7 @@ autoUpdater.on('download-progress', (progressObj: { percent: number }) => {
   if (mainWindow === null || mainWindow.isDestroyed()) {
     return;
   }
-  if (tray && !tray.isDestroyed()) {
+  if (tray?.isDestroyed() === false) {
     tray.setToolTip(`Allusion - Downloading update ${progressObj.percent.toFixed(0)}%`);
   }
   // TODO: could also do this for other tasks (e.g. importing folders)
@@ -544,11 +544,13 @@ process.on('uncaughtException', async (error) => {
   console.error('Uncaught exception', error);
 
   const errorMessage = `An unexpected error occurred. Please file a bug report if you think this needs fixing!\n${
-    error?.stack?.includes(error.message) ? '' : `${error.name}: ${error.message.slice(0, 200)}\n`
+    error.stack?.includes(error.message) === true
+      ? ''
+      : `${error.name}: ${error.message.slice(0, 200)}\n`
   }\n${error.stack?.slice(0, 300)}`;
 
   try {
-    if (mainWindow != null && !mainWindow.isDestroyed()) {
+    if (mainWindow?.isDestroyed() === false) {
       // Show a dialog prompting the user to either restart, continue on or quit
       const dialogResult = await dialog.showMessageBox(mainWindow, {
         type: 'error',
@@ -584,8 +586,8 @@ process.on('uncaughtException', async (error) => {
 //---------------------------------------------------------------------------------//
 // Messaging: Sending and receiving messages between the main and renderer process //
 //---------------------------------------------------------------------------------//
-MainMessenger.onIsClipServerRunning(() => clipServer!.isEnabled());
-MainMessenger.onIsRunningInBackground(() => clipServer!.isRunInBackgroundEnabled());
+MainMessenger.onIsClipServerRunning(() => clipServer?.isEnabled() === true);
+MainMessenger.onIsRunningInBackground(() => clipServer?.isRunInBackgroundEnabled() === true);
 
 MainMessenger.onSetClipServerEnabled(({ isClipServerRunning }) =>
   clipServer?.setEnabled(isClipServerRunning),
@@ -598,7 +600,7 @@ MainMessenger.onSetRunningInBackground(({ isRunInBackground }) => {
   clipServer.setRunInBackground(isRunInBackground);
   if (isRunInBackground) {
     createTrayMenu();
-  } else if (tray) {
+  } else if (tray !== null) {
     tray.destroy();
     tray = null;
   }
@@ -613,13 +615,13 @@ MainMessenger.onSendPreviewFiles((msg) => {
   // Create preview window if needed, and send the files selected in the primary window
   if (previewWindow === null || previewWindow.isDestroyed()) {
     // The Window object might've been destroyed if it was hidden for too long -> Recreate it
-    if (previewWindow?.isDestroyed()) {
+    if (previewWindow?.isDestroyed() === true) {
       console.warn('Preview window was destroyed! Attemping to recreate...');
     }
 
     previewWindow = createPreviewWindow();
     MainMessenger.onceInitialized().then(() => {
-      if (previewWindow) {
+      if (previewWindow !== null) {
         MainMessenger.sendPreviewFiles(previewWindow.webContents, msg);
       }
     });
@@ -719,11 +721,11 @@ MainMessenger.onCheckForUpdates(() => autoUpdater.checkForUpdates());
 MainMessenger.onToggleCheckUpdatesOnStartup(() => {
   updatePreferences({
     ...preferences,
-    checkForUpdatesOnStartup: !preferences.checkForUpdatesOnStartup,
+    checkForUpdatesOnStartup: preferences.checkForUpdatesOnStartup !== true,
   });
 });
 
-MainMessenger.onIsCheckUpdatesOnStartupEnabled(() => !!preferences.checkForUpdatesOnStartup);
+MainMessenger.onIsCheckUpdatesOnStartupEnabled(() => preferences.checkForUpdatesOnStartup === true);
 
 // Helper functions and variables/constants
 
@@ -790,7 +792,9 @@ function getPreviousWindowState(): Electron.Rectangle & { isMaximized?: boolean 
 // Save window position and bounds: https://github.com/electron/electron/issues/526
 let saveBoundsTimeout: ReturnType<typeof setTimeout> | null = null;
 function saveWindowState() {
-  if (saveBoundsTimeout) clearTimeout(saveBoundsTimeout);
+  if (saveBoundsTimeout !== null) {
+    clearTimeout(saveBoundsTimeout);
+  }
   saveBoundsTimeout = setTimeout(() => {
     saveBoundsTimeout = null;
     if (mainWindow !== null) {

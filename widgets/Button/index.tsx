@@ -28,7 +28,7 @@ const Button = ({
       disabled={disabled}
       type={type}
     >
-      {icon && (
+      {icon !== undefined && (
         <span className="btn-content-icon" aria-hidden="true">
           {icon}
         </span>

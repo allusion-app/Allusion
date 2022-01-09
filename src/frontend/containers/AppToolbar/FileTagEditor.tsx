@@ -79,22 +79,19 @@ const TagEditor = () => {
   const panelRef = useRef<HTMLDivElement>(null);
   const [storedHeight] = useState(localStorage.getItem('tag-editor-height'));
   useEffect(() => {
-    if (!panelRef.current) {
+    const panel = panelRef.current;
+    if (panel === null) {
       return;
     }
     const storeHeight = debounce((val: string) => localStorage.setItem('tag-editor-height', val));
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        if (
-          mutation.type == 'attributes' &&
-          mutation.attributeName === 'style' &&
-          panelRef.current
-        ) {
-          storeHeight(panelRef.current.style.height);
+        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+          storeHeight(panel.style.height);
         }
       });
     });
-    observer.observe(panelRef.current, { attributes: true });
+    observer.observe(panel, { attributes: true });
     return () => observer.disconnect();
   }, []);
 

@@ -115,7 +115,7 @@ const TagSelector = (props: TagSelectorProps) => {
       aria-expanded={isOpen}
       aria-haspopup="grid"
       aria-owns={gridId}
-      className={`input multiautocomplete tag-selector ${multiline ? 'multiline' : ''}`}
+      className={`input multiautocomplete tag-selector ${multiline === true ? 'multiline' : ''}`}
       onBlur={handleBlur}
       onClick={handleBackgroundClick}
     >
@@ -123,7 +123,7 @@ const TagSelector = (props: TagSelectorProps) => {
         isOpen={isOpen}
         cancel={() => setIsOpen(false)}
         placement="bottom-start"
-        ignoreCloseForElementOnBlur={inputRef.current || undefined}
+        ignoreCloseForElementOnBlur={inputRef.current ?? undefined}
         target={
           <div className="multiautocomplete-input">
             <div className="input-wrapper">

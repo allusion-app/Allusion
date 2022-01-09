@@ -54,7 +54,7 @@ export class FolderWatcherWorker {
         // If the path doesn't have an extension (likely a directory), don't ignore it.
         // In the unlikely situation it is a file, we'll filter it out later in the .on('add', ...)
         const ext = SysPath.extname(path).toLowerCase().split('.')[1];
-        if (!ext) {
+        if (ext.length === 0) {
           return false;
         }
         // If the path (file or directory) ends with an image extension, don't ignore it.
@@ -64,7 +64,7 @@ export class FolderWatcherWorker {
         // Otherwise, we need to know whether it is a file or a directory before making a decision.
         // If we don't return anything, this callback will be called a second time, with the stats
         // variable as second argument
-        if (stats) {
+        if (stats !== undefined) {
           // Ignore if
           // * dot directory like `/home/.hidden-directory/` but not `/home/directory.with.dots/` and
           // * not a directory, and not an image file either.
@@ -92,9 +92,9 @@ export class FolderWatcherWorker {
           if (extensions.includes(ext as IMG_EXTENSIONS_TYPE)) {
             const fileStats: FileStats = {
               absolutePath: path,
-              dateCreated: stats?.birthtime,
-              dateModified: stats?.mtime,
-              size: stats?.size,
+              dateCreated: stats.birthtime,
+              dateModified: stats.mtime,
+              size: stats.size,
             };
 
             if (this.isReady) {

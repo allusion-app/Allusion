@@ -36,7 +36,7 @@ export const Alert = (props: AlertProps) => {
   }, []);
 
   useEffect(() => {
-    if (dialog.current) {
+    if (dialog.current !== null) {
       const elemHack = dialog.current as any; // fixme: Updated TS doesn't support HTMLDialogElement anymore?
       open ? elemHack.showModal?.() : elemHack.close?.();
     }
@@ -121,7 +121,7 @@ const AlertActions = (props: AlertActionsProps) => {
     <Button
       key="close"
       styling={defaultButton === DialogButton.CloseButton ? 'filled' : 'outlined'}
-      text={closeButtonText ?? 'Cancel'}
+      text={closeButtonText}
       onClick={() => onClick(DialogButton.CloseButton)}
     />,
   );

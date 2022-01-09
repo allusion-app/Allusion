@@ -49,7 +49,7 @@ class TagStore {
 
   @computed get root() {
     const root = this.tagGraph.get(ROOT_TAG_ID);
-    if (!root) {
+    if (root === undefined) {
       throw new Error('Root tag not found. This should not happen!');
     }
     return root;

@@ -359,13 +359,13 @@ const SavedSearchesPanel = observer(() => {
         )}
       </Collapse>
 
-      {editableSearch && (
+      {editableSearch !== undefined && (
         <SearchItemDialog
           searchItem={editableSearch}
           onClose={() => setEditableSearch(undefined)}
         />
       )}
-      {deletableSearch && (
+      {deletableSearch !== undefined && (
         <SavedSearchRemoval
           object={deletableSearch}
           onClose={() => setDeletableSearch(undefined)}

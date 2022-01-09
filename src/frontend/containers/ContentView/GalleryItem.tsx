@@ -37,7 +37,7 @@ export const MasonryCell = observer(
     return (
       <div data-masonrycell aria-selected={uiStore.fileSelection.has(file)} style={style}>
         <div
-          className={`thumbnail${file.isBroken ? ' thumbnail-broken' : ''}`}
+          className={`thumbnail${file.isBroken === true ? ' thumbnail-broken' : ''}`}
           onClick={eventManager.select}
           onDoubleClick={eventManager.preview}
           onContextMenu={eventManager.showContextMenu}
@@ -89,7 +89,7 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
     isBroken,
     mounted,
     thumbnailPath,
-    uiStore.isList || !forceNoThumbnail,
+    uiStore.isList || forceNoThumbnail !== true,
     async (file, isBroken, mounted, thumbnailPath, useThumbnail) => {
       // If it is broken, only show thumbnail if it exists.
       if (!mounted || isBroken === true) {
@@ -128,7 +128,9 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
   const fileIdRef = useRef(fileId);
   const [loadError, setLoadError] = useState(false);
   const handleImageError = useCallback(() => {
-    if (fileIdRef.current === fileId) setLoadError(true);
+    if (fileIdRef.current === fileId) {
+      setLoadError(true);
+    }
   }, [fileId]);
   useEffect(() => {
     fileIdRef.current = fileId;
@@ -191,7 +193,7 @@ const TagWithHint = observer(
     onContextMenu: (e: MousePointerEvent, tag: ClientTag) => void;
   }) => {
     const handleContextMenu = useCallback(
-      (e: React.MouseEvent<HTMLElement>) => onContextMenu?.(e, tag),
+      (e: React.MouseEvent<HTMLElement>) => onContextMenu(e, tag),
       [onContextMenu, tag],
     );
     return (

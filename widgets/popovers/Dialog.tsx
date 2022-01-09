@@ -27,13 +27,13 @@ export const Dialog = (props: DialogProps) => {
       return;
     }
 
-    if (onClose) {
+    if (onClose !== undefined) {
       element.addEventListener('close', onClose);
     }
     element.addEventListener('cancel', onCancel);
 
     return () => {
-      if (onClose) {
+      if (onClose !== undefined) {
         element.removeEventListener('close', onClose);
       }
       element.removeEventListener('cancel', onCancel);
@@ -41,7 +41,7 @@ export const Dialog = (props: DialogProps) => {
   }, [onClose, onCancel]);
 
   useEffect(() => {
-    if (dialog.current) {
+    if (dialog.current !== null) {
       const elemHack = dialog.current as any; // fixme: Updated TS doesn't support HTMLDialogElement anymore?
       open ? elemHack.showModal?.() : elemHack.close?.();
     }

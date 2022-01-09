@@ -62,7 +62,7 @@ export const useWorkerListener = () => {
       workers[i].onmessage = (e: { data: IThumbnailMessageResponse }) => {
         const { fileId, thumbnailPath } = e.data;
         const clientFile = fileStore.get(fileId);
-        if (clientFile) {
+        if (clientFile !== undefined) {
           // update the thumbnail path so that the image will reload, as it did not exist before
           clientFile.setThumbnailPath(`${thumbnailPath}?v=1`);
         } else {
@@ -74,7 +74,7 @@ export const useWorkerListener = () => {
         console.error('Could not generate thumbnail', `worker ${i}`, err);
         const fileId = err.message;
         const clientFile = fileStore.get(fileId);
-        if (clientFile) {
+        if (clientFile !== undefined) {
           // Load normal image as fallback, with v=1 to indicate it has changed
           clientFile.setThumbnailPath(`${clientFile.absolutePath}?v=1`);
         }

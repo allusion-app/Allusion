@@ -49,7 +49,7 @@ class LocationStore {
   @action async init() {
     // Restore preferences
     try {
-      const prefs = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) || '') as Preferences;
+      const prefs = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) ?? '') as Preferences;
       (prefs.extensions || IMG_EXTENSIONS).forEach((ext) => this.enabledFileExtensions.add(ext));
     } catch (e) {
       // If no preferences found, use defaults
@@ -95,7 +95,7 @@ class LocationStore {
     for (const file of dbFiles) {
       const time = file.dateCreated.getTime();
       const entry = dbFilesByCreatedDate.get(time);
-      if (entry) {
+      if (entry !== undefined) {
         entry.push(file);
       } else {
         dbFilesByCreatedDate.set(time, [file]);
@@ -171,9 +171,11 @@ class LocationStore {
       );
       // Also look for duplicate files: when a files is renamed/moved it will become a new entry, should be de-duplicated
       const dbMatches = missingFiles.map((missingDbFile, i) => {
-        if (createdMatches[i]) return false; // skip missing files that match with a newly created file
+        if (createdMatches[i] !== undefined) {
+          return false;
+        } // skip missing files that match with a newly created file
         // Quick lookup for files with same created date,
-        const candidates = dbFilesByCreatedDate.get(missingDbFile.dateCreated.getTime()) || [];
+        const candidates = dbFilesByCreatedDate.get(missingDbFile.dateCreated.getTime()) ?? [];
 
         // then first look for a file with the same name + resolution (for when file is moved to different path)
         const matchWithName = candidates.find(
@@ -185,7 +187,7 @@ class LocationStore {
 
         // If no match, try looking without filename in case the file was renamed (prone to errors, but better than nothing)
         return (
-          matchWithName ||
+          matchWithName !== undefined ||
           candidates.find(
             (otherDbFile) =>
               missingDbFile !== otherDbFile &&
@@ -207,7 +209,7 @@ class LocationStore {
         const files: IFile[] = [];
         for (let i = 0; i < createdMatches.length; i++) {
           const match = createdMatches[i];
-          if (match) {
+          if (match !== undefined) {
             files.push({
               ...missingFiles[i],
               absolutePath: match.absolutePath,
@@ -248,7 +250,7 @@ class LocationStore {
 
       // For createdFiles without a match, insert them in the DB as new files
       const newFiles = createdFiles.filter((cf) => !foundCreatedMatches.includes(cf));
-      if (newFiles.length) {
+      if (newFiles.length > 0) {
         await this.backend.createFilesFromPath(location.path, newFiles);
       }
 
@@ -260,7 +262,7 @@ class LocationStore {
       for (const dbFile of dbFiles) {
         const diskFile = diskFileMap.get(dbFile.absolutePath);
         if (
-          diskFile &&
+          diskFile !== undefined &&
           dbFile.dateLastIndexed.getTime() < diskFile.dateModified.getTime() &&
           diskFile.size !== dbFile.size
         ) {

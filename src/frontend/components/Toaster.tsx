@@ -74,7 +74,9 @@ export const Toaster = observer(() => (
         key={id}
         message={message}
         clickAction={
-          clickAction && <Button text={clickAction.label} onClick={clickAction.onClick} />
+          clickAction !== undefined && (
+            <Button text={clickAction.label} onClick={clickAction.onClick} />
+          )
         }
         timeout={timeout}
         onDismiss={() => AppToaster.dismiss(id)}

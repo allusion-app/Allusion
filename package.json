@@ -9,6 +9,7 @@
     "production": "webpack --config ./webpack.prod.js",
     "start": "electron ./build/main.bundle.js",
     "lint": "eslint src/**/*{ts,tsx} -f codeframe",
+    "fmt": "eslint src/**/*{ts,tsx} widgets/**/*{ts,tsx} --fix",
     "test": "jest",
     "package": "yarn build && electron-builder",
     "logo": "ncp ./resources/logo/icns/allusion-logomark-fc.icns ./build/icon.icns && ncp ./resources/logo/ico/allusion-logomark-fc-256x256.ico ./build/icon.ico",

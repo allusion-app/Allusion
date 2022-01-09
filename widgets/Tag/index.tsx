@@ -28,7 +28,7 @@ const Tag = (props: TagProps) => {
 
   return (
     <span
-      className={`tag ${className || ''}`}
+      className={`tag ${className ?? ''}`}
       data-tooltip={tooltip}
       onClick={onClick}
       style={style}
@@ -37,7 +37,7 @@ const Tag = (props: TagProps) => {
       <span className="label" title={text}>
         {text}
       </span>
-      {onRemove ? (
+      {onRemove !== undefined ? (
         <IconButton
           icon={IconSet.CLOSE}
           text="Remove"

@@ -164,7 +164,7 @@ const Header = () => {
 
   const setColumnWidth = useRef((name: string, value: number) => {
     const list = header.current?.parentElement;
-    if (list) {
+    if (list !== undefined && list !== null) {
       list.style.setProperty(`--col-${name}-width`, `${Math.min(Math.max(value, 100), 800)}px`);
     }
   }).current;
@@ -250,10 +250,10 @@ function useHeaderResize(
   setColumnWidth: (name: string, value: number) => void,
 ) {
   const isDragging = useRef(false);
-  const onResize = useCallback((value: number) => setColumnWidth(name, value), [
-    name,
-    setColumnWidth,
-  ]);
+  const onResize = useCallback(
+    (value: number) => setColumnWidth(name, value),
+    [name, setColumnWidth],
+  );
 
   useEffect(() => {
     if (header.current === null) {

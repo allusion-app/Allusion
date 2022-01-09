@@ -9,7 +9,7 @@ import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
 
 export const isAcceptableType = (e: React.DragEvent) =>
-  e.dataTransfer?.types.some((type) => ALLOWED_DROP_TYPES.includes(type));
+  e.dataTransfer.types.some((type) => ALLOWED_DROP_TYPES.includes(type));
 
 /**
  * Executed callback function while dragging over a target.
@@ -64,7 +64,7 @@ export async function storeDroppedImage(e: React.DragEvent, directory: string) {
         : `${filename}.${extension}`;
       fileData = { directory, imgBase64, filenameWithExt };
     }
-    if (fileData) {
+    if (fileData !== undefined) {
       const { imgBase64, filenameWithExt } = fileData;
 
       // Send base64 file to main process, get back filename where it is stored
@@ -130,7 +130,7 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
     for (let i = 0; i < e.dataTransfer.files.length; i++) {
       const file = e.dataTransfer.files[i];
       // Check if file is an image
-      if (file && ALLOWED_FILE_DROP_TYPES.includes(file.type)) {
+      if (ALLOWED_FILE_DROP_TYPES.includes(file.type)) {
         dropItems.add(file);
       }
     }
@@ -155,19 +155,21 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
 
   // Filter out URLs that are not an image
   const imageItems = await Promise.all(
-    Array.from(dropItems).filter((item) => {
+    Array.from(dropItems, async (item) => {
       if (item instanceof File) {
-        return true;
+        return item;
       } else {
         // Check if the URL has an image extension, or perform a network request
-        if (IMG_EXTENSIONS.some((ext) => item.toLowerCase().indexOf(`.${ext}`) !== -1)) {
-          return true;
+        if (
+          IMG_EXTENSIONS.some((ext) => item.toLowerCase().includes(`.${ext}`)) ||
+          (await testImage(item))
+        ) {
+          return item;
         } else {
-          return testImage(item);
+          return undefined;
         }
       }
     }),
   );
-
-  return imageItems;
+  return imageItems.filter((item) => item !== undefined) as Array<File | string>;
 }

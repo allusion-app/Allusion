@@ -10,12 +10,12 @@ export const createReady = <T>(value: T): Poll<T> => ({ tag: 'ready', value });
 
 export function usePromise<
   T,
-  E extends any,
+  E,
   S extends [any, ...any[]],
-  F extends (...args: [...S]) => Promise<T>
+  F extends (...args: [...S]) => Promise<T>,
 >(...args: [...S, F]): Poll<Result<T, E>> {
   const fetch = useRef<F>(args.pop() as F);
-  const sources = (args as unknown) as S;
+  const sources = args as unknown as S;
   const [future, setFuture] = useState<Poll<Result<T, E>>>(createPending);
 
   useEffect(() => {

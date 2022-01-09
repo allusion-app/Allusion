@@ -93,7 +93,7 @@ class FileStore {
           const { tagStore } = this.rootStore;
           for (const tagHierarchy of tagsNameHierarchies) {
             const match = tagStore.findByName(tagHierarchy[tagHierarchy.length - 1]);
-            if (match) {
+            if (match !== undefined) {
               // If there is a match to the leaf tag, just add it to the file
               file.addTag(match);
             } else {
@@ -101,7 +101,7 @@ class FileStore {
               let curTag = tagStore.root;
               for (const nodeName of tagHierarchy) {
                 const nodeMatch = tagStore.findByName(nodeName);
-                if (nodeMatch) {
+                if (nodeMatch !== undefined) {
                   curTag = nodeMatch;
                 } else {
                   curTag = await tagStore.create(curTag, nodeName);
@@ -213,17 +213,23 @@ class FileStore {
 
   @action.bound setContentQuery() {
     this.content = Content.Query;
-    if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
+    if (this.rootStore.uiStore.isSlideMode) {
+      this.rootStore.uiStore.disableSlideMode();
+    }
   }
 
   @action.bound setContentAll() {
     this.content = Content.All;
-    if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
+    if (this.rootStore.uiStore.isSlideMode) {
+      this.rootStore.uiStore.disableSlideMode();
+    }
   }
 
   @action.bound setContentUntagged() {
     this.content = Content.Untagged;
-    if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
+    if (this.rootStore.uiStore.isSlideMode) {
+      this.rootStore.uiStore.disableSlideMode();
+    }
   }
 
   /**
@@ -454,7 +460,7 @@ class FileStore {
 
   getLocation(location: ID): ClientLocation {
     const loc = this.rootStore.locationStore.get(location);
-    if (!loc) {
+    if (loc === undefined) {
       throw new Error(
         `Location of file was not found! This should never happen! Location ${location}`,
       );
@@ -631,7 +637,7 @@ class FileStore {
     this.index.clear();
     for (let index = 0; index < this.fileList.length; index++) {
       const file = this.fileList[index];
-      if (file.isBroken) {
+      if (file.isBroken === true) {
         missingFiles += 1;
       } else if (file.tags.size === 0) {
         untaggedFiles += 1;

@@ -24,7 +24,7 @@ export class ClientSearchItem<T> {
     this.id = id;
     this.name = name;
     this.criteria.push(...criteria.map((c) => ClientBaseCriteria.deserialize(c)));
-    this.matchAny = !!matchAny;
+    this.matchAny = matchAny === true;
 
     makeObservable(this);
   }

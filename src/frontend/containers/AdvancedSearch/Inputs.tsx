@@ -144,7 +144,7 @@ const TagInput = ({ value, dispatch }: ValueInput<TagValue>) => {
   // TODO: tooltips don't work; they're behind the dialog, arghghgh
   return (
     <TagSelector
-      selection={selection ? [selection] : []}
+      selection={selection !== undefined ? [selection] : []}
       onSelect={handleSelect}
       onDeselect={handleDeselect}
       onClear={handleDeselect}
@@ -265,7 +265,7 @@ const SizeInput = ({ value, labelledby, dispatch }: ValueInput<number>) => {
       min={0}
       onChange={(e) => {
         const value = e.target.valueAsNumber;
-        if (value) {
+        if (value > 0) {
           dispatch(setValue(value));
         }
       }}
@@ -279,10 +279,10 @@ const DateAddedInput = ({ value, labelledby, dispatch }: ValueInput<Date>) => {
       aria-labelledby={labelledby}
       className="input criteria-input"
       type="date"
-      max={new Date().toISOString().substr(0, 10)}
-      defaultValue={value.toISOString().substr(0, 10)}
+      max={new Date().toISOString().slice(0, 10)}
+      defaultValue={value.toISOString().slice(0, 10)}
       onChange={(e) => {
-        if (e.target.valueAsDate) {
+        if (e.target.valueAsDate !== null) {
           dispatch(setValue(e.target.valueAsDate));
         }
       }}
@@ -315,7 +315,7 @@ function getOperatorOptions(key: Key) {
 
 const toOperatorOption = <T extends string>(o: T, labels?: Record<T, string>) => (
   <option key={o} value={o}>
-    {labels && o in labels ? labels[o] : camelCaseToSpaced(o)}
+    {labels?.[o] !== undefined ? labels[o] : camelCaseToSpaced(o)}
   </option>
 );
 

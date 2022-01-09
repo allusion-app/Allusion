@@ -150,18 +150,15 @@ export function useCommandHandler(
   useEffect(() => {
     const handleSelect = action((event: Event) => {
       event.stopPropagation();
-      const {
-        file,
-        selectAdditive,
-        selectRange,
-      } = (event as CommandHandlerEvent<SelectPayload>).detail;
+      const { file, selectAdditive, selectRange } = (event as CommandHandlerEvent<SelectPayload>)
+        .detail;
       select(file, selectAdditive, selectRange);
     });
 
     const handlePreview = action((event: Event) => {
       event.stopPropagation();
       const file = (event as CommandHandlerEvent<Payload>).detail.file;
-      if (!file.isBroken) {
+      if (file.isBroken !== true) {
         uiStore.selectFile(file, true);
         uiStore.enableSlideMode();
       }
@@ -171,7 +168,7 @@ export function useCommandHandler(
       event.stopPropagation();
       const { file, x, y } = (event as CommandHandlerEvent<ContextMenuPayload>).detail;
       showContextMenu(x, y, [
-        file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
+        file.isBroken === true ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
         <ExternalAppMenuItems key="external" file={file} />,
       ]);
       if (!uiStore.fileSelection.has(file)) {
@@ -187,7 +184,7 @@ export function useCommandHandler(
         <>
           <FileTagMenuItems file={file} tag={tag} />
           <MenuDivider />
-          {file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />}
+          {file.isBroken === true ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />}
         </>,
         <ExternalAppMenuItems key="external" file={file} />,
       ]);
@@ -201,7 +198,11 @@ export function useCommandHandler(
       event.stopPropagation();
       const { file, x, y } = (event as CommandHandlerEvent<ContextMenuPayload>).detail;
       showContextMenu(x, y, [
-        file.isBroken ? <MissingFileMenuItems /> : <SlideFileViewerMenuItems file={file} />,
+        file.isBroken === true ? (
+          <MissingFileMenuItems />
+        ) : (
+          <SlideFileViewerMenuItems file={file} />
+        ),
         <ExternalAppMenuItems key="external" file={file} />,
       ]);
       if (!uiStore.fileSelection.has(file)) {

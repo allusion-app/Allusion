@@ -62,7 +62,7 @@ const Content = observer(() => {
 
   useEffect(() => {
     const observer = resizeObserver.current;
-    if (container.current) {
+    if (container.current !== null) {
       resizeObserver.current.observe(container.current);
     }
     return () => observer.disconnect();
@@ -73,7 +73,7 @@ const Content = observer(() => {
 
   const clearFileSelection = useAction((e: React.MouseEvent | React.KeyboardEvent) => {
     const isLayout = e.currentTarget.firstElementChild?.contains(e.target as Node);
-    if (!uiStore.isSlideMode && isLayout) {
+    if (!uiStore.isSlideMode && isLayout === true) {
       uiStore.clearFileSelection();
     }
   });
@@ -107,7 +107,7 @@ const Content = observer(() => {
           {fileMenu}
           {!uiStore.isSlideMode && (
             <>
-              {fileMenu && <MenuDivider />}
+              <MenuDivider />
               <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
                 <LayoutMenuItems />
               </MenuSubItem>
@@ -116,7 +116,7 @@ const Content = observer(() => {
               </MenuSubItem>
             </>
           )}
-          {externalMenu && <MenuDivider />}
+          <MenuDivider />
           {externalMenu}
         </Menu>
       </ContextMenu>

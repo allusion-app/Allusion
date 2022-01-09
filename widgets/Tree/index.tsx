@@ -22,17 +22,22 @@ const isGroup = (element: Element | null) => element?.matches('[role="group"]');
 const isExpanded = (element: Element | null) => element?.matches('[aria-expanded="true"]');
 
 const getParent = (element: Element): HTMLElement | null =>
-  isGroup(element.parentElement) ? element.parentElement!.parentElement!.parentElement : null;
+  isGroup(element.parentElement) === true
+    ? element.parentElement!.parentElement!.parentElement
+    : null;
 
 const getFirstChild = (element: Element): Element | null =>
-  isExpanded(element) && isGroup(element.lastElementChild!.lastElementChild)
+  isExpanded(element) === true && isGroup(element.lastElementChild!.lastElementChild) === true
     ? element.lastElementChild!.lastElementChild!.firstElementChild
     : null;
 
 const getLastDescendant = (element: Element): Element | null => {
-  if (isExpanded(element) && isGroup(element.lastElementChild!.lastElementChild)) {
+  if (
+    isExpanded(element) === true &&
+    isGroup(element.lastElementChild!.lastElementChild) === true
+  ) {
     const last = element.lastElementChild!.lastElementChild!.lastElementChild;
-    if (last) {
+    if (last !== null) {
       return getLastDescendant(last);
     }
   }
@@ -40,9 +45,9 @@ const getLastDescendant = (element: Element): Element | null => {
 };
 
 const getNextSibling = (element: Element): Element | null => {
-  if (!element.nextElementSibling) {
+  if (element.nextElementSibling === null) {
     const parent = getParent(element);
-    if (parent) {
+    if (parent !== null) {
       return getNextSibling(parent);
     }
   }
@@ -60,7 +65,7 @@ type KeyDownEventHandler = (
 const KeyboardSpaceEvent = new KeyboardEvent('keydown', { key: ' ', bubbles: true, repeat: false });
 
 const shiftKeyFocus = (shiftKey: boolean, current: HTMLElement | null, target: Element) => {
-  if (current) {
+  if (current !== null) {
     if (shiftKey) {
       current.dispatchEvent(KeyboardSpaceEvent);
     }
@@ -69,7 +74,7 @@ const shiftKeyFocus = (shiftKey: boolean, current: HTMLElement | null, target: E
 };
 
 const keyFocus = (current: HTMLElement | null, target: Element) => {
-  if (current) {
+  if (current !== null) {
     refocus(target, current);
   }
 };
@@ -108,9 +113,10 @@ export const createLeafOnKeyDown = (
     case 'ArrowUp': {
       event.stopPropagation();
       event.preventDefault(); // prevent scroll
-      const prev = leaf.previousElementSibling
-        ? getLastDescendant(leaf.previousElementSibling)
-        : getParent(leaf);
+      const prev =
+        leaf.previousElementSibling !== null
+          ? getLastDescendant(leaf.previousElementSibling)
+          : getParent(leaf);
       shiftKeyFocus(event.shiftKey, prev as HTMLElement, leaf);
       break;
     }
@@ -134,7 +140,7 @@ const handleTreeKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
     case 'Home': {
       const prev = event.currentTarget.querySelector('[role="treeitem"][tabindex="0"]');
       setTabFocus(event.currentTarget.firstElementChild as HTMLElement);
-      if (prev) {
+      if (prev !== null) {
         prev.setAttribute('tabIndex', '-1');
       }
       break;
@@ -144,7 +150,7 @@ const handleTreeKeyDown = (event: React.KeyboardEvent<HTMLUListElement>) => {
       const prev = event.currentTarget.querySelector('[role="treeitem"][tabindex="0"]');
       const last = getLastDescendant(event.currentTarget.lastElementChild!);
       setTabFocus(last as HTMLElement);
-      if (prev) {
+      if (prev !== null) {
         prev.setAttribute('tabIndex', '-1');
       }
       break;
@@ -193,9 +199,10 @@ export const createBranchOnKeyDown = (
     case 'ArrowUp': {
       event.stopPropagation();
       event.preventDefault(); // prevent scroll
-      const prev = branch.previousElementSibling
-        ? getLastDescendant(branch.previousElementSibling)
-        : getParent(branch);
+      const prev =
+        branch.previousElementSibling !== null
+          ? getLastDescendant(branch.previousElementSibling)
+          : getParent(branch);
       shiftKeyFocus(event.shiftKey, prev as HTMLElement, branch);
       break;
     }
@@ -320,12 +327,12 @@ const TreeBranch = ({
   dataId,
 }: IBranch) => {
   const transition = useRef<HTMLDivElement | null>(null);
-  const expanded = isExpanded(nodeData, treeData) ?? false;
+  const expanded = isExpanded(nodeData, treeData);
   const [end, setEnd] = useState<number | undefined>(expanded ? undefined : overScan);
 
   // TODO: Try transitionrun/transitionstart instead on ul element.
   useLayoutEffect(() => {
-    if (transition.current) {
+    if (transition.current !== null) {
       if (expanded) {
         setEnd(undefined);
         transition.current.style.maxHeight = '';
@@ -489,7 +496,7 @@ const handleFocus = (event: React.FocusEvent<HTMLUListElement>) => {
     return;
   }
   const prev = event.currentTarget.querySelector('li[role="treeitem"][tabindex="0"]');
-  if (prev) {
+  if (prev !== null) {
     if (event.target !== prev) {
       refocus(prev as HTMLElement, event.target);
     }
@@ -513,7 +520,7 @@ const Tree = ({
   const tree = useRef<HTMLUListElement | null>(null);
 
   useEffect(() => {
-    if (tree.current?.firstElementChild) {
+    if (tree.current !== null && tree.current.firstElementChild !== null) {
       tree.current.firstElementChild.setAttribute('tabIndex', '0');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

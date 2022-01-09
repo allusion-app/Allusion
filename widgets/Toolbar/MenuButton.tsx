@@ -29,7 +29,7 @@ export const MenuButton = ({
 
   // Whenever the menu is opened, focus the first focusable menu item!
   useEffect(() => {
-    if (container.current && isOpen) {
+    if (container.current !== null && isOpen) {
       const first: HTMLElement | null = container.current.querySelector('[role^="menuitem"]');
       // The Menu component will handle setting the tab indices.
       if (first !== null) {
@@ -74,7 +74,7 @@ export const MenuButton = ({
           aria-disabled={disabled}
           data-collapsible={isCollapsible ?? true}
           data-tooltip={tooltip ?? text}
-          onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
+          onClick={disabled === true ? undefined : () => setIsOpen(!isOpen)}
           aria-expanded={isOpen}
           aria-controls={menuID}
           aria-haspopup="menu"

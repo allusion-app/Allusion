@@ -66,11 +66,10 @@ export const MenuSubItem = ({ text, icon, disabled, children }: IMenuSubItem) =>
       setIsOpen(false);
       // Returns focus to the anchor element.
       (e.currentTarget.firstElementChild as HTMLElement).focus();
-    } else if (!disabled && (e.key === 'ArrowRight' || e.key === 'Enter')) {
+    } else if (disabled !== true && (e.key === 'ArrowRight' || e.key === 'Enter')) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const first: HTMLElement | null = e.currentTarget.lastElementChild!.querySelector(
-        '[role^="menuitem"]',
-      );
+      const first =
+        e.currentTarget.lastElementChild!.querySelector<HTMLElement>('[role^="menuitem"]');
       if (first !== null) {
         e.stopPropagation();
         setIsOpen(true);
@@ -82,7 +81,7 @@ export const MenuSubItem = ({ text, icon, disabled, children }: IMenuSubItem) =>
   };
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLElement>) => {
-    if (!disabled && e.currentTarget.firstElementChild === e.target) {
+    if (disabled !== true && e.currentTarget.firstElementChild === e.target) {
       (e.currentTarget.firstElementChild as HTMLElement).focus();
       setIsOpen(true);
     }
@@ -184,9 +183,7 @@ function handleMenuKeyDown(event: React.KeyboardEvent) {
     } else {
       // FIXME: It's not performant but a context menu is usually shorter than a `Tree`.
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const last: NodeListOf<HTMLElement> = event.currentTarget.querySelectorAll(
-        '[role^="menuitem"]',
-      );
+      const last = event.currentTarget.querySelectorAll<HTMLElement>('[role^="menuitem"]');
       if (last.length > 0) {
         event.stopPropagation();
         last[last.length - 1].focus();

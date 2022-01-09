@@ -177,7 +177,7 @@ const ImportExport = observer(() => {
       defaultPath: backupDir,
     });
     const path = filePaths[0];
-    if (!path) {
+    if (path.length === 0) {
       return;
     }
     try {
@@ -307,13 +307,13 @@ const ImportExport = observer(() => {
           title="Are you sure you want to restore the database from a backup?"
           primaryButtonText="Import"
           onClick={async (button) => {
-            if (isConfirmingFileImport && button === DialogButton.PrimaryButton) {
+            if (isConfirmingFileImport !== undefined && button === DialogButton.PrimaryButton) {
               AppToaster.show({
                 message: 'Restoring database... Allusion will restart',
                 timeout: 5000,
               });
               try {
-                await rootStore.restoreDatabaseFromFile(isConfirmingFileImport?.path);
+                await rootStore.restoreDatabaseFromFile(isConfirmingFileImport.path);
                 RendererMessenger.reload();
               } catch (e) {
                 console.error('Could not restore backup', e);
@@ -406,7 +406,7 @@ const ImageFormatPicker = observer(() => {
                 checked={newEnabledFileExtensions.has(ext)}
                 onChange={() => toggleExtension(ext)}
               />
-              {imageFormatInts[ext] && <> {imageFormatInts[ext]}</>}
+              {imageFormatInts[ext] !== undefined && <> {imageFormatInts[ext]}</>}
             </div>
           ))}
         </div>
@@ -499,7 +499,7 @@ const BackgroundProcesses = observer(() => {
           <input
             readOnly
             className="input input-file-value"
-            value={uiStore.importDirectory || 'Not set'}
+            value={uiStore.importDirectory.length > 0 ? uiStore.importDirectory : 'Not set'}
           />
           <Button
             styling="minimal"
@@ -515,7 +515,7 @@ const BackgroundProcesses = observer(() => {
         <Toggle
           checked={isClipEnabled}
           onChange={
-            isClipEnabled || importDirectory
+            isClipEnabled || importDirectory.length > 0
               ? toggleClipServer
               : (e) => {
                   e.preventDefault();
@@ -610,7 +610,7 @@ const Advanced = observer(() => {
     // Reset thumbnail paths for those that already have one
     runInAction(() => {
       for (const f of fileStore.fileList) {
-        if (f.thumbnailPath && f.thumbnailPath !== f.absolutePath) {
+        if (f.thumbnailPath.length > 0 && f.thumbnailPath !== f.absolutePath) {
           f.setThumbnailPath(getThumbnailPath(f.absolutePath, newDir));
         }
       }
@@ -657,7 +657,7 @@ const Advanced = observer(() => {
             text="Browse"
             onClick={browseThumbnailDirectory}
           />
-          {defaultThumbnailDir && defaultThumbnailDir !== uiStore.thumbnailDirectory && (
+          {defaultThumbnailDir.length > 0 && defaultThumbnailDir !== uiStore.thumbnailDirectory && (
             <Button
               icon={IconSet.RELOAD}
               text="Reset"

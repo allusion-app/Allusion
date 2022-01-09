@@ -234,7 +234,7 @@ export default class Backend {
   ): Promise<number> {
     console.info('Get number of files...', criteria, matchAny);
     return this.fileRepository.count(
-      criteria
+      criteria !== undefined
         ? {
             criteria,
             matchAny,
@@ -292,7 +292,7 @@ export default class Backend {
     const metadata = await peakImportFile(blob); // heh, they made a typo
     const tagsTable = metadata.data.tables.find((t) => t.name === 'tags');
     const filesTable = metadata.data.tables.find((t) => t.name === 'files');
-    if (tagsTable && filesTable) {
+    if (tagsTable !== undefined && filesTable !== undefined) {
       return {
         numTags: tagsTable.rowCount,
         numFiles: filesTable.rowCount,

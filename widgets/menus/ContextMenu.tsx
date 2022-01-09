@@ -42,7 +42,7 @@ export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = true }:
 
   useLayoutEffect(() => {
     // layoutEffect to avoid the flicker where the placement is wrong at the start
-    if (container.current && isOpen) {
+    if (container.current !== null && isOpen) {
       // Focus container so the keydown event can be handled even without a mouse.
       container.current.focus();
 

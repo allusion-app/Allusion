@@ -54,7 +54,7 @@ class ClipServer {
     }
 
     // This will return the newest file with the same filename, by not incrementing after the last exiting file
-    if (noIncrement) {
+    if (noIncrement === true) {
       if (count === 1) {
         filePath = path.join(directory, sanitzedFilename);
       } else {
@@ -108,7 +108,7 @@ class ClipServer {
     this.savePreferences();
     if (!isEnabled) {
       this.stopServer();
-    } else if (!this.server) {
+    } else if (this.server === null) {
       this.startServer();
     }
   }
@@ -182,7 +182,7 @@ class ClipServer {
           req.on('end', async () => {
             try {
               // Check what kind of message has been sent
-              if (req.url && req.url.endsWith('import-image')) {
+              if (req.url?.endsWith('import-image') === true) {
                 const directory = this.preferences.importLocation;
                 const { filename, imgBase64 } = JSON.parse(body);
                 console.log('Received file', filename);
@@ -190,7 +190,7 @@ class ClipServer {
                 await this.storeAndImportImage(directory, filename, imgBase64);
                 res.write(JSON.stringify({ message: 'OK!' }));
                 res.end();
-              } else if (req.url && req.url.endsWith('/set-tags')) {
+              } else if (req.url?.endsWith('/set-tags') === true) {
                 const { tagNames, filename } = JSON.parse(body);
 
                 const directory = this.preferences.importLocation;
@@ -218,7 +218,7 @@ class ClipServer {
             }
           });
         } else if (req.method === 'GET') {
-          if (req.url?.endsWith('/tags')) {
+          if (req.url?.endsWith('/tags') === true) {
             const tags = await this.requestTags();
             res.end(JSON.stringify(tags));
           }
@@ -229,7 +229,7 @@ class ClipServer {
 
   private stopServer() {
     console.log('Stopping clip server...');
-    if (this.server) {
+    if (this.server !== null) {
       this.server.close();
       this.server = null;
     }

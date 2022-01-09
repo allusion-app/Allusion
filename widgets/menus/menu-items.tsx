@@ -14,7 +14,7 @@ export const MenuItem = ({ text, icon, onClick, accelerator, disabled }: IMenuIt
   <li
     role="menuitem"
     tabIndex={-1}
-    onClick={disabled ? undefined : onClick}
+    onClick={disabled === true ? undefined : onClick}
     aria-disabled={disabled}
   >
     <span className="item-icon" aria-hidden>
@@ -41,7 +41,7 @@ export const MenuRadioItem = ({
     role="menuitemradio"
     aria-checked={checked}
     tabIndex={-1}
-    onClick={disabled ? undefined : onClick}
+    onClick={disabled === true ? undefined : onClick}
     aria-disabled={disabled}
   >
     <span className="item-icon" aria-hidden>
@@ -65,7 +65,7 @@ export const MenuCheckboxItem = ({
     role="menuitemcheckbox"
     aria-checked={checked}
     tabIndex={-1}
-    onClick={disabled ? undefined : onClick}
+    onClick={disabled === true ? undefined : onClick}
     aria-disabled={disabled}
   >
     <span className="item-icon" aria-hidden></span>
@@ -98,7 +98,9 @@ export const MenuSliderItem = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const handleFocus = useCallback(() => inputRef.current?.focus(), []);
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (['ArrowLeft', 'ArrowRight'].includes(e.key)) e.stopPropagation();
+    if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.stopPropagation();
+    }
   }, []);
 
   const handleChange = useCallback(

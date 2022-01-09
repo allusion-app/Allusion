@@ -47,7 +47,7 @@ export class LocationTreeItemRevealer extends TreeItemRevealer {
   revealSubLocation(locationId: string, absolutePath: string) {
     // For every sublocation on its path to the relativePath, expand it, and then scrollTo + focus the item
     const location = this.locationStore?.locationList.find((l) => l.id === locationId);
-    if (!location) {
+    if (location === undefined) {
       return;
     }
 
@@ -57,8 +57,10 @@ export class LocationTreeItemRevealer extends TreeItemRevealer {
       const match = loc.subLocations.find((child) =>
         absolutePath.startsWith(`${child.path}${SysPath.sep}`),
       );
-      if (loc instanceof ClientLocation) return match ? getSubLocationsToFile(match) : [];
-      return match ? [loc, ...getSubLocationsToFile(match)] : [loc];
+      if (loc instanceof ClientLocation) {
+        return match !== undefined ? getSubLocationsToFile(match) : [];
+      }
+      return match !== undefined ? [loc, ...getSubLocationsToFile(match)] : [loc];
     };
 
     const subLocationsToExpand = getSubLocationsToFile(location);
@@ -145,10 +147,10 @@ const DirectoryMenu = observer(
 
     const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
 
-    const handleAddToSearch = useCallback(() => uiStore.addSearchCriteria(pathCriteria(path)), [
-      path,
-      uiStore,
-    ]);
+    const handleAddToSearch = useCallback(
+      () => uiStore.addSearchCriteria(pathCriteria(path)),
+      [path, uiStore],
+    );
 
     const handleReplaceSearch = useCallback(
       () => uiStore.replaceSearchCriteria(pathCriteria(path)),
@@ -191,7 +193,7 @@ interface IContextMenuProps {
 const LocationTreeContextMenu = observer(({ location, onDelete, onExclude }: IContextMenuProps) => {
   const { uiStore } = useStore();
 
-  const openDeleteDialog = useCallback(() => location && onDelete(location), [location, onDelete]);
+  const openDeleteDialog = useCallback(() => onDelete(location), [location, onDelete]);
 
   if (location.isBroken) {
     return (
@@ -226,7 +228,9 @@ const useFileDropHandling = (
   // Don't expand immediately, only after hovering over it for a second or so
   const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
   const expandDelayed = useCallback(() => {
-    if (expandTimeoutId) clearTimeout(expandTimeoutId);
+    if (expandTimeoutId !== undefined) {
+      clearTimeout(expandTimeoutId);
+    }
     const t = window.setTimeout(() => {
       setExpansion({ ...expansion, [expansionId]: true });
     }, HOVER_TIME_TO_EXPAND);
@@ -271,12 +275,14 @@ const useFileDropHandling = (
     (event: React.DragEvent<HTMLDivElement>) => {
       // Drag events are also triggered for children??
       // We don't want to detect dragLeave of a child as a dragLeave of the target element, so return immmediately
-      if ((event.target as HTMLElement).contains(event.relatedTarget as HTMLElement)) return;
+      if ((event.target as HTMLElement).contains(event.relatedTarget as HTMLElement)) {
+        return;
+      }
 
       event.stopPropagation();
       event.preventDefault();
       handleDragLeave(event);
-      if (expandTimeoutId) {
+      if (expandTimeoutId !== undefined) {
         clearTimeout(expandTimeoutId);
         setExpandTimeoutId(undefined);
       }
@@ -312,7 +318,7 @@ const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: IT
 
   const handleClick = useCallback(
     (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
-      existingSearchCrit // toggle search
+      existingSearchCrit !== undefined // toggle search
         ? uiStore.removeSearchCriteria(existingSearchCrit)
         : event.ctrlKey // otherwise add/replace depending on ctrl
         ? uiStore.addSearchCriteria(pathCriteria(nodeData.path))
@@ -382,7 +388,7 @@ const Location = observer(
 
     const handleClick = useCallback(
       (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
-        existingSearchCrit // toggle search
+        existingSearchCrit !== undefined // toggle search
           ? uiStore.removeSearchCriteria(existingSearchCrit)
           : event.ctrlKey
           ? uiStore.addSearchCriteria(pathCriteria(nodeData.path))
@@ -494,9 +500,10 @@ const LocationsTree = ({ onDelete, onExclude, showContextMenu }: ILocationTreePr
   });
   // TODO: re-run when location (sub)-folder updates: add "lastUpdated" field to location, update when location watcher notices changes?
 
-  useEffect(() => LocationTreeItemRevealer.instance.initialize(setExpansion, locationStore), [
-    locationStore,
-  ]);
+  useEffect(
+    () => LocationTreeItemRevealer.instance.initialize(setExpansion, locationStore),
+    [locationStore],
+  );
 
   return (
     <Tree
@@ -535,10 +542,6 @@ const LocationsPanel = observer(() => {
     } catch (error) {
       // TODO: Show error notification.
       console.error(error);
-      return;
-    }
-
-    if (path === undefined) {
       return;
     }
 
@@ -606,19 +609,19 @@ const LocationsPanel = observer(() => {
       </Collapse>
       <LocationRecoveryDialog />
 
-      {creatableLocation && (
+      {creatableLocation !== undefined && (
         <LocationCreationDialog
           location={creatableLocation}
           onClose={() => setCreatableLocation(undefined)}
         />
       )}
-      {deletableLocation && (
+      {deletableLocation !== undefined && (
         <LocationRemoval
           object={deletableLocation}
           onClose={() => setDeletableLocation(undefined)}
         />
       )}
-      {excludableSubLocation && (
+      {excludableSubLocation !== undefined && (
         <SubLocationExclusion
           object={excludableSubLocation}
           onClose={() => setExcludableSubLocation(undefined)}

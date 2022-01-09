@@ -64,9 +64,9 @@ export class MasonryWorkerAdapter implements Layouter {
 
     await worker.compute(
       containerWidth,
-      opts.type || defaultOpts.type,
-      opts.thumbSize || defaultOpts.thumbSize,
-      opts.padding || defaultOpts.padding,
+      opts.type ?? defaultOpts.type,
+      opts.thumbSize ?? defaultOpts.thumbSize,
+      opts.padding ?? defaultOpts.padding,
     );
     return worker.get_height();
   }
@@ -80,9 +80,9 @@ export class MasonryWorkerAdapter implements Layouter {
     }
     await this.worker.compute(
       containerWidth,
-      opts.type || defaultOpts.type,
-      opts.thumbSize || defaultOpts.thumbSize,
-      opts.padding || defaultOpts.padding,
+      opts.type ?? defaultOpts.type,
+      opts.thumbSize ?? defaultOpts.thumbSize,
+      opts.padding ?? defaultOpts.padding,
     );
     return this.worker.get_height();
   }
@@ -93,6 +93,6 @@ export class MasonryWorkerAdapter implements Layouter {
       throw new Error('Worker is uninitialized.');
     }
     const ptr = this.worker.get_transform(index);
-    return (new Uint32Array(this.memory.buffer, ptr, 4) as unknown) as ITransform;
+    return new Uint32Array(this.memory.buffer, ptr, 4) as unknown as ITransform;
   }
 }

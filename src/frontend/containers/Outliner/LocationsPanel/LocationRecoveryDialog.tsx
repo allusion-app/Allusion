@@ -117,7 +117,7 @@ const RecoveryInfo = observer(({ location, status, match }: IRecoveryInfoProps) 
 
     // TODO: Should also warn about new images in the folder that were not in the location before (status.directoryImageCount)
     case Status.PartialRecovery:
-      if (match) {
+      if (match !== undefined) {
         return (
           <p>
             Only {match.matchCount} out of {match.locationImageCount} images were found in the
@@ -211,7 +211,7 @@ const LocationRecoveryDialog = () => {
 
   const location = isLocationRecoveryOpen ? locationStore.get(isLocationRecoveryOpen) : undefined;
 
-  if (!location) {
+  if (location === undefined) {
     return null;
   }
 

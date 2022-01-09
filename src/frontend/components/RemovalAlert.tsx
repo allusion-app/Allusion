@@ -130,7 +130,7 @@ export const MoveFilesToTrashBin = observer(() => {
       // await shell.trashItem(file.absolutePath);
       // https://github.com/electron/electron/issues/29598
       const error = await RendererMessenger.trashFile(file.absolutePath);
-      if (!error) {
+      if (error === undefined) {
         files.push(file);
       } else {
         console.warn('Could not move file to trash', file.absolutePath, error);

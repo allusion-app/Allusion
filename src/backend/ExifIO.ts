@@ -75,11 +75,13 @@ class ExifIO {
   }
 
   isOpen(): boolean {
-    return ep._open || false;
+    return ep._open === true;
   }
 
   async initialize(): Promise<ExifIO> {
-    if (ep._open) return this;
+    if (ep._open === true) {
+      return this;
+    }
     if (!this.isOpening) {
       this.isOpening = true;
       const pid = await ep.open();
@@ -87,7 +89,9 @@ class ExifIO {
     } else {
       await new Promise<void>((resolve) =>
         setInterval(() => {
-          if (ep._open) resolve();
+          if (ep._open === true) {
+            resolve();
+          }
         }, 50),
       );
     }
@@ -95,7 +99,7 @@ class ExifIO {
   }
 
   async close(): Promise<void> {
-    if (ep._open) {
+    if (ep._open === true) {
       console.log('Closing Exiftool...');
       await ep.close();
       console.log('Closed Exiftool');
@@ -141,7 +145,7 @@ class ExifIO {
       'Keywords',
       ...this.extraArgs,
     ]);
-    if (metadata.error || !metadata.data?.[0]) {
+    if (metadata.error || metadata.data === null || metadata.data.length === 0) {
       throw new Error(metadata.error || 'No metadata entry');
     }
     const entry = metadata.data[0];
@@ -153,7 +157,7 @@ class ExifIO {
 
   async readExifTags(filepath: string, tags: string[]): Promise<(string | undefined)[]> {
     const metadata = await ep.readMetadata(filepath, [...tags, ...this.extraArgs]);
-    if (metadata.error || !metadata.data?.[0]) {
+    if (metadata.error || metadata.data === null || metadata.data.length === 0) {
       throw new Error(metadata.error || 'No metadata entry');
     }
     const entry = metadata.data[0];
@@ -190,7 +194,9 @@ class ExifIO {
     // Can add and remove simultaneously with `exiftool -keywords+="add this" -keywords-="remove this"`
     // Multiple at once with `-sep ", " -keywords="one, two, three"`
 
-    if (!tagNameHierarchy.length) return;
+    if (tagNameHierarchy.length === 0) {
+      return;
+    }
 
     const subject = tagNameHierarchy.map((entry) => entry[entry.length - 1]);
 
@@ -213,7 +219,7 @@ class ExifIO {
         ...this.extraArgs,
       ],
     );
-    if (!res.error?.endsWith('1 image files updated')) {
+    if (res.error?.endsWith('1 image files updated') !== true) {
       console.error('Could not update file metadata', res);
     }
   }
@@ -263,7 +269,7 @@ class ExifIO {
         'ImageHeight',
         ...this.extraArgs,
       ]);
-      if (metadata.error || !metadata.data?.[0]) {
+      if (metadata.error || metadata.data === null || metadata.data.length === 0) {
         throw new Error(metadata.error || 'No metadata entry');
       }
       const entry = metadata.data[0];

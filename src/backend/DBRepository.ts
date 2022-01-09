@@ -35,7 +35,7 @@ export const dbInit = (configs: IDBVersioningConfig[], dbName: string): Dexie =>
     const dbSchema: { [key: string]: string } = {};
     collections.forEach(({ name, schema }) => (dbSchema[name] = schema));
     const stores = db.version(version).stores(dbSchema);
-    if (upgrade) {
+    if (upgrade !== undefined) {
       stores.upgrade(upgrade);
     }
   });
@@ -117,10 +117,10 @@ export default class BaseRepository<T extends IResource> {
   }
 
   public async count(queryRequest?: IDbQueryRequest<T>): Promise<number> {
-    if (!queryRequest) {
+    if (queryRequest === undefined) {
       return this.collection.count();
     }
-    const table = await this._find(queryRequest, queryRequest.matchAny ? 'or' : 'and');
+    const table = await this._find(queryRequest, queryRequest.matchAny === true ? 'or' : 'and');
     return table.count();
   }
 
@@ -168,9 +168,7 @@ export default class BaseRepository<T extends IResource> {
       let allWheres = true;
       let table: Dexie.Collection<T, string> | undefined = undefined;
       for (const crit of criteriaList) {
-        const where = !table
-          ? this.collection.where(crit.key as string)
-          : table.or(crit.key as string);
+        const where = table?.or(crit.key as string) ?? this.collection.where(crit.key as string);
         const tableOrFilter = this._filterWhere(where, crit);
 
         if (typeof tableOrFilter === 'function') {
@@ -181,7 +179,7 @@ export default class BaseRepository<T extends IResource> {
         }
       }
 
-      if (allWheres && table) {
+      if (allWheres && table !== undefined) {
         return table;
       } else {
         const critLambdas = criteriaList.map((crit) => this._filterLambda(crit));
@@ -201,7 +199,7 @@ export default class BaseRepository<T extends IResource> {
       typeof whereOrFilter !== 'function' ? whereOrFilter : this.collection.filter(whereOrFilter);
 
     // Then just chain a loop of and() calls. A .every() feels more efficient than chaining table.and() calls
-    if (otherCrits.length) {
+    if (otherCrits.length > 0) {
       table = table.and((item) => otherCrits.every((crit) => this._filterLambda(crit)(item)));
     }
     // for (const crit of otherCrits) {
@@ -290,7 +288,7 @@ export default class BaseRepository<T extends IResource> {
     ] as const;
 
     if ((dbStringOperators as readonly string[]).includes(crit.operator)) {
-      const funcName = (crit.operator as unknown) as typeof dbStringOperators[number];
+      const funcName = crit.operator as unknown as typeof dbStringOperators[number];
       return where[funcName](crit.value);
     }
     // Use normal string filter as fallback for functions not supported by the DB
@@ -351,7 +349,7 @@ export default class BaseRepository<T extends IResource> {
       }
     })(crit.operator);
 
-    if (!funcName) {
+    if (funcName === undefined) {
       console.log('Number operator not allowed:', crit.operator);
       return this.collection.filter(() => false);
     }
@@ -408,7 +406,7 @@ export default class BaseRepository<T extends IResource> {
       }
     })(crit.operator);
 
-    if (!col) {
+    if (col === undefined) {
       // Use fallback
       return this._filterDateLambda(crit);
     }

@@ -106,9 +106,9 @@ const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
   if (nodeData.isSearched) {
     // if it already exists, then remove it
     const alreadySearchedCrit = uiStore.searchCriteriaList.find((c) =>
-      (c as ClientTagSearchCriteria<any>)?.value?.includes(nodeData.id),
+      (c as ClientTagSearchCriteria<any>).value?.includes(nodeData.id),
     );
-    if (alreadySearchedCrit) {
+    if (alreadySearchedCrit !== undefined) {
       uiStore.replaceSearchCriterias(
         uiStore.searchCriteriaList.filter((c) => c !== alreadySearchedCrit),
       );
@@ -170,7 +170,9 @@ const TagItem = observer((props: ITagItemProps) => {
   const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
   const expandDelayed = useCallback(
     (nodeId: string) => {
-      if (expandTimeoutId) clearTimeout(expandTimeoutId);
+      if (expandTimeoutId !== undefined) {
+        clearTimeout(expandTimeoutId);
+      }
       const t = window.setTimeout(() => {
         dispatch(Factory.expandNode(nodeId));
       }, HOVER_TIME_TO_EXPAND);
@@ -219,11 +221,11 @@ const TagItem = observer((props: ITagItemProps) => {
         // Don't expand when hovering over top/bottom border
         const targetClasses = event.currentTarget.classList;
         if (targetClasses.contains('top') || targetClasses.contains('bottom')) {
-          if (expandTimeoutId) {
+          if (expandTimeoutId !== undefined) {
             clearTimeout(expandTimeoutId);
             setExpandTimeoutId(undefined);
           }
-        } else if (!expansion[nodeData.id] && !expandTimeoutId) {
+        } else if (!expansion[nodeData.id] && expandTimeoutId === undefined) {
           expandDelayed(nodeData.id);
         }
       });
@@ -240,7 +242,7 @@ const TagItem = observer((props: ITagItemProps) => {
         event.currentTarget.dataset[DnDAttribute.Target] = 'false';
         event.currentTarget.classList.remove('top');
         event.currentTarget.classList.remove('bottom');
-        if (expandTimeoutId) {
+        if (expandTimeoutId !== undefined) {
           clearTimeout(expandTimeoutId);
           setExpandTimeoutId(undefined);
         }
@@ -266,7 +268,7 @@ const TagItem = observer((props: ITagItemProps) => {
         }
 
         // Note to self: 'pos' does not start from 0! It is +1'd. So, here we -1 it again
-        if (dndData.source?.isSelected) {
+        if (dndData.source?.isSelected === true) {
           if (relativeMovePos === 'middle') {
             uiStore.moveSelectedTagItems(nodeData.id);
           } else {
@@ -283,12 +285,12 @@ const TagItem = observer((props: ITagItemProps) => {
       event.currentTarget.dataset[DnDAttribute.Target] = 'false';
       event.currentTarget.classList.remove('top');
       event.currentTarget.classList.remove('bottom');
-      if (expandTimeoutId) {
+      if (expandTimeoutId !== undefined) {
         clearTimeout(expandTimeoutId);
         setExpandTimeoutId(undefined);
       }
     },
-    [dndData, expandTimeoutId, nodeData, pos, uiStore],
+    [dispatch, dndData, expandTimeoutId, expansion, nodeData, pos, uiStore],
   );
 
   const handleSelect = useCallback(
@@ -308,16 +310,14 @@ const TagItem = observer((props: ITagItemProps) => {
           const crit = uiStore.searchCriteriaList.find(
             (c) => c instanceof ClientTagSearchCriteria && c.value === nodeData.id,
           );
-          if (crit) {
+          if (crit !== undefined) {
             uiStore.removeSearchCriteria(crit);
           }
         } else {
           // otherwise, search it
           const query = new ClientTagSearchCriteria('tags', nodeData.id, 'containsRecursively');
           if (event.ctrlKey || event.metaKey) {
-            if (!nodeData.isSearched) {
-              uiStore.addSearchCriteria(query);
-            }
+            uiStore.addSearchCriteria(query);
           } else {
             uiStore.replaceSearchCriteria(query);
           }
@@ -327,10 +327,10 @@ const TagItem = observer((props: ITagItemProps) => {
     [nodeData, uiStore],
   );
 
-  const handleRename = useCallback(() => dispatch(Factory.enableEditing(nodeData.id)), [
-    dispatch,
-    nodeData.id,
-  ]);
+  const handleRename = useCallback(
+    () => dispatch(Factory.enableEditing(nodeData.id)),
+    [dispatch, nodeData.id],
+  );
 
   useEffect(
     () =>
@@ -535,7 +535,7 @@ const TagsTree = observer(() => {
     } else {
       if (selectedTag.isSelected && uiStore.tagSelection.size === 1) {
         uiStore.clearTagSelection();
-        (document.activeElement as HTMLElement)?.blur?.();
+        (document.activeElement as HTMLElement | null)?.blur();
       } else {
         uiStore.selectTag(selectedTag, true);
       }
@@ -564,7 +564,7 @@ const TagsTree = observer(() => {
   );
 
   const handleDrop = useAction(() => {
-    if (dndData.source?.isSelected) {
+    if (dndData.source?.isSelected === true) {
       uiStore.moveSelectedTagItems(ROOT_TAG_ID);
     } else if (dndData.source !== undefined) {
       const { root } = tagStore;
@@ -599,7 +599,7 @@ const TagsTree = observer(() => {
   const handleKeyDown = useAction((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       uiStore.clearTagSelection();
-      (document.activeElement as HTMLElement)?.blur?.();
+      (document.activeElement as HTMLElement | null)?.blur();
       e.stopPropagation();
     }
   });
@@ -661,14 +661,14 @@ const TagsTree = observer(() => {
         onDrop={handleDrop}
       />
 
-      {state.deletableNode && (
+      {state.deletableNode !== undefined && (
         <TagRemoval
           object={state.deletableNode}
           onClose={() => dispatch(Factory.abortDeletion())}
         />
       )}
 
-      {state.mergableNode && (
+      {state.mergableNode !== undefined && (
         <TagMerge tag={state.mergableNode} onClose={() => dispatch(Factory.abortMerge())} />
       )}
 

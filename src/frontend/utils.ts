@@ -21,11 +21,11 @@ export function debounce<F extends (...args: any) => any>(func: F, wait: number 
   }
 
   // conversion through any necessary as it wont satisfy criteria otherwise
-  return (function (this: any, ...args: any[]) {
+  return function (this: any, ...args: any[]) {
     clearTimeout(timeoutID);
 
-    timeoutID = (setTimeout(() => func.apply(this, args), wait) as unknown) as number;
-  } as any) as F;
+    timeoutID = setTimeout(() => func.apply(this, args), wait) as unknown as number;
+  } as any as F;
 }
 
 export const throttle = (fn: (...args: any) => any, wait: number = 300) => {
@@ -96,7 +96,7 @@ export async function promiseRetry<T>(
 ): Promise<T> {
   await new Promise((resolve) => setTimeout(resolve, timeout));
 
-  return !retries
+  return retries === 0
     ? Promise.reject(err)
     : fn().catch((error) => promiseRetry(fn, retries - 1, timeout * 2, error));
 }
@@ -156,7 +156,7 @@ export function promiseAllLimit<T>(
         outcome[j] = result;
 
         progressCallback?.(1 - jobsLeft / collection.length);
-        if (cancel?.()) {
+        if (cancel?.() === true) {
           rejected = true;
           console.log('CANCELLING!');
           return;
@@ -206,7 +206,7 @@ export const capitalize = (value: string) => {
 };
 
 export const camelCaseToSpaced = (value: string) => {
-  if (!value) {
+  if (value.length === 0) {
     return '';
   }
   return (
@@ -313,8 +313,8 @@ export const hexToHSL = (H: string) => {
 
   l = (cmax + cmin) / 2;
   s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
-  s = +(s * 100).toFixed(1);
-  l = +(l * 100).toFixed(1);
+  s = Number((s * 100).toFixed(1));
+  l = Number((l * 100).toFixed(1));
 
   return [h, s, l];
 };
@@ -347,7 +347,7 @@ export const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement
  */
 export const getContrast = (hexcolor: string) => {
   // If a leading # is provided, remove it
-  if (hexcolor.slice(0, 1) === '#') {
+  if (hexcolor.startsWith('#')) {
     hexcolor = hexcolor.slice(1);
   }
 
@@ -360,9 +360,9 @@ export const getContrast = (hexcolor: string) => {
   }
 
   // Convert to RGB value
-  const r = parseInt(hexcolor.substr(0, 2), 16);
-  const g = parseInt(hexcolor.substr(2, 2), 16);
-  const b = parseInt(hexcolor.substr(4, 2), 16);
+  const r = parseInt(hexcolor.slice(0, 2), 16);
+  const g = parseInt(hexcolor.slice(2, 4), 16);
+  const b = parseInt(hexcolor.slice(4, 6), 16);
 
   // Get YIQ ratio
   return (r * 299 + g * 587 + b * 114) / 1000;
