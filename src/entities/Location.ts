@@ -240,19 +240,10 @@ export class ClientLocation implements ISerializable<ILocation> {
     ) => {
       const newSublocations: ClientSubLocation[] = [];
       for (const item of dir.children) {
-        let subLoc = loc.subLocations.find((subLoc) => subLoc.name === item.name);
-        if (subLoc !== undefined) {
-          newSublocations.push(subLoc);
-        } else {
-          subLoc = new ClientSubLocation(
-            this,
-            item.fullPath,
-            item.name,
-            item.name.startsWith('.'),
-            [],
-          );
-          newSublocations.push(subLoc);
-        }
+        const subLoc =
+          loc.subLocations.find((subLoc) => subLoc.name === item.name) ??
+          new ClientSubLocation(this, item.fullPath, item.name, item.name.startsWith('.'), []);
+        newSublocations.push(subLoc);
         if (item.children.length > 0) {
           updateSubLocations(subLoc, item);
         } else {

@@ -214,7 +214,7 @@ const SuggestedTagsList = observer(
             return tagStore.tagList;
           } else {
             const textLower = query.toLowerCase();
-            return tagStore.tagList.filter((t) => t.name.toLowerCase().indexOf(textLower) >= 0);
+            return tagStore.tagList.filter((t) => t.name.toLowerCase().includes(textLower));
           }
         }),
       [query, tagStore],

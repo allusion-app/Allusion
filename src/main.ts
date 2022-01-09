@@ -457,7 +457,7 @@ if (isDev()) {
   autoUpdater.updateConfigPath = path.join(__dirname, '..', 'dev-app-update.yml');
 }
 
-autoUpdater.on('error', (error) => {
+autoUpdater.on('error', (error: Error) => {
   // Don't show error messages on startup
   if (!hasCheckedForUpdateOnStartup) {
     hasCheckedForUpdateOnStartup = true;
@@ -465,7 +465,7 @@ autoUpdater.on('error', (error) => {
     return;
   }
 
-  let errorMsg: string = (error.stack || error).toString() || 'Reason unknown, try again later.';
+  let errorMsg: string = error.stack ?? error.toString();
 
   // In case of no network connection...
   if (errorMsg.includes('INTERNET_DISCONNECTED')) {
@@ -482,7 +482,7 @@ autoUpdater.on('update-available', async (info: UpdateInfo) => {
   }
 
   const message = `Update available: ${
-    info.releaseName || info.version
+    info.releaseName ?? info.version
   }:\nDo you wish to update now?`;
   // info.releaseNotes attribute is HTML, could show that in renderer at some point
 
@@ -563,7 +563,7 @@ process.on('uncaughtException', async (error) => {
       } else if (dialogResult.response === 1) {
         // File bug report
         const encodedBody = encodeURIComponent(
-          createBugReport(error.stack || error.name + ': ' + error.message, getVersion()),
+          createBugReport(error.stack ?? error.toString(), getVersion()),
         );
         const url = `${githubUrl}/issues/new?body=${encodedBody}`;
         shell.openExternal(url);

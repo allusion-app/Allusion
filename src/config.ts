@@ -54,7 +54,7 @@ export const createBugReport = (
 
 <b>Stacktrace</b>
 \`\`\`
-${error || 'No error message available'}
+${error}
 \`\`\`
 
 <b>Runtime info</b>

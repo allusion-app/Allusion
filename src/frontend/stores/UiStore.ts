@@ -558,7 +558,7 @@ class UiStore {
     const contextTags: ClientTag[] = [];
 
     // If an id is given, check whether it belongs to a tag or collection
-    if (activeItemId) {
+    if (activeItemId !== undefined) {
       const selectedTag = tagStore.get(activeItemId);
       if (selectedTag !== undefined) {
         if (selectedTag.isSelected) {

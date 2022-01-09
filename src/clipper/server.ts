@@ -217,11 +217,9 @@ class ClipServer {
               res.end();
             }
           });
-        } else if (req.method === 'GET') {
-          if (req.url?.endsWith('/tags') === true) {
-            const tags = await this.requestTags();
-            res.end(JSON.stringify(tags));
-          }
+        } else if (req.method === 'GET' && req.url?.endsWith('/tags') === true) {
+          const tags = await this.requestTags();
+          res.end(JSON.stringify(tags));
         }
       })
       .listen(SERVER_PORT, 'localhost');

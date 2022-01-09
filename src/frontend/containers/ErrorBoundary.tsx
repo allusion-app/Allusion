@@ -79,7 +79,7 @@ class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBoundaryS
       this.setState({
         error: [
           error.message,
-          ...sourceMappedStack.filter((line) => line.indexOf('bundle.js') === -1),
+          ...sourceMappedStack.filter((line) => !line.includes('bundle.js')),
         ].join('\n'),
       });
     });
