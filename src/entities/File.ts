@@ -124,7 +124,7 @@ export class ClientFile implements ISerializable<IFile> {
     this.absolutePath = Path.join(location.path, this.relativePath);
 
     const base = Path.basename(this.relativePath);
-    this.filename = base.substr(0, base.lastIndexOf('.'));
+    this.filename = base.slice(0, base.lastIndexOf('.'));
 
     this.tags = observable(this.store.getTags(fileProps.tags));
 

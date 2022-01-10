@@ -39,8 +39,8 @@ class ClipServer {
     let filePath = path.join(directory, sanitzedFilename);
 
     const dotIndex = sanitzedFilename.lastIndexOf('.');
-    const baseFilename = sanitzedFilename.substr(0, dotIndex);
-    const ext = sanitzedFilename.substr(dotIndex + 1);
+    const baseFilename = sanitzedFilename.slice(0, dotIndex);
+    const ext = sanitzedFilename.slice(dotIndex + 1);
 
     function addCountToFilename(num: number) {
       return path.join(directory, `${baseFilename} ${num}.${ext}`);
@@ -250,7 +250,7 @@ class ClipServer {
   }
 
   private async storeImage(directory: string, downloadPath: string, imgBase64: string) {
-    const rawData = imgBase64.substr(imgBase64.indexOf(',') + 1); // remove base64 header
+    const rawData = imgBase64.slice(imgBase64.indexOf(',') + 1); // remove base64 header
     await fse.mkdirs(directory);
     await fse.writeFile(downloadPath, rawData, 'base64');
   }
