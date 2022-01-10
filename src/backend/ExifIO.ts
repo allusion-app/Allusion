@@ -48,7 +48,7 @@ import { action, makeObservable, observable, runInAction } from 'mobx';
 import exiftool from 'node-exiftool';
 import path from 'path';
 import { isDev } from 'src/config';
-import { Awaited, IS_WIN } from 'src/frontend/utils';
+import { IS_WIN } from 'src/frontend/utils';
 
 // The exif binary is placed using ElectronBuilder's extraResources: https://www.electron.build/configuration/contents#extraresources
 // there also is process.resourcesPath but that doesn't work in dev mode

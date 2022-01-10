@@ -7,7 +7,6 @@ import { thumbnailFormat } from 'src/config';
 ////////////////////
 //// Type utils ////
 ////////////////////
-export type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
 
 export type Mutable<T> = {
   -readonly [k in keyof T]: T[k];
