@@ -70,7 +70,7 @@ interface ImageInfoProps {
 const ImageInfo = ({ file }: ImageInfoProps) => {
   const { exifTool } = useStore();
 
-  const modified: Poll<Result<string, any>> = usePromise(file.absolutePath, async (filePath) => {
+  const modified = usePromise(file.absolutePath, async (filePath) => {
     const stats = await fse.stat(filePath);
     return formatDateTime(stats.ctime);
   });

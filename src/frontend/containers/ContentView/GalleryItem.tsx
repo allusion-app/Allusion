@@ -84,7 +84,7 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
   const { thumbnailPath, isBroken } = file;
 
   // This will check whether a thumbnail exists, generate it if needed
-  const imageSource: Poll<Result<string, any>> = usePromise(
+  const imageSource = usePromise(
     file,
     isBroken,
     mounted,
