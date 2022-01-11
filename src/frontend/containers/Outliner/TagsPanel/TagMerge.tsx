@@ -1,3 +1,4 @@
+import { Sequence } from 'common/sequence';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
@@ -21,11 +22,9 @@ export const TagMerge = observer(({ tag, onClose }: TagMergeProps) => {
 
   const mergingWithSelf = ctxTags.some((t) => t.id === selectedTag?.id);
 
-  const merge = () => {
+  const merge = async () => {
     if (selectedTag !== undefined && !mergingWithSelf) {
-      for (const ctxTag of ctxTags) {
-        tagStore.merge(ctxTag, selectedTag);
-      }
+      await Promise.all(Sequence.from(ctxTags).map((t) => tagStore.merge(t, selectedTag)));
       onClose();
     }
   };

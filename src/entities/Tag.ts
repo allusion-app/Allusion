@@ -48,8 +48,8 @@ export class ClientTag implements ISerializable<ITag> {
     id: ID,
     name: string,
     dateAdded: Date,
-    color: string = '',
-    isHidden?: boolean,
+    color: string,
+    isHidden: boolean,
   ) {
     this.store = store;
     this.id = id;
@@ -57,7 +57,7 @@ export class ClientTag implements ISerializable<ITag> {
     this.name = name;
     this.color = color;
     this.fileCount = 0;
-    this.isHidden = isHidden === true;
+    this.isHidden = isHidden;
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
@@ -130,8 +130,28 @@ export class ClientTag implements ISerializable<ITag> {
     this.color = color;
   }
 
-  @action.bound insertSubTag(tag: ClientTag, at: number): void {
-    this.store.insert(this, tag, at);
+  @action.bound insertSubTag(subTag: ClientTag, at: number): void {
+    if (this === subTag || this.isAncestor(subTag) || subTag.id === ROOT_TAG_ID) {
+      return;
+    }
+    // Move to different pos in same parent: Reorder tag.subTags and return
+    if (this === subTag.parent) {
+      if (at > -1 && at <= this.subTags.length) {
+        // If moving below current position, take into account removing self affecting the index
+        const newIndex = this.subTags.indexOf(subTag) < at ? at - 1 : at;
+        this.subTags.remove(subTag);
+        this.subTags.splice(newIndex, 0, subTag);
+      }
+    } else {
+      // Insert subTag into tag
+      subTag.parent.subTags.remove(subTag);
+      if (at > -1 && at < this.subTags.length) {
+        this.subTags.splice(at, 0, subTag);
+      } else {
+        this.subTags.push(subTag);
+      }
+      subTag.setParent(this);
+    }
   }
 
   @action.bound incrementFileCount(amount = 1): void {
@@ -156,10 +176,6 @@ export class ClientTag implements ISerializable<ITag> {
       subTags: this.subTags.map((subTag) => subTag.id),
       isHidden: this.isHidden,
     };
-  }
-
-  async delete(): Promise<void> {
-    return this.store.delete(this);
   }
 
   dispose(): void {

@@ -52,7 +52,7 @@ export const SubLocationExclusion = (props: IRemovalProps<ClientSubLocation>) =>
 };
 
 export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
-  const { uiStore } = useStore();
+  const { uiStore, tagStore } = useStore();
   const { object } = props;
   const tagsToRemove = object.isSelected
     ? Sequence.from(uiStore.tagSelection)
@@ -79,7 +79,7 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
       onCancel={props.onClose}
       onConfirm={() => {
         props.onClose();
-        object.isSelected ? uiStore.removeSelectedTags() : props.object.delete();
+        object.isSelected ? uiStore.removeSelectedTags() : tagStore.delete(props.object);
       }}
     />
   );
