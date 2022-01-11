@@ -234,7 +234,7 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
         if (tag !== undefined) {
           val.push(
             ...tag
-              .subTreeList()
+              .subtree()
               .skip(1)
               .map((t) => t.id),
           );

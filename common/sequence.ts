@@ -6,7 +6,7 @@ export class Sequence<T> implements Iterable<T> {
   }
 
   [Symbol.iterator](): Iterator<T, void, void> {
-    return this.generator()[Symbol.iterator]();
+    return this.generator();
   }
 
   static from<T>(iterable: Iterable<T>): Sequence<T> {

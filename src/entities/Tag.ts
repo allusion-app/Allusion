@@ -83,16 +83,23 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   /** Returns this tag and all of its sub-tags ordered depth-first */
-  @action subTreeList(): Sequence<ClientTag> {
+  @action subtree(): Sequence<ClientTag> {
     const tree = (t: ClientTag): Sequence<ClientTag> =>
       Sequence.once(t).chain(Sequence.from(t.subTags).flatMap(tree));
     return tree(this);
   }
 
+  /** Returns this tag and all its ancestors (excluding root tag). */
+  @action ancestors(): Sequence<ClientTag> {
+    const ancestors = (t: ClientTag): Sequence<ClientTag> =>
+      Sequence.once(t).chain(Sequence.once(t.parent).flatMap(ancestors));
+    return ancestors(this).takeWhile((tag) => tag.id !== ROOT_TAG_ID);
+  }
+
   /** Returns the tree path as an array of the tag's names starting from the root ancestor
    * (excluding root tag) to this tag. */
   @action path(): readonly string[] {
-    return traverseAncestry(this)
+    return this.ancestors()
       .map((tag) => tag.name)
       .collect()
       .reverse();
@@ -115,7 +122,7 @@ export class ClientTag implements ISerializable<ITag> {
    * @param tag possible ancestor node
    */
   @action isAncestor(tag: ClientTag): boolean {
-    return this !== tag && traverseAncestry(this.parent).some((t) => t === tag);
+    return this !== tag && this.parent.ancestors().some((t) => t === tag);
   }
 
   @action setParent(parent: ClientTag): void {
@@ -183,13 +190,3 @@ export class ClientTag implements ISerializable<ITag> {
     this.saveHandler();
   }
 }
-
-/**
- * Traverse the path from this tag to its root ancestor (excluding root tag).
- */
-export const traverseAncestry = action(
-  (t: ClientTag): Sequence<ClientTag> =>
-    Sequence.once(t)
-      .chain(Sequence.once(t.parent).flatMap(traverseAncestry))
-      .takeWhile((tag) => tag.id !== ROOT_TAG_ID),
-);

@@ -58,7 +58,7 @@ class TagStore {
 
   @computed get tagList(): readonly ClientTag[] {
     return Sequence.from(this.root.subTags)
-      .flatMap((tag) => tag.subTreeList())
+      .flatMap((tag) => tag.subtree())
       .collect();
   }
 
@@ -105,7 +105,7 @@ class TagStore {
       tagGraph,
     } = this;
     const ids: ID[] = [];
-    for (const t of tag.subTreeList()) {
+    for (const t of tag.subtree()) {
       t.dispose();
       tagGraph.delete(t.id);
       uiStore.deselectTag(t);
@@ -123,7 +123,7 @@ class TagStore {
     } = this;
     const ids: ID[] = [];
     const remove = action((tag: ClientTag): ID[] => {
-      for (const t of tag.subTreeList()) {
+      for (const t of tag.subtree()) {
         t.dispose();
         tagGraph.delete(t.id);
         uiStore.deselectTag(t);

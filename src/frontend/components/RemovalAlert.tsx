@@ -54,9 +54,7 @@ export const SubLocationExclusion = (props: IRemovalProps<ClientSubLocation>) =>
 export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
   const { uiStore, tagStore } = useStore();
   const { object } = props;
-  const tagsToRemove = object.isSelected
-    ? Sequence.from(uiStore.tagSelection)
-    : object.subTreeList();
+  const tagsToRemove = object.isSelected ? Sequence.from(uiStore.tagSelection) : object.subtree();
   const selectedTags = tagsToRemove
     .map((tag) => <Tag key={tag.id} text={tag.name} color={tag.viewColor} />)
     .collect();
