@@ -32,7 +32,7 @@ export class ClientTag implements ISerializable<ITag> {
   @observable name: string;
   @observable color: string;
   @observable isHidden: boolean;
-  @observable private _parent: ClientTag | undefined;
+  private _parent: ClientTag | undefined;
   readonly subTags = observable<ClientTag>([]);
   // icon, (fileCount?)
 
@@ -74,38 +74,26 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   /** Get actual tag objects based on the IDs retrieved from the backend */
-  @computed get parent(): ClientTag {
+  get parent(): ClientTag {
     if (this._parent === undefined) {
       console.warn('Tag does not have a parent', this);
-      return this.store.root;
+      this._parent = this.store.root;
     }
     return this._parent;
   }
 
   /** Returns this tag and all of its sub-tags ordered depth-first */
   @action subTreeList(): Sequence<ClientTag> {
-    const append = (tag: ClientTag): Sequence<ClientTag> =>
-      Sequence.once(tag).chain(Sequence.from(tag.subTags).flatMap(append));
-    return append(this);
+    const tree = (t: ClientTag): Sequence<ClientTag> =>
+      Sequence.once(t).chain(Sequence.from(t.subTags).flatMap(tree));
+    return tree(this);
   }
 
-  /** Returns the tag names up the hierarchy from this tag, excluding the root tag */
+  /** Returns the tree path as an array of the tag's names starting from the root ancestor
+   * (excluding root tag) to this tag. */
   @action path(): readonly string[] {
-    const append = (tag: ClientTag): Sequence<ClientTag> =>
-      Sequence.once(tag).chain(Sequence.once(tag.parent).flatMap(append));
-    return append(this)
-      .takeWhile((tag) => tag.id !== ROOT_TAG_ID)
+    return traverseAncestry(this)
       .map((tag) => tag.name)
-      .collect()
-      .reverse();
-  }
-
-  /** Returns the tags up the hierarchy from this tag, excluding the root tag */
-  @action treePath(): readonly ClientTag[] {
-    const append = (tag: ClientTag): Sequence<ClientTag> =>
-      Sequence.once(tag).chain(Sequence.once(tag.parent).flatMap(append));
-    return append(this)
-      .takeWhile((node) => node.id !== ROOT_TAG_ID)
       .collect()
       .reverse();
   }
@@ -127,17 +115,7 @@ export class ClientTag implements ISerializable<ITag> {
    * @param tag possible ancestor node
    */
   @action isAncestor(tag: ClientTag): boolean {
-    if (this === tag) {
-      return false;
-    }
-    let node = this.parent;
-    while (node.id !== ROOT_TAG_ID) {
-      if (node === tag) {
-        return true;
-      }
-      node = node.parent;
-    }
-    return false;
+    return this !== tag && traverseAncestry(this.parent).some((t) => t === tag);
   }
 
   @action setParent(parent: ClientTag): void {
@@ -189,3 +167,13 @@ export class ClientTag implements ISerializable<ITag> {
     this.saveHandler();
   }
 }
+
+/**
+ * Traverse the path from this tag to its root ancestor (excluding root tag).
+ */
+export const traverseAncestry = action(
+  (t: ClientTag): Sequence<ClientTag> =>
+    Sequence.once(t)
+      .chain(Sequence.once(t.parent).flatMap(traverseAncestry))
+      .takeWhile((tag) => tag.id !== ROOT_TAG_ID),
+);

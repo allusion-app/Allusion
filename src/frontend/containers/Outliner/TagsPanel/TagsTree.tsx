@@ -2,7 +2,7 @@ import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
+import { ClientTag, ROOT_TAG_ID, traverseAncestry } from 'src/entities/Tag';
 import { Sequence } from 'common/sequence';
 import { Collapse } from 'src/frontend/components/Collapse';
 import { TagRemoval } from 'src/frontend/components/RemovalAlert';
@@ -36,7 +36,13 @@ export class TagsTreeItemRevealer extends TreeItemRevealer {
   }
 
   revealTag(tag: ClientTag) {
-    this.revealTreeItem([ROOT_TAG_ID, ...Sequence.from(tag.treePath()).map((t) => t.id)]);
+    this.revealTreeItem(
+      traverseAncestry(tag)
+        .map((t) => t.id)
+        .chain(Sequence.once(ROOT_TAG_ID))
+        .collect()
+        .reverse(),
+    );
   }
 }
 

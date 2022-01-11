@@ -138,10 +138,12 @@ class FileStore {
     const toastKey = 'write-tags-to-file';
     try {
       const numFiles = this.fileList.length;
-      const tagFilePairs = this.fileList.map((f) => ({
-        absolutePath: f.absolutePath,
-        tagHierarchy: Array.from(f.tags, (t) => t.path()),
-      }));
+      const tagFilePairs = this.fileList.map(
+        action((f) => ({
+          absolutePath: f.absolutePath,
+          tagHierarchy: Array.from(f.tags, (t) => t.path()),
+        })),
+      );
       let lastToastVal = '0';
       for (let i = 0; i < tagFilePairs.length; i++) {
         const newToastVal = ((100 * i) / numFiles).toFixed(0);

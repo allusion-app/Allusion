@@ -28,31 +28,6 @@ export class Sequence<T> implements Iterable<T> {
     });
   }
 
-  static repeat<T>(value: T): Sequence<T> {
-    return new Sequence(function* () {
-      for (;;) {
-        yield value;
-      }
-    });
-  }
-
-  static from_reverse<T>(array: ArrayLike<T>): Sequence<T> {
-    return new Sequence(function* () {
-      for (let i = array.length - 1; i >= 0; i--) {
-        yield array[i];
-      }
-    });
-  }
-
-  static slice<T>(array: ArrayLike<T>, start: number, end: number): Sequence<T> {
-    return new Sequence(function* () {
-      const len = Math.min(end, array.length);
-      for (let i = Math.min(start, len); i < array.length; i++) {
-        yield array[i];
-      }
-    });
-  }
-
   map<U>(transform: (item: T) => U): Sequence<U> {
     const iterator = this.generator();
     return new Sequence(function* () {
@@ -178,11 +153,17 @@ export class Sequence<T> implements Iterable<T> {
     return result;
   }
 
-  collect(): T[] {
-    return Array.from(this.generator());
+  some(predicate: (item: T) => boolean): boolean {
+    const iterator = this.generator();
+    for (const item of iterator) {
+      if (predicate(item)) {
+        return true;
+      }
+    }
+    return false;
   }
 
-  join(separator = ''): string {
-    return this.collect().join(separator);
+  collect(): T[] {
+    return Array.from(this.generator());
   }
 }

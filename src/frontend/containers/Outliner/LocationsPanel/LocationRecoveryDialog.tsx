@@ -48,14 +48,7 @@ async function doesLocationMatchWithDir(
     locationImageCount: locImagePathsRelative.length,
     directoryImageCount: folderImagePaths.length,
     matchCount: Sequence.from(folderImagePaths)
-      .filterMap((path) => {
-        const p = path.slice(dir.length);
-        if (locImagePathsRelative.includes(p)) {
-          return p;
-        } else {
-          return undefined;
-        }
-      })
+      .filter((p) => locImagePathsRelative.includes(p.slice(dir.length)))
       .count(),
   };
 }
