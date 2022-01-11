@@ -89,14 +89,14 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
     exifTool,
     async (filePath, exifTool) => {
       const tagValues = await exifTool.readExifTags(filePath, exifTags);
-      const extraStats: Record<string, ReactNode> = {};
-      tagValues.forEach((val, i) => {
-        if (val !== '') {
-          const field = exifFields[exifTags[i]];
+      return tagValues
+        .zip(exifTags)
+        .filter(([val]) => val !== '')
+        .reduce<Record<string, ReactNode>>({}, (extraStats, [val, exifTag]) => {
+          const field = exifFields[exifTag];
           extraStats[field.label] = field.format?.(val) ?? val;
-        }
-      });
-      return extraStats;
+          return extraStats;
+        });
     },
   );
 

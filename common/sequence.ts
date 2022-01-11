@@ -128,6 +128,20 @@ export class Sequence<T> implements Iterable<T> {
     });
   }
 
+  zip<U>(iterable: Iterable<U>): Sequence<[T, U]> {
+    const iter1 = this.generator()[Symbol.iterator]();
+    const iter2 = iterable[Symbol.iterator]();
+    return new Sequence(function* () {
+      let item1 = iter1.next();
+      let item2 = iter2.next();
+      while (item1.done !== true && item2.done !== true) {
+        yield [item1.value, item2.value];
+        item1 = iter1.next();
+        item2 = iter2.next();
+      }
+    });
+  }
+
   forEach(each: (item: T) => void) {
     const iterator = this.generator();
     for (const item of iterator) {

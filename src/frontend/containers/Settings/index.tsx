@@ -1,3 +1,4 @@
+import { Sequence } from 'common/sequence';
 import { shell } from 'electron';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
@@ -10,6 +11,7 @@ import {
 } from 'src/config';
 import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
+import { useAction } from 'src/frontend/hooks/mobx';
 import { RendererMessenger } from 'src/Messaging';
 import { WINDOW_STORAGE_KEY } from 'src/renderer';
 import {
@@ -213,6 +215,118 @@ const ImportExport = observer(() => {
     }
   };
 
+  const readTagsFromFiles = useAction(async () => {
+    const fileList = fileStore.fileList.slice();
+    const toastKey = 'read-tags-from-file';
+    const progress = (() => {
+      let i = 0;
+      const numFiles = fileList.length;
+      return () => {
+        AppToaster.show(
+          {
+            message: `Reading tags from files ${((i * 100) / numFiles).toFixed(0)}%...`,
+            timeout: 0,
+          },
+          toastKey,
+        );
+        i += 1;
+      };
+    })();
+    let hasErrorOccured = false;
+
+    for (const file of fileList) {
+      progress();
+      const absolutePath = file.absolutePath;
+      try {
+        const tagsNameHierarchies = await exifTool.readTags(absolutePath);
+        // Now that we know the tag names in file metadata, add them to the files in Allusion
+        // Main idea: Find matching tag with same name, otherwise, insert new
+        //   for now, just match by the name at the bottom of the hierarchy
+        const tags = await Promise.all(
+          tagsNameHierarchies
+            .filter((h) => h.length === 0)
+            .map(async (hierarchy) => {
+              const match = tagStore.findByName(hierarchy[hierarchy.length - 1]);
+              if (match !== undefined) {
+                // If there is a match to the leaf tag, just add it to the file
+                return match;
+              } else {
+                // If there is no direct match to the leaf, insert it in the tag hierarchy: first check if any of its parents exist
+                return await Sequence.from(hierarchy).reduce(
+                  Promise.resolve(tagStore.root),
+                  async (curTag, name) => {
+                    const match = tagStore.findByName(name);
+                    if (match !== undefined) {
+                      return match;
+                    } else {
+                      return await tagStore.create(await curTag, name);
+                    }
+                  },
+                );
+              }
+            }),
+        );
+        tags.forEach((t) => file.addTag(t));
+      } catch (e) {
+        console.error('Could not import tags for', absolutePath, e);
+        hasErrorOccured = true;
+      }
+    }
+
+    AppToaster.show(
+      {
+        message: !hasErrorOccured
+          ? 'Reading tags from files... Done!'
+          : 'Reading tags from some files failed. Check the dev console for more details!',
+        timeout: 5000,
+      },
+      toastKey,
+    );
+  });
+
+  const writeTagsToFiles = useAction(async () => {
+    const fileList = fileStore.fileList.slice();
+    const toastKey = 'write-tags-to-file';
+    const progress = (() => {
+      let i = 0;
+      const numFiles = fileList.length;
+      return () => {
+        AppToaster.show(
+          {
+            message: `Writing tags to files ${((100 * i) / numFiles).toFixed(0)}%...`,
+            timeout: 0,
+          },
+          toastKey,
+        );
+        i += 1;
+      };
+    })();
+    let hasErrorOccured = false;
+
+    for (const { absolutePath, tagHierarchy } of Sequence.from(fileList).map((f) => ({
+      absolutePath: f.absolutePath,
+      tagHierarchy: Array.from(f.tags, (t) => t.path()),
+    }))) {
+      progress();
+      try {
+        await exifTool.writeTags(absolutePath, tagHierarchy);
+      } catch (e) {
+        console.error('Could not write tags to', absolutePath, tagHierarchy, e);
+        hasErrorOccured = true;
+      }
+    }
+
+    AppToaster.show(
+      {
+        message: !hasErrorOccured
+          ? 'Writing tags to files... Done!'
+          : 'Writing tags to some files failed. Check the dev console for more details!',
+        timeout: 5000,
+      },
+      toastKey,
+    );
+  });
+
   return (
     <>
       <h2>Import/Export</h2>
@@ -246,7 +360,7 @@ const ImportExport = observer(() => {
       <ButtonGroup>
         <Button
           text="Import tags from file metadata"
-          onClick={fileStore.readTagsFromFiles}
+          onClick={readTagsFromFiles}
           styling="outlined"
         />
         <Button
@@ -260,7 +374,7 @@ const ImportExport = observer(() => {
           primaryButtonText="Export"
           onClick={(button) => {
             if (button === DialogButton.PrimaryButton) {
-              fileStore.writeTagsToFiles();
+              writeTagsToFiles();
             }
             setConfirmingMetadataExport(false);
           }}

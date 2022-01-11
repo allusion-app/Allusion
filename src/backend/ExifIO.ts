@@ -115,7 +115,10 @@ class ExifIO {
   // ------------------
 
   /** Merges the HierarchicalSubject, Subject and Keywords into one list of tags, removing any duplicates */
-  static convertMetadataToHierarchy(entry: exiftool.IMetadata, separator: string): string[][] {
+  private static convertMetadataToHierarchy(
+    entry: exiftool.IMetadata,
+    separator: string,
+  ): Sequence<string[]> {
     // these toString() methods are here because they are automatically parsed to numbers if they could be numbers :/
     const parseExifFieldAsString = (val: unknown): Sequence<string> => {
       if (Array.isArray(val)) {
@@ -140,10 +143,10 @@ class ExifIO {
         return undefined;
       }
     });
-    return [...splitHierarchy, ...filteredTags];
+    return Sequence.from(splitHierarchy).chain(filteredTags);
   }
 
-  async readTags(filepath: string): Promise<string[][]> {
+  async readTags(filepath: string): Promise<Sequence<string[]>> {
     const metadata = await ep.readMetadata(filepath, [
       'HierarchicalSubject',
       'Subject',
@@ -160,17 +163,15 @@ class ExifIO {
     );
   }
 
-  async readExifTags(filepath: string, tags: string[]): Promise<string[]> {
+  async readExifTags(filepath: string, tags: string[]): Promise<Sequence<string>> {
     const metadata = await ep.readMetadata(filepath, [...tags, ...this.extraArgs]);
     if (metadata.error !== null || metadata.data === null || metadata.data.length === 0) {
       throw new Error(metadata.error ?? 'No metadata entry');
     }
     const entry = metadata.data[0];
-    return Sequence.from(tags)
-      .filterMap((t) =>
-        entry[t] !== undefined && entry[t] !== null ? entry[t].toString() : undefined,
-      )
-      .collect();
+    return Sequence.from(tags).filterMap((t) =>
+      entry[t] !== undefined && entry[t] !== null ? entry[t].toString() : undefined,
+    );
   }
 
   /** Reads file metadata for all files in a folder (and recursively for its subfolders) */
@@ -192,7 +193,7 @@ class ExifIO {
   // }
 
   /** Overwrites the tags of a specific file */
-  @action.bound async writeTags(
+  @action async writeTags(
     filepath: string,
     tagNameHierarchy: (readonly string[])[],
   ): Promise<void> {
