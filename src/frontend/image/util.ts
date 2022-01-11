@@ -14,7 +14,7 @@ export interface Decoder {
 export async function getBlob(decoder: Decoder, path: string): Promise<string> {
   const buf = await fse.readFile(path);
   const data = decoder.decode(buf);
-  const blob = await new Promise((resolve, reject) =>
+  const blob = await new Promise<Blob>((resolve, reject) =>
     dataToCanvas(data).toBlob(
       (blob) => (blob !== null ? resolve(blob) : reject()),
       'image/avif',

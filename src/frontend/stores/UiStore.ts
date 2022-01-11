@@ -12,6 +12,7 @@ import {
 import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
 import { IS_PREVIEW_WINDOW } from 'src/renderer';
+import { Sequence } from 'common/sequence';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, debounce } from '../utils';
 import RootStore from './RootStore';
@@ -814,7 +815,9 @@ class UiStore {
           const serializedCriteriaList: SearchCriteria<IFile>[] = JSON.parse(
             prefs.searchCriteriaList || '[]',
           );
-          const newCrits = serializedCriteriaList.map((c) => ClientBaseCriteria.deserialize(c));
+          const newCrits = Sequence.from(serializedCriteriaList).map((c) =>
+            ClientBaseCriteria.deserialize(c),
+          );
           this.searchCriteriaList.push(...newCrits);
           newCrits.forEach((crit) => crit.observe(this.debouncedStorePersistentPreferences));
 

@@ -5,6 +5,7 @@ import { ALLOWED_DROP_TYPES } from 'src/frontend/contexts/DropContext';
 import { timeoutPromise } from 'src/frontend/utils';
 import { IStoreFileMessage, RendererMessenger } from 'src/Messaging';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
+import { Sequence } from 'common/sequence';
 
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
 
@@ -104,8 +105,8 @@ function imageAsBase64(url: string): Promise<{ imgBase64: string; blob: Blob }> 
 
     reader.onerror = reject;
     reader.onload = () =>
-      reader.result
-        ? resolve({ imgBase64: reader.result.toString(), blob })
+      typeof reader.result === 'string'
+        ? resolve({ imgBase64: reader.result, blob })
         : reject('Could not convert to base64 image');
     reader.readAsDataURL(blob);
   });
@@ -155,7 +156,7 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
 
   // Filter out URLs that are not an image
   const imageItems = await Promise.all(
-    Array.from(dropItems, async (item) => {
+    Sequence.from(dropItems).map(async (item) => {
       if (item instanceof File) {
         return item;
       } else {
@@ -171,5 +172,7 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
       }
     }),
   );
-  return imageItems.filter((item) => item !== undefined) as Array<File | string>;
+  return Sequence.from(imageItems)
+    .filterMap((item) => item)
+    .collect();
 }

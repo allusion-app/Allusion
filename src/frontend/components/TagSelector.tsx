@@ -250,7 +250,7 @@ interface TagOptionProps {
 
 export const TagOption = observer(({ id, tag, selected, toggleSelection }: TagOptionProps) => {
   const [path, hint] = useComputed(() => {
-    const path = tag.treePath.map((t) => t.name).join(' › ');
+    const path = tag.path().join(' › ');
     const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
     return [path, hint];
   }).get();

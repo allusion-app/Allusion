@@ -8,7 +8,7 @@ import { IconButton, IconSet, Tag } from 'widgets';
 import { ITransform } from './Masonry/layout-helpers';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { Poll, usePromise, Result } from 'src/frontend/hooks/usePromise';
+import { usePromise } from 'src/frontend/hooks/usePromise';
 import { CommandDispatcher, MousePointerEvent } from './Commands';
 
 interface ItemProps {
@@ -200,7 +200,7 @@ const TagWithHint = observer(
       <Tag
         text={tag.name}
         color={tag.viewColor}
-        tooltip={tag.treePath.map((t) => t.name).join(' › ')}
+        tooltip={tag.path().join(' › ')}
         onContextMenu={handleContextMenu}
       />
     );

@@ -6,20 +6,18 @@
       "resources/*": ["resources/*"],
       "src/*": ["src/*"]
     },
-    "downlevelIteration": true,
     "allowSyntheticDefaultImports": true,
     "jsx": "react",
-    "module": "ESNext",
+    "module": "ES2022",
     "sourceMap": true,
     "outDir": "dist",
-    "target": "ES2020",
+    "target": "ES2021",
     "lib": ["dom", "esnext", "webworker"],
     "moduleResolution": "node",
     "experimentalDecorators": true,
-    "useDefineForClassFields": true,
     "useUnknownInCatchVariables": false,
     "strict": true
   },
-  "include": ["widgets/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts", "wasm/**/*"],
+  "include": ["widgets/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts", "wasm/**/*", "common/**/*"],
   "exclude": ["node_modules", "dist", "resources", "build"]
 }

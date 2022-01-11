@@ -91,7 +91,7 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
       const tagValues = await exifTool.readExifTags(filePath, exifTags);
       const extraStats: Record<string, ReactNode> = {};
       tagValues.forEach((val, i) => {
-        if (val !== '' && val !== undefined) {
+        if (val !== '') {
           const field = exifFields[exifTags[i]];
           extraStats[field.label] = field.format?.(val) ?? val;
         }

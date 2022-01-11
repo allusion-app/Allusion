@@ -6,7 +6,7 @@ import React, { useEffect, useMemo } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAction, useComputed } from 'src/frontend/hooks/mobx';
-import { Poll, Result, usePromise } from 'src/frontend/hooks/usePromise';
+import { usePromise } from 'src/frontend/hooks/usePromise';
 import { encodeFilePath } from 'src/frontend/utils';
 import { Button, IconSet, Split } from 'widgets';
 import Inspector from '../../Inspector';
@@ -247,7 +247,7 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
         }
       } else {
         return {
-          src: thumbnailSrc || absolutePath,
+          src: thumbnailSrc.length > 0 ? thumbnailSrc : absolutePath,
           dimension: createDimension(imgWidth, imgHeight),
         };
       }
@@ -261,7 +261,7 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
       image.tag === 'ready' && 'ok' in image.value
         ? image.value.ok
         : {
-            src: thumbnailSrc || absolutePath,
+            src: thumbnailSrc.length > 0 ? thumbnailSrc : absolutePath,
             dimension: createDimension(imgWidth, imgHeight),
           };
     const minScale = Math.min(0.1, Math.min(width / dimension[0], height / dimension[1]));
@@ -328,7 +328,7 @@ const ImageFallback = ({ error, absolutePath }: ImageFallbackProps) => {
     <div style={CONTAINER_DEFAULT_STYLE} className="image-fallback">
       <div style={{ maxHeight: 360, maxWidth: 360 }} className="image-error" />
       <br />
-      <span>Could not load {error ? '' : 'full '}image </span>
+      <span>Could not load {error !== undefined || error === null ? '' : 'full '}image </span>
       <pre
         title={absolutePath}
         style={{ maxWidth: '40ch', overflow: 'hidden', textOverflow: 'ellipsis' }}

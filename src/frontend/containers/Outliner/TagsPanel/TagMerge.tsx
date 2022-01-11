@@ -92,7 +92,7 @@ const labelFromOption = action((t: ClientTag) => t.name);
 
 const renderTagOption = action((tag: ClientTag, index: number, selection: boolean) => {
   const id = tag.id;
-  const path = tag.treePath.map((t: ClientTag) => t.name).join(' › ');
+  const path = tag.path().join(' › ');
   const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
 
   return (

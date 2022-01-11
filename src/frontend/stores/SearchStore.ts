@@ -3,6 +3,7 @@ import Backend from 'src/backend/Backend';
 import { generateId, ID } from 'src/entities/ID';
 import { ClientBaseCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
+import { Sequence } from 'common/sequence';
 import RootStore from './RootStore';
 
 /**
@@ -26,8 +27,8 @@ class SearchStore {
     try {
       const fetchedSearches = await this.backend.fetchSearches();
       this.searchList.push(
-        ...fetchedSearches.map(
-          (s) => new ClientFileSearchItem(s.id, s.name, s.criteria, s.matchAny),
+        ...Sequence.from(fetchedSearches).map(
+          (s) => new ClientFileSearchItem(s.id, s.name, s.criteria, s.matchAny === true),
         ),
       );
     } catch (err) {

@@ -1,4 +1,5 @@
 import { when } from 'mobx';
+import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -47,42 +48,38 @@ const LocationLabel = (nodeData: any, treeData: any) => (
   <Location nodeData={nodeData} treeData={treeData} />
 );
 
-const SubLocation = ({
-  nodeData,
-  treeData,
-}: {
-  nodeData: ClientSubLocation;
-  treeData: ITreeData;
-}) => {
-  const { expansion, setExpansion } = treeData;
-  const subLocation = nodeData;
+const SubLocation = observer(
+  ({ nodeData, treeData }: { nodeData: ClientSubLocation; treeData: ITreeData }) => {
+    const { expansion, setExpansion } = treeData;
+    const subLocation = nodeData;
 
-  const toggleExclusion = () => {
-    subLocation.toggleExcluded();
-    // Need to update expansion to force a rerender of the tree
-    setExpansion({ ...expansion, [subLocation.path]: false });
-  };
+    const toggleExclusion = () => {
+      subLocation.toggleExcluded();
+      // Need to update expansion to force a rerender of the tree
+      setExpansion({ ...expansion, [subLocation.path]: false });
+    };
 
-  return (
-    <div className="tree-content-label" aria-disabled={subLocation.isExcluded}>
-      <Checkbox
-        // label looks nicer on the right
-        label=""
-        onChange={toggleExclusion}
-        // make it appear like it's an "include" option
-        checked={!subLocation.isExcluded}
-      />
-      <span
-        style={{
-          marginLeft: '4px',
-          color: subLocation.isExcluded ? 'var(--text-color-muted)' : undefined,
-        }}
-      >
-        {subLocation.name}
-      </span>
-    </div>
-  );
-};
+    return (
+      <div className="tree-content-label" aria-disabled={subLocation.isExcluded}>
+        <Checkbox
+          // label looks nicer on the right
+          label=""
+          onChange={toggleExclusion}
+          // make it appear like it's an "include" option
+          checked={!subLocation.isExcluded}
+        />
+        <span
+          style={{
+            marginLeft: '4px',
+            color: subLocation.isExcluded ? 'var(--text-color-muted)' : undefined,
+          }}
+        >
+          {subLocation.name}
+        </span>
+      </div>
+    );
+  },
+);
 
 const Location = ({ nodeData }: { nodeData: ClientLocation; treeData: ITreeData }) => {
   return (

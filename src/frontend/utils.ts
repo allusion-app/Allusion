@@ -3,6 +3,7 @@
 const path = require('path');
 import fse from 'fs-extra';
 import { thumbnailFormat } from 'src/config';
+import { Sequence } from 'common/sequence';
 
 ////////////////////
 //// Type utils ////
@@ -252,9 +253,9 @@ const DateTimeFormat = new Intl.DateTimeFormat(undefined, {
 });
 
 export const formatDateTime = (d: Date) => {
-  return DateTimeFormat.formatToParts(d)
+  return Sequence.from(DateTimeFormat.formatToParts(d))
     .map(({ type, value }) => (type === 'literal' && value === ', ' ? ' ' : value))
-    .reduce((str, part) => str + part);
+    .reduce('', (str, part) => str + part);
 };
 
 export const jsDateFormatter = {
@@ -356,10 +357,7 @@ export const getContrast = (hexcolor: string) => {
 
   // If a three-character hexcode, make six-character
   if (hexcolor.length === 3) {
-    hexcolor = hexcolor
-      .split('')
-      .map((hex) => hex + hex)
-      .join('');
+    hexcolor = Sequence.from(hexcolor).reduce('', (result, char) => result + char + char);
   }
 
   // Convert to RGB value

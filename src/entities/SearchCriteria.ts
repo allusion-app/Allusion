@@ -8,7 +8,7 @@ export type IFileSearchCriteria = SearchCriteria<IFile>;
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 
 // A dictionary of labels for (some of) the keys of the type we search for
-export type SearchKeyDict<T> = { [key in keyof Partial<T>]: string };
+export type SearchKeyDict<T> = Partial<Record<keyof T, string>>;
 
 export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path', locationId: 'Location' };
 
@@ -190,19 +190,30 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
    * (this makes is so that "Untagged images" can be italicized)
    **/
   @action.bound isSystemTag = (): boolean => {
-    return !this.value && !this.operator.toLowerCase().includes('not');
+    return (
+      (this.value === undefined || this.value.length === 0) &&
+      !this.operator.toLowerCase().includes('not')
+    );
   };
 
   @action.bound getLabel: (dict: SearchKeyDict<T>, rootStore: RootStore) => string = (
     dict,
     rootStore,
   ) => {
-    if (!this.value && !this.operator.toLowerCase().includes('not')) {
+    if (
+      (this.value === undefined || this.value.length === 0) &&
+      !this.operator.toLowerCase().includes('not')
+    ) {
       return 'Untagged images';
     }
-    return `${dict[this.key] || camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
+    console.log(dict[this.key], this.key, dict);
+    return `${dict[this.key] ?? camelCaseToSpaced(this.key as string)} ${camelCaseToSpaced(
       this.operator,
-    )} ${!this.value ? 'no tags' : rootStore.tagStore.get(this.value)?.name}`;
+    )} ${
+      this.value === undefined || this.value.length === 0
+        ? 'no tags'
+        : rootStore.tagStore.get(this.value)?.name
+    }`;
   };
 
   @action.bound
@@ -210,18 +221,25 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
     // for the *recursive options, convert it to the corresponding non-recursive option,
     // by putting all child IDs in the value in the serialization step
     let op = this.operator as TagOperatorType;
-    let val = this.value ? [this.value] : [];
-    if (val.length > 0 && op.includes('Recursively')) {
-      val =
-        rootStore.tagStore
-          .get(val[0])
-          ?.getSubTreeList()
-          ?.map((t) => t.id) ?? [];
-    }
-    if (op === 'containsNotRecursively') {
-      op = 'notContains';
-    } else if (op === 'containsRecursively') {
-      op = 'contains';
+    const val: string[] = [];
+    if (this.value !== undefined) {
+      val.push(this.value);
+      if (op.includes('Recursively')) {
+        if (op === 'containsNotRecursively') {
+          op = 'notContains';
+        } else if (op === 'containsRecursively') {
+          op = 'contains';
+        }
+        const tag = rootStore.tagStore.get(this.value);
+        if (tag !== undefined) {
+          val.push(
+            ...tag
+              .subTreeList()
+              .skip(1)
+              .map((t) => t.id),
+          );
+        }
+      }
     }
 
     return {
@@ -251,8 +269,10 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
   }
 
   @action.bound getLabel: (dict: SearchKeyDict<T>) => string = (dict) =>
-    `${dict[this.key] || camelCaseToSpaced(this.key as string)} ${
-      StringOperatorLabels[this.operator as StringOperatorType] || camelCaseToSpaced(this.operator)
+    `${dict[this.key] ?? camelCaseToSpaced(this.key as string)} ${
+      StringOperatorLabels[this.operator as StringOperatorType].length > 0
+        ? StringOperatorLabels[this.operator as StringOperatorType]
+        : camelCaseToSpaced(this.operator)
     } "${this.value}"`;
 
   @action.bound serialize = (): IStringSearchCriteria<T> => {
@@ -287,7 +307,9 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
   }
   @action.bound getLabel: () => string = () =>
     `${camelCaseToSpaced(this.key as string)} ${
-      NumberOperatorSymbols[this.operator as NumberOperatorType] || camelCaseToSpaced(this.operator)
+      NumberOperatorSymbols[this.operator as NumberOperatorType].length > 0
+        ? NumberOperatorSymbols[this.operator as NumberOperatorType]
+        : camelCaseToSpaced(this.operator)
     } ${this.value}`;
 
   @action.bound serialize = (): INumberSearchCriteria<T> => {
@@ -319,8 +341,10 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
   }
 
   @action.bound getLabel: (dict: SearchKeyDict<T>) => string = (dict) =>
-    `${dict[this.key] || camelCaseToSpaced(this.key as string)} ${
-      NumberOperatorSymbols[this.operator as NumberOperatorType] || camelCaseToSpaced(this.operator)
+    `${dict[this.key] ?? camelCaseToSpaced(this.key as string)} ${
+      NumberOperatorSymbols[this.operator as NumberOperatorType].length > 0
+        ? NumberOperatorSymbols[this.operator as NumberOperatorType]
+        : camelCaseToSpaced(this.operator)
     } ${this.value.toLocaleDateString()}`;
 
   @action.bound serialize = (): IDateSearchCriteria<T> => {

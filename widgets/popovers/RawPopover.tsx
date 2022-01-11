@@ -85,7 +85,7 @@ export const RawPopover = memo(function RawPopover(props: IRawPopover) {
   return (
     <>
       {target}
-      {portalId ? <Portal id={portalId}>{container}</Portal> : container}
+      {portalId !== undefined ? <Portal id={portalId}>{container}</Portal> : container}
     </>
   );
 });

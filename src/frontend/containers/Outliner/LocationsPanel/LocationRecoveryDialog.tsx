@@ -11,6 +11,7 @@ import LocationStore from 'src/frontend/stores/LocationStore';
 import { Button, IconSet } from 'widgets';
 import { Dialog } from 'widgets/popovers';
 import { AppToaster } from 'src/frontend/components/Toaster';
+import { Sequence } from 'common/sequence';
 
 interface IMatch {
   locationImageCount: number;
@@ -41,17 +42,21 @@ async function doesLocationMatchWithDir(
   locStore: LocationStore,
 ): Promise<IMatch> {
   const folderImagePaths = await findImagesRecursively(dir);
-  const folderImagePathsRelative = folderImagePaths.map((f) => f.slice(dir.length));
-
   const locFiles = await locStore.findLocationFiles(loc.id);
   const locImagePathsRelative = locFiles.map((f) => f.relativePath);
-
-  const intersection = folderImagePathsRelative.filter((f) => locImagePathsRelative.includes(f));
-
   return {
     locationImageCount: locImagePathsRelative.length,
     directoryImageCount: folderImagePaths.length,
-    matchCount: intersection.length,
+    matchCount: Sequence.from(folderImagePaths)
+      .filterMap((path) => {
+        const p = path.slice(dir.length);
+        if (locImagePathsRelative.includes(p)) {
+          return p;
+        } else {
+          return undefined;
+        }
+      })
+      .count(),
   };
 }
 
@@ -209,7 +214,10 @@ const LocationRecoveryDialog = () => {
   const [match, setMatch] = useState<IMatch>();
   const [pickedDir, setPickedDir] = useState<string>();
 
-  const location = isLocationRecoveryOpen ? locationStore.get(isLocationRecoveryOpen) : undefined;
+  const location =
+    isLocationRecoveryOpen !== null && isLocationRecoveryOpen.length > 0
+      ? locationStore.get(isLocationRecoveryOpen)
+      : undefined;
 
   if (location === undefined) {
     return null;
@@ -279,7 +287,7 @@ const LocationRecoveryDialog = () => {
           rescan={handleRescan}
           retry={() => setMatch(undefined)}
           save={() => {
-            if (pickedDir) {
+            if (pickedDir !== undefined && pickedDir.length > 0) {
               handleChangeLocationPath(location, pickedDir);
               uiStore.closeLocationRecovery();
             }

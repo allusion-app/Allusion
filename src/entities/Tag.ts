@@ -3,6 +3,7 @@ import { IReactionDisposer, observable, reaction, computed, action, makeObservab
 import TagStore from 'src/frontend/stores/TagStore';
 
 import { ID, IResource, ISerializable } from './ID';
+import { Sequence } from '../../common/sequence';
 
 export const ROOT_TAG_ID = 'root';
 
@@ -82,30 +83,31 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   /** Returns this tag and all of its sub-tags ordered depth-first */
-  @action getSubTreeList(): readonly ClientTag[] {
-    const subTree: ClientTag[] = [this];
-    const pushTags = (tags: ClientTag[]) => {
-      for (const t of tags) {
-        subTree.push(t);
-        pushTags(t.subTags);
-      }
-    };
-    pushTags(this.subTags);
-    return subTree;
+  @action subTreeList(): Sequence<ClientTag> {
+    const append = (tag: ClientTag): Sequence<ClientTag> =>
+      Sequence.once(tag).chain(Sequence.from(tag.subTags).flatMap(append));
+    return append(this);
+  }
+
+  /** Returns the tag names up the hierarchy from this tag, excluding the root tag */
+  @action path(): readonly string[] {
+    const append = (tag: ClientTag): Sequence<ClientTag> =>
+      Sequence.once(tag).chain(Sequence.once(tag.parent).flatMap(append));
+    return append(this)
+      .takeWhile((tag) => tag.id !== ROOT_TAG_ID)
+      .map((tag) => tag.name)
+      .collect()
+      .reverse();
   }
 
   /** Returns the tags up the hierarchy from this tag, excluding the root tag */
-  @computed get treePath(): ClientTag[] {
-    if (this.id === ROOT_TAG_ID) {
-      return [];
-    }
-    const treePath: ClientTag[] = [this];
-    let node = this.parent;
-    while (node.id !== ROOT_TAG_ID) {
-      treePath.unshift(node);
-      node = node.parent;
-    }
-    return treePath;
+  @action treePath(): readonly ClientTag[] {
+    const append = (tag: ClientTag): Sequence<ClientTag> =>
+      Sequence.once(tag).chain(Sequence.once(tag.parent).flatMap(append));
+    return append(this)
+      .takeWhile((node) => node.id !== ROOT_TAG_ID)
+      .collect()
+      .reverse();
   }
 
   get isSelected(): boolean {

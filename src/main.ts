@@ -22,6 +22,7 @@ import { createBugReport, githubUrl, isDev } from './config';
 import { ITag, ROOT_TAG_ID } from './entities/Tag';
 import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 import { Rectangle } from 'electron/main';
+import { Sequence } from '../common/sequence';
 
 // TODO: change this when running in portable mode, see portable-improvements branch
 const basePath = app.getPath('userData');
@@ -329,7 +330,7 @@ function createWindow() {
       return;
     }
     const importItems = await clipServer.getImportQueue();
-    await Promise.all(importItems.map(importExternalImage));
+    await Promise.all(Sequence.from(importItems).map(importExternalImage));
     clipServer.clearImportQueue();
   });
 }

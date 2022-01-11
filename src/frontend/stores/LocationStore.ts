@@ -18,6 +18,7 @@ import { RendererMessenger } from 'src/Messaging';
 import { getThumbnailPath, promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
 import fse from 'fs-extra';
+import { Sequence } from 'common/sequence';
 
 const PREFERENCES_STORAGE_KEY = 'location-store-preferences';
 type Preferences = { extensions: IMG_EXTENSIONS_TYPE[] };
@@ -101,7 +102,7 @@ class LocationStore {
     // Doing it for all locations, so files moved to another Location on disk, it's properly re-assigned in Allusion too
     // TODO: Could be optimized, at startup we already fetch all files, don't need to fetch them again here
     const dbFiles: IFile[] = await this.backend.fetchFiles('id', OrderDirection.Asc);
-    const dbFilesPathSet = new Set(dbFiles.map((f) => f.absolutePath));
+    const dbFilesPathSet = new Set(Sequence.from(dbFiles).map((f) => f.absolutePath));
     const dbFilesByCreatedDate = new Map<number, IFile[]>();
     for (const file of dbFiles) {
       const time = file.dateCreated.getTime();
@@ -145,9 +146,6 @@ class LocationStore {
 
       console.groupCollapsed(`Initializing location ${location.name}`);
       const diskFiles = await location.init();
-      const diskFileMap = new Map<string, FileStats>(
-        diskFiles?.map((f) => [f.absolutePath, f]) ?? [],
-      );
 
       clearTimeout(readyTimeout);
       AppToaster.dismiss('retry-init');
@@ -164,11 +162,20 @@ class LocationStore {
         continue;
       }
 
+      const diskFileMap = new Map<string, FileStats>(
+        Sequence.from(diskFiles).map((f) => [f.absolutePath, f]),
+      );
+
       console.log('Finding created files...');
       // Find all files that have been created (those on disk but not in DB)
-      const createdPaths = diskFiles.filter((f) => !dbFilesPathSet.has(f.absolutePath));
       const createdFiles = await Promise.all(
-        createdPaths.map((path) => pathToIFile(path, location, this.rootStore.exifTool)),
+        Sequence.from(diskFiles).filterMap((f) => {
+          if (!dbFilesPathSet.has(f.absolutePath)) {
+            return pathToIFile(f, location, this.rootStore.exifTool);
+          } else {
+            return undefined;
+          }
+        }),
       );
 
       // Find all files of this location that have been removed (those in DB but not on disk anymore)
@@ -211,10 +218,10 @@ class LocationStore {
       console.debug({ missingFiles, createdFiles, createdMatches, dbMatches });
 
       // Update renamed files in backend
-      const foundCreatedMatches = createdMatches.filter((m) => m !== undefined) as IFile[];
-      if (foundCreatedMatches.length > 0) {
+      const foundCreatedMatches = new Set(Sequence.from(createdMatches).filterMap((m) => m));
+      if (foundCreatedMatches.size > 0) {
         console.debug(
-          `Found ${foundCreatedMatches.length} renamed/moved files in location ${location.name}. These are detected as new files, but will instead replace their original entry in the DB of Allusion`,
+          `Found ${foundCreatedMatches.size} renamed/moved files in location ${location.name}. These are detected as new files, but will instead replace their original entry in the DB of Allusion`,
           foundCreatedMatches,
         );
         // TODO: remove thumbnail as well (clean-up needed, since the path changed)
@@ -233,13 +240,11 @@ class LocationStore {
         await this.backend.saveFiles(Array.from(new Set(renamedFilesToUpdate)));
       }
 
-      const numDbMatches = dbMatches.filter((f) => Boolean(f));
-      if (numDbMatches.length > 0) {
+      if (dbMatches.some((f) => f !== undefined)) {
         // Renaming/moving files will be created as new files while the old one sticks around
         // In here we transfer the tag data over from the old entry to the new one, and delete the old entry
         console.debug(
-          `Found ${numDbMatches.length} renamed/moved files in location ${location.name} that were already present in the database. Removing duplicates`,
-          numDbMatches,
+          `Found renamed/moved files in location ${location.name} that were already present in the database. Removing duplicates`,
         );
         const files: IFile[] = [];
         for (let i = 0; i < dbMatches.length; i++) {
@@ -255,13 +260,13 @@ class LocationStore {
         await this.backend.saveFiles(Array.from(new Set(files)));
         // Remove missing files that have a match in the database
         await this.backend.removeFiles(
-          missingFiles.filter((_, i) => Boolean(dbMatches[i])).map((f) => f.id),
+          missingFiles.filter((_, i) => dbMatches[i] !== undefined).map((f) => f.id),
         );
         foundNewFiles = true; // Set a flag to trigger a refetch
       }
 
       // For createdFiles without a match, insert them in the DB as new files
-      const newFiles = createdFiles.filter((cf) => !foundCreatedMatches.includes(cf));
+      const newFiles = createdFiles.filter((cf) => !foundCreatedMatches.has(cf));
       if (newFiles.length > 0) {
         await this.backend.createFilesFromPath(location.path, newFiles);
       }
@@ -322,11 +327,12 @@ class LocationStore {
     console.log('changing location path', location, newPath);
     // First, update the absolute path of all files from this location
     const locFiles = await this.findLocationFiles(location.id);
-    const files: IFile[] = locFiles.map((f) => ({
-      ...f,
-      absolutePath: SysPath.join(newPath, f.relativePath),
-    }));
-    await this.backend.saveFiles(files);
+    await this.backend.saveFiles(
+      locFiles.map((f) => ({
+        ...f,
+        absolutePath: SysPath.join(newPath, f.relativePath),
+      })),
+    );
 
     const newLocation = new ClientLocation(
       this,

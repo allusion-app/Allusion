@@ -11,6 +11,7 @@ import {
   SearchCriteria,
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
+import { Sequence } from 'common/sequence';
 import { AppToaster } from '../components/Toaster';
 import { debounce, getThumbnailPath, promiseAllLimit } from '../utils';
 import RootStore from './RootStore';
@@ -137,12 +138,10 @@ class FileStore {
     const toastKey = 'write-tags-to-file';
     try {
       const numFiles = this.fileList.length;
-      const tagFilePairs = runInAction(() =>
-        this.fileList.map((f) => ({
-          absolutePath: f.absolutePath,
-          tagHierarchy: Array.from(f.tags).map(action((t) => t.treePath.map((t) => t.name))),
-        })),
-      );
+      const tagFilePairs = this.fileList.map((f) => ({
+        absolutePath: f.absolutePath,
+        tagHierarchy: Array.from(f.tags, (t) => t.path()),
+      }));
       let lastToastVal = '0';
       for (let i = 0; i < tagFilePairs.length; i++) {
         const newToastVal = ((100 * i) / numFiles).toFixed(0);
@@ -553,7 +552,13 @@ class FileStore {
     // Filter out images with hidden tags
     // TODO: could also do it in search query, this is simpler though (maybe also more performant)
     const hiddenTagIds = new Set(
-      this.rootStore.tagStore.tagList.filter((t) => t.isHidden).map((t) => t.id),
+      Sequence.from(this.rootStore.tagStore.tagList).filterMap((t) => {
+        if (t.isHidden) {
+          return t.id;
+        } else {
+          return undefined;
+        }
+      }),
     );
     backendFiles = backendFiles.filter((f) => !f.tags.some((t) => hiddenTagIds.has(t)));
 
@@ -620,9 +625,9 @@ class FileStore {
       if (existingFile !== undefined) {
         reusedStatus.add(existingFile.id);
         // Update tags (might have changes, e.g. removed/merged)
-        const newTags = f.tags
-          .map((t) => this.rootStore.tagStore.get(t))
-          .filter((t) => t !== undefined) as ClientTag[];
+        const newTags = Sequence.from(f.tags)
+          .filterMap((t) => this.rootStore.tagStore.get(t))
+          .collect();
         if (
           existingFile.tags.size !== newTags.length ||
           Array.from(existingFile.tags).some((t, i) => t.id !== newTags[i].id)

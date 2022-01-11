@@ -21,6 +21,7 @@ import App from './frontend/App';
 import PreviewApp from './frontend/Preview';
 import Overlay from './frontend/Overlay';
 import { promiseRetry } from './frontend/utils';
+import { Sequence } from 'common/sequence';
 
 // Window State
 export const WINDOW_STORAGE_KEY = 'Allusion_Window';
@@ -56,7 +57,8 @@ if (IS_PREVIEW_WINDOW) {
       });
 
       rootStore.fileStore.fetchFilesByIDs(ids).then(() => {
-        rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
+        const index = activeImgId !== undefined ? Math.max(ids.indexOf(activeImgId), 0) : 0;
+        rootStore.uiStore.setFirstItem(index);
       });
     },
   );
@@ -90,7 +92,7 @@ if (IS_PREVIEW_WINDOW) {
     const index = object.get();
     if (!isNaN(index) && index >= 0 && index < rootStore.fileStore.fileList.length) {
       const file = rootStore.fileStore.fileList[index];
-      document.title = `${file.absolutePath || '?'} • ${PREVIEW_WINDOW_BASENAME}`;
+      document.title = `${file.absolutePath} • ${PREVIEW_WINDOW_BASENAME}`;
     }
   });
 } else {
@@ -152,7 +154,7 @@ async function addTagsToFile(filePath: string, tagNames: string[]) {
   );
   if (clientFile !== undefined) {
     const tags = await Promise.all(
-      tagNames.map(async (tagName) => {
+      Sequence.from(tagNames).map(async (tagName) => {
         const clientTag = tagStore.findByName(tagName);
         if (clientTag !== undefined) {
           return clientTag;

@@ -10,6 +10,7 @@ import { Alert, DialogButton } from 'widgets/popovers';
 import { AppToaster } from './Toaster';
 import { RendererMessenger } from 'src/Messaging';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
+import { Sequence } from 'common/sequence';
 
 interface IRemovalProps<T> {
   object: T;
@@ -54,8 +55,11 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
   const { uiStore } = useStore();
   const { object } = props;
   const tagsToRemove = object.isSelected
-    ? Array.from(uiStore.tagSelection)
-    : object.getSubTreeList();
+    ? Sequence.from(uiStore.tagSelection)
+    : object.subTreeList();
+  const selectedTags = tagsToRemove
+    .map((tag) => <Tag key={tag.id} text={tag.name} color={tag.viewColor} />)
+    .collect();
 
   const text = `Are you sure you want to delete the tag "${object.name}"?`;
 
@@ -65,12 +69,10 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
       title={text}
       information="Deleting tags or collections will permanently remove them from Allusion."
       body={
-        tagsToRemove.length > 0 && (
+        selectedTags.length > 0 && (
           <div id="tag-remove-overview">
             <p>Selected Tags</p>
-            {tagsToRemove.map((tag) => (
-              <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
-            ))}
+            {selectedTags}
           </div>
         )
       }
@@ -162,7 +164,7 @@ export const MoveFilesToTrashBin = observer(() => {
       } in Allusion will be lost.`}
       body={
         <div className="deletion-confirmation-list">
-          {Array.from(selection).map((f) => (
+          {Array.from(selection, (f) => (
             <div key={f.id}>{f.absolutePath}</div>
           ))}
         </div>

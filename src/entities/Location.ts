@@ -1,7 +1,8 @@
 import { Remote, wrap } from 'comlink';
 import fse from 'fs-extra';
-import { action, makeObservable, observable, runInAction } from 'mobx';
+import { action, IObservableArray, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
+import { Sequence } from 'common/sequence';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import LocationStore, { FileStats } from 'src/frontend/stores/LocationStore';
 import { FolderWatcherWorker } from 'src/frontend/workers/folderWatcher.worker';
@@ -31,20 +32,19 @@ export class ClientSubLocation implements ISubLocation {
   name: string;
   @observable
   isExcluded: boolean;
-  readonly subLocations = observable<ClientSubLocation>([]);
+  readonly subLocations: IObservableArray<ClientSubLocation>;
 
   constructor(
     public location: ClientLocation,
     public path: string,
     name: string,
     excluded: boolean,
-    subLocations: ISubLocation[] = [],
+    subLocations: ISubLocation[],
   ) {
     this.name = name;
     this.isExcluded = excluded;
-    this.subLocations.push(
-      ...subLocations
-        .sort(sort)
+    this.subLocations = observable(
+      Sequence.from(subLocations.sort(sort))
         .map(
           (subLoc) =>
             new ClientSubLocation(
@@ -54,7 +54,8 @@ export class ClientSubLocation implements ISubLocation {
               subLoc.isExcluded,
               subLoc.subLocations,
             ),
-        ),
+        )
+        .collect(),
     );
 
     makeObservable(this);
@@ -106,7 +107,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     id: ID,
     path: string,
     dateAdded: Date,
-    subLocations: ISubLocation[] = [],
+    subLocations: ISubLocation[],
     extensions: IMG_EXTENSIONS_TYPE[],
   ) {
     this.store = store;
@@ -115,9 +116,8 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.dateAdded = dateAdded;
     this.extensions = extensions;
 
-    this.subLocations.push(
-      ...subLocations
-        .sort(sort)
+    this.subLocations = observable(
+      Sequence.from(subLocations.sort(sort))
         .map(
           (subLoc) =>
             new ClientSubLocation(
@@ -127,7 +127,8 @@ export class ClientLocation implements ISerializable<ILocation> {
               subLoc.isExcluded,
               subLoc.subLocations,
             ),
-        ),
+        )
+        .collect(),
     );
 
     makeObservable(this);
@@ -142,11 +143,20 @@ export class ClientLocation implements ISerializable<ILocation> {
     await this.refreshSublocations();
     runInAction(() => (this.isInitialized = true));
 
-    const getExcludedSubLocsRecursively = (loc: ClientSubLocation): ClientSubLocation[] =>
-      loc.isExcluded ? [loc] : loc.subLocations.flatMap(getExcludedSubLocsRecursively);
+    const getExcludedSubLocsRecursively = action(
+      (loc: ClientSubLocation): Sequence<ClientSubLocation> => {
+        if (loc.isExcluded) {
+          return Sequence.once(loc);
+        } else {
+          return Sequence.from(loc.subLocations).flatMap(getExcludedSubLocsRecursively);
+        }
+      },
+    );
     runInAction(() => {
       this.excludedPaths.splice(0, this.excludedPaths.length);
-      this.excludedPaths.push(...this.subLocations.flatMap(getExcludedSubLocsRecursively));
+      this.excludedPaths.push(
+        ...Sequence.from(this.subLocations).flatMap(getExcludedSubLocsRecursively),
+      );
     });
 
     if (pathExists) {
@@ -243,12 +253,12 @@ export class ClientLocation implements ISerializable<ILocation> {
         const subLoc =
           loc.subLocations.find((subLoc) => subLoc.name === item.name) ??
           new ClientSubLocation(this, item.fullPath, item.name, item.name.startsWith('.'), []);
-        newSublocations.push(subLoc);
         if (item.children.length > 0) {
           updateSubLocations(subLoc, item);
         } else {
-          subLoc.subLocations.replace([]);
+          subLoc.subLocations.clear();
         }
+        newSublocations.push(subLoc);
       }
       loc.subLocations.replace(newSublocations.sort(sort));
 
@@ -327,21 +337,26 @@ interface IDirectoryTreeItem {
  */
 async function getDirectoryTree(path: string): Promise<IDirectoryTreeItem[]> {
   try {
-    let dirs: string[] = [];
-    for (const file of await fse.readdir(path)) {
-      const fullPath = SysPath.join(path, file);
-      if ((await fse.stat(fullPath)).isDirectory()) {
-        dirs = [...dirs, fullPath];
-      }
-    }
+    const dirs = await Promise.all(
+      Sequence.from(await fse.readdir(path)).map(async (file) => {
+        const fullPath = SysPath.join(path, file);
+        if ((await fse.stat(fullPath)).isDirectory()) {
+          return fullPath;
+        } else {
+          return undefined;
+        }
+      }),
+    );
     return Promise.all(
-      dirs.map(
-        async (dir): Promise<IDirectoryTreeItem> => ({
-          name: SysPath.basename(dir),
-          fullPath: dir,
-          children: await getDirectoryTree(dir),
-        }),
-      ),
+      Sequence.from(dirs)
+        .filterMap((d) => d)
+        .map(
+          async (dir): Promise<IDirectoryTreeItem> => ({
+            name: SysPath.basename(dir),
+            fullPath: dir,
+            children: await getDirectoryTree(dir),
+          }),
+        ),
     );
   } catch (e) {
     return [];

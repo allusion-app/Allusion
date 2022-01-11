@@ -12,6 +12,7 @@ import { ITag, ROOT_TAG_ID } from '../entities/Tag';
 import BackupScheduler from './BackupScheduler';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbDelete, dbInit, OrderDirection } from './DBRepository';
+import { Sequence } from 'common/sequence';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -73,14 +74,15 @@ export default class Backend {
 
   async fetchFilesByID(ids: ID[]): Promise<IFile[]> {
     console.info('Backend: Fetching files by ID...');
-    const files = await this.fileRepository.getByIds(ids);
-    return files.filter((f) => f !== undefined) as IFile[];
+    return Sequence.from(await this.fileRepository.getByIds(ids))
+      .filterMap((v) => v)
+      .collect();
   }
 
   async fetchFilesByKey(key: keyof IFile, value: IndexableType): Promise<IFile[]> {
     console.info('Backend: Fetching files by key/value...', { key, value });
     const files = await this.fileRepository.getByKey(key, value);
-    return files as IFile[];
+    return files;
   }
 
   async fetchLocations(order: keyof ILocation, fileOrder: OrderDirection): Promise<ILocation[]> {
@@ -202,7 +204,7 @@ export default class Backend {
     for (const file of filesWithTags) {
       // Might contain duplicates if the tag to be merged with was already on the file, so array -> set -> array to remove dupes
       file.tags = Array.from(
-        new Set(file.tags.map((t) => (t === tagToBeRemoved ? tagToMergeWith : t))),
+        new Set(Sequence.from(file.tags).map((t) => (t === tagToBeRemoved ? tagToMergeWith : t))),
       );
     }
     // Update files in db

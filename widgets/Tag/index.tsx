@@ -22,7 +22,10 @@ const Tag = (props: TagProps) => {
   const { text, color, className, onClick, onRemove, tooltip } = props;
 
   const style = useMemo(
-    () => (color ? { backgroundColor: color, color: getColorFromBackground(color) } : undefined),
+    () =>
+      color !== undefined && color.length > 0
+        ? { backgroundColor: color, color: getColorFromBackground(color) }
+        : undefined,
     [color],
   );
 

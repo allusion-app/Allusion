@@ -48,6 +48,7 @@ import { action, makeObservable, observable, runInAction } from 'mobx';
 import exiftool from 'node-exiftool';
 import path from 'path';
 import { isDev } from 'src/config';
+import { Sequence } from 'common/sequence';
 import { IS_WIN } from 'src/frontend/utils';
 
 // The exif binary is placed using ElectronBuilder's extraResources: https://www.electron.build/configuration/contents#extraresources
@@ -115,29 +116,33 @@ class ExifIO {
 
   /** Merges the HierarchicalSubject, Subject and Keywords into one list of tags, removing any duplicates */
   static convertMetadataToHierarchy(entry: exiftool.IMetadata, separator: string): string[][] {
-    const parseExifFieldAsString = (val?: string | string[]) =>
-      Array.isArray(val) ? val : val !== undefined ? [val] : [];
+    // these toString() methods are here because they are automatically parsed to numbers if they could be numbers :/
+    const parseExifFieldAsString = (val: unknown): Sequence<string> => {
+      if (Array.isArray(val)) {
+        return Sequence.from(val).map((s) => String(s));
+      } else if (val !== undefined && val !== null) {
+        return Sequence.once(String(val));
+      } else {
+        return Sequence.empty();
+      }
+    };
 
     const tagHierarchy = parseExifFieldAsString(entry.HierarchicalSubject);
     const subject = parseExifFieldAsString(entry.Subject);
     const keywords = parseExifFieldAsString(entry.Keywords);
 
-    // these toString() methods are here because they are automatically parsed to numbers if they could be numbers :/
-    const splitHierarchy = tagHierarchy.map((h) => h.toString().split(separator));
-    const allPlainTags = Array.from(
-      new Set([...subject.map((s) => s.toString()), ...keywords.map((s) => s.toString())]),
-    );
-
+    const splitHierarchy = tagHierarchy.map((h) => h.split(separator)).collect();
     // Filter out duplicates of tagHierarchy and the other plain tags:
-    const filteredTags = allPlainTags.filter((tag) =>
-      splitHierarchy.every((h) => h[h.length - 1] !== tag),
-    );
-
-    if (tagHierarchy.length + filteredTags.length > 0) {
-      console.debug('Parsed tags', { tagHierarchy, subject, keywords });
-    }
-    return [...splitHierarchy, ...filteredTags.map((t) => [t])];
+    const filteredTags = Sequence.from(new Set(subject.chain(keywords))).filterMap((tag) => {
+      if (splitHierarchy.every((h) => h[h.length - 1] !== tag)) {
+        return [tag];
+      } else {
+        return undefined;
+      }
+    });
+    return [...splitHierarchy, ...filteredTags];
   }
+
   async readTags(filepath: string): Promise<string[][]> {
     const metadata = await ep.readMetadata(filepath, [
       'HierarchicalSubject',
@@ -145,8 +150,8 @@ class ExifIO {
       'Keywords',
       ...this.extraArgs,
     ]);
-    if (metadata.error || metadata.data === null || metadata.data.length === 0) {
-      throw new Error(metadata.error || 'No metadata entry');
+    if (metadata.error !== null || metadata.data === null || metadata.data.length === 0) {
+      throw new Error(metadata.error ?? 'No metadata entry');
     }
     const entry = metadata.data[0];
     return ExifIO.convertMetadataToHierarchy(
@@ -155,13 +160,17 @@ class ExifIO {
     );
   }
 
-  async readExifTags(filepath: string, tags: string[]): Promise<Array<string | undefined>> {
+  async readExifTags(filepath: string, tags: string[]): Promise<string[]> {
     const metadata = await ep.readMetadata(filepath, [...tags, ...this.extraArgs]);
-    if (metadata.error || metadata.data === null || metadata.data.length === 0) {
-      throw new Error(metadata.error || 'No metadata entry');
+    if (metadata.error !== null || metadata.data === null || metadata.data.length === 0) {
+      throw new Error(metadata.error ?? 'No metadata entry');
     }
     const entry = metadata.data[0];
-    return tags.map((t) => entry[t]?.toString() ?? undefined);
+    return Sequence.from(tags)
+      .filterMap((t) =>
+        entry[t] !== undefined && entry[t] !== null ? entry[t].toString() : undefined,
+      )
+      .collect();
   }
 
   /** Reads file metadata for all files in a folder (and recursively for its subfolders) */
@@ -183,7 +192,10 @@ class ExifIO {
   // }
 
   /** Overwrites the tags of a specific file */
-  @action.bound async writeTags(filepath: string, tagNameHierarchy: string[][]): Promise<void> {
+  @action.bound async writeTags(
+    filepath: string,
+    tagNameHierarchy: (readonly string[])[],
+  ): Promise<void> {
     // TODO: Could also write the meta-metadata, e.g.:
     // History Action                  : saved
     // History Instance ID             : xmp.iid:14020DA03863EB11B2D999D21045C35B
@@ -269,8 +281,8 @@ class ExifIO {
         'ImageHeight',
         ...this.extraArgs,
       ]);
-      if (metadata.error || metadata.data === null || metadata.data.length === 0) {
-        throw new Error(metadata.error || 'No metadata entry');
+      if (metadata.error !== null || metadata.data === null || metadata.data.length === 0) {
+        throw new Error(metadata.error ?? 'No metadata entry');
       }
       const entry = metadata.data[0];
       const { ImageWidth, ImageHeight } = entry;
@@ -298,11 +310,13 @@ class ExifIO {
 
     const res = await ep.readMetadata(input, ['ThumbnailImage', 'PhotoshopThumbnail', 'b']);
 
-    let data = res.data?.[0]?.ThumbnailImage || res.data?.[0]?.PhotoshopThumbnail;
-    if (data) {
-      if (data.startsWith?.('base64')) {
-        data = data.replace('base64:', '');
-        await fse.writeFile(output, Buffer.from(data, 'base64'));
+    const data =
+      res.data !== null && res.data.length > 0
+        ? res.data[0].ThumbnailImage ?? res.data[0].PhotoshopThumbnail
+        : undefined;
+    if (data !== undefined) {
+      if (typeof data === 'string' && data.startsWith('base64')) {
+        await fse.writeFile(output, Buffer.from(data.replace('base64:', ''), 'base64'));
       } else {
         await fse.writeFile(output, data);
       }

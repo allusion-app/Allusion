@@ -44,7 +44,7 @@ const ColorPickerMenu = observer(({ tag }: { tag: ClientTag }) => {
         onClick={() => handleChange(color === 'inherit' ? '' : 'inherit')}
       />
       <MenuSubItem text="Pick Color" icon={IconSet.COLOR}>
-        <HexColorPicker color={color || undefined} onChange={handleChange} />
+        <HexColorPicker color={color.length > 0 ? color : undefined} onChange={handleChange} />
         <button
           key="none"
           aria-label="No Color"

@@ -54,12 +54,12 @@ export class FolderWatcherWorker {
         }
         // If the path doesn't have an extension (likely a directory), don't ignore it.
         // In the unlikely situation it is a file, we'll filter it out later in the .on('add', ...)
-        const ext = SysPath.extname(path).toLowerCase().split('.')[1];
-        if (ext.length === 0) {
+        const ext = SysPath.extname(path).toLowerCase().split('.');
+        if (ext.length < 2 || ext[1].length === 0) {
           return false;
         }
         // If the path (file or directory) ends with an image extension, don't ignore it.
-        if (extensions.includes(ext as IMG_EXTENSIONS_TYPE)) {
+        if (extensions.includes(ext[1] as IMG_EXTENSIONS_TYPE)) {
           return false;
         }
         // Otherwise, we need to know whether it is a file or a directory before making a decision.

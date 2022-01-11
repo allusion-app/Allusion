@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
+import { Sequence } from 'common/sequence';
 import { Collapse } from 'src/frontend/components/Collapse';
 import { TagRemoval } from 'src/frontend/components/RemovalAlert';
 import { TagMerge } from 'src/frontend/containers/Outliner/TagsPanel/TagMerge';
@@ -35,8 +36,7 @@ export class TagsTreeItemRevealer extends TreeItemRevealer {
   }
 
   revealTag(tag: ClientTag) {
-    const tagsToExpand = tag.treePath;
-    this.revealTreeItem([ROOT_TAG_ID, ...tagsToExpand.map((t) => t.id)]);
+    this.revealTreeItem([ROOT_TAG_ID, ...Sequence.from(tag.treePath()).map((t) => t.id)]);
   }
 }
 
@@ -361,7 +361,7 @@ const TagItem = observer((props: ITagItemProps) => {
         setText={nodeData.rename}
         isEditing={isEditing}
         onSubmit={submit}
-        tooltip={`${nodeData.treePath.map((t) => t.name).join(' › ')} (${nodeData.fileCount})`}
+        tooltip={`${nodeData.path().join(' › ')} (${nodeData.fileCount})`}
       />
       {!isEditing && <SearchButton onClick={handleQuickQuery} isSearched={nodeData.isSearched} />}
     </div>
