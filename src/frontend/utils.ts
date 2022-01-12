@@ -60,7 +60,7 @@ export function debouncedThrottle<F extends (...args: any) => any>(fn: F, wait =
   const db = debounce(fn);
   return function debouncedThrottleFn(this: any, ...args: any) {
     const now = new Date();
-    if (last !== undefined && now.getTime() < last.getTime() + wait) {
+    if (last === undefined || now.getTime() < last.getTime() + wait) {
       clearTimeout(deferTimer);
       db.apply(this, args);
       deferTimer = setTimeout(() => {
