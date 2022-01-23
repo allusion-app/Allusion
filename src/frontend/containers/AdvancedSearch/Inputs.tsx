@@ -279,8 +279,8 @@ const DateAddedInput = ({ value, labelledby, dispatch }: ValueInput<Date>) => {
       aria-labelledby={labelledby}
       className="input criteria-input"
       type="date"
-      max={new Date().toISOString().substr(0, 10)}
-      defaultValue={value.toISOString().substr(0, 10)}
+      max={new Date().toISOString().slice(0, 10)}
+      defaultValue={value.toISOString().slice(0, 10)}
       onChange={(e) => {
         if (e.target.valueAsDate) {
           dispatch(setValue(e.target.valueAsDate));

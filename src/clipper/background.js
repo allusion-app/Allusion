@@ -145,7 +145,7 @@ chrome.contextMenus.onClicked.addListener(async (props, tab) => {
   if (srcUrl.startsWith('data:image/') || filename.indexOf('.') === -1) {
     filename = tab.title;
   } else {
-    filename = filename.substr(0, filename.indexOf('.')); // strip extension
+    filename = filename.slice(0, filename.indexOf('.')); // strip extension
   }
 
   importImage(filename, srcUrl);

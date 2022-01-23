@@ -232,12 +232,12 @@ export const ellipsize = (
   }
   switch (type) {
     case 'end':
-      return value.substr(maxLength) + '…';
+      return value.slice(maxLength) + '…';
     case 'middle':
-      return value.substr(0, maxLength / 2) + '…' + value.substr(value.length - maxLength / 2);
+      return value.slice(0, maxLength / 2) + '…' + value.slice(value.length - maxLength / 2);
     case 'start':
     default:
-      return '…' + value.substr(value.length - maxLength);
+      return '…' + value.slice(value.length - maxLength);
   }
 };
 
@@ -364,9 +364,9 @@ export const getContrast = (hexcolor: string) => {
   }
 
   // Convert to RGB value
-  const r = parseInt(hexcolor.substr(0, 2), 16);
-  const g = parseInt(hexcolor.substr(2, 2), 16);
-  const b = parseInt(hexcolor.substr(4, 2), 16);
+  const r = parseInt(hexcolor.slice(0, 2), 16);
+  const g = parseInt(hexcolor.slice(2, 4), 16);
+  const b = parseInt(hexcolor.slice(4, 6), 16);
 
   // Get YIQ ratio
   return (r * 299 + g * 587 + b * 114) / 1000;
@@ -415,16 +415,16 @@ export function encodeFilePath(filePath: string): string {
   }
   // Take into account weird file names like "C:/Images/https_%2F%2Fcdn/.../my-image.jpg"
   const basename = path.basename(filePath);
-  const basepath = filePath.substr(0, filePath.length - basename.length);
-  let filename = filePath.substr(basepath.length);
+  const basepath = filePath.slice(0, filePath.length - basename.length);
+  let filename = filePath.slice(basepath.length);
   // but don't encode url params, we need those to stay intact, e.g. myImage.jpg?v=1
   // unix allows question marks in filenames though, not bothering with that
   let params = '';
   const paramsIndex = filename.lastIndexOf('?');
   // can't be first char of filname, so > 0
   if (paramsIndex > 0) {
-    params = filename.substr(paramsIndex);
-    filename = filename.substr(0, paramsIndex);
+    params = filename.slice(paramsIndex);
+    filename = filename.slice(0, paramsIndex);
   }
   return `file://${basepath}${encodeURIComponent(filename)}${params}`;
 }
