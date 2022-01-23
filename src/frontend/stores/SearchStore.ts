@@ -27,7 +27,7 @@ class SearchStore {
       const fetchedSearches = await this.backend.fetchSearches();
       this.searchList.push(
         ...fetchedSearches.map(
-          (s) => new ClientFileSearchItem(s.id, s.name, s.criteria, s.matchAny),
+          (s) => new ClientFileSearchItem(s.id, s.name, s.criteria, s.matchAny === true),
         ),
       );
     } catch (err) {

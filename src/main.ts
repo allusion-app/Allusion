@@ -63,7 +63,7 @@ function initialize() {
 
   // Initialize preferences file and its consequences
   try {
-    if (!fse.pathExists(basePath)) {
+    if (!fse.pathExistsSync(basePath)) {
       fse.mkdirSync(basePath);
     }
     try {
@@ -113,7 +113,7 @@ function createWindow() {
   // Customize new window opening
   // https://www.electronjs.org/docs/api/window-open
   mainWindow.webContents.setWindowOpenHandler(({ frameName }) => {
-    if (mainWindow === null || mainWindow?.isDestroyed()) {
+    if (mainWindow === null || mainWindow.isDestroyed()) {
       return { action: 'deny' };
     }
 
@@ -149,7 +149,7 @@ function createWindow() {
   });
 
   mainWindow.webContents.on('did-create-window', (childWindow) => {
-    if (mainWindow === null || mainWindow?.isDestroyed()) {
+    if (mainWindow === null || mainWindow.isDestroyed()) {
       return;
     }
 
@@ -161,7 +161,7 @@ function createWindow() {
     }
 
     mainWindow.webContents.once('will-navigate', () => {
-      if (!childWindow?.isDestroyed()) {
+      if (!childWindow.isDestroyed()) {
         childWindow.close(); // close when main window is reloaded
       }
     });
@@ -544,7 +544,7 @@ process.on('uncaughtException', async (error) => {
   console.error('Uncaught exception', error);
 
   const errorMessage = `An unexpected error occurred. Please file a bug report if you think this needs fixing!\n${
-    error?.stack?.includes(error.message) ? '' : `${error.name}: ${error.message.slice(0, 200)}\n`
+    error.stack?.includes(error.message) ? '' : `${error.name}: ${error.message.slice(0, 200)}\n`
   }\n${error.stack?.slice(0, 300)}`;
 
   try {
@@ -723,7 +723,7 @@ MainMessenger.onToggleCheckUpdatesOnStartup(() => {
   });
 });
 
-MainMessenger.onIsCheckUpdatesOnStartupEnabled(() => !!preferences.checkForUpdatesOnStartup);
+MainMessenger.onIsCheckUpdatesOnStartupEnabled(() => preferences.checkForUpdatesOnStartup === true);
 
 // Helper functions and variables/constants
 

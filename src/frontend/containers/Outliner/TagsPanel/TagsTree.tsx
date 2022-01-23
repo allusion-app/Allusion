@@ -106,7 +106,7 @@ const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
   if (nodeData.isSearched) {
     // if it already exists, then remove it
     const alreadySearchedCrit = uiStore.searchCriteriaList.find((c) =>
-      (c as ClientTagSearchCriteria<any>)?.value?.includes(nodeData.id),
+      (c as ClientTagSearchCriteria<any>).value?.includes(nodeData.id),
     );
     if (alreadySearchedCrit) {
       uiStore.replaceSearchCriterias(
@@ -317,9 +317,7 @@ const TagItem = observer((props: ITagItemProps) => {
           // otherwise, search it
           const query = new ClientTagSearchCriteria('tags', nodeData.id, 'containsRecursively');
           if (event.ctrlKey || event.metaKey) {
-            if (!nodeData.isSearched) {
-              uiStore.addSearchCriteria(query);
-            }
+            uiStore.addSearchCriteria(query);
           } else {
             uiStore.replaceSearchCriteria(query);
           }
@@ -537,7 +535,7 @@ const TagsTree = observer(() => {
     } else {
       if (selectedTag.isSelected && uiStore.tagSelection.size === 1) {
         uiStore.clearTagSelection();
-        (document.activeElement as HTMLElement)?.blur?.();
+        (document.activeElement as HTMLElement | null)?.blur();
       } else {
         uiStore.selectTag(selectedTag, true);
       }
@@ -601,7 +599,7 @@ const TagsTree = observer(() => {
   const handleKeyDown = useAction((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       uiStore.clearTagSelection();
-      (document.activeElement as HTMLElement)?.blur?.();
+      (document.activeElement as HTMLElement | null)?.blur();
       e.stopPropagation();
     }
   });

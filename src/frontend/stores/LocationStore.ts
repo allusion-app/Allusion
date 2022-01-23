@@ -455,7 +455,7 @@ class LocationStore {
     const match = runInAction(() => fileStore.fileList.find((f) => f.ino === fileStats.ino));
     const dbMatch = match
       ? undefined
-      : (await this.backend.fetchFilesByKey('ino', fileStats.ino))?.[0];
+      : (await this.backend.fetchFilesByKey('ino', fileStats.ino))[0];
 
     if (match) {
       if (fileStats.absolutePath === match.absolutePath) {

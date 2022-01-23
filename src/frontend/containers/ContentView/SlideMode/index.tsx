@@ -213,9 +213,6 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
     file,
     thumbnailSrc,
     async (file, thumbnailPath) => {
-      if (!file) {
-        return thumbnailPath;
-      }
       const src = await imageLoader.getImageSrc(file);
       return src ?? thumbnailPath;
     },

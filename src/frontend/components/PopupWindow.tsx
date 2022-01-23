@@ -41,7 +41,7 @@ const PopupWindow: React.FC<IPopupWindowProps> = (props) => {
     }
 
     return function cleanup() {
-      externalWindow?.close();
+      externalWindow.close();
       setWin(undefined);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -70,7 +70,7 @@ function copyStyles(sourceDoc: Document, targetDoc: Document) {
       linkElement.href = styleSheet.href;
       targetDoc.head.appendChild(linkElement);
       // development mode injects style elements for CSS
-    } else if (styleSheet.cssRules) {
+    } else if (styleSheet.cssRules.length > 0) {
       const styleElement = targetDoc.createElement('style');
       for (let i = 0; i < styleSheet.cssRules.length; i++) {
         const cssRule = styleSheet.cssRules[i];

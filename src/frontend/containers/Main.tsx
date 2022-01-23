@@ -39,7 +39,7 @@ const Main = () => {
   }, []);
 
   const handleShortcuts = useAction((e: React.KeyboardEvent) => {
-    if ((e.target as HTMLElement).matches?.('input')) {
+    if ((e.target as HTMLElement).matches('input')) {
       return;
     }
     const combo = getKeyCombo(e.nativeEvent);

@@ -90,7 +90,7 @@ if (IS_PREVIEW_WINDOW) {
     const index = object.get();
     if (!isNaN(index) && index >= 0 && index < rootStore.fileStore.fileList.length) {
       const file = rootStore.fileStore.fileList[index];
-      document.title = `${file?.absolutePath || '?'} • ${PREVIEW_WINDOW_BASENAME}`;
+      document.title = `${file.absolutePath || '?'} • ${PREVIEW_WINDOW_BASENAME}`;
     }
   });
 } else {

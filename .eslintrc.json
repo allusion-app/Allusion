@@ -31,6 +31,8 @@
     "react-hooks/exhaustive-deps": "warn",
     "react/no-children-prop": "off",
     "curly": "error",
+    "no-extra-boolean-cast": "error",
+    "@typescript-eslint/no-unnecessary-condition": "warn",
     "@typescript-eslint/prefer-string-starts-ends-with": "error"
   },
   "overrides": [

@@ -19,7 +19,7 @@ export default abstract class TreeItemRevealer {
     }
 
     // For every item on its path to the item to reveal, expand it, and then scrollTo + focus the item
-    this.setExpansion?.((exp) => {
+    this.setExpansion((exp) => {
       const newExpansionState = { ...exp };
       for (const id of dataIds) {
         newExpansionState[id] = true;
@@ -29,7 +29,7 @@ export default abstract class TreeItemRevealer {
 
     setTimeout(() => {
       const dataId = encodeURIComponent(dataIds[dataIds.length - 1]);
-      const elem = document.querySelector(`li[data-id="${dataId}"]`) as HTMLLIElement;
+      const elem = document.querySelector<HTMLLIElement>(`li[data-id="${dataId}"]`);
       if (elem) {
         // Smooth scroll + focus
         elem.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });

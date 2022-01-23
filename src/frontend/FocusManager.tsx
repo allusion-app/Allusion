@@ -5,7 +5,7 @@ const FocusManager = {
   focusGallery: () => {
     const elem = document.getElementById('gallery-content');
     if (elem) {
-      elem.focus?.({ preventScroll: true });
+      elem.focus({ preventScroll: true });
     } else {
       console.warn(
         // eslint-disable-next-line prettier/prettier

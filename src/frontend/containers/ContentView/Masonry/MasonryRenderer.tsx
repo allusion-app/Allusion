@@ -174,7 +174,7 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [containerWidth, handleResize, thumbnailSize, viewMethod]);
 
-  return !(containerHeight && layoutTimestamp) ? (
+  return !containerHeight ? (
     <></>
   ) : (
     <VirtualizedRenderer

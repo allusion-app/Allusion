@@ -20,11 +20,11 @@ export class ClientSearchItem<T> {
   // TODO: also store sort mode? (filename, descending, etc)
   // Then it wouldn't be a "Saved Search", but a "Saved view" maybe?
 
-  constructor(id: ID, name: string, criteria: SearchCriteria<T>[], matchAny?: boolean) {
+  constructor(id: ID, name: string, criteria: SearchCriteria<T>[], matchAny: boolean) {
     this.id = id;
     this.name = name;
     this.criteria.push(...criteria.map((c) => ClientBaseCriteria.deserialize(c)));
-    this.matchAny = !!matchAny;
+    this.matchAny = matchAny;
 
     makeObservable(this);
   }

@@ -193,7 +193,7 @@ const TagWithHint = observer(
     onContextMenu: (e: MousePointerEvent, tag: ClientTag) => void;
   }) => {
     const handleContextMenu = useCallback(
-      (e: React.MouseEvent<HTMLElement>) => onContextMenu?.(e, tag),
+      (e: React.MouseEvent<HTMLElement>) => onContextMenu(e, tag),
       [onContextMenu, tag],
     );
     return (

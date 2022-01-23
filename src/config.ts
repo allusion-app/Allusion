@@ -18,7 +18,7 @@ export const RECURSIVE_DIR_WATCH_DEPTH = 16;
 
 export const thumbnailFormat = 'webp';
 
-const isRenderer = process && process.type === 'renderer';
+const isRenderer = process.type === 'renderer';
 
 // Use higher thumbnail resolution for HiDPI screens
 // A value of 1 indicates a classic 96 DPI (76 DPI on some platforms) display, while a value of 2 is expected for HiDPI/Retina displays.

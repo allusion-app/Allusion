@@ -697,7 +697,7 @@ class UiStore {
   }
 
   @action.bound processGlobalShortCuts(e: KeyboardEvent) {
-    if ((e.target as HTMLElement).matches?.('input')) {
+    if ((e.target as HTMLElement | null)?.matches('input')) {
       return;
     }
     const combo = getKeyCombo(e);
@@ -722,7 +722,7 @@ class UiStore {
       e.preventDefault(); // prevent scrolling with space when opening the preview window
       // Search
     } else if (matches(hotkeyMap.search)) {
-      (document.querySelector('.searchbar input') as HTMLElement)?.focus();
+      (document.querySelector('.searchbar input') as HTMLElement).focus();
     } else if (matches(hotkeyMap.advancedSearch)) {
       this.toggleAdvancedSearch();
       // View

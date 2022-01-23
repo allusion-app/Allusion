@@ -193,7 +193,7 @@ interface IContextMenuProps {
 const LocationTreeContextMenu = observer(({ location, onDelete, onExclude }: IContextMenuProps) => {
   const { uiStore } = useStore();
 
-  const openDeleteDialog = useCallback(() => location && onDelete(location), [location, onDelete]);
+  const openDeleteDialog = useCallback(() => onDelete(location), [location, onDelete]);
 
   if (location.isBroken) {
     return (
@@ -542,10 +542,6 @@ const LocationsPanel = observer(() => {
     } catch (error) {
       // TODO: Show error notification.
       console.error(error);
-      return;
-    }
-
-    if (path === undefined) {
       return;
     }
 

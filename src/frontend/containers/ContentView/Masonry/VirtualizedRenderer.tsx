@@ -118,7 +118,7 @@ const VirtualizedRenderer = observer(
         scrollAnchor.current.style.height = sHeight + 'px';
         // TODO: adding behavior: 'smooth' would be nice, but it's disorienting when layout changes a lot. Add threshold for when the delta firstItemIndex than X?
         // Also, it doesn't work when scrolling by keeping arrow key held down
-        scrollAnchor.current?.scrollIntoView({ block, inline: 'nearest' });
+        scrollAnchor.current.scrollIntoView({ block, inline: 'nearest' });
         scrollAnchor.current.style.transform = ''; // reset so that the scroll position can't become stuck at bottom when amount of shown images decreases
       },
       [layout, padding],

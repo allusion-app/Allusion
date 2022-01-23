@@ -313,7 +313,7 @@ const ImportExport = observer(() => {
                 timeout: 5000,
               });
               try {
-                await rootStore.restoreDatabaseFromFile(isConfirmingFileImport?.path);
+                await rootStore.restoreDatabaseFromFile(isConfirmingFileImport.path);
                 RendererMessenger.reload();
               } catch (e) {
                 console.error('Could not restore backup', e);

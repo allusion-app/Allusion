@@ -225,8 +225,8 @@ export async function getMetaData(stats: FileStats, exifIO: ExifIO): Promise<IMe
     name: Path.basename(path),
     extension: Path.extname(path).slice(1).toLowerCase() as IMG_EXTENSIONS_TYPE,
     size: stats.size,
-    width: dimensions?.width ?? 0,
-    height: dimensions?.height ?? 0,
+    width: dimensions.width,
+    height: dimensions.height,
     dateCreated: stats.dateCreated,
   };
 }

@@ -103,10 +103,10 @@ export class FolderWatcherWorker {
 
             const fileStats: FileStats = {
               absolutePath: path,
-              dateCreated: stats?.birthtime,
-              dateModified: stats?.mtime,
-              size: Number(stats?.size),
-              ino: stats.ino?.toString(),
+              dateCreated: stats.birthtime,
+              dateModified: stats.mtime,
+              size: Number(stats.size),
+              ino: stats.ino.toString(),
             };
 
             if (this.isReady) {
