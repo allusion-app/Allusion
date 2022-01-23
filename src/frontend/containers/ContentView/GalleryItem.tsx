@@ -8,7 +8,7 @@ import { IconButton, IconSet, Tag } from 'widgets';
 import { ITransform } from './Masonry/layout-helpers';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { Poll, usePromise, Result } from 'src/frontend/hooks/usePromise';
+import { usePromise } from 'src/frontend/hooks/usePromise';
 import { CommandDispatcher, MousePointerEvent } from './Commands';
 
 interface ItemProps {
@@ -84,7 +84,7 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
   const { thumbnailPath, isBroken } = file;
 
   // This will check whether a thumbnail exists, generate it if needed
-  const imageSource: Poll<Result<string, any>> = usePromise(
+  const imageSource = usePromise(
     file,
     isBroken,
     mounted,
