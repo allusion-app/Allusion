@@ -98,7 +98,9 @@ export const MenuSliderItem = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const handleFocus = useCallback(() => inputRef.current?.focus(), []);
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (['ArrowLeft', 'ArrowRight'].includes(e.key)) e.stopPropagation();
+    if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      e.stopPropagation();
+    }
   }, []);
 
   const handleChange = useCallback(

@@ -179,7 +179,9 @@ class LocationStore {
       );
       // Also look for duplicate files: when a files is renamed/moved it will become a new entry, should be de-duplicated
       const dbMatches = missingFiles.map((missingDbFile, i) => {
-        if (createdMatches[i]) return false; // skip missing files that match with a newly created file
+        if (createdMatches[i]) {
+          return false;
+        } // skip missing files that match with a newly created file
         // Quick lookup for files with same created date,
         const candidates = dbFilesByCreatedDate.get(missingDbFile.dateCreated.getTime()) || [];
 
@@ -456,7 +458,9 @@ class LocationStore {
       : (await this.backend.fetchFilesByKey('ino', fileStats.ino))?.[0];
 
     if (match) {
-      if (fileStats.absolutePath === match.absolutePath) return;
+      if (fileStats.absolutePath === match.absolutePath) {
+        return;
+      }
       fileStore.replaceMovedFile(match, file);
     } else if (dbMatch) {
       const newIFile = mergeMovedFile(dbMatch, file);

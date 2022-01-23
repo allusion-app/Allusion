@@ -25,11 +25,11 @@ export function debounce<F extends (...args: any) => any>(func: F, wait: number 
   }
 
   // conversion through any necessary as it wont satisfy criteria otherwise
-  return (function (this: any, ...args: any[]) {
+  return function (this: any, ...args: any[]) {
     clearTimeout(timeoutID);
 
-    timeoutID = (setTimeout(() => func.apply(this, args), wait) as unknown) as number;
-  } as any) as F;
+    timeoutID = setTimeout(() => func.apply(this, args), wait) as unknown as number;
+  } as any as F;
 }
 
 export const throttle = (fn: (...args: any) => any, wait: number = 300) => {
@@ -351,7 +351,7 @@ export const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement
  */
 export const getContrast = (hexcolor: string) => {
   // If a leading # is provided, remove it
-  if (hexcolor.slice(0, 1) === '#') {
+  if (hexcolor.startsWith('#')) {
     hexcolor = hexcolor.slice(1);
   }
 

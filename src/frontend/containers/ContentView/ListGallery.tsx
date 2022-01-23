@@ -250,10 +250,10 @@ function useHeaderResize(
   setColumnWidth: (name: string, value: number) => void,
 ) {
   const isDragging = useRef(false);
-  const onResize = useCallback((value: number) => setColumnWidth(name, value), [
-    name,
-    setColumnWidth,
-  ]);
+  const onResize = useCallback(
+    (value: number) => setColumnWidth(name, value),
+    [name, setColumnWidth],
+  );
 
   useEffect(() => {
     if (header.current === null) {

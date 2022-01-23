@@ -14,7 +14,9 @@ export default abstract class TreeItemRevealer {
    * @param dataIds List of items in hierarchy to the item to reveal. Item to reveal should be the last item.
    */
   protected revealTreeItem(dataIds: string[]) {
-    if (!this.setExpansion) throw new Error('TreeItemRevealer was not initialized!');
+    if (!this.setExpansion) {
+      throw new Error('TreeItemRevealer was not initialized!');
+    }
 
     // For every item on its path to the item to reveal, expand it, and then scrollTo + focus the item
     this.setExpansion?.((exp) => {

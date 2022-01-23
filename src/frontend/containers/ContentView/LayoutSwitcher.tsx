@@ -92,10 +92,14 @@ const Layout = ({ contentRect, showContextMenu }: LayoutProps) => {
         // When the activeElement GalleryItem goes out of view, focus will be handed over to the body element:
         // -> Gallery keyboard shortkeys stop working. So, force focus on Gallery container instead
         // But not when the TagEditor overlay is open: it will close onBlur
-        if (!uiStore.isToolbarTagPopoverOpen) FocusManager.focusGallery();
+        if (!uiStore.isToolbarTagPopoverOpen) {
+          FocusManager.focusGallery();
+        }
       } else if (e.key === 'ArrowRight' && index < fileStore.fileList.length - 1) {
         index += 1;
-        if (!uiStore.isToolbarTagPopoverOpen) FocusManager.focusGallery();
+        if (!uiStore.isToolbarTagPopoverOpen) {
+          FocusManager.focusGallery();
+        }
       } else {
         return;
       }
@@ -173,7 +177,9 @@ const CELL_SIZE_MEDIUM = 240 + PADDING;
 const CELL_SIZE_LARGE = 320 + PADDING;
 
 export function getThumbnailSize(sizeType: ThumbnailSize) {
-  if (typeof sizeType === 'number') return sizeType;
+  if (typeof sizeType === 'number') {
+    return sizeType;
+  }
   if (sizeType === 'small') {
     return CELL_SIZE_SMALL;
   } else if (sizeType === 'medium') {

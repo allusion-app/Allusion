@@ -128,7 +128,9 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
   const fileIdRef = useRef(fileId);
   const [loadError, setLoadError] = useState(false);
   const handleImageError = useCallback(() => {
-    if (fileIdRef.current === fileId) setLoadError(true);
+    if (fileIdRef.current === fileId) {
+      setLoadError(true);
+    }
   }, [fileId]);
   useEffect(() => {
     fileIdRef.current = fileId;

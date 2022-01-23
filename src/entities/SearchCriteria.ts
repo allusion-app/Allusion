@@ -218,8 +218,12 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
           ?.getSubTreeList()
           ?.map((t) => t.id) || [];
     }
-    if (op === 'containsNotRecursively') op = 'notContains';
-    if (op === 'containsRecursively') op = 'contains';
+    if (op === 'containsNotRecursively') {
+      op = 'notContains';
+    }
+    if (op === 'containsRecursively') {
+      op = 'contains';
+    }
 
     return {
       key: this.key,

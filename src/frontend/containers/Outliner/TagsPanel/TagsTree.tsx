@@ -170,7 +170,9 @@ const TagItem = observer((props: ITagItemProps) => {
   const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
   const expandDelayed = useCallback(
     (nodeId: string) => {
-      if (expandTimeoutId) clearTimeout(expandTimeoutId);
+      if (expandTimeoutId) {
+        clearTimeout(expandTimeoutId);
+      }
       const t = window.setTimeout(() => {
         dispatch(Factory.expandNode(nodeId));
       }, HOVER_TIME_TO_EXPAND);
@@ -288,7 +290,7 @@ const TagItem = observer((props: ITagItemProps) => {
         setExpandTimeoutId(undefined);
       }
     },
-    [dndData, expandTimeoutId, nodeData, pos, uiStore],
+    [dispatch, dndData, expandTimeoutId, expansion, nodeData, pos, uiStore],
   );
 
   const handleSelect = useCallback(
@@ -327,10 +329,10 @@ const TagItem = observer((props: ITagItemProps) => {
     [nodeData, uiStore],
   );
 
-  const handleRename = useCallback(() => dispatch(Factory.enableEditing(nodeData.id)), [
-    dispatch,
-    nodeData.id,
-  ]);
+  const handleRename = useCallback(
+    () => dispatch(Factory.enableEditing(nodeData.id)),
+    [dispatch, nodeData.id],
+  );
 
   useEffect(
     () =>

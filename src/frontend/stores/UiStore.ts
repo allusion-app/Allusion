@@ -780,14 +780,24 @@ class UiStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        if (prefs.theme) this.setTheme(prefs.theme);
+        if (prefs.theme) {
+          this.setTheme(prefs.theme);
+        }
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.isInspectorOpen = Boolean(prefs.isInspectorOpen);
-        if (prefs.thumbnailDirectory) this.setThumbnailDirectory(prefs.thumbnailDirectory);
-        if (prefs.importDirectory) this.setImportDirectory(prefs.importDirectory);
+        if (prefs.thumbnailDirectory) {
+          this.setThumbnailDirectory(prefs.thumbnailDirectory);
+        }
+        if (prefs.importDirectory) {
+          this.setImportDirectory(prefs.importDirectory);
+        }
         this.setMethod(Number(prefs.method));
-        if (prefs.thumbnailSize) this.setThumbnailSize(prefs.thumbnailSize);
-        if (prefs.thumbnailShape) this.setThumbnailShape(prefs.thumbnailShape);
+        if (prefs.thumbnailSize) {
+          this.setThumbnailSize(prefs.thumbnailSize);
+        }
+        if (prefs.thumbnailShape) {
+          this.setThumbnailShape(prefs.thumbnailShape);
+        }
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
         this.isThumbnailFilenameOverlayEnabled = Boolean(
           prefs.isThumbnailFilenameOverlayEnabled ?? false,

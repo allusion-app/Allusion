@@ -213,17 +213,23 @@ class FileStore {
 
   @action.bound setContentQuery() {
     this.content = Content.Query;
-    if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
+    if (this.rootStore.uiStore.isSlideMode) {
+      this.rootStore.uiStore.disableSlideMode();
+    }
   }
 
   @action.bound setContentAll() {
     this.content = Content.All;
-    if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
+    if (this.rootStore.uiStore.isSlideMode) {
+      this.rootStore.uiStore.disableSlideMode();
+    }
   }
 
   @action.bound setContentUntagged() {
     this.content = Content.Untagged;
-    if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
+    if (this.rootStore.uiStore.isSlideMode) {
+      this.rootStore.uiStore.disableSlideMode();
+    }
   }
 
   /**

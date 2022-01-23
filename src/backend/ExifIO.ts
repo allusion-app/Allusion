@@ -79,7 +79,9 @@ class ExifIO {
   }
 
   async initialize(): Promise<ExifIO> {
-    if (ep._open) return this;
+    if (ep._open) {
+      return this;
+    }
     if (!this.isOpening) {
       this.isOpening = true;
       const pid = await ep.open();
@@ -87,7 +89,9 @@ class ExifIO {
     } else {
       await new Promise<void>((resolve) =>
         setInterval(() => {
-          if (ep._open) resolve();
+          if (ep._open) {
+            resolve();
+          }
         }, 50),
       );
     }
@@ -190,7 +194,9 @@ class ExifIO {
     // Can add and remove simultaneously with `exiftool -keywords+="add this" -keywords-="remove this"`
     // Multiple at once with `-sep ", " -keywords="one, two, three"`
 
-    if (!tagNameHierarchy.length) return;
+    if (!tagNameHierarchy.length) {
+      return;
+    }
 
     const subject = tagNameHierarchy.map((entry) => entry[entry.length - 1]);
 

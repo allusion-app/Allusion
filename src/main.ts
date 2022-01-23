@@ -584,8 +584,8 @@ process.on('uncaughtException', async (error) => {
 //---------------------------------------------------------------------------------//
 // Messaging: Sending and receiving messages between the main and renderer process //
 //---------------------------------------------------------------------------------//
-MainMessenger.onIsClipServerRunning(() => clipServer!.isEnabled());
-MainMessenger.onIsRunningInBackground(() => clipServer!.isRunInBackgroundEnabled());
+MainMessenger.onIsClipServerRunning(() => clipServer?.isEnabled() === true);
+MainMessenger.onIsRunningInBackground(() => clipServer?.isRunInBackgroundEnabled() === true);
 
 MainMessenger.onSetClipServerEnabled(({ isClipServerRunning }) =>
   clipServer?.setEnabled(isClipServerRunning),
@@ -790,7 +790,9 @@ function getPreviousWindowState(): Electron.Rectangle & { isMaximized?: boolean 
 // Save window position and bounds: https://github.com/electron/electron/issues/526
 let saveBoundsTimeout: ReturnType<typeof setTimeout> | null = null;
 function saveWindowState() {
-  if (saveBoundsTimeout) clearTimeout(saveBoundsTimeout);
+  if (saveBoundsTimeout) {
+    clearTimeout(saveBoundsTimeout);
+  }
   saveBoundsTimeout = setTimeout(() => {
     saveBoundsTimeout = null;
     if (mainWindow !== null) {

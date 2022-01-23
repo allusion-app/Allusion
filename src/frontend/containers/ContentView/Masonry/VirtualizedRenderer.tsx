@@ -50,7 +50,9 @@ const VirtualizedRenderer = observer(
 
     const determineRenderRegion = useCallback(
       (numImages: number, overdraw: number, setFirstItem = true) => {
-        if (!isMountedRef.current) return;
+        if (!isMountedRef.current) {
+          return;
+        }
         const viewport = wrapperRef.current;
         const yOffset = viewport?.scrollTop || 0;
         const viewportHeight = viewport?.clientHeight || 0;
@@ -64,7 +66,9 @@ const VirtualizedRenderer = observer(
         setEndRenderIndex(Math.min(end, start + 512));
 
         // store the first item in the viewport in the UIStore so that switching between view modes retains the scroll position
-        if (setFirstItem) uiStore.setFirstItem(firstImageIndex);
+        if (setFirstItem) {
+          uiStore.setFirstItem(firstImageIndex);
+        }
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [],
@@ -99,7 +103,9 @@ const VirtualizedRenderer = observer(
 
     const scrollToIndex = useCallback(
       (index: number, block: 'nearest' | 'start' | 'end' | 'center' = 'nearest') => {
-        if (!scrollAnchor.current) return;
+        if (!scrollAnchor.current) {
+          return;
+        }
         const [sWidth, sHeight, sTop, sLeft] = layout.getTransform(index);
 
         // Scroll to invisible element, positioned at selected item,

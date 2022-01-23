@@ -1,4 +1,4 @@
-import Dexie, { Transaction, WhereClause } from 'dexie';
+import Dexie, { IndexableType, Transaction, WhereClause } from 'dexie';
 import { shuffleArray } from 'src/frontend/utils';
 
 import { ID, IResource } from '../entities/ID';
@@ -91,7 +91,7 @@ export default class BaseRepository<T extends IResource> {
     return this.collection.bulkGet(ids);
   }
 
-  public async getByKey(key: keyof T, value: any): Promise<T[]> {
+  public async getByKey(key: keyof T, value: IndexableType): Promise<T[]> {
     return this.collection
       .where(key as string)
       .equals(value)

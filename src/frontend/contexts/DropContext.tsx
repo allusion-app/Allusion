@@ -38,7 +38,9 @@ const useFileDropper = () => {
       enterCount.current++;
 
       // We only have to check once, until drag leave
-      if (enterCount.current > 1) return;
+      if (enterCount.current > 1) {
+        return;
+      }
 
       e.dataTransfer!.dropEffect = 'none';
 

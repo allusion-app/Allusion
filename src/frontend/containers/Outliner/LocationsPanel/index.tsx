@@ -57,7 +57,9 @@ export class LocationTreeItemRevealer extends TreeItemRevealer {
       const match = loc.subLocations.find((child) =>
         absolutePath.startsWith(`${child.path}${SysPath.sep}`),
       );
-      if (loc instanceof ClientLocation) return match ? getSubLocationsToFile(match) : [];
+      if (loc instanceof ClientLocation) {
+        return match ? getSubLocationsToFile(match) : [];
+      }
       return match ? [loc, ...getSubLocationsToFile(match)] : [loc];
     };
 
@@ -145,10 +147,10 @@ const DirectoryMenu = observer(
 
     const handleOpenFileExplorer = useCallback(() => shell.showItemInFolder(path), [path]);
 
-    const handleAddToSearch = useCallback(() => uiStore.addSearchCriteria(pathCriteria(path)), [
-      path,
-      uiStore,
-    ]);
+    const handleAddToSearch = useCallback(
+      () => uiStore.addSearchCriteria(pathCriteria(path)),
+      [path, uiStore],
+    );
 
     const handleReplaceSearch = useCallback(
       () => uiStore.replaceSearchCriteria(pathCriteria(path)),
@@ -226,7 +228,9 @@ const useFileDropHandling = (
   // Don't expand immediately, only after hovering over it for a second or so
   const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
   const expandDelayed = useCallback(() => {
-    if (expandTimeoutId) clearTimeout(expandTimeoutId);
+    if (expandTimeoutId) {
+      clearTimeout(expandTimeoutId);
+    }
     const t = window.setTimeout(() => {
       setExpansion({ ...expansion, [expansionId]: true });
     }, HOVER_TIME_TO_EXPAND);
@@ -271,7 +275,9 @@ const useFileDropHandling = (
     (event: React.DragEvent<HTMLDivElement>) => {
       // Drag events are also triggered for children??
       // We don't want to detect dragLeave of a child as a dragLeave of the target element, so return immmediately
-      if ((event.target as HTMLElement).contains(event.relatedTarget as HTMLElement)) return;
+      if ((event.target as HTMLElement).contains(event.relatedTarget as HTMLElement)) {
+        return;
+      }
 
       event.stopPropagation();
       event.preventDefault();
@@ -494,9 +500,10 @@ const LocationsTree = ({ onDelete, onExclude, showContextMenu }: ILocationTreePr
   });
   // TODO: re-run when location (sub)-folder updates: add "lastUpdated" field to location, update when location watcher notices changes?
 
-  useEffect(() => LocationTreeItemRevealer.instance.initialize(setExpansion, locationStore), [
-    locationStore,
-  ]);
+  useEffect(
+    () => LocationTreeItemRevealer.instance.initialize(setExpansion, locationStore),
+    [locationStore],
+  );
 
   return (
     <Tree

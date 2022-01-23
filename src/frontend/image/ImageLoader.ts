@@ -51,7 +51,9 @@ class ImageLoader {
 
   needsThumbnail(file: IFile) {
     // Not using thumbnails for gifs, since they're mostly used for animations, which doesn't get preserved in thumbnails
-    if (file.extension === 'gif') return false;
+    if (file.extension === 'gif') {
+      return false;
+    }
 
     return (
       FormatHandlers[file.extension] !== 'web' ||

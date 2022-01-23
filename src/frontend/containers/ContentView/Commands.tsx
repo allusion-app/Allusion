@@ -150,11 +150,8 @@ export function useCommandHandler(
   useEffect(() => {
     const handleSelect = action((event: Event) => {
       event.stopPropagation();
-      const {
-        file,
-        selectAdditive,
-        selectRange,
-      } = (event as CommandHandlerEvent<SelectPayload>).detail;
+      const { file, selectAdditive, selectRange } = (event as CommandHandlerEvent<SelectPayload>)
+        .detail;
       select(file, selectAdditive, selectRange);
     });
 

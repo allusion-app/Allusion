@@ -50,7 +50,9 @@ if (IS_PREVIEW_WINDOW) {
       rootStore.uiStore.enableSlideMode();
 
       runInAction(() => {
-        if (rootStore.uiStore.isInspectorOpen) rootStore.uiStore.toggleInspector();
+        if (rootStore.uiStore.isInspectorOpen) {
+          rootStore.uiStore.toggleInspector();
+        }
       });
 
       rootStore.fileStore.fetchFilesByIDs(ids).then(() => {

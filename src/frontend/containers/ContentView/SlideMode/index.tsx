@@ -59,7 +59,9 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
           uiStore.setFirstItem(index);
 
           // Also, select only this file: makes more sense for the TagEditor overlay: shows tags on selected images
-          if (index !== undefined) uiStore.selectFile(fileStore.fileList[index], true);
+          if (index !== undefined) {
+            uiStore.selectFile(fileStore.fileList[index], true);
+          }
 
           reaction.dispose();
         }
@@ -137,7 +139,9 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
   }, [fileStore, isFirst, isLast, uiStore, imageLoader]);
 
   const transitionStart: SlideTransform | undefined = useMemo(() => {
-    if (!file) return undefined;
+    if (!file) {
+      return undefined;
+    }
     const thumbEl = document.querySelector(`[data-file-id="${file.id}"]`);
     const container = document.querySelector('#gallery-content');
     if (thumbEl && container) {
@@ -209,7 +213,9 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
     file,
     thumbnailSrc,
     async (file, thumbnailPath) => {
-      if (!file) return thumbnailPath;
+      if (!file) {
+        return thumbnailPath;
+      }
       const src = await imageLoader.getImageSrc(file);
       return src ?? thumbnailPath;
     },
