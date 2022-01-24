@@ -4,25 +4,17 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import FocusManager from 'src/frontend/FocusManager';
 import { ClientFile } from '../../../entities/File';
-import { ThumbnailSize, ViewMethod } from '../../stores/UiStore';
-import { throttle } from '../../utils';
+import { ViewMethod } from '../../stores/UiStore';
+import { throttle } from 'common/timeout';
 import { useCommandHandler } from './Commands';
 import ListGallery from './ListGallery';
 import MasonryRenderer from './Masonry/MasonryRenderer';
 import SlideMode from './SlideMode';
-
-export type ContentRect = { width: number; height: number };
+import { ContentRect } from './utils';
 
 interface LayoutProps {
   contentRect: ContentRect;
   showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
-}
-
-export interface GalleryProps {
-  contentRect: ContentRect;
-  /** The index of the currently selected image, or the "last selected" image when a range is selected */
-  lastSelectionIndex: React.MutableRefObject<number | undefined>;
-  select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
 }
 
 const Layout = ({ contentRect, showContextMenu }: LayoutProps) => {
@@ -170,20 +162,3 @@ const Layout = ({ contentRect, showContextMenu }: LayoutProps) => {
 };
 
 export default observer(Layout);
-
-const PADDING = 8;
-const CELL_SIZE_SMALL = 160 + PADDING;
-const CELL_SIZE_MEDIUM = 240 + PADDING;
-const CELL_SIZE_LARGE = 320 + PADDING;
-
-export function getThumbnailSize(sizeType: ThumbnailSize) {
-  if (typeof sizeType === 'number') {
-    return sizeType;
-  }
-  if (sizeType === 'small') {
-    return CELL_SIZE_SMALL;
-  } else if (sizeType === 'medium') {
-    return CELL_SIZE_MEDIUM;
-  }
-  return CELL_SIZE_LARGE;
-}

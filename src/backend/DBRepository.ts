@@ -1,5 +1,5 @@
 import Dexie, { IndexableType, Transaction, WhereClause } from 'dexie';
-import { shuffleArray } from 'src/frontend/utils';
+import { shuffleArray } from 'common/core';
 
 import { ID, IResource } from '../entities/ID';
 import {

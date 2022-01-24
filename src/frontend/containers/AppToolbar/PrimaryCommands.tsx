@@ -9,15 +9,6 @@ import FileTagEditor from 'src/frontend/containers/AppToolbar/FileTagEditor';
 import Searchbar from './Searchbar';
 import { SortCommand, ViewCommand } from './Menus';
 
-// Tooltip info
-export const enum Tooltip {
-  TagFiles = 'Add or remove tags from selected images',
-  Select = 'Selects or deselects all images',
-  Delete = 'Delete selected missing images from library',
-  Inspector = 'Toggle the inspector panel',
-  Back = 'Back to content panel',
-}
-
 const OutlinerToggle = observer(() => {
   const { uiStore } = useStore();
 
@@ -71,7 +62,7 @@ export const SlideModeCommand = observer(() => {
         icon={IconSet.ARROW_LEFT}
         onClick={uiStore.disableSlideMode}
         text="Back"
-        tooltip={Tooltip.Back}
+        tooltip="Back to content panel"
       />
 
       <div className="spacer" />
@@ -82,8 +73,8 @@ export const SlideModeCommand = observer(() => {
         icon={IconSet.INFO}
         onClick={uiStore.toggleInspector}
         checked={uiStore.isInspectorOpen}
-        text={Tooltip.Inspector}
-        tooltip={Tooltip.Inspector}
+        text="Toggle the inspector panel"
+        tooltip="Toggle the inspector panel"
       />
     </>
   );
@@ -107,7 +98,7 @@ const FileSelectionCommand = observer(() => {
       onClick={handleToggleSelect}
       pressed={allFilesSelected}
       text={selectionCount}
-      tooltip={Tooltip.Select}
+      tooltip="Selects or deselects all images"
       disabled={fileCount === 0}
     />
   );
@@ -122,7 +113,7 @@ const RemoveFilesPopover = observer(() => {
         disabled={uiStore.fileSelection.size === 0}
         onClick={uiStore.openToolbarFileRemover}
         text="Delete"
-        tooltip={Tooltip.Delete}
+        tooltip="Delete selected missing images from library"
       />
       <FileRemoval />
     </>

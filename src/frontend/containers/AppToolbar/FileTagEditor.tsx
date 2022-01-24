@@ -14,13 +14,12 @@ import { ClientTag } from 'src/entities/Tag';
 import { TagOption } from 'src/frontend/components/TagSelector';
 import FocusManager from 'src/frontend/FocusManager';
 import { useAction, useAutorun, useComputed } from 'src/frontend/hooks/mobx';
-import { debounce } from 'src/frontend/utils';
+import { debounce } from 'common/timeout';
 import { Grid, Tag } from 'widgets';
 import { Row, RowSeparator, useGridFocus } from 'widgets/Combobox/Grid';
 import { IconSet } from 'widgets/Icons';
 import { ToolbarButton } from 'widgets/menus';
 import { useStore } from '../../contexts/StoreContext';
-import { Tooltip } from './PrimaryCommands';
 
 const POPUP_ID = 'tag-editor-popup';
 
@@ -33,7 +32,7 @@ const FileTagEditor = observer(() => {
         disabled={uiStore.fileSelection.size === 0 && !uiStore.isToolbarTagPopoverOpen}
         onClick={uiStore.toggleToolbarTagPopover}
         text="Tag selected files"
-        tooltip={Tooltip.TagFiles}
+        tooltip="Add or remove tags from selected images"
       />
       <FloatingPanel>
         <TagEditor />

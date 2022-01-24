@@ -15,7 +15,8 @@ import { ClientLocation, ClientSubLocation, ILocation } from 'src/entities/Locat
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
-import { getThumbnailPath, promiseAllLimit } from '../utils';
+import { getThumbnailPath } from 'common/fs';
+import { promiseAllLimit } from 'common/promise';
 import RootStore from './RootStore';
 import fse from 'fs-extra';
 

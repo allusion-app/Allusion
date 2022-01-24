@@ -1,4 +1,4 @@
-import { encodeFilePath } from './utils';
+import { encodeFilePath } from 'common/fs';
 
 describe('utils', () => {
   describe('encodeFilePath', () => {

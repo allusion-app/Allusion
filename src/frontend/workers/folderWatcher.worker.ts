@@ -3,7 +3,7 @@ import { expose } from 'comlink';
 import { Stats } from 'fs';
 import { BigIntStats } from 'original-fs';
 import SysPath from 'path';
-import { RECURSIVE_DIR_WATCH_DEPTH } from 'src/config';
+import { RECURSIVE_DIR_WATCH_DEPTH } from 'common/config';
 import { IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { FileStats } from '../stores/LocationStore';
 

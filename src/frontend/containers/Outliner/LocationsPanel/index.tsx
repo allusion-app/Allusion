@@ -15,7 +15,7 @@ import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import LocationStore from 'src/frontend/stores/LocationStore';
-import { triggerContextMenuEvent, emptyFunction } from 'src/frontend/utils';
+import { triggerContextMenuEvent, emptyFunction } from '../utils';
 import { RendererMessenger } from 'src/Messaging';
 import { IconSet, Tree } from 'widgets';
 import { ContextMenu, Menu, MenuDivider, MenuItem, Toolbar, ToolbarButton } from 'widgets/menus';

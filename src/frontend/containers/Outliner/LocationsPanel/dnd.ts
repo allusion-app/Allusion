@@ -2,7 +2,8 @@ import fse from 'fs-extra';
 import path from 'path';
 import { IMG_EXTENSIONS } from 'src/entities/File';
 import { ALLOWED_DROP_TYPES } from 'src/frontend/contexts/DropContext';
-import { retainArray, timeoutPromise } from 'src/frontend/utils';
+import { retainArray } from 'common/core';
+import { timeoutPromise } from 'common/timeout';
 import { IStoreFileMessage, RendererMessenger } from 'src/Messaging';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 

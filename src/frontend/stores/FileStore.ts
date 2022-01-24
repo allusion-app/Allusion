@@ -12,7 +12,9 @@ import {
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
-import { debounce, getThumbnailPath, promiseAllLimit } from '../utils';
+import { debounce } from 'common/timeout';
+import { getThumbnailPath } from 'common/fs';
+import { promiseAllLimit } from 'common/promise';
 import RootStore from './RootStore';
 
 const FILE_STORAGE_KEY = 'Allusion_File';

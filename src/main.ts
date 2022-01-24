@@ -18,7 +18,8 @@ import TrayIcon from '../resources/logo/png/full-color/allusion-logomark-fc-256x
 import AppIcon from '../resources/logo/png/full-color/allusion-logomark-fc-512x512.png';
 import TrayIconMac from '../resources/logo/png/black/allusionTemplate@2x.png'; // filename convention: https://www.electronjs.org/docs/api/native-image#template-image
 import ClipServer, { IImportItem } from './clipper/server';
-import { createBugReport, githubUrl, isDev } from './config';
+import { createBugReport, githubUrl } from '../common/config';
+import { IS_DEV, IS_MAC } from '../common/process';
 import { ITag, ROOT_TAG_ID } from './entities/Tag';
 import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 import { Rectangle } from 'electron/main';
@@ -156,7 +157,7 @@ function createWindow() {
     childWindow.center(); // "center" in additionalOptions doesn't work :/
     childWindow.setMenu(null); // no toolbar needed
 
-    if (isDev()) {
+    if (IS_DEV) {
       childWindow.webContents.openDevTools();
     }
 
@@ -276,7 +277,7 @@ function createWindow() {
   }
 
   // Open the DevTools if in dev mode.
-  if (isDev()) {
+  if (IS_DEV) {
     mainWindow.webContents.openDevTools();
   }
 
@@ -453,7 +454,7 @@ app.on('activate', () => {
 // - Only download and install when user agrees
 autoUpdater.autoDownload = false;
 let hasCheckedForUpdateOnStartup = false;
-if (isDev()) {
+if (IS_DEV) {
   autoUpdater.updateConfigPath = path.join(__dirname, '..', 'dev-app-update.yml');
 }
 
@@ -727,7 +728,6 @@ MainMessenger.onIsCheckUpdatesOnStartupEnabled(() => preferences.checkForUpdates
 
 // Helper functions and variables/constants
 
-const IS_MAC = process.platform === 'darwin';
 const MIN_ZOOM_FACTOR = 0.5;
 const MAX_ZOOM_FACTOR = 2;
 const MIN_WINDOW_WIDTH = 240;
@@ -811,7 +811,7 @@ function forceRelaunch() {
 }
 
 function getVersion(): string {
-  if (isDev()) {
+  if (IS_DEV) {
     // Weird quirk: it returns the Electron version in dev mode
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     return require('../package.json').version;

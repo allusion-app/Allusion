@@ -1,6 +1,6 @@
 import { action, Lambda, makeObservable, observable, observe } from 'mobx';
 import RootStore from 'src/frontend/stores/RootStore';
-import { camelCaseToSpaced } from 'src/frontend/utils';
+import { camelCaseToSpaced } from 'common/fmt';
 import { IFile } from './File';
 import { ID, ISerializable } from './ID';
 

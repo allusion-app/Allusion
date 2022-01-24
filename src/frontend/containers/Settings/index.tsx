@@ -3,15 +3,11 @@ import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
-import {
-  chromeExtensionUrl,
-  getDefaultBackupDirectory,
-  getDefaultThumbnailDirectory,
-} from 'src/config';
+import { chromeExtensionUrl } from 'common/config';
 import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
-import { WINDOW_STORAGE_KEY } from 'src/renderer';
+import { WINDOW_STORAGE_KEY } from 'common/window';
 import {
   Button,
   ButtonGroup,
@@ -27,7 +23,8 @@ import { Alert, DialogButton } from 'widgets/popovers';
 import PopupWindow from '../../components/PopupWindow';
 import { useStore } from '../../contexts/StoreContext';
 import { moveThumbnailDir } from '../../image/ThumbnailGeneration';
-import { getFilenameFriendlyFormattedDateTime, getThumbnailPath, isDirEmpty } from '../../utils';
+import { getFilenameFriendlyFormattedDateTime } from 'common/fmt';
+import { getThumbnailPath, isDirEmpty } from 'common/fs';
 import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';
 import Tabs, { TabItem } from './Tabs';
@@ -167,7 +164,7 @@ const ImportExport = observer(() => {
   }>();
   const [backupDir, setBackupDir] = useState('');
   useEffect(() => {
-    getDefaultBackupDirectory().then(setBackupDir);
+    RendererMessenger.getDefaultBackupDirectory().then(setBackupDir);
   }, []);
 
   const handleChooseImportDir = async () => {
@@ -598,7 +595,9 @@ const Advanced = observer(() => {
   const thumbnailDirectory = uiStore.thumbnailDirectory;
 
   const [defaultThumbnailDir, setDefaultThumbnailDir] = useState('');
-  useEffect(() => void getDefaultThumbnailDirectory().then(setDefaultThumbnailDir), []);
+  useEffect(() => {
+    RendererMessenger.getDefaultThumbnailDirectory().then(setDefaultThumbnailDir);
+  }, []);
 
   const changeThumbnailDirectory = async (newDir: string) => {
     const oldDir = thumbnailDirectory;

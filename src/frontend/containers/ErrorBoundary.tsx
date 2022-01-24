@@ -3,7 +3,7 @@ import { shell } from 'electron';
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 
 import { RendererMessenger } from 'src/Messaging';
-import { createBugReport, githubUrl } from 'src/config';
+import { createBugReport, githubUrl } from 'common/config';
 
 import { useStore } from '../contexts/StoreContext';
 

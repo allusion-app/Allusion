@@ -5,7 +5,7 @@ import './tag.scss';
 import { IconButton } from 'widgets/Button';
 import { IconSet } from '../Icons';
 
-import { getColorFromBackground } from 'src/frontend/utils';
+import { getColorFromBackground } from '../utility/color';
 
 interface TagProps {
   text: string;

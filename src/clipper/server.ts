@@ -3,7 +3,7 @@ import path from 'path';
 import fse from 'fs-extra';
 import { app } from 'electron';
 
-import { SERVER_PORT } from '../config';
+import { SERVER_PORT } from '../../common/config';
 import { ITag } from '../entities/Tag';
 
 /**

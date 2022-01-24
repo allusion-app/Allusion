@@ -4,7 +4,7 @@ import React, { ReactNode } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { useStore } from '../contexts/StoreContext';
 import { usePromise } from '../hooks/usePromise';
-import { formatDateTime, humanFileSize } from '../utils';
+import { formatDateTime, humanFileSize } from 'common/fmt';
 
 type CommonMetadata = {
   name: string;

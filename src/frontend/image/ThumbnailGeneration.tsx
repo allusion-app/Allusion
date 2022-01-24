@@ -3,7 +3,7 @@ import fse from 'fs-extra';
 import path from 'path';
 import { action } from 'mobx';
 
-import { thumbnailFormat } from 'src/config';
+import { thumbnailFormat } from 'common/config';
 
 import { ID } from 'src/entities/ID';
 import { ClientFile } from 'src/entities/File';

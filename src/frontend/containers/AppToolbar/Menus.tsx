@@ -5,7 +5,7 @@ import { OrderDirection } from 'src/backend/DBRepository';
 
 import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
-import { getThumbnailSize } from '../ContentView/LayoutSwitcher';
+import { getThumbnailSize } from '../ContentView/utils';
 import { MenuDivider, MenuSliderItem } from 'widgets/menus/menu-items';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { FileOrder } from 'src/frontend/stores/FileStore';

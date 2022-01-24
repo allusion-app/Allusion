@@ -1,11 +1,11 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { thumbnailMaxSize } from 'src/config';
+import { thumbnailMaxSize } from 'common/config';
 import { ClientFile } from 'src/entities/File';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import useMountState from 'src/frontend/hooks/useMountState';
-import { debouncedThrottle } from 'src/frontend/utils';
+import { debouncedThrottle } from 'common/timeout';
 import { MasonryCell } from '../GalleryItem';
 import { findViewportEdge, Layouter } from './layout-helpers';
 

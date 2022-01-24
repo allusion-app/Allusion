@@ -9,7 +9,7 @@ import { SavedSearchRemoval } from 'src/frontend/components/RemovalAlert';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
-import { emptyFunction, triggerContextMenuEvent } from 'src/frontend/utils';
+import { emptyFunction, triggerContextMenuEvent } from '../utils';
 import { IconSet } from 'widgets/Icons';
 import { ContextMenu, Menu, MenuItem } from 'widgets/menus';
 import { Callout } from 'widgets/notifications';

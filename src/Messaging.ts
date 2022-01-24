@@ -1,4 +1,5 @@
 import { ipcRenderer, ipcMain, WebContents } from 'electron';
+import path from 'path';
 
 import { ID } from './entities/ID';
 import { ITag } from './entities/Tag';
@@ -220,6 +221,16 @@ export class RendererMessenger {
 
   static toggleCheckUpdatesOnStartup = (): void =>
     ipcRenderer.send(TOGGLE_CHECK_UPDATES_ON_STARTUP);
+
+  static async getDefaultThumbnailDirectory() {
+    const userDataPath = await RendererMessenger.getPath('temp');
+    return path.join(userDataPath, 'Allusion', 'thumbnails');
+  }
+
+  static async getDefaultBackupDirectory() {
+    const userDataPath = await RendererMessenger.getPath('userData');
+    return path.join(userDataPath, 'backups');
+  }
 }
 
 export class MainMessenger {

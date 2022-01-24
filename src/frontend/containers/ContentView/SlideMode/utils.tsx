@@ -3,7 +3,7 @@
  * MIT license, see LICENSE file
  */
 
-import { clamp } from 'src/frontend/utils';
+import { clamp } from 'common/core';
 
 export type Dimension = [width: number, height: number];
 

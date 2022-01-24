@@ -20,15 +20,10 @@ import RootStore from './frontend/stores/RootStore';
 import App from './frontend/App';
 import PreviewApp from './frontend/Preview';
 import Overlay from './frontend/Overlay';
-import { promiseRetry } from './frontend/utils';
+import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
+import { promiseRetry } from '../common/timeout';
 
-// Window State
-export const WINDOW_STORAGE_KEY = 'Allusion_Window';
-
-export const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
-
-const params = new URLSearchParams(window.location.search.slice(1));
-export const IS_PREVIEW_WINDOW = params.get('preview') === 'true';
+const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
 
 // Initialize the backend for the App, that serves as an API to the front-end
 const backend = new Backend();

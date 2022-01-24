@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React, { useMemo, useEffect, useState, useRef, CSSProperties } from 'react';
-import { formatDateTime, humanFileSize } from 'src/frontend/utils';
+import { formatDateTime, humanFileSize } from 'common/fmt';
 import { Thumbnail, ThumbnailTags } from './GalleryItem';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { ClientFile } from 'src/entities/File';

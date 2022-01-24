@@ -12,7 +12,7 @@ import { useAction } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import TagStore from 'src/frontend/stores/TagStore';
 import UiStore from 'src/frontend/stores/UiStore';
-import { formatTagCountText } from 'src/frontend/utils';
+import { formatTagCountText } from 'common/fmt';
 import { IconSet, Tree } from 'widgets';
 import { ContextMenu, Toolbar, ToolbarButton } from 'widgets/menus';
 import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem, TreeLabel } from 'widgets/Tree';

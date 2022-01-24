@@ -1,6 +1,6 @@
-import { clamp } from '../utils';
+import { clamp } from 'common/core';
 import fse from 'fs-extra';
-import { thumbnailFormat } from 'src/config';
+import { thumbnailFormat } from 'common/config';
 
 export interface Loader extends Decoder {
   init: () => Promise<void>;

@@ -1,6 +1,5 @@
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe } from 'mobx';
-import { getDefaultThumbnailDirectory } from 'src/config';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import {
@@ -11,9 +10,10 @@ import {
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
-import { IS_PREVIEW_WINDOW } from 'src/renderer';
+import { IS_PREVIEW_WINDOW } from 'common/window';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
-import { clamp, debounce } from '../utils';
+import { clamp } from 'common/core';
+import { debounce } from 'common/timeout';
 import RootStore from './RootStore';
 
 export const enum ViewMethod {
@@ -235,7 +235,7 @@ class UiStore {
   }
 
   @action updateWindowTitle() {
-    if (this.isSlideMode) {
+    if (this.isSlideMode && this.rootStore.fileStore.fileList.length > 0) {
       const activeFile = this.rootStore.fileStore.fileList[this.firstItem];
       this.windowTitle = `${activeFile.filename}.${activeFile.extension} - Allusion`;
     } else {
@@ -833,7 +833,7 @@ class UiStore {
 
     // Set default thumbnail directory in case none was specified
     if (this.thumbnailDirectory.length === 0) {
-      getDefaultThumbnailDirectory().then((defaultThumbDir) => {
+      RendererMessenger.getDefaultThumbnailDirectory().then((defaultThumbDir) => {
         this.setThumbnailDirectory(defaultThumbDir);
         fse.ensureDirSync(this.thumbnailDirectory);
       });

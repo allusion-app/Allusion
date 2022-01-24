@@ -1,7 +1,7 @@
 import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
 import Dexie, { IndexableType } from 'dexie';
 import fse from 'fs-extra';
-import { getDefaultBackupDirectory } from 'src/config';
+import { RendererMessenger } from 'src/Messaging';
 import { IFileSearchItem } from 'src/entities/SearchItem';
 import { FileOrder } from 'src/frontend/stores/FileStore';
 import { IFile } from '../entities/File';
@@ -54,7 +54,7 @@ export default class Backend {
       }
 
       try {
-        await this.backupScheduler.initialize(await getDefaultBackupDirectory());
+        await this.backupScheduler.initialize(await RendererMessenger.getDefaultBackupDirectory());
       } catch (e) {
         console.error('Could not initialize backup scheduler', e);
       }
