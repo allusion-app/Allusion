@@ -222,15 +222,15 @@ export class RendererMessenger {
   static toggleCheckUpdatesOnStartup = (): void =>
     ipcRenderer.send(TOGGLE_CHECK_UPDATES_ON_STARTUP);
 
-  static async getDefaultThumbnailDirectory() {
+  static getDefaultThumbnailDirectory = async () => {
     const userDataPath = await RendererMessenger.getPath('temp');
     return path.join(userDataPath, 'Allusion', 'thumbnails');
-  }
+  };
 
-  static async getDefaultBackupDirectory() {
+  static getDefaultBackupDirectory = async () => {
     const userDataPath = await RendererMessenger.getPath('userData');
     return path.join(userDataPath, 'backups');
-  }
+  };
 }
 
 export class MainMessenger {

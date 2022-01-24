@@ -161,7 +161,7 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
       if (item instanceof File) {
         return true;
         // Check if the URL has an image extension, or perform a network request
-      } else if (IMG_EXTENSIONS.some((ext) => item.toLowerCase().indexOf(`.${ext}`) !== -1)) {
+      } else if (IMG_EXTENSIONS.some((ext) => item.toLowerCase().includes(`.${ext}`))) {
         return true;
       } else {
         return await testImage(item);

@@ -8,7 +8,7 @@ export type IFileSearchCriteria = SearchCriteria<IFile>;
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 
 // A dictionary of labels for (some of) the keys of the type we search for
-export type SearchKeyDict<T> = { [key in keyof Partial<T>]: string };
+export type SearchKeyDict<T> = Partial<Record<keyof T, string>>;
 
 export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path', locationId: 'Location' };
 
