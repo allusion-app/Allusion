@@ -28,7 +28,7 @@ export default abstract class TreeItemRevealer {
     });
 
     setTimeout(() => {
-      const dataId = encodeURIComponent(dataIds[dataIds.length - 1]);
+      const dataId = encodeURIComponent(dataIds[0]);
       const elem = document.querySelector<HTMLLIElement>(`li[data-id="${dataId}"]`);
       if (elem) {
         // Smooth scroll + focus

@@ -45,7 +45,7 @@ class LocationStore {
 
   // Allow users to disable certain file types. Global option for now, needs restart
   // TODO: Maybe per location/sub-location?
-  enabledFileExtensions = observable(new Set<IMG_EXTENSIONS_TYPE>());
+  readonly enabledFileExtensions = observable(new Set<IMG_EXTENSIONS_TYPE>());
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
@@ -76,7 +76,7 @@ class LocationStore {
           dir.path,
           dir.dateAdded,
           dir.subLocations,
-          runInAction(() => this.enabledFileExtensions.toJSON()),
+          runInAction(() => Array.from(this.enabledFileExtensions)),
         ),
     );
     runInAction(() => this.locationList.replace(locations));
@@ -331,9 +331,9 @@ class LocationStore {
       newPath,
       location.dateAdded,
       location.subLocations,
-      runInAction(() => this.enabledFileExtensions.toJSON()),
+      runInAction(() => Array.from(this.enabledFileExtensions)),
     );
-    this.set(index, newLocation);
+    runInAction(() => (this.locationList[index] = newLocation));
     await this.initLocation(newLocation);
     await this.backend.saveLocation(newLocation.serialize());
     // Refetch files in case some were from this location and could not be found before
@@ -354,7 +354,7 @@ class LocationStore {
       path,
       new Date(),
       [],
-      runInAction(() => this.enabledFileExtensions.toJSON()),
+      runInAction(() => Array.from(this.enabledFileExtensions)),
     );
     await this.backend.createLocation(location.serialize());
     runInAction(() => this.locationList.push(location));
@@ -442,7 +442,11 @@ class LocationStore {
     this.enabledFileExtensions.replace(extensions);
     localStorage.setItem(
       PREFERENCES_STORAGE_KEY,
-      JSON.stringify({ extensions: this.enabledFileExtensions.toJSON() } as Preferences, null, 2),
+      JSON.stringify(
+        { extensions: Array.from(this.enabledFileExtensions) } as Preferences,
+        null,
+        2,
+      ),
     );
   }
 
@@ -505,10 +509,6 @@ class LocationStore {
     const files = await this.backend.searchFiles(crit, 'id', OrderDirection.Asc);
     await this.backend.removeFiles(files.map((f) => f.id));
     this.rootStore.fileStore.refetch();
-  }
-
-  @action private set(index: number, location: ClientLocation) {
-    this.locationList[index] = location;
   }
 }
 

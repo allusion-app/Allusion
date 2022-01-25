@@ -201,7 +201,7 @@ const TagWithHint = observer(
       <Tag
         text={tag.name}
         color={tag.viewColor}
-        tooltip={tag.treePath.map((t) => t.name).join(' › ')}
+        tooltip={tag.path.join(' › ')}
         onContextMenu={handleContextMenu}
       />
     );

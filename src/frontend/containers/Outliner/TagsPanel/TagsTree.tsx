@@ -35,8 +35,9 @@ export class TagsTreeItemRevealer extends TreeItemRevealer {
   }
 
   revealTag(tag: ClientTag) {
-    const tagsToExpand = tag.treePath;
-    this.revealTreeItem([ROOT_TAG_ID, ...tagsToExpand.map((t) => t.id)]);
+    const tagsToExpand = Array.from(tag.getAncestors(), (t) => t.id);
+    tagsToExpand.push(ROOT_TAG_ID);
+    this.revealTreeItem(tagsToExpand);
   }
 }
 
@@ -361,7 +362,7 @@ const TagItem = observer((props: ITagItemProps) => {
         setText={nodeData.rename}
         isEditing={isEditing}
         onSubmit={submit}
-        tooltip={`${nodeData.treePath.map((t) => t.name).join(' › ')} (${nodeData.fileCount})`}
+        tooltip={`${nodeData.path.join(' › ')} (${nodeData.fileCount})`}
       />
       {!isEditing && <SearchButton onClick={handleQuickQuery} isSearched={nodeData.isSearched} />}
     </div>

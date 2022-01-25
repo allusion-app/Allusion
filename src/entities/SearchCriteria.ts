@@ -212,11 +212,8 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
     let op = this.operator as TagOperatorType;
     let val = this.value ? [this.value] : [];
     if (val.length > 0 && op.includes('Recursively')) {
-      val =
-        rootStore.tagStore
-          .get(val[0])
-          ?.getSubTreeList()
-          ?.map((t) => t.id) || [];
+      const tag = rootStore.tagStore.get(val[0]);
+      val = tag !== undefined ? Array.from(tag.getSubTree(), (t) => t.id) : [];
     }
     if (op === 'containsNotRecursively') {
       op = 'notContains';

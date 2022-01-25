@@ -327,7 +327,7 @@ const SavedSearchesPanel = observer(() => {
       new ClientFileSearchItem(
         generateId(),
         'New search', // TODO: generate name based on criteria?
-        uiStore.searchCriteriaList.toJSON().map((c) => c.serialize(rootStore)),
+        uiStore.searchCriteriaList.map((c) => c.serialize(rootStore)),
         uiStore.searchMatchAny,
       ),
     );

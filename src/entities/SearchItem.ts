@@ -1,4 +1,4 @@
-import { action, makeObservable, observable } from 'mobx';
+import { action, IObservableArray, makeObservable, observable } from 'mobx';
 import RootStore from 'src/frontend/stores/RootStore';
 import { IFile } from './File';
 import { ID } from './ID';
@@ -15,7 +15,7 @@ export class ClientSearchItem<T> {
   id: ID;
   @observable name: string = '';
   @observable matchAny: boolean = false;
-  criteria = observable<ClientBaseCriteria<T>>([]);
+  readonly criteria: IObservableArray<ClientBaseCriteria<T>>;
 
   // TODO: also store sort mode? (filename, descending, etc)
   // Then it wouldn't be a "Saved Search", but a "Saved view" maybe?
@@ -23,7 +23,7 @@ export class ClientSearchItem<T> {
   constructor(id: ID, name: string, criteria: SearchCriteria<T>[], matchAny: boolean) {
     this.id = id;
     this.name = name;
-    this.criteria.push(...criteria.map((c) => ClientBaseCriteria.deserialize(c)));
+    this.criteria = observable(criteria.map((c) => ClientBaseCriteria.deserialize(c)));
     this.matchAny = matchAny;
 
     makeObservable(this);
@@ -45,7 +45,7 @@ export class ClientSearchItem<T> {
     return {
       id: this.id,
       name: this.name,
-      criteria: this.criteria.toJSON().map((c) => c.serialize(rootStore)),
+      criteria: this.criteria.map((c) => c.serialize(rootStore)),
       matchAny: this.matchAny,
     };
   }

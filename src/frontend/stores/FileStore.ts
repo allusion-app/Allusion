@@ -142,7 +142,10 @@ class FileStore {
       const tagFilePairs = runInAction(() =>
         this.fileList.map((f) => ({
           absolutePath: f.absolutePath,
-          tagHierarchy: Array.from(f.tags).map(action((t) => t.treePath.map((t) => t.name))),
+          tagHierarchy: Array.from(
+            f.tags,
+            action((t) => t.path),
+          ),
         })),
       );
       let lastToastVal = '0';
