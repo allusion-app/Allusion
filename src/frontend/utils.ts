@@ -483,5 +483,7 @@ export function shuffleArray<T>(array: T[]): T[] {
   return array;
 }
 
+export const sum = (numbers: number[]) => numbers.reduce((a, b) => a + b, 0);
+
 export const IS_MAC = process.platform === 'darwin';
 export const IS_WIN = process.platform === 'win32';

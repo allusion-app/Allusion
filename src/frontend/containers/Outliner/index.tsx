@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
-import React from 'react';
+import React, { useState } from 'react';
+import MultiSplit from 'widgets/Split/MultiSplit';
 
 import { useStore } from '../../contexts/StoreContext';
 import LocationsPanel from './LocationsPanel';
@@ -9,12 +10,25 @@ import TagsPanel, { OutlinerActionBar } from './TagsPanel';
 const Outliner = () => {
   const { uiStore } = useStore();
 
+  const [splitPoints, setSplitPoints] = useState([150, 300]);
+  const [expansion, setExpansion] = useState([true, true, true]);
+
   return (
     <nav id="outliner" aria-expanded={uiStore.isOutlinerOpen}>
       <div id="outliner-content">
-        <LocationsPanel />
-        <TagsPanel />
-        <SavedSearchesPanel />
+        <MultiSplit
+          axis="horizontal"
+          splitPoints={splitPoints}
+          onChange={(splitPoints, expansion) => {
+            setSplitPoints(splitPoints);
+            setExpansion(expansion);
+          }}
+          expansion={expansion}
+        >
+          <LocationsPanel />
+          <TagsPanel />
+          <SavedSearchesPanel />
+        </MultiSplit>
       </div>
       <OutlinerActionBar />
     </nav>
