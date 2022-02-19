@@ -10,7 +10,8 @@ import TagsPanel, { OutlinerActionBar } from './TagsPanel';
 const Outliner = () => {
   const { uiStore } = useStore();
 
-  const [splitPoints, setSplitPoints] = useState([400, 800]);
+  // TODO: Store values in UI store
+  const [splitPoints, setSplitPoints] = useState([300, 600]);
   const [expansion, setExpansion] = useState([true, true, true]);
 
   return (

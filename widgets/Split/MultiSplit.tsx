@@ -95,8 +95,10 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
       );
 
       // Maximum amount any pane can shrink
-      const shrinkAmounts = [...new Array(newSplitPoints.length)].map((_, i) =>
-        expansion[i] ? Math.max(minPaneSize, paneSizes[i] - minPaneSize) : 0,
+      // - If it's expanded, it can shrink to the minimum size
+      // - If not, it's already at its minimum size (only the header)
+      const shrinkAmounts = [...new Array(numPanels)].map((_, i) =>
+        expansion[i] ? Math.max(0, paneSizes[i] - minPaneSize) : 0,
       );
 
       // are we moving up or down?
@@ -118,9 +120,11 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
         }
       } else {
         // Down: shrinking a panel is done by moving the previous panel's separator
-        for (let i = dragIndex + 1; i < splitPoints.length; i++) {
+        for (let i = dragIndex + 1; i <= splitPoints.length; i++) {
           const paneShrinkAmount = Math.min(delta, shrinkAmounts[i]);
-          for (let j = i; j <= splitPoints.length; j++) {
+
+          // Move all separators from the current one to where we started, until delta is 0
+          for (let j = dragIndex + 1; j <= i; j++) {
             newSplitPoints[j - 1] += paneShrinkAmount;
           }
           delta -= paneShrinkAmount;
@@ -129,7 +133,6 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
           }
         }
       }
-      console.log({ splitPoints, prevSplitPoints: prevSplitPointsRef.current, newSplitPoints });
 
       splitPointsRef.current = newSplitPoints;
 
@@ -240,9 +243,9 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
     ];
   }, [expansion]);
 
+  // initialize the panel sizes and separator positions
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // TODO: initialize the panel sizes and separator positions
-  // useEffect(() => updateView(), []);
+  useEffect(() => handleMoveSeparator(0, splitPoints[0]), []);
 
   return (
     <div className="multi-split" onMouseMove={handleMouseMove} ref={container}>
