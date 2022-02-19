@@ -3,7 +3,6 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
-import { Collapse } from 'src/frontend/components/Collapse';
 import { TagRemoval } from 'src/frontend/components/RemovalAlert';
 import { TagMerge } from 'src/frontend/containers/Outliner/TagsPanel/TagMerge';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -15,6 +14,7 @@ import UiStore from 'src/frontend/stores/UiStore';
 import { formatTagCountText } from 'src/frontend/utils';
 import { IconSet, Tree } from 'widgets';
 import { ContextMenu, Toolbar, ToolbarButton } from 'widgets/menus';
+import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
 import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem, TreeLabel } from 'widgets/Tree';
 import { IExpansionState } from '../../types';
 import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
@@ -327,10 +327,10 @@ const TagItem = observer((props: ITagItemProps) => {
     [nodeData, uiStore],
   );
 
-  const handleRename = useCallback(() => dispatch(Factory.enableEditing(nodeData.id)), [
-    dispatch,
-    nodeData.id,
-  ]);
+  const handleRename = useCallback(
+    () => dispatch(Factory.enableEditing(nodeData.id)),
+    [dispatch, nodeData.id],
+  );
 
   useEffect(
     () =>
@@ -470,7 +470,7 @@ const mapTag = (tag: ClientTag): ITreeItem => ({
   className: tag.isSearched ? 'searched' : undefined,
 });
 
-const TagsTree = observer(() => {
+const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
   const { tagStore, uiStore } = useStore();
   const root = tagStore.root;
   const [state, dispatch] = useReducer(reducer, {
@@ -554,8 +554,6 @@ const TagsTree = observer(() => {
     [select, show, state],
   );
 
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
   const handleRootAddTag = useAction(() =>
     tagStore
       .create(tagStore.root, 'New Tag')
@@ -596,22 +594,27 @@ const TagsTree = observer(() => {
       ),
   );
 
-  const handleKeyDown = useAction((e: React.KeyboardEvent) => {
+  const handleKeyDown = useAction((e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Escape') {
       uiStore.clearTagSelection();
       (document.activeElement as HTMLElement)?.blur?.();
       e.stopPropagation();
+    } else {
+      props.onKeyDown?.(e);
     }
   });
 
   return (
-    <div onKeyDown={handleKeyDown}>
-      <header
-        onDragOver={handleDragOverAndLeave}
-        onDragLeave={handleDragOverAndLeave}
-        onDrop={handleDrop}
-      >
-        <h2 onClick={() => setIsCollapsed(!isCollapsed)}>Tags</h2>
+    <MultiSplitPane
+      id="tags"
+      title="Tags"
+      onKeyDown={handleKeyDown}
+      headerProps={{
+        onDragOver: handleDragOverAndLeave,
+        onDragLeave: handleDragOverAndLeave,
+        onDrop: handleDrop,
+      }}
+      headerToolbar={
         <Toolbar controls="tag-hierarchy" isCompact>
           {uiStore.tagSelection.size > 0 ? (
             <ToolbarButton
@@ -629,28 +632,27 @@ const TagsTree = observer(() => {
             />
           )}
         </Toolbar>
-      </header>
-
-      <Collapse open={!isCollapsed}>
-        {root.subTags.length === 0 ? (
-          <div className="tree-content-label" style={{ padding: '0.25rem' }}>
-            {/* <span className="pre-icon">{IconSet.INFO}</span> */}
-            {/* No tags or collections created yet */}
-            <i style={{ marginLeft: '1em' }}>None</i>
-          </div>
-        ) : (
-          <Tree
-            multiSelect
-            id="tag-hierarchy"
-            className={uiStore.tagSelection.size > 0 ? 'selected' : undefined}
-            children={root.subTags.map(mapTag)}
-            treeData={treeData}
-            toggleExpansion={toggleExpansion}
-            onBranchKeyDown={handleBranchOnKeyDown}
-            onLeafKeyDown={handleLeafOnKeyDown}
-          />
-        )}
-      </Collapse>
+      }
+      {...props}
+    >
+      {root.subTags.length === 0 ? (
+        <div className="tree-content-label" style={{ padding: '0.25rem' }}>
+          {/* <span className="pre-icon">{IconSet.INFO}</span> */}
+          {/* No tags or collections created yet */}
+          <i style={{ marginLeft: '1em' }}>None</i>
+        </div>
+      ) : (
+        <Tree
+          multiSelect
+          id="tag-hierarchy"
+          className={uiStore.tagSelection.size > 0 ? 'selected' : undefined}
+          children={root.subTags.map(mapTag)}
+          treeData={treeData}
+          toggleExpansion={toggleExpansion}
+          onBranchKeyDown={handleBranchOnKeyDown}
+          onLeafKeyDown={handleLeafOnKeyDown}
+        />
+      )}
 
       {/* Used for dragging collection to root of hierarchy and for deselecting tag selection */}
       <div
@@ -681,7 +683,7 @@ const TagsTree = observer(() => {
       >
         {contextState.menu}
       </ContextMenu>
-    </div>
+    </MultiSplitPane>
   );
 });
 

@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
-import MultiSplit from 'widgets/Split/MultiSplit';
+import MultiSplit from 'widgets/MultiSplit';
 
 import { useStore } from '../../contexts/StoreContext';
 import LocationsPanel from './LocationsPanel';
@@ -20,10 +20,8 @@ const Outliner = () => {
         <MultiSplit
           axis="horizontal"
           splitPoints={splitPoints}
-          onChange={(splitPoints, expansion) => {
-            setSplitPoints(splitPoints);
-            setExpansion(expansion);
-          }}
+          onUpdateExpansion={setExpansion}
+          onUpdateSplitPoints={setSplitPoints}
           expansion={expansion}
         >
           <LocationsPanel />

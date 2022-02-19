@@ -1,5 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { SplitAxis } from '.';
+import './multisplit.scss';
+
+import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { SplitAxis } from '../Split';
+import { MultiSplitPaneProps } from './MultiSplitPane';
 
 interface MultiSplitProps {
   axis: SplitAxis;
@@ -7,14 +10,13 @@ interface MultiSplitProps {
   expansion: boolean[];
   /** Position of each separator in pixels. Size N-1, since last panel has no movable separator */
   splitPoints: number[];
-  /** Called onDragEnd on a splitter or when a panel is (un)expanded */
-  onChange?: (splitPoints: number[], expansion: boolean[]) => void;
+  /** Called onDragEnd on a splitter */
+  onUpdateSplitPoints: (splitPoints: number[]) => void;
+  /** when a panel is (un)expanded */
+  onUpdateExpansion: (expansion: boolean[]) => void;
   minPaneSize?: number;
-}
-
-interface MultiSplitChildProps {
-  title: string;
-  id: string;
+  /** Must be of type widgets/MultiSplit/Pane */
+  children: ReactNode[];
 }
 
 const HEADER_SIZE = 24;
@@ -30,7 +32,6 @@ const HEADER_SIZE = 24;
  *   The container may overflow when all panels are at their minimum size do not fit in the container
  *
  * TODOS:
- * TODO: Should move the panel headers to a Panel component instead of defining them in the child components (which is happening now)
  * TODO: if there is just 1 child, no need to enable expansion toggle nor separator
  * TODO: would be nice to have a context menu to disable undesired panels for the user
  */
@@ -39,7 +40,8 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
   splitPoints,
   expansion,
   axis,
-  onChange,
+  onUpdateSplitPoints,
+  onUpdateExpansion,
   minPaneSize = 100,
 }) => {
   const container = useRef<HTMLDivElement>(null);
@@ -106,8 +108,6 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
         // Up: Clamp the new position at the top
         // - we need to shrink the previous panels by delta while keeping all panels above their min size:
         // - shrink the panel above the one being dragged until it reaches the minimum size, then onto the one above it, etc.
-
-        // TODO: this feels over-complicated. I can't get it to behave right either. Is there a simpler approach?
         for (let i = dragIndex; i >= 0; i--) {
           const paneShrinkAmount = Math.min(-delta, shrinkAmounts[i]);
           delta += paneShrinkAmount;
@@ -140,15 +140,16 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
       // (could also do this in a more react-y way: set style={} attributes on the children)
       if (!container.current) return;
       const positionAttr = axis === 'vertical' ? 'left' : 'top';
-      const sizeAttr = axis === 'vertical' ? 'width' : 'height';
+      const sizeAttr = axis === 'vertical' ? 'maxWidth' : 'maxHeight';
       for (let i = 0; i < numPanels; i++) {
         const panelElem = container.current.children[i * 2] as HTMLElement;
 
-        const panelSize = newSplitPoints[i] - (newSplitPoints[i - 1] ?? 0);
+        const panelSize =
+          i !== numPanels - 1 ? newSplitPoints[i] - (newSplitPoints[i - 1] ?? 0) : lastPanelSize;
         const panelPosition = i === 0 ? 0 : newSplitPoints[i - 1];
 
         // Panel itself:
-        panelElem.style[sizeAttr] = `${panelSize}px`;
+        panelElem.style[sizeAttr] = `${panelSize - HEADER_SIZE}px`;
         panelElem.style[positionAttr] = `${panelPosition}px`;
 
         // Last panel doesn't have a sepatator: it's stuck to the bottom of the container
@@ -217,7 +218,7 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
           'active',
         );
 
-        onChange?.(splitPointsRef.current, expansion);
+        onUpdateSplitPoints?.(splitPointsRef.current);
       }
       draggedIndex.current = undefined;
     };
@@ -239,7 +240,7 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
   const enabledSeparatorRange = useMemo(() => {
     return [
       expansion.findIndex((e) => e === true),
-      expansion.length - 1 - expansion.reverse().findIndex((e) => e === true),
+      expansion.length - 1 - [...expansion].reverse().findIndex((e) => e === true),
     ];
   }, [expansion]);
 
@@ -251,11 +252,23 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
     <div className="multi-split" onMouseMove={handleMouseMove} ref={container}>
       {React.Children.map(children, (child, index) => {
         const typedChild = child as React.ReactElement<
-          React.PropsWithChildren<MultiSplitChildProps>
+          React.PropsWithChildren<MultiSplitPaneProps>
         >;
+        const _index = index;
+        const paneProps = {
+          setCollapsed: (isCollapsed: boolean) => {
+            const newExpansion = [...expansion];
+            newExpansion[_index] = !isCollapsed;
+
+            // TODO: Update separator positions
+
+            onUpdateExpansion(newExpansion);
+          },
+          isCollapsed: !expansion[_index],
+        };
         return (
           <React.Fragment key={`split-pane-${typedChild?.key || typedChild?.props?.id || index}`}>
-            {React.cloneElement(typedChild)}
+            {React.cloneElement(typedChild, paneProps)}
 
             {index < React.Children.count(children) - 1 && (
               <div
