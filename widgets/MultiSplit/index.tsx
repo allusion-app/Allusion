@@ -3,6 +3,20 @@ import './multisplit.scss';
 import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SplitAxis } from '../Split';
 import { MultiSplitPaneProps } from './MultiSplitPane';
+import { debounce } from 'src/frontend/utils';
+
+/**
+ * Desired API
+ * - onResizeContainer
+ * - onDragSeparator
+ * - onToggleCollapse
+ *
+ * - Positions should be derived from the state
+ * - Could leave out the minimum size for now
+ * 
+ * Single function that determines positions and sizes
+ *
+ */
 
 interface MultiSplitProps {
   axis: SplitAxis;
@@ -20,6 +34,38 @@ interface MultiSplitProps {
 }
 
 const HEADER_SIZE = 24;
+
+const getLastPanelSize = (
+  splitPoints: number[],
+  expansion: boolean[],
+  dimension: number,
+  minPaneSize: number,
+) => {
+  const numPanels = splitPoints.length + 1;
+
+  return Math.max(
+    dimension - splitPoints[splitPoints.length - 1],
+    expansion[numPanels - 1] ? minPaneSize : HEADER_SIZE,
+  );
+};
+const getPaneSizes = (
+  splitPoints: number[],
+  expansion: boolean[],
+  dimension: number,
+  minPaneSize: number,
+) => {
+  const numPanels = splitPoints.length + 1;
+
+  const lastPanelSize = getLastPanelSize(splitPoints, expansion, dimension, minPaneSize);
+
+  return [...new Array(numPanels)].map((_, i) =>
+    !expansion[i]
+      ? HEADER_SIZE
+      : i !== numPanels - 1
+      ? splitPoints[i] - (splitPoints[i - 1] ?? 0)
+      : lastPanelSize,
+  );
+};
 
 /**
  * Similar to a Split view, but with multiple panes, each of which can be resized and collapsed.
@@ -56,6 +102,11 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
   // Size of the container element
   const [dimension, setDimension] = useState(0);
 
+  const debouncedSetSplitPoints = useMemo(
+    () => debounce(onUpdateSplitPoints, 100),
+    [onUpdateSplitPoints],
+  );
+
   const resizeObserver = useRef(
     new ResizeObserver((entries) => {
       const {
@@ -68,6 +119,45 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
         setDimension(height);
       }
     }),
+  );
+
+  const updateView = useCallback(
+    (newSplitPoints = splitPoints, newExpansion = expansion) => {
+      console.log('updateView');
+      const numPanels = newSplitPoints.length + 1;
+
+      const lastPanelSize = Math.max(
+        dimension - newSplitPoints[newSplitPoints.length - 1],
+        newExpansion[numPanels - 1] ? minPaneSize : HEADER_SIZE,
+      );
+
+      // (could also do this in a more react-y way: set style={} attributes on the children)
+      if (!container.current) return;
+      const positionAttr = axis === 'vertical' ? 'left' : 'top';
+      const sizeAttr = axis === 'vertical' ? 'maxWidth' : 'maxHeight';
+      for (let i = 0; i < numPanels; i++) {
+        const panelElem = container.current.children[i * 2] as HTMLElement;
+
+        const panelSize =
+          i !== numPanels - 1 ? newSplitPoints[i] - (newSplitPoints[i - 1] ?? 0) : lastPanelSize;
+        const panelPosition = i === 0 ? 0 : newSplitPoints[i - 1];
+
+        // Panel itself:
+        panelElem.style[sizeAttr] = `${panelSize - HEADER_SIZE}px`;
+        panelElem.style[positionAttr] = `${panelPosition}px`;
+
+        // Last panel doesn't have a sepatator: it's stuck to the bottom of the container
+        if (i !== numPanels - 1) {
+          const splitterElem = container.current.children[i * 2 + 1] as HTMLElement;
+
+          // Splitter
+          if (i * 2 + i < container.current.children.length) {
+            splitterElem.style[positionAttr] = `${newSplitPoints[i]}px`;
+          }
+        }
+      }
+    },
+    [axis, dimension, expansion, minPaneSize, splitPoints],
   );
 
   const handleMoveSeparator = useCallback(
@@ -86,15 +176,9 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
       const newSplitPoints = [...prevSplitPointsRef.current];
 
       const numPanels = newSplitPoints.length + 1;
-      const lastPanelSize = Math.max(
-        dimension - splitPoints[splitPoints.length - 1],
-        expansion[numPanels - 1] ? minPaneSize : HEADER_SIZE,
-      );
 
       // Current size of all panes
-      const paneSizes = [...new Array(numPanels)].map((_, i) =>
-        i !== numPanels - 1 ? newSplitPoints[i] - (newSplitPoints[i - 1] ?? 0) : lastPanelSize,
-      );
+      const paneSizes = getPaneSizes(splitPointsRef.current, expansion, dimension, minPaneSize);
 
       // Maximum amount any pane can shrink
       // - If it's expanded, it can shrink to the minimum size
@@ -137,33 +221,90 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
       splitPointsRef.current = newSplitPoints;
 
       // Now actually update the view
-      // (could also do this in a more react-y way: set style={} attributes on the children)
-      if (!container.current) return;
-      const positionAttr = axis === 'vertical' ? 'left' : 'top';
-      const sizeAttr = axis === 'vertical' ? 'maxWidth' : 'maxHeight';
-      for (let i = 0; i < numPanels; i++) {
-        const panelElem = container.current.children[i * 2] as HTMLElement;
+      updateView(newSplitPoints);
+    },
+    [dimension, expansion, minPaneSize, splitPoints, updateView],
+  );
 
-        const panelSize =
-          i !== numPanels - 1 ? newSplitPoints[i] - (newSplitPoints[i - 1] ?? 0) : lastPanelSize;
-        const panelPosition = i === 0 ? 0 : newSplitPoints[i - 1];
+  const handleResize = useCallback(() => {
+    console.debug('Handle resize', dimension);
+    // resizing is essentially the same as moving the separator of the last panel
+    // and sticking all collapsed panels to the bottom
 
-        // Panel itself:
-        panelElem.style[sizeAttr] = `${panelSize - HEADER_SIZE}px`;
-        panelElem.style[positionAttr] = `${panelPosition}px`;
+    const lastExpandedPanel = splitPoints.findIndex((_, i) => expansion[i]);
+    // If no panels are expanded, there is nothing to do: they're all stuck to the top
+    if (lastExpandedPanel === -1) return;
 
-        // Last panel doesn't have a sepatator: it's stuck to the bottom of the container
-        if (i !== numPanels - 1) {
-          const splitterElem = container.current.children[i * 2 + 1] as HTMLElement;
+    const newSplitPoints = [...splitPointsRef.current];
 
-          // Splitter
-          if (i * 2 + i < container.current.children.length) {
-            splitterElem.style[positionAttr] = `${newSplitPoints[i]}px`;
+    // Shrink it until it reaches minimum size, then onto the one above it, etc. if needed
+    if (lastExpandedPanel >= 0) {
+      // newSplitPoints[lastExpandedPanel] = panelSizes[lastExpandedPanel] - minPaneSize;
+    }
+
+    // Stick the collapsed panels at the end to the bottom of the container
+    for (let i = splitPoints.length - 1; i >= lastExpandedPanel; i--) {
+      newSplitPoints[i] = dimension + HEADER_SIZE * (i - splitPoints.length - 1);
+    }
+
+    splitPointsRef.current = newSplitPoints;
+    debouncedSetSplitPoints(newSplitPoints);
+
+    // Update the view when the window is resized
+    updateView(newSplitPoints);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dimension]);
+
+  const handleToggleExpansion = useCallback(
+    (index: number, expand: boolean) => {
+      const newSplitPoints = [...splitPointsRef.current];
+      const nSplits = newSplitPoints.length;
+      if (expand) {
+        // if all panels are collapsed
+        if (expansion.every((e) => !e)) {
+          console.log('expand full!');
+          // open this panel at full size
+          // -> collapsed panels below stick to the bottom
+          for (let i = index; i < nSplits; i++) {
+            newSplitPoints[i] = dimension - HEADER_SIZE * (i - index + 1);
+          }
+        } else {
+          // else
+          //   open this panel at half the available space, at least minPaneSize
+          //   shrink other panels if needed (starting at ones below)
+          //
+          // ensure all expanded panels are at least the minimum size
+        }
+      } else {
+        const lastCollapsedIndex = expansion.lastIndexOf(false);
+        // if all panels below are collapsed
+        if (index >= lastCollapsedIndex - 1) {
+          // stick this separator to the bottom as well
+          for (let i = index - 1; i < nSplits; i++) {
+            newSplitPoints[i] = dimension - HEADER_SIZE * (i - index + 1);
+          }
+        } else {
+          // move the separators below up by this panel's size until an expanded panel is found
+          const nextExpandedIndex = expansion.findIndex((e, i) => i > index && e);
+          const paneSize = (newSplitPoints[index - 1] || 0) - newSplitPoints[index] - HEADER_SIZE;
+          for (let i = index - 1; i < nextExpandedIndex; i++) {
+            newSplitPoints[i] -= paneSize;
           }
         }
       }
+
+      const newExpansion = [...expansion];
+      newExpansion[index] = expand;
+      onUpdateExpansion(newExpansion);
+
+      splitPointsRef.current = newSplitPoints;
+      onUpdateSplitPoints(newSplitPoints);
+
+      // And update the view at the end
+
+      updateView(newSplitPoints, newExpansion);
     },
-    [axis, dimension, expansion, minPaneSize, splitPoints],
+    [dimension, expansion, minPaneSize, onUpdateExpansion, onUpdateSplitPoints, updateView],
   );
 
   const handleMouseDownSeparator = useCallback(
@@ -246,25 +387,22 @@ const MultiSplit: React.FC<MultiSplitProps> = ({
 
   // initialize the panel sizes and separator positions
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => handleMoveSeparator(0, splitPoints[0]), []);
+  useEffect(() => handleResize(), [dimension]);
 
   return (
-    <div className="multi-split" onMouseMove={handleMouseMove} ref={container}>
+    <div
+      className="multi-split"
+      onMouseMove={handleMouseMove}
+      ref={container}
+      // style={{ height: `${dimension}px` }}
+    >
       {React.Children.map(children, (child, index) => {
         const typedChild = child as React.ReactElement<
           React.PropsWithChildren<MultiSplitPaneProps>
         >;
-        const _index = index;
         const paneProps = {
-          setCollapsed: (isCollapsed: boolean) => {
-            const newExpansion = [...expansion];
-            newExpansion[_index] = !isCollapsed;
-
-            // TODO: Update separator positions
-
-            onUpdateExpansion(newExpansion);
-          },
-          isCollapsed: !expansion[_index],
+          setCollapsed: (isCollapsed: boolean) => handleToggleExpansion(index, !isCollapsed),
+          isCollapsed: !expansion[index],
         };
         return (
           <React.Fragment key={`split-pane-${typedChild?.key || typedChild?.props?.id || index}`}>
