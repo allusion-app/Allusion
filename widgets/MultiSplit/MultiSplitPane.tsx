@@ -4,7 +4,6 @@ import { Collapse } from 'src/frontend/components/Collapse';
 export type MultiSplitPaneProps = React.HTMLAttributes<HTMLDivElement> & {
   id: string;
   title: string;
-  // height: number;
   /** Will be set by the MultiSplit parent */
   isCollapsed?: boolean;
   /** Will be set by the MultiSplit parent */
@@ -18,7 +17,6 @@ const MultiSplitPane: React.FC<MultiSplitPaneProps> = ({
   title,
   isCollapsed,
   setCollapsed,
-  // height,
   children,
   className,
   headerToolbar,

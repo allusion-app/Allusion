@@ -2,60 +2,51 @@
   overflow: hidden auto;
   height: 100%;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 
-  > * {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-  }
+  .section {
+    // Grow/shrink depending on the expansion/collapse state using flex-grow
+    flex-grow: 0;
+    transition: flex-grow 0.2s ease-in-out;
 
-  .collapse {
-    height: 100%;
-    width: 100%;
-    overflow: auto;
-  }
+    display: flex;
+    flex-direction: column;
 
-  &[aria-orientation='vertical'] {
-    > .section {
-      // transition: height 0.2s;
-    }
-  }
-  &[aria-orientation='horizontal'] {
-    > .section {
-      // transition: height 0.2s;
-    }
-  }
-
-  > [role='separator'] {
-    z-index: 1;
-    transition: background-color 0.2s ease;
-
-    &.hidden {
-      display: none;
+    // Show a resize handle when it makes sense for the panel to be resized (inspired by VSCode)
+    &:not(:last-child):not(.last-expanded):not(.only-expanded).expanded {
+      > .collapse {
+        resize: vertical;
+      }
     }
 
-    &:hover,
-    &.active {
-      transition-delay: 400ms;
-      background-color: var(--accent-color);
+    &.last-expanded {
+      flex-grow: 1;
+
+      > .collapse {
+        // The resize: vertical sets a height on the element, need to override it to fully expand it
+        height: 100% !important;
+      }
     }
 
-    &[aria-orientation='vertical'] {
-      cursor: w-resize;
-      top: 0;
-      height: 100%;
-      width: 4px;
-      transform: translate(-2px, 0);
-      // transition: left 0.2s;
+    // FIXME: note sure why this is necessary. The sections take up more space than the container somehow,
+    // so it was always showing a scrollbar. This is a workaround
+    &:last-child {
+      margin-bottom: 12px;
     }
 
-    &[aria-orientation='horizontal'] {
-      cursor: s-resize;
-      left: 0;
+    .collapse {
+      // height: 100%;
       width: 100%;
-      height: 4px;
-      transform: translate(0, -2px);
-      // transition: top 0.2s;
+      overflow: auto;
+
+      transition: none !important;
+    }
+
+    &.expanded {
+      > .collapse {
+        padding-bottom: 1rem;
+      }
     }
   }
 }

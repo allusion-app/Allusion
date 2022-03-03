@@ -11,19 +11,12 @@ const Outliner = () => {
   const { uiStore } = useStore();
 
   // TODO: Store values in UI store
-  const [splitPoints, setSplitPoints] = useState([300, 600]);
   const [expansion, setExpansion] = useState([true, true, true]);
 
   return (
     <nav id="outliner" aria-expanded={uiStore.isOutlinerOpen}>
       <div id="outliner-content">
-        <MultiSplit
-          axis="horizontal"
-          splitPoints={splitPoints}
-          onUpdateExpansion={setExpansion}
-          onUpdateSplitPoints={setSplitPoints}
-          expansion={expansion}
-        >
+        <MultiSplit onUpdateExpansion={setExpansion} expansion={expansion}>
           <LocationsPanel />
           <TagsPanel />
           <SavedSearchesPanel />
