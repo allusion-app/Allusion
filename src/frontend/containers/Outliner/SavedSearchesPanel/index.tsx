@@ -8,7 +8,7 @@ import { SavedSearchRemoval } from 'src/frontend/components/RemovalAlert';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
-import { emptyFunction, triggerContextMenuEvent } from 'src/frontend/utils';
+import { emptyFunction, triggerContextMenuEvent } from '../utils';
 import { IconSet } from 'widgets/Icons';
 import { ContextMenu, Menu, MenuItem } from 'widgets/menus';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
@@ -326,7 +326,7 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
       new ClientFileSearchItem(
         generateId(),
         'New search', // TODO: generate name based on criteria?
-        uiStore.searchCriteriaList.toJSON().map((c) => c.serialize(rootStore)),
+        uiStore.searchCriteriaList.map((c) => c.serialize(rootStore)),
         uiStore.searchMatchAny,
       ),
     );

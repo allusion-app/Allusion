@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-import { Menu, MenuChildren } from '../menus';
+import { Menu, MenuChildren } from './menus';
 import { RawPopover } from '../popovers/RawPopover';
 
 export interface MenuButtonProps {

@@ -4,9 +4,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import FocusManager from 'src/frontend/FocusManager';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
-import { debounce, throttle } from 'src/frontend/utils';
+import { debounce, throttle } from 'common/timeout';
 import { MasonryType } from 'wasm/masonry/pkg/masonry';
-import { GalleryProps, getThumbnailSize } from '../LayoutSwitcher';
+import { GalleryProps, getThumbnailSize } from '../utils';
 import { MasonryWorkerAdapter } from './MasonryWorkerAdapter';
 import VirtualizedRenderer from './VirtualizedRenderer';
 
@@ -174,7 +174,7 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [containerWidth, handleResize, thumbnailSize, viewMethod]);
 
-  return !(containerHeight && layoutTimestamp) ? (
+  return !containerHeight ? (
     <></>
   ) : (
     <VirtualizedRenderer

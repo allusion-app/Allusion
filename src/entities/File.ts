@@ -124,7 +124,7 @@ export class ClientFile implements ISerializable<IFile> {
     this.absolutePath = Path.join(location.path, this.relativePath);
 
     const base = Path.basename(this.relativePath);
-    this.filename = base.substr(0, base.lastIndexOf('.'));
+    this.filename = base.slice(0, base.lastIndexOf('.'));
 
     this.tags = observable(this.store.getTags(fileProps.tags));
 
@@ -225,8 +225,8 @@ export async function getMetaData(stats: FileStats, exifIO: ExifIO): Promise<IMe
     name: Path.basename(path),
     extension: Path.extname(path).slice(1).toLowerCase() as IMG_EXTENSIONS_TYPE,
     size: stats.size,
-    width: dimensions?.width ?? 0,
-    height: dimensions?.height ?? 0,
+    width: dimensions.width,
+    height: dimensions.height,
     dateCreated: stats.dateCreated,
   };
 }

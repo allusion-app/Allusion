@@ -38,7 +38,9 @@ const useFileDropper = () => {
       enterCount.current++;
 
       // We only have to check once, until drag leave
-      if (enterCount.current > 1) return;
+      if (enterCount.current > 1) {
+        return;
+      }
 
       e.dataTransfer!.dropEffect = 'none';
 
@@ -46,8 +48,7 @@ const useFileDropper = () => {
       // FIXME: Yes, this is hacky. But... The native drag event does not allow you to specify any metadata, just a list of files...
       const w = window as any;
       const isInternalEvent =
-        w.internalDragStart &&
-        new Date().getTime() - (w.internalDragStart as Date)?.getTime() < 300;
+        w.internalDragStart && new Date().getTime() - (w.internalDragStart as Date).getTime() < 300;
       if (!isInternalEvent) {
         const isCorrectType = e.dataTransfer?.types.some((type) =>
           ALLOWED_DROP_TYPES.includes(type),

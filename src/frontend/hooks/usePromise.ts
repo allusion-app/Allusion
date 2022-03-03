@@ -8,14 +8,13 @@ export type Poll<T> = { tag: 'ready'; value: T } | { tag: 'pending' };
 export const createPending = <T>(): Poll<T> => ({ tag: 'pending' });
 export const createReady = <T>(value: T): Poll<T> => ({ tag: 'ready', value });
 
-export function usePromise<
-  T,
-  E extends any,
-  S extends [any, ...any[]],
-  F extends (...args: [...S]) => Promise<T>
->(...args: [...S, F]): Poll<Result<T, E>> {
-  const fetch = useRef<F>(args.pop() as F);
-  const sources = (args as unknown) as S;
+export type Query<S extends any[], T> = (...args: [...S]) => Promise<T>;
+
+export function usePromise<T, E, S extends any[]>(
+  ...args: [...S, Query<S, T>]
+): Poll<Result<T, E>> {
+  const fetch = useRef<Query<S, T>>(args.pop() as Query<S, T>);
+  const sources = args as unknown as S;
   const [future, setFuture] = useState<Poll<Result<T, E>>>(createPending);
 
   useEffect(() => {
@@ -27,7 +26,7 @@ export function usePromise<
           setFuture(createReady(createOk(value)));
         }
       })
-      .catch((err) => {
+      .catch((err: E) => {
         if (isEffectRunning) {
           setFuture(createReady(createErr(err)));
         }

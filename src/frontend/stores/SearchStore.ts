@@ -27,7 +27,7 @@ class SearchStore {
       const fetchedSearches = await this.backend.fetchSearches();
       this.searchList.push(
         ...fetchedSearches.map(
-          (s) => new ClientFileSearchItem(s.id, s.name, s.criteria, s.matchAny),
+          (s) => new ClientFileSearchItem(s.id, s.name, s.criteria, s.matchAny === true),
         ),
       );
     } catch (err) {
@@ -45,13 +45,13 @@ class SearchStore {
     return search;
   }
 
-  @action.bound remove(search: ClientFileSearchItem) {
+  @action.bound async remove(search: ClientFileSearchItem) {
     // Do we need to dispose anything? There is no save handler, observable properties should be disposed automatically I believe
-    this.backend.removeSearch(search.serialize(this.rootStore));
-    return this.searchList.remove(search);
+    this.searchList.remove(search);
+    await this.backend.removeSearch(search.serialize(this.rootStore));
   }
 
-  @action.bound duplicate(search: ClientFileSearchItem) {
+  @action.bound async duplicate(search: ClientFileSearchItem) {
     const newSearch = new ClientFileSearchItem(
       generateId(),
       `${search.name} (copy)`,
@@ -60,7 +60,7 @@ class SearchStore {
     );
     // TODO: insert below given item or keep it at the end like this?
     this.searchList.push(newSearch);
-    this.backend.createSearch(newSearch.serialize(this.rootStore));
+    await this.backend.createSearch(newSearch.serialize(this.rootStore));
     return newSearch;
   }
 

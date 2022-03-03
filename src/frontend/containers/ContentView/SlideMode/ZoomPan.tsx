@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { clamp } from 'src/frontend/utils';
+import { clamp } from 'common/core';
 
 import {
   getPinchLength,

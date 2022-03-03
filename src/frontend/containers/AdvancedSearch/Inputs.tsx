@@ -12,7 +12,7 @@ import {
 import { ClientTag } from 'src/entities/Tag';
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { camelCaseToSpaced } from 'src/frontend/utils';
+import { camelCaseToSpaced } from 'common/fmt';
 import { Criteria, defaultQuery, Key, Operator, TagValue, Value } from './data';
 
 type SetCriteria = (fn: (criteria: Criteria) => Criteria) => void;
@@ -279,8 +279,8 @@ const DateAddedInput = ({ value, labelledby, dispatch }: ValueInput<Date>) => {
       aria-labelledby={labelledby}
       className="input criteria-input"
       type="date"
-      max={new Date().toISOString().substr(0, 10)}
-      defaultValue={value.toISOString().substr(0, 10)}
+      max={new Date().toISOString().slice(0, 10)}
+      defaultValue={value.toISOString().slice(0, 10)}
       onChange={(e) => {
         if (e.target.valueAsDate) {
           dispatch(setValue(e.target.valueAsDate));

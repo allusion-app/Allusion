@@ -47,13 +47,13 @@ import fse from 'fs-extra';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import exiftool from 'node-exiftool';
 import path from 'path';
-import { isDev } from 'src/config';
-import { Awaited, IS_WIN } from 'src/frontend/utils';
+import { Awaited } from 'common/core';
+import { IS_DEV, IS_WIN } from 'common/process';
 
 // The exif binary is placed using ElectronBuilder's extraResources: https://www.electron.build/configuration/contents#extraresources
 // there also is process.resourcesPath but that doesn't work in dev mode
-const resourcesPath = (isDev() ? '../' : '../../') + 'resources' + '/exiftool';
-const exiftoolRunnable = process.platform === 'win32' ? 'exiftool.exe' : 'exiftool.pl';
+const resourcesPath = (IS_DEV ? '../' : '../../') + 'resources' + '/exiftool';
+const exiftoolRunnable = IS_WIN ? 'exiftool.exe' : 'exiftool.pl';
 const exiftoolPath = path.resolve(__dirname, resourcesPath, exiftoolRunnable);
 
 console.log('Exif tool path: ', exiftoolPath);
@@ -79,7 +79,9 @@ class ExifIO {
   }
 
   async initialize(): Promise<ExifIO> {
-    if (ep._open) return this;
+    if (ep._open) {
+      return this;
+    }
     if (!this.isOpening) {
       this.isOpening = true;
       const pid = await ep.open();
@@ -87,7 +89,9 @@ class ExifIO {
     } else {
       await new Promise<void>((resolve) =>
         setInterval(() => {
-          if (ep._open) resolve();
+          if (ep._open) {
+            resolve();
+          }
         }, 50),
       );
     }
@@ -190,7 +194,9 @@ class ExifIO {
     // Can add and remove simultaneously with `exiftool -keywords+="add this" -keywords-="remove this"`
     // Multiple at once with `-sep ", " -keywords="one, two, three"`
 
-    if (!tagNameHierarchy.length) return;
+    if (!tagNameHierarchy.length) {
+      return;
+    }
 
     const subject = tagNameHierarchy.map((entry) => entry[entry.length - 1]);
 

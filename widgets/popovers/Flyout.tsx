@@ -42,7 +42,9 @@ export const Flyout = (props: IFlyout) => {
   const popover = useRef<HTMLDivElement>(null);
 
   const handleBlur = (e: React.FocusEvent) => {
-    if (e.relatedTarget === ignoreCloseForElementOnBlur) return;
+    if (e.relatedTarget === ignoreCloseForElementOnBlur) {
+      return;
+    }
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       cancel();
     }

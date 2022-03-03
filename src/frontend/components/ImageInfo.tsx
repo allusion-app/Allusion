@@ -3,8 +3,8 @@ import fse from 'fs-extra';
 import React, { ReactNode } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { useStore } from '../contexts/StoreContext';
-import { Poll, Result, usePromise } from '../hooks/usePromise';
-import { formatDateTime, humanFileSize } from '../utils';
+import { usePromise } from '../hooks/usePromise';
+import { formatDateTime, humanFileSize } from 'common/fmt';
 
 type CommonMetadata = {
   name: string;
@@ -70,7 +70,7 @@ interface ImageInfoProps {
 const ImageInfo = ({ file }: ImageInfoProps) => {
   const { exifTool } = useStore();
 
-  const modified: Poll<Result<string, any>> = usePromise(file.absolutePath, async (filePath) => {
+  const modified = usePromise(file.absolutePath, async (filePath) => {
     const stats = await fse.stat(filePath);
     return formatDateTime(stats.ctime);
   });
@@ -84,21 +84,17 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
     modified: modified.tag === 'ready' && 'ok' in modified.value ? modified.value.ok : '...',
   };
 
-  const exifData: Poll<Result<{ [key: string]: ReactNode }, any>> = usePromise(
-    file.absolutePath,
-    exifTool,
-    async (filePath, exifTool) => {
-      const tagValues = await exifTool.readExifTags(filePath, exifTags);
-      const extraStats: Record<string, ReactNode> = {};
-      tagValues.forEach((val, i) => {
-        if (val !== '' && val !== undefined) {
-          const field = exifFields[exifTags[i]];
-          extraStats[field.label] = field.format?.(val) || val;
-        }
-      });
-      return extraStats;
-    },
-  );
+  const exifData = usePromise(file.absolutePath, exifTool, async (filePath, exifTool) => {
+    const tagValues = await exifTool.readExifTags(filePath, exifTags);
+    const extraStats: Record<string, ReactNode> = {};
+    tagValues.forEach((val, i) => {
+      if (val !== '' && val !== undefined) {
+        const field = exifFields[exifTags[i]];
+        extraStats[field.label] = field.format?.(val) || val;
+      }
+    });
+    return extraStats;
+  });
 
   const extraStats =
     exifData.tag === 'ready' && 'ok' in exifData.value ? Object.entries(exifData.value.ok) : [];

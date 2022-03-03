@@ -1,6 +1,6 @@
 import fse from 'fs-extra';
 
-import { thumbnailFormat, thumbnailMaxSize } from 'src/config';
+import { thumbnailFormat, thumbnailMaxSize } from 'common/config';
 import { IThumbnailMessage, IThumbnailMessageResponse } from '../image/ThumbnailGeneration';
 
 const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | null> => {

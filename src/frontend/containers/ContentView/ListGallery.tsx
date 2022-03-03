@@ -13,8 +13,8 @@ import React, {
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { OrderDirection } from 'src/backend/DBRepository';
 import { ClientFile, IFile } from 'src/entities/File';
-import { debouncedThrottle } from 'src/frontend/utils';
-import { GalleryProps } from './LayoutSwitcher';
+import { debouncedThrottle } from 'common/timeout';
+import { GalleryProps } from './utils';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Row } from './ListItem';
 
@@ -250,10 +250,10 @@ function useHeaderResize(
   setColumnWidth: (name: string, value: number) => void,
 ) {
   const isDragging = useRef(false);
-  const onResize = useCallback((value: number) => setColumnWidth(name, value), [
-    name,
-    setColumnWidth,
-  ]);
+  const onResize = useCallback(
+    (value: number) => setColumnWidth(name, value),
+    [name, setColumnWidth],
+  );
 
   useEffect(() => {
     if (header.current === null) {

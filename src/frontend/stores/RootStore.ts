@@ -104,7 +104,9 @@ class RootStore {
 
       // Then, look for any new or removed images, and refetch if necessary
       this.locationStore.watchLocations().then((foundNewFiles) => {
-        if (foundNewFiles) this.fileStore.refetch();
+        if (foundNewFiles) {
+          this.fileStore.refetch();
+        }
       });
     }
 

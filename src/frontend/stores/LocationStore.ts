@@ -15,7 +15,8 @@ import { ClientLocation, ClientSubLocation, ILocation } from 'src/entities/Locat
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
-import { getThumbnailPath, promiseAllLimit } from '../utils';
+import { getThumbnailPath } from 'common/fs';
+import { promiseAllLimit } from 'common/promise';
 import RootStore from './RootStore';
 import fse from 'fs-extra';
 
@@ -44,7 +45,7 @@ class LocationStore {
 
   // Allow users to disable certain file types. Global option for now, needs restart
   // TODO: Maybe per location/sub-location?
-  enabledFileExtensions = observable(new Set<IMG_EXTENSIONS_TYPE>());
+  readonly enabledFileExtensions = observable(new Set<IMG_EXTENSIONS_TYPE>());
 
   constructor(backend: Backend, rootStore: RootStore) {
     this.backend = backend;
@@ -75,7 +76,7 @@ class LocationStore {
           dir.path,
           dir.dateAdded,
           dir.subLocations,
-          runInAction(() => this.enabledFileExtensions.toJSON()),
+          runInAction(() => Array.from(this.enabledFileExtensions)),
         ),
     );
     runInAction(() => this.locationList.replace(locations));
@@ -179,7 +180,9 @@ class LocationStore {
       );
       // Also look for duplicate files: when a files is renamed/moved it will become a new entry, should be de-duplicated
       const dbMatches = missingFiles.map((missingDbFile, i) => {
-        if (createdMatches[i]) return false; // skip missing files that match with a newly created file
+        if (createdMatches[i]) {
+          return false;
+        } // skip missing files that match with a newly created file
         // Quick lookup for files with same created date,
         const candidates = dbFilesByCreatedDate.get(missingDbFile.dateCreated.getTime()) || [];
 
@@ -328,9 +331,9 @@ class LocationStore {
       newPath,
       location.dateAdded,
       location.subLocations,
-      runInAction(() => this.enabledFileExtensions.toJSON()),
+      runInAction(() => Array.from(this.enabledFileExtensions)),
     );
-    this.set(index, newLocation);
+    runInAction(() => (this.locationList[index] = newLocation));
     await this.initLocation(newLocation);
     await this.backend.saveLocation(newLocation.serialize());
     // Refetch files in case some were from this location and could not be found before
@@ -351,7 +354,7 @@ class LocationStore {
       path,
       new Date(),
       [],
-      runInAction(() => this.enabledFileExtensions.toJSON()),
+      runInAction(() => Array.from(this.enabledFileExtensions)),
     );
     await this.backend.createLocation(location.serialize());
     runInAction(() => this.locationList.push(location));
@@ -439,7 +442,11 @@ class LocationStore {
     this.enabledFileExtensions.replace(extensions);
     localStorage.setItem(
       PREFERENCES_STORAGE_KEY,
-      JSON.stringify({ extensions: this.enabledFileExtensions.toJSON() } as Preferences, null, 2),
+      JSON.stringify(
+        { extensions: Array.from(this.enabledFileExtensions) } as Preferences,
+        null,
+        2,
+      ),
     );
   }
 
@@ -453,10 +460,12 @@ class LocationStore {
     const match = runInAction(() => fileStore.fileList.find((f) => f.ino === fileStats.ino));
     const dbMatch = match
       ? undefined
-      : (await this.backend.fetchFilesByKey('ino', fileStats.ino))?.[0];
+      : (await this.backend.fetchFilesByKey('ino', fileStats.ino))[0];
 
     if (match) {
-      if (fileStats.absolutePath === match.absolutePath) return;
+      if (fileStats.absolutePath === match.absolutePath) {
+        return;
+      }
       fileStore.replaceMovedFile(match, file);
     } else if (dbMatch) {
       const newIFile = mergeMovedFile(dbMatch, file);
@@ -500,10 +509,6 @@ class LocationStore {
     const files = await this.backend.searchFiles(crit, 'id', OrderDirection.Asc);
     await this.backend.removeFiles(files.map((f) => f.id));
     this.rootStore.fileStore.refetch();
-  }
-
-  @action private set(index: number, location: ClientLocation) {
-    this.locationList[index] = location;
   }
 }
 

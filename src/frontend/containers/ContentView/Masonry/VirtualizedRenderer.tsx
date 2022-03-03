@@ -1,11 +1,11 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { thumbnailMaxSize } from 'src/config';
+import { thumbnailMaxSize } from 'common/config';
 import { ClientFile } from 'src/entities/File';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import useMountState from 'src/frontend/hooks/useMountState';
-import { debouncedThrottle } from 'src/frontend/utils';
+import { debouncedThrottle } from 'common/timeout';
 import { MasonryCell } from '../GalleryItem';
 import { findViewportEdge, Layouter } from './layout-helpers';
 
@@ -50,7 +50,9 @@ const VirtualizedRenderer = observer(
 
     const determineRenderRegion = useCallback(
       (numImages: number, overdraw: number, setFirstItem = true) => {
-        if (!isMountedRef.current) return;
+        if (!isMountedRef.current) {
+          return;
+        }
         const viewport = wrapperRef.current;
         const yOffset = viewport?.scrollTop || 0;
         const viewportHeight = viewport?.clientHeight || 0;
@@ -64,7 +66,9 @@ const VirtualizedRenderer = observer(
         setEndRenderIndex(Math.min(end, start + 512));
 
         // store the first item in the viewport in the UIStore so that switching between view modes retains the scroll position
-        if (setFirstItem) uiStore.setFirstItem(firstImageIndex);
+        if (setFirstItem) {
+          uiStore.setFirstItem(firstImageIndex);
+        }
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [],
@@ -99,7 +103,9 @@ const VirtualizedRenderer = observer(
 
     const scrollToIndex = useCallback(
       (index: number, block: 'nearest' | 'start' | 'end' | 'center' = 'nearest') => {
-        if (!scrollAnchor.current) return;
+        if (!scrollAnchor.current) {
+          return;
+        }
         const [sWidth, sHeight, sTop, sLeft] = layout.getTransform(index);
 
         // Scroll to invisible element, positioned at selected item,
@@ -112,7 +118,7 @@ const VirtualizedRenderer = observer(
         scrollAnchor.current.style.height = sHeight + 'px';
         // TODO: adding behavior: 'smooth' would be nice, but it's disorienting when layout changes a lot. Add threshold for when the delta firstItemIndex than X?
         // Also, it doesn't work when scrolling by keeping arrow key held down
-        scrollAnchor.current?.scrollIntoView({ block, inline: 'nearest' });
+        scrollAnchor.current.scrollIntoView({ block, inline: 'nearest' });
         scrollAnchor.current.style.transform = ''; // reset so that the scroll position can't become stuck at bottom when amount of shown images decreases
       },
       [layout, padding],

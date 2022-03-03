@@ -1,5 +1,5 @@
-import Dexie, { Transaction, WhereClause } from 'dexie';
-import { shuffleArray } from 'src/frontend/utils';
+import Dexie, { IndexableType, Transaction, WhereClause } from 'dexie';
+import { shuffleArray } from 'common/core';
 
 import { ID, IResource } from '../entities/ID';
 import {
@@ -91,7 +91,7 @@ export default class BaseRepository<T extends IResource> {
     return this.collection.bulkGet(ids);
   }
 
-  public async getByKey(key: keyof T, value: any): Promise<T[]> {
+  public async getByKey(key: keyof T, value: IndexableType): Promise<T[]> {
     return this.collection
       .where(key as string)
       .equals(value)
@@ -321,9 +321,9 @@ export default class BaseRepository<T extends IResource> {
         case 'notEqual':
           return (t: any) => (t[key] as string).toLowerCase() !== valLow;
         case 'contains':
-          return (t: any) => (t[key] as string).toLowerCase().indexOf(valLow) !== -1;
+          return (t: any) => (t[key] as string).toLowerCase().includes(valLow);
         case 'notContains':
-          return (t: any) => (t[key] as string).toLowerCase().indexOf(valLow) === -1;
+          return (t: any) => !(t[key] as string).toLowerCase().includes(valLow);
         case 'startsWith':
           return (t: any) => (t[key] as string).toLowerCase().startsWith(valLow);
         case 'notStartsWith':

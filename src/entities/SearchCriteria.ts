@@ -1,6 +1,6 @@
 import { action, Lambda, makeObservable, observable, observe } from 'mobx';
 import RootStore from 'src/frontend/stores/RootStore';
-import { camelCaseToSpaced } from 'src/frontend/utils';
+import { camelCaseToSpaced } from 'common/fmt';
 import { IFile } from './File';
 import { ID, ISerializable } from './ID';
 
@@ -8,7 +8,7 @@ export type IFileSearchCriteria = SearchCriteria<IFile>;
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
 
 // A dictionary of labels for (some of) the keys of the type we search for
-export type SearchKeyDict<T> = { [key in keyof Partial<T>]: string };
+export type SearchKeyDict<T> = Partial<Record<keyof T, string>>;
 
 export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path', locationId: 'Location' };
 
@@ -213,14 +213,15 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
     let op = this.operator as TagOperatorType;
     let val = this.value ? [this.value] : [];
     if (val.length > 0 && op.includes('Recursively')) {
-      val =
-        rootStore.tagStore
-          .get(val[0])
-          ?.getSubTreeList()
-          ?.map((t) => t.id) || [];
+      const tag = rootStore.tagStore.get(val[0]);
+      val = tag !== undefined ? Array.from(tag.getSubTree(), (t) => t.id) : [];
     }
-    if (op === 'containsNotRecursively') op = 'notContains';
-    if (op === 'containsRecursively') op = 'contains';
+    if (op === 'containsNotRecursively') {
+      op = 'notContains';
+    }
+    if (op === 'containsRecursively') {
+      op = 'contains';
+    }
 
     return {
       key: this.key,

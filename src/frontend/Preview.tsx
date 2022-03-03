@@ -9,7 +9,6 @@ import { IconSet, Toggle } from 'widgets';
 import { Toolbar, ToolbarButton } from 'widgets/menus';
 
 import { useWorkerListener } from './image/ThumbnailGeneration';
-import { Tooltip } from './containers/AppToolbar/PrimaryCommands';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -68,8 +67,8 @@ const PreviewApp = observer(() => {
             icon={IconSet.INFO}
             onClick={uiStore.toggleInspector}
             checked={uiStore.isInspectorOpen}
-            text={Tooltip.Inspector}
-            tooltip={Tooltip.Inspector}
+            text="Toggle the inspector panel"
+            tooltip="Toggle the inspector panel"
           />
         </Toolbar>
 

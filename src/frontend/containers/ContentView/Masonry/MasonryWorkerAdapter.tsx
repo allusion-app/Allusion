@@ -93,6 +93,6 @@ export class MasonryWorkerAdapter implements Layouter {
       throw new Error('Worker is uninitialized.');
     }
     const ptr = this.worker.get_transform(index);
-    return (new Uint32Array(this.memory.buffer, ptr, 4) as unknown) as ITransform;
+    return new Uint32Array(this.memory.buffer, ptr, 4) as unknown as ITransform;
   }
 }

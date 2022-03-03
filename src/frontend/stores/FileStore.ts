@@ -12,7 +12,9 @@ import {
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
-import { debounce, getThumbnailPath, promiseAllLimit } from '../utils';
+import { debounce } from 'common/timeout';
+import { getThumbnailPath } from 'common/fs';
+import { promiseAllLimit } from 'common/promise';
 import RootStore from './RootStore';
 
 const FILE_STORAGE_KEY = 'Allusion_File';
@@ -140,7 +142,10 @@ class FileStore {
       const tagFilePairs = runInAction(() =>
         this.fileList.map((f) => ({
           absolutePath: f.absolutePath,
-          tagHierarchy: Array.from(f.tags).map(action((t) => t.treePath.map((t) => t.name))),
+          tagHierarchy: Array.from(
+            f.tags,
+            action((t) => t.path),
+          ),
         })),
       );
       let lastToastVal = '0';
@@ -213,17 +218,23 @@ class FileStore {
 
   @action.bound setContentQuery() {
     this.content = Content.Query;
-    if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
+    if (this.rootStore.uiStore.isSlideMode) {
+      this.rootStore.uiStore.disableSlideMode();
+    }
   }
 
   @action.bound setContentAll() {
     this.content = Content.All;
-    if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
+    if (this.rootStore.uiStore.isSlideMode) {
+      this.rootStore.uiStore.disableSlideMode();
+    }
   }
 
   @action.bound setContentUntagged() {
     this.content = Content.Untagged;
-    if (this.rootStore.uiStore.isSlideMode) this.rootStore.uiStore.disableSlideMode();
+    if (this.rootStore.uiStore.isSlideMode) {
+      this.rootStore.uiStore.disableSlideMode();
+    }
   }
 
   /**

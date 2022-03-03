@@ -99,7 +99,6 @@ const ToolbarButton = (props: ToolbarButtonProps) => {
   );
 };
 
-import { MenuButton } from './MenuButton';
 import { ToolbarSegment, ToolbarSegmentButton } from './ToolbarSegment';
 
-export { Toolbar, ToolbarButton, MenuButton, ToolbarSegment, ToolbarSegmentButton };
+export { Toolbar, ToolbarButton, ToolbarSegment, ToolbarSegmentButton };

@@ -21,7 +21,7 @@
  * - removed normalizeKeyCombo function
  */
 
-import { IS_MAC } from './utils';
+import { IS_MAC } from 'common/process';
 
 export interface IKeyCodeTable {
   [code: number]: string;

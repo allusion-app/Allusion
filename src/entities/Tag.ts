@@ -47,8 +47,8 @@ export class ClientTag implements ISerializable<ITag> {
     id: ID,
     name: string,
     dateAdded: Date,
-    color: string = '',
-    isHidden?: boolean,
+    color: string,
+    isHidden: boolean,
   ) {
     this.store = store;
     this.id = id;
@@ -56,7 +56,7 @@ export class ClientTag implements ISerializable<ITag> {
     this.name = name;
     this.color = color;
     this.fileCount = 0;
-    this.isHidden = isHidden || false;
+    this.isHidden = isHidden;
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
@@ -82,30 +82,30 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   /** Returns this tag and all of its sub-tags ordered depth-first */
-  @action getSubTreeList(): readonly ClientTag[] {
-    const subTree: ClientTag[] = [this];
-    const pushTags = (tags: ClientTag[]) => {
-      for (const t of tags) {
-        subTree.push(t);
-        pushTags(t.subTags);
+  @action getSubTree(): Generator<ClientTag> {
+    function* tree(tag: ClientTag): Generator<ClientTag> {
+      yield tag;
+      for (const subTag of tag.subTags) {
+        yield* tree(subTag);
       }
-    };
-    pushTags(this.subTags);
-    return subTree;
+    }
+    return tree(this);
+  }
+
+  /** Returns this tag and all its ancestors (excluding root tag). */
+  @action getAncestors(): Generator<ClientTag> {
+    function* ancestors(tag: ClientTag): Generator<ClientTag> {
+      if (tag.id !== ROOT_TAG_ID) {
+        yield tag;
+        yield* ancestors(tag.parent);
+      }
+    }
+    return ancestors(this);
   }
 
   /** Returns the tags up the hierarchy from this tag, excluding the root tag */
-  @computed get treePath(): ClientTag[] {
-    if (this.id === ROOT_TAG_ID) {
-      return [];
-    }
-    const treePath: ClientTag[] = [this];
-    let node = this.parent;
-    while (node.id !== ROOT_TAG_ID) {
-      treePath.unshift(node);
-      node = node.parent;
-    }
-    return treePath;
+  @computed get path(): string[] {
+    return Array.from(this.getAncestors(), (t) => t.name).reverse();
   }
 
   get isSelected(): boolean {
@@ -113,7 +113,12 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   @computed get viewColor(): string {
-    return this.color === 'inherit' ? this.parent.viewColor : this.color;
+    for (const tag of this.getAncestors()) {
+      if (tag.color !== 'inherit') {
+        return tag.color;
+      }
+    }
+    return this.color;
   }
 
   @computed get isSearched(): boolean {
@@ -128,12 +133,10 @@ export class ClientTag implements ISerializable<ITag> {
     if (this === tag) {
       return false;
     }
-    let node = this.parent;
-    while (node.id !== ROOT_TAG_ID) {
-      if (node === tag) {
+    for (const ancestor of this.parent.getAncestors()) {
+      if (ancestor === tag) {
         return true;
       }
-      node = node.parent;
     }
     return false;
   }
@@ -151,7 +154,28 @@ export class ClientTag implements ISerializable<ITag> {
   }
 
   @action.bound insertSubTag(tag: ClientTag, at: number): void {
-    this.store.insert(this, tag, at);
+    if (this === tag || this.parent.isAncestor(tag) || tag.id === ROOT_TAG_ID) {
+      return;
+    }
+    // Move to different pos in same parent: Reorder tag.subTags and return
+    if (this === tag.parent) {
+      const currentIndex = this.subTags.indexOf(tag);
+      if (currentIndex !== at && at >= 0 && at <= this.subTags.length) {
+        // If moving below current position, take into account removing self affecting the index
+        const newIndex = currentIndex < at ? at - 1 : at;
+        this.subTags.remove(tag);
+        this.subTags.splice(newIndex, 0, tag);
+      }
+    } else {
+      // Insert subTag into tag
+      tag.parent.subTags.remove(tag);
+      if (at >= 0 && at < this.subTags.length) {
+        this.subTags.splice(at, 0, tag);
+      } else {
+        this.subTags.push(tag);
+      }
+      tag.setParent(this);
+    }
   }
 
   @action.bound incrementFileCount(amount = 1): void {

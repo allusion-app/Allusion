@@ -1,7 +1,7 @@
 import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
-import Dexie from 'dexie';
+import Dexie, { IndexableType } from 'dexie';
 import fse from 'fs-extra';
-import { getDefaultBackupDirectory } from 'src/config';
+import { RendererMessenger } from 'src/Messaging';
 import { IFileSearchItem } from 'src/entities/SearchItem';
 import { FileOrder } from 'src/frontend/stores/FileStore';
 import { IFile } from '../entities/File';
@@ -54,7 +54,7 @@ export default class Backend {
       }
 
       try {
-        await this.backupScheduler.initialize(await getDefaultBackupDirectory());
+        await this.backupScheduler.initialize(await RendererMessenger.getDefaultBackupDirectory());
       } catch (e) {
         console.error('Could not initialize backup scheduler', e);
       }
@@ -77,10 +77,10 @@ export default class Backend {
     return files.filter((f) => f !== undefined) as IFile[];
   }
 
-  async fetchFilesByKey(key: keyof IFile, value: any): Promise<IFile[]> {
+  async fetchFilesByKey(key: keyof IFile, value: IndexableType): Promise<IFile[]> {
     console.info('Backend: Fetching files by key/value...', { key, value });
     const files = await this.fileRepository.getByKey(key, value);
-    return files as IFile[];
+    return files;
   }
 
   async fetchLocations(order: keyof ILocation, fileOrder: OrderDirection): Promise<ILocation[]> {

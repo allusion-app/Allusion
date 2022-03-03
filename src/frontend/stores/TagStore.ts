@@ -1,4 +1,4 @@
-import { action, observable, computed, makeObservable, runInAction } from 'mobx';
+import { action, observable, computed, makeObservable } from 'mobx';
 
 import Backend from 'src/backend/Backend';
 
@@ -56,17 +56,12 @@ class TagStore {
   }
 
   @computed get tagList(): readonly ClientTag[] {
-    const tagList: ClientTag[] = [];
-    const pushTags = (tags: ClientTag[]) => {
-      for (const t of tags) {
-        tagList.push(t);
-        pushTags(t.subTags);
+    function* list(tags: ClientTag[]): Generator<ClientTag> {
+      for (const tag of tags) {
+        yield* tag.getSubTree();
       }
-    };
-    if (this.tagGraph.size > 0) {
-      pushTags(this.root.subTags);
     }
-    return tagList;
+    return Array.from(list(this.root.subTags));
   }
 
   @computed get count(): number {
@@ -94,42 +89,12 @@ class TagStore {
 
   @action.bound async create(parent: ClientTag, tagName: string) {
     const id = generateId();
-    const tag = new ClientTag(this, id, tagName, new Date());
+    const tag = new ClientTag(this, id, tagName, new Date(), '', false);
+    this.tagGraph.set(tag.id, tag);
+    tag.setParent(parent);
+    parent.subTags.push(tag);
     await this.backend.createTag(tag.serialize());
-    this.add(parent, tag);
     return tag;
-  }
-
-  @action.bound insert(tag: ClientTag, subTag: ClientTag, index: number) {
-    if (tag === subTag || subTag.id === ROOT_TAG_ID) {
-      return;
-    }
-    // Move to different pos in same parent: Reorder tag.subTags and return
-    if (tag === subTag.parent) {
-      if (index > -1 && index <= tag.subTags.length) {
-        // If moving below current position, take into account removing self affecting the index
-        const newIndex = tag.subTags.indexOf(subTag) < index ? index - 1 : index;
-        tag.subTags.remove(subTag);
-        tag.subTags.splice(newIndex, 0, subTag);
-      }
-      return;
-    }
-    // Abort if subTag is an ancestor node of target tag.
-    let node = tag.parent;
-    while (node.id !== ROOT_TAG_ID) {
-      if (node === subTag) {
-        return;
-      }
-      node = node.parent;
-    }
-    // Insert subTag into tag
-    subTag.parent.subTags.remove(subTag);
-    if (index > -1 && index < tag.subTags.length) {
-      tag.subTags.splice(index, 0, subTag);
-    } else {
-      tag.subTags.push(subTag);
-    }
-    subTag.setParent(tag);
   }
 
   @action findByName(name: string): ClientTag | undefined {
@@ -137,33 +102,54 @@ class TagStore {
   }
 
   @action.bound async delete(tag: ClientTag) {
-    tag.dispose();
-    await this.backend.removeTag(tag.id);
-    await this.deleteSubTags(tag);
-    this.remove(tag);
-    this.rootStore.fileStore.refetch();
+    const {
+      rootStore: { uiStore, fileStore },
+      tagGraph,
+    } = this;
+    const ids: ID[] = [];
+    tag.parent.subTags.remove(tag);
+    for (const t of tag.getSubTree()) {
+      t.dispose();
+      tagGraph.delete(t.id);
+      uiStore.deselectTag(t);
+      ids.push(t.id);
+    }
+    await this.backend.removeTags(ids);
+    fileStore.refetch();
   }
 
   @action.bound async deleteTags(tags: ClientTag[]) {
-    await this.backend.removeTags(tags.map((t) => t.id));
+    const {
+      rootStore: { uiStore, fileStore },
+      tagGraph,
+    } = this;
+    const ids: ID[] = [];
+    const remove = action((tag: ClientTag): ID[] => {
+      tag.parent.subTags.remove(tag);
+      for (const t of tag.getSubTree()) {
+        t.dispose();
+        tagGraph.delete(t.id);
+        uiStore.deselectTag(t);
+        ids.push(t.id);
+      }
+      return ids.splice(0, ids.length);
+    });
     for (const tag of tags) {
-      tag.dispose();
-      await this.deleteSubTags(tag);
-      this.remove(tag);
+      await this.backend.removeTags(remove(tag));
     }
-    this.rootStore.fileStore.refetch();
+    fileStore.refetch();
   }
 
-  @action.bound merge(tagToBeRemoved: ClientTag, tagToMergeWith: ClientTag) {
+  @action.bound async merge(tagToBeRemoved: ClientTag, tagToMergeWith: ClientTag) {
     // not dealing with tags that have subtags
     if (tagToBeRemoved.subTags.length > 0) {
       throw new Error('Merging a tag with sub-tags is currently not supported.');
     }
-
-    this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id).then(() => {
-      this.remove(tagToBeRemoved);
-      this.rootStore.fileStore.refetch();
-    });
+    this.rootStore.uiStore.deselectTag(tagToBeRemoved);
+    this.tagGraph.delete(tagToBeRemoved.id);
+    tagToBeRemoved.parent.subTags.remove(tagToBeRemoved);
+    await this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id);
+    this.rootStore.fileStore.refetch();
   }
 
   @action.bound refetchFiles() {
@@ -198,34 +184,6 @@ class TagStore {
       }
     }
     this.root.setParent(this.root);
-  }
-
-  @action private add(parent: ClientTag, tag: ClientTag) {
-    this.tagGraph.set(tag.id, tag);
-    tag.setParent(parent);
-    parent.subTags.push(tag);
-  }
-
-  // The difference between this method and delete is that no computation
-  // power is wasted on removing the tag id from the parent subTags list.
-  @action private async deleteSubTags(tag: ClientTag) {
-    if (tag.subTags.length > 0) {
-      const ids = tag.subTags.map((subTag) => subTag.id);
-      await this.backend.removeTags(ids);
-    }
-    runInAction(() => {
-      for (const subTag of tag.subTags) {
-        subTag.dispose();
-        this.deleteSubTags(subTag);
-        this.rootStore.uiStore.deselectTag(subTag);
-      }
-    });
-  }
-
-  @action private remove(tag: ClientTag) {
-    // Remove tag id reference from other observable objects
-    this.rootStore.uiStore.deselectTag(tag);
-    tag.parent.subTags.remove(tag);
   }
 }
 

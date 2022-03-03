@@ -3,7 +3,7 @@ import { shell } from 'electron';
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 
 import { RendererMessenger } from 'src/Messaging';
-import { createBugReport, githubUrl } from 'src/config';
+import { createBugReport, githubUrl } from 'common/config';
 
 import { useStore } from '../contexts/StoreContext';
 
@@ -80,7 +80,7 @@ class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBoundaryS
       this.setState({
         error: [
           error.message,
-          ...sourceMappedStack.filter((line) => line.indexOf('bundle.js') === -1),
+          ...sourceMappedStack.filter((line) => !line.includes('bundle.js')),
         ].join('\n'),
       });
     });

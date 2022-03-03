@@ -71,7 +71,7 @@ export const dbConfig: IDBVersioningConfig[] = [
     ],
   },
   {
-    // Version 7, 9-1-22: Added ino to file for detecting added/removed files as a single rename/move event
+    // Version 8, 9-1-22: Added ino to file for detecting added/removed files as a single rename/move event
     version: 8,
     collections: [],
     upgrade: (tx: Transaction): void => {

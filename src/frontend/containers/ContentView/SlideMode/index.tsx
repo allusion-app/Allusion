@@ -6,12 +6,12 @@ import React, { useEffect, useMemo } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAction, useComputed } from 'src/frontend/hooks/mobx';
-import { Poll, Result, usePromise } from 'src/frontend/hooks/usePromise';
-import { encodeFilePath } from 'src/frontend/utils';
+import { usePromise } from 'src/frontend/hooks/usePromise';
+import { encodeFilePath } from 'common/fs';
 import { Button, IconSet, Split } from 'widgets';
 import Inspector from '../../Inspector';
 import { CommandDispatcher } from '../Commands';
-import { ContentRect } from '../LayoutSwitcher';
+import { ContentRect } from '../utils';
 import ZoomPan, { CONTAINER_DEFAULT_STYLE, SlideTransform } from '../SlideMode/ZoomPan';
 import { createDimension, createTransform, Vec2 } from './utils';
 
@@ -59,7 +59,9 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
           uiStore.setFirstItem(index);
 
           // Also, select only this file: makes more sense for the TagEditor overlay: shows tags on selected images
-          if (index !== undefined) uiStore.selectFile(fileStore.fileList[index], true);
+          if (index !== undefined) {
+            uiStore.selectFile(fileStore.fileList[index], true);
+          }
 
           reaction.dispose();
         }
@@ -137,7 +139,9 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
   }, [fileStore, isFirst, isLast, uiStore, imageLoader]);
 
   const transitionStart: SlideTransform | undefined = useMemo(() => {
-    if (!file) return undefined;
+    if (!file) {
+      return undefined;
+    }
     const thumbEl = document.querySelector(`[data-file-id="${file.id}"]`);
     const container = document.querySelector('#gallery-content');
     if (thumbEl && container) {
@@ -205,46 +209,44 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
   const { absolutePath, width: imgWidth, height: imgHeight } = file;
   // Image src can be set asynchronously: keep track of it in a state
   // Needed for image formats not natively supported by the browser (e.g. tiff): will be converted to another format
-  const source: Poll<Result<string, any>> = usePromise(
-    file,
-    thumbnailSrc,
-    async (file, thumbnailPath) => {
-      if (!file) return thumbnailPath;
-      const src = await imageLoader.getImageSrc(file);
-      return src ?? thumbnailPath;
-    },
-  );
+  const source = usePromise(file, thumbnailSrc, async (file, thumbnailPath) => {
+    const src = await imageLoader.getImageSrc(file);
+    return src ?? thumbnailPath;
+  });
 
-  const image: Poll<Result<{ src: string; dimension: Vec2 }, any>> = usePromise(
+  const image = usePromise(
     source,
     absolutePath,
     thumbnailSrc,
     imgWidth,
     imgHeight,
-    (source, absolutePath, thumbnailSrc, imgWidth, imgHeight) => {
+    async (source, absolutePath, thumbnailSrc, imgWidth, imgHeight) => {
       if (source.tag === 'ready') {
         if ('ok' in source.value) {
           const src = source.value.ok;
-          return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = function (this: any) {
-              // TODO: would be better to resolve once transition is complete: for large resolution images, the transition freezes for ~.4s bc of a re-paint task when the image changes
-              resolve({
-                src,
-                dimension: createDimension(this.naturalWidth, this.naturalHeight),
-              });
-            };
-            img.onerror = reject;
-            img.src = encodeFilePath(src);
-          });
+          const dimension = await new Promise<{ src: string; dimension: Vec2 }>(
+            (resolve, reject) => {
+              const img = new Image();
+              img.onload = function (this: any) {
+                // TODO: would be better to resolve once transition is complete: for large resolution images, the transition freezes for ~.4s bc of a re-paint task when the image changes
+                resolve({
+                  src,
+                  dimension: createDimension(this.naturalWidth, this.naturalHeight),
+                });
+              };
+              img.onerror = reject;
+              img.src = encodeFilePath(src);
+            },
+          );
+          return dimension;
         } else {
-          return Promise.reject(source.value.err);
+          throw source.value.err;
         }
       } else {
-        return Promise.resolve({
+        return {
           src: thumbnailSrc || absolutePath,
           dimension: createDimension(imgWidth, imgHeight),
-        });
+        };
       }
     },
   );

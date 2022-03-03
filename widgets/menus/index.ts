@@ -21,6 +21,7 @@ import {
   IMenuItemLink,
 } from './menu-items';
 import { ContextMenu } from './ContextMenu';
+import { MenuButton } from './MenuButton';
 
 export {
   Menu,
@@ -41,12 +42,6 @@ export {
   IMenuItemLink,
 };
 
-import {
-  Toolbar,
-  ToolbarButton,
-  MenuButton,
-  ToolbarSegment,
-  ToolbarSegmentButton,
-} from '../Toolbar';
+import { Toolbar, ToolbarButton, ToolbarSegment, ToolbarSegmentButton } from '../Toolbar';
 
 export { ContextMenu, ToolbarButton, MenuButton, ToolbarSegment, ToolbarSegmentButton, Toolbar };

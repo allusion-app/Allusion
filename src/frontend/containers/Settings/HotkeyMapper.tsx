@@ -5,7 +5,7 @@ import { comboMatches, getKeyComboString, parseKeyCombo } from '../../hotkeyPars
 
 import { useStore } from '../../contexts/StoreContext';
 import { defaultHotkeyMap, IHotkeyMap } from '../../stores/UiStore';
-import { camelCaseToSpaced } from '../../utils';
+import { camelCaseToSpaced } from 'common/fmt';
 import { Button, IconSet, keyComboToString } from 'widgets';
 
 export const HotkeyMapper = observer(() => {

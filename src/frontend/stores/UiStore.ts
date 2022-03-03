@@ -1,6 +1,5 @@
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe } from 'mobx';
-import { getDefaultThumbnailDirectory } from 'src/config';
 import { ClientFile, IFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import {
@@ -11,9 +10,10 @@ import {
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
-import { IS_PREVIEW_WINDOW } from 'src/renderer';
+import { IS_PREVIEW_WINDOW } from 'common/window';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
-import { clamp, debounce } from '../utils';
+import { clamp } from 'common/core';
+import { debounce } from 'common/timeout';
 import RootStore from './RootStore';
 
 export const enum ViewMethod {
@@ -235,7 +235,7 @@ class UiStore {
   }
 
   @action updateWindowTitle() {
-    if (this.isSlideMode) {
+    if (this.isSlideMode && this.rootStore.fileStore.fileList.length > 0) {
       const activeFile = this.rootStore.fileStore.fileList[this.firstItem];
       this.windowTitle = `${activeFile.filename}.${activeFile.extension} - Allusion`;
     } else {
@@ -326,13 +326,12 @@ class UiStore {
 
     // If only one image was selected, open all images, but focus on the selected image. Otherwise, open selected images
     // TODO: FIXME: Disabled for now: makes it a lot less "snappy", takes a while for the message to come through
-    const previewFiles = Array.from(this.fileSelection);
     // this.fileSelection.size === 1
     //   ? this.rootStore.fileStore.fileList
     //   : Array.from(this.fileSelection);
 
     RendererMessenger.sendPreviewFiles({
-      ids: previewFiles.map((file) => file.id),
+      ids: Array.from(this.fileSelection, (file) => file.id),
       activeImgId: this.getFirstSelectedFileId(),
       thumbnailDirectory: this.thumbnailDirectory,
       viewMethod: this.method,
@@ -697,7 +696,7 @@ class UiStore {
   }
 
   @action.bound processGlobalShortCuts(e: KeyboardEvent) {
-    if ((e.target as HTMLElement).matches?.('input')) {
+    if ((e.target as HTMLElement | null)?.matches('input')) {
       return;
     }
     const combo = getKeyCombo(e);
@@ -722,7 +721,7 @@ class UiStore {
       e.preventDefault(); // prevent scrolling with space when opening the preview window
       // Search
     } else if (matches(hotkeyMap.search)) {
-      (document.querySelector('.searchbar input') as HTMLElement)?.focus();
+      (document.querySelector('.searchbar input') as HTMLElement).focus();
     } else if (matches(hotkeyMap.advancedSearch)) {
       this.toggleAdvancedSearch();
       // View
@@ -780,14 +779,24 @@ class UiStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        if (prefs.theme) this.setTheme(prefs.theme);
+        if (prefs.theme) {
+          this.setTheme(prefs.theme);
+        }
         this.setIsOutlinerOpen(prefs.isOutlinerOpen);
         this.isInspectorOpen = Boolean(prefs.isInspectorOpen);
-        if (prefs.thumbnailDirectory) this.setThumbnailDirectory(prefs.thumbnailDirectory);
-        if (prefs.importDirectory) this.setImportDirectory(prefs.importDirectory);
+        if (prefs.thumbnailDirectory) {
+          this.setThumbnailDirectory(prefs.thumbnailDirectory);
+        }
+        if (prefs.importDirectory) {
+          this.setImportDirectory(prefs.importDirectory);
+        }
         this.setMethod(Number(prefs.method));
-        if (prefs.thumbnailSize) this.setThumbnailSize(prefs.thumbnailSize);
-        if (prefs.thumbnailShape) this.setThumbnailShape(prefs.thumbnailShape);
+        if (prefs.thumbnailSize) {
+          this.setThumbnailSize(prefs.thumbnailSize);
+        }
+        if (prefs.thumbnailShape) {
+          this.setThumbnailShape(prefs.thumbnailShape);
+        }
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
         this.isThumbnailFilenameOverlayEnabled = Boolean(
           prefs.isThumbnailFilenameOverlayEnabled ?? false,
@@ -823,7 +832,7 @@ class UiStore {
 
     // Set default thumbnail directory in case none was specified
     if (this.thumbnailDirectory.length === 0) {
-      getDefaultThumbnailDirectory().then((defaultThumbDir) => {
+      RendererMessenger.getDefaultThumbnailDirectory().then((defaultThumbDir) => {
         this.setThumbnailDirectory(defaultThumbDir);
         fse.ensureDirSync(this.thumbnailDirectory);
       });

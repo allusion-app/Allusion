@@ -29,13 +29,17 @@
     "no-trailing-spaces": "error",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
-    "react/no-children-prop": "off"
+    "react/no-children-prop": "off",
+    "curly": "error",
+    "no-extra-boolean-cast": "error",
+    "@typescript-eslint/no-unnecessary-condition": "warn",
+    "@typescript-eslint/prefer-string-starts-ends-with": "error"
   },
   "overrides": [
     {
       "files": ["src/entities/*.ts", "src/backend/*.ts"],
       "rules": {
-        "@typescript-eslint/explicit-module-boundary-types": ["warn"]
+        "@typescript-eslint/explicit-module-boundary-types": "error"
       }
     }
   ]

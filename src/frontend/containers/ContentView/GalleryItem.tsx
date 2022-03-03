@@ -3,12 +3,13 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import fse from 'fs-extra';
 import { ClientFile } from 'src/entities/File';
-import { ellipsize, encodeFilePath, humanFileSize } from 'src/frontend/utils';
+import { ellipsize, humanFileSize } from 'common/fmt';
+import { encodeFilePath } from 'common/fs';
 import { IconButton, IconSet, Tag } from 'widgets';
 import { ITransform } from './Masonry/layout-helpers';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { Poll, usePromise, Result } from 'src/frontend/hooks/usePromise';
+import { usePromise } from 'src/frontend/hooks/usePromise';
 import { CommandDispatcher, MousePointerEvent } from './Commands';
 
 interface ItemProps {
@@ -84,7 +85,7 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
   const { thumbnailPath, isBroken } = file;
 
   // This will check whether a thumbnail exists, generate it if needed
-  const imageSource: Poll<Result<string, any>> = usePromise(
+  const imageSource = usePromise(
     file,
     isBroken,
     mounted,
@@ -128,7 +129,9 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
   const fileIdRef = useRef(fileId);
   const [loadError, setLoadError] = useState(false);
   const handleImageError = useCallback(() => {
-    if (fileIdRef.current === fileId) setLoadError(true);
+    if (fileIdRef.current === fileId) {
+      setLoadError(true);
+    }
   }, [fileId]);
   useEffect(() => {
     fileIdRef.current = fileId;
@@ -191,14 +194,14 @@ const TagWithHint = observer(
     onContextMenu: (e: MousePointerEvent, tag: ClientTag) => void;
   }) => {
     const handleContextMenu = useCallback(
-      (e: React.MouseEvent<HTMLElement>) => onContextMenu?.(e, tag),
+      (e: React.MouseEvent<HTMLElement>) => onContextMenu(e, tag),
       [onContextMenu, tag],
     );
     return (
       <Tag
         text={tag.name}
         color={tag.viewColor}
-        tooltip={tag.treePath.map((t) => t.name).join(' › ')}
+        tooltip={tag.path.join(' › ')}
         onContextMenu={handleContextMenu}
       />
     );

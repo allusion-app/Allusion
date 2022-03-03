@@ -121,7 +121,7 @@ const AlertActions = (props: AlertActionsProps) => {
     <Button
       key="close"
       styling={defaultButton === DialogButton.CloseButton ? 'filled' : 'outlined'}
-      text={closeButtonText ?? 'Cancel'}
+      text={closeButtonText}
       onClick={() => onClick(DialogButton.CloseButton)}
     />,
   );

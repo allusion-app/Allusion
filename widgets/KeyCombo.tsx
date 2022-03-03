@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { capitalize, IS_MAC } from '../src/frontend/utils';
+import { capitalize } from 'common/fmt';
+import { IS_MAC } from 'common/process';
 
 const MOD = IS_MAC ? 'Cmd' : 'Ctrl';
 

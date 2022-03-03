@@ -14,7 +14,7 @@ import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import LocationStore from 'src/frontend/stores/LocationStore';
-import { emptyFunction, triggerContextMenuEvent } from 'src/frontend/utils';
+import { triggerContextMenuEvent, emptyFunction } from '../utils';
 import { RendererMessenger } from 'src/Messaging';
 import { IconSet, Tree } from 'widgets';
 import { ContextMenu, Menu, MenuDivider, MenuItem, Toolbar, ToolbarButton } from 'widgets/menus';
@@ -57,7 +57,9 @@ export class LocationTreeItemRevealer extends TreeItemRevealer {
       const match = loc.subLocations.find((child) =>
         absolutePath.startsWith(`${child.path}${SysPath.sep}`),
       );
-      if (loc instanceof ClientLocation) return match ? getSubLocationsToFile(match) : [];
+      if (loc instanceof ClientLocation) {
+        return match ? getSubLocationsToFile(match) : [];
+      }
       return match ? [loc, ...getSubLocationsToFile(match)] : [loc];
     };
 
@@ -191,7 +193,7 @@ interface IContextMenuProps {
 const LocationTreeContextMenu = observer(({ location, onDelete, onExclude }: IContextMenuProps) => {
   const { uiStore } = useStore();
 
-  const openDeleteDialog = useCallback(() => location && onDelete(location), [location, onDelete]);
+  const openDeleteDialog = useCallback(() => onDelete(location), [location, onDelete]);
 
   if (location.isBroken) {
     return (
@@ -226,7 +228,9 @@ const useFileDropHandling = (
   // Don't expand immediately, only after hovering over it for a second or so
   const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
   const expandDelayed = useCallback(() => {
-    if (expandTimeoutId) clearTimeout(expandTimeoutId);
+    if (expandTimeoutId) {
+      clearTimeout(expandTimeoutId);
+    }
     const t = window.setTimeout(() => {
       setExpansion({ ...expansion, [expansionId]: true });
     }, HOVER_TIME_TO_EXPAND);
@@ -271,7 +275,9 @@ const useFileDropHandling = (
     (event: React.DragEvent<HTMLDivElement>) => {
       // Drag events are also triggered for children??
       // We don't want to detect dragLeave of a child as a dragLeave of the target element, so return immmediately
-      if ((event.target as HTMLElement).contains(event.relatedTarget as HTMLElement)) return;
+      if ((event.target as HTMLElement).contains(event.relatedTarget as HTMLElement)) {
+        return;
+      }
 
       event.stopPropagation();
       event.preventDefault();
@@ -535,10 +541,6 @@ const LocationsPanel = observer((props: Partial<MultiSplitPaneProps>) => {
     } catch (error) {
       // TODO: Show error notification.
       console.error(error);
-      return;
-    }
-
-    if (path === undefined) {
       return;
     }
 

@@ -11,7 +11,7 @@ import { useAction } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import TagStore from 'src/frontend/stores/TagStore';
 import UiStore from 'src/frontend/stores/UiStore';
-import { formatTagCountText } from 'src/frontend/utils';
+import { formatTagCountText } from 'common/fmt';
 import { IconSet, Tree } from 'widgets';
 import { ContextMenu, Toolbar, ToolbarButton } from 'widgets/menus';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
@@ -35,8 +35,9 @@ export class TagsTreeItemRevealer extends TreeItemRevealer {
   }
 
   revealTag(tag: ClientTag) {
-    const tagsToExpand = tag.treePath;
-    this.revealTreeItem([ROOT_TAG_ID, ...tagsToExpand.map((t) => t.id)]);
+    const tagsToExpand = Array.from(tag.getAncestors(), (t) => t.id);
+    tagsToExpand.push(ROOT_TAG_ID);
+    this.revealTreeItem(tagsToExpand);
   }
 }
 
@@ -106,7 +107,7 @@ const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
   if (nodeData.isSearched) {
     // if it already exists, then remove it
     const alreadySearchedCrit = uiStore.searchCriteriaList.find((c) =>
-      (c as ClientTagSearchCriteria<any>)?.value?.includes(nodeData.id),
+      (c as ClientTagSearchCriteria<any>).value?.includes(nodeData.id),
     );
     if (alreadySearchedCrit) {
       uiStore.replaceSearchCriterias(
@@ -170,7 +171,9 @@ const TagItem = observer((props: ITagItemProps) => {
   const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
   const expandDelayed = useCallback(
     (nodeId: string) => {
-      if (expandTimeoutId) clearTimeout(expandTimeoutId);
+      if (expandTimeoutId) {
+        clearTimeout(expandTimeoutId);
+      }
       const t = window.setTimeout(() => {
         dispatch(Factory.expandNode(nodeId));
       }, HOVER_TIME_TO_EXPAND);
@@ -288,7 +291,7 @@ const TagItem = observer((props: ITagItemProps) => {
         setExpandTimeoutId(undefined);
       }
     },
-    [dndData, expandTimeoutId, nodeData, pos, uiStore],
+    [dispatch, dndData, expandTimeoutId, expansion, nodeData, pos, uiStore],
   );
 
   const handleSelect = useCallback(
@@ -315,9 +318,7 @@ const TagItem = observer((props: ITagItemProps) => {
           // otherwise, search it
           const query = new ClientTagSearchCriteria('tags', nodeData.id, 'containsRecursively');
           if (event.ctrlKey || event.metaKey) {
-            if (!nodeData.isSearched) {
-              uiStore.addSearchCriteria(query);
-            }
+            uiStore.addSearchCriteria(query);
           } else {
             uiStore.replaceSearchCriteria(query);
           }
@@ -361,7 +362,7 @@ const TagItem = observer((props: ITagItemProps) => {
         setText={nodeData.rename}
         isEditing={isEditing}
         onSubmit={submit}
-        tooltip={`${nodeData.treePath.map((t) => t.name).join(' › ')} (${nodeData.fileCount})`}
+        tooltip={`${nodeData.path.join(' › ')} (${nodeData.fileCount})`}
       />
       {!isEditing && <SearchButton onClick={handleQuickQuery} isSearched={nodeData.isSearched} />}
     </div>
@@ -535,7 +536,7 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
     } else {
       if (selectedTag.isSelected && uiStore.tagSelection.size === 1) {
         uiStore.clearTagSelection();
-        (document.activeElement as HTMLElement)?.blur?.();
+        (document.activeElement as HTMLElement | null)?.blur();
       } else {
         uiStore.selectTag(selectedTag, true);
       }
@@ -597,7 +598,7 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
   const handleKeyDown = useAction((e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Escape') {
       uiStore.clearTagSelection();
-      (document.activeElement as HTMLElement)?.blur?.();
+      (document.activeElement as HTMLElement | null)?.blur();
       e.stopPropagation();
     } else {
       props.onKeyDown?.(e);

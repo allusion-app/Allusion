@@ -3,8 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { RendererMessenger, WindowSystemButtonPress } from 'src/Messaging';
 import { IconSet } from 'widgets/Icons';
 import { useStore } from '../contexts/StoreContext';
-
-const PLATFORM = process.platform;
+import { IS_MAC } from 'common/process';
 
 const WindowsTitlebar = () => {
   const [isFocused, setIsFocused] = useState(true);
@@ -19,7 +18,7 @@ const WindowsTitlebar = () => {
 
       <WindowTitlebar />
 
-      {PLATFORM !== 'darwin' && <WindowSystemButtons />}
+      {!IS_MAC && <WindowSystemButtons />}
     </div>
   );
 };

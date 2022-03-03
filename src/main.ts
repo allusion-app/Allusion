@@ -18,7 +18,8 @@ import TrayIcon from '../resources/logo/png/full-color/allusion-logomark-fc-256x
 import AppIcon from '../resources/logo/png/full-color/allusion-logomark-fc-512x512.png';
 import TrayIconMac from '../resources/logo/png/black/allusionTemplate@2x.png'; // filename convention: https://www.electronjs.org/docs/api/native-image#template-image
 import ClipServer, { IImportItem } from './clipper/server';
-import { createBugReport, githubUrl, isDev } from './config';
+import { createBugReport, githubUrl } from '../common/config';
+import { IS_DEV, IS_MAC } from '../common/process';
 import { ITag, ROOT_TAG_ID } from './entities/Tag';
 import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 import { Rectangle } from 'electron/main';
@@ -63,7 +64,7 @@ function initialize() {
 
   // Initialize preferences file and its consequences
   try {
-    if (!fse.pathExists(basePath)) {
+    if (!fse.pathExistsSync(basePath)) {
       fse.mkdirSync(basePath);
     }
     try {
@@ -113,7 +114,7 @@ function createWindow() {
   // Customize new window opening
   // https://www.electronjs.org/docs/api/window-open
   mainWindow.webContents.setWindowOpenHandler(({ frameName }) => {
-    if (mainWindow === null || mainWindow?.isDestroyed()) {
+    if (mainWindow === null || mainWindow.isDestroyed()) {
       return { action: 'deny' };
     }
 
@@ -149,19 +150,19 @@ function createWindow() {
   });
 
   mainWindow.webContents.on('did-create-window', (childWindow) => {
-    if (mainWindow === null || mainWindow?.isDestroyed()) {
+    if (mainWindow === null || mainWindow.isDestroyed()) {
       return;
     }
 
     childWindow.center(); // "center" in additionalOptions doesn't work :/
     childWindow.setMenu(null); // no toolbar needed
 
-    if (isDev()) {
+    if (IS_DEV) {
       childWindow.webContents.openDevTools();
     }
 
     mainWindow.webContents.once('will-navigate', () => {
-      if (!childWindow?.isDestroyed()) {
+      if (!childWindow.isDestroyed()) {
         childWindow.close(); // close when main window is reloaded
       }
     });
@@ -281,7 +282,7 @@ function createWindow() {
   }
 
   // Open the DevTools if in dev mode.
-  if (isDev()) {
+  if (IS_DEV) {
     mainWindow.webContents.openDevTools();
   }
 
@@ -458,7 +459,7 @@ app.on('activate', () => {
 // - Only download and install when user agrees
 autoUpdater.autoDownload = false;
 let hasCheckedForUpdateOnStartup = false;
-if (isDev()) {
+if (IS_DEV) {
   autoUpdater.updateConfigPath = path.join(__dirname, '..', 'dev-app-update.yml');
 }
 
@@ -549,7 +550,7 @@ process.on('uncaughtException', async (error) => {
   console.error('Uncaught exception', error);
 
   const errorMessage = `An unexpected error occurred. Please file a bug report if you think this needs fixing!\n${
-    error?.stack?.includes(error.message) ? '' : `${error.name}: ${error.message.slice(0, 200)}\n`
+    error.stack?.includes(error.message) ? '' : `${error.name}: ${error.message.slice(0, 200)}\n`
   }\n${error.stack?.slice(0, 300)}`;
 
   try {
@@ -589,8 +590,8 @@ process.on('uncaughtException', async (error) => {
 //---------------------------------------------------------------------------------//
 // Messaging: Sending and receiving messages between the main and renderer process //
 //---------------------------------------------------------------------------------//
-MainMessenger.onIsClipServerRunning(() => clipServer!.isEnabled());
-MainMessenger.onIsRunningInBackground(() => clipServer!.isRunInBackgroundEnabled());
+MainMessenger.onIsClipServerRunning(() => clipServer?.isEnabled() === true);
+MainMessenger.onIsRunningInBackground(() => clipServer?.isRunInBackgroundEnabled() === true);
 
 MainMessenger.onSetClipServerEnabled(({ isClipServerRunning }) =>
   clipServer?.setEnabled(isClipServerRunning),
@@ -730,11 +731,10 @@ MainMessenger.onToggleCheckUpdatesOnStartup(() => {
   });
 });
 
-MainMessenger.onIsCheckUpdatesOnStartupEnabled(() => !!preferences.checkForUpdatesOnStartup);
+MainMessenger.onIsCheckUpdatesOnStartupEnabled(() => preferences.checkForUpdatesOnStartup === true);
 
 // Helper functions and variables/constants
 
-const IS_MAC = process.platform === 'darwin';
 const MIN_ZOOM_FACTOR = 0.5;
 const MAX_ZOOM_FACTOR = 2;
 const MIN_WINDOW_WIDTH = 240;
@@ -797,7 +797,9 @@ function getPreviousWindowState(): Electron.Rectangle & { isMaximized?: boolean 
 // Save window position and bounds: https://github.com/electron/electron/issues/526
 let saveBoundsTimeout: ReturnType<typeof setTimeout> | null = null;
 function saveWindowState() {
-  if (saveBoundsTimeout) clearTimeout(saveBoundsTimeout);
+  if (saveBoundsTimeout) {
+    clearTimeout(saveBoundsTimeout);
+  }
   saveBoundsTimeout = setTimeout(() => {
     saveBoundsTimeout = null;
     if (mainWindow !== null) {
@@ -816,7 +818,7 @@ function forceRelaunch() {
 }
 
 function getVersion(): string {
-  if (isDev()) {
+  if (IS_DEV) {
     // Weird quirk: it returns the Electron version in dev mode
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     return require('../package.json').version;

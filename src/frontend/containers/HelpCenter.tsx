@@ -3,11 +3,11 @@ import React, { useCallback, useRef, useState, memo } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Button, ButtonGroup, IconSet, Split } from 'widgets';
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter-dark.jpg';
-import { clamp } from '../utils';
+import { clamp } from 'common/core';
 import { useStore } from '../contexts/StoreContext';
 import PopupWindow from '../components/PopupWindow';
 import { shell } from 'electron';
-import { chromeExtensionUrl } from 'src/config';
+import { chromeExtensionUrl } from 'common/config';
 import { ToolbarButton } from 'widgets/Toolbar';
 
 const HelpCenter = observer(() => {

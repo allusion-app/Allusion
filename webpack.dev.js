@@ -63,6 +63,7 @@ let rendererConfig = {
   resolve: {
     extensions: ['.js', '.json', '.ts', '.tsx', '.svg', '.wasm'],
     alias: {
+      common: path.resolve(__dirname, 'common/'),
       widgets: path.resolve(__dirname, 'widgets/'),
       resources: path.resolve(__dirname, 'resources/'),
       src: path.resolve(__dirname, 'src/'),

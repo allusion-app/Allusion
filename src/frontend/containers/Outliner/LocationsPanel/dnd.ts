@@ -2,14 +2,15 @@ import fse from 'fs-extra';
 import path from 'path';
 import { IMG_EXTENSIONS } from 'src/entities/File';
 import { ALLOWED_DROP_TYPES } from 'src/frontend/contexts/DropContext';
-import { timeoutPromise } from 'src/frontend/utils';
+import { retainArray } from 'common/core';
+import { timeoutPromise } from 'common/timeout';
 import { IStoreFileMessage, RendererMessenger } from 'src/Messaging';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
 
 export const isAcceptableType = (e: React.DragEvent) =>
-  e.dataTransfer?.types.some((type) => ALLOWED_DROP_TYPES.includes(type));
+  e.dataTransfer.types.some((type) => ALLOWED_DROP_TYPES.includes(type));
 
 /**
  * Executed callback function while dragging over a target.
@@ -130,7 +131,7 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
     for (let i = 0; i < e.dataTransfer.files.length; i++) {
       const file = e.dataTransfer.files[i];
       // Check if file is an image
-      if (file && ALLOWED_FILE_DROP_TYPES.includes(file.type)) {
+      if (ALLOWED_FILE_DROP_TYPES.includes(file.type)) {
         dropItems.add(file);
       }
     }
@@ -153,21 +154,21 @@ async function getDropData(e: React.DragEvent): Promise<Array<File | string>> {
     }
   }
 
+  const imageItems = Array.from(dropItems);
   // Filter out URLs that are not an image
-  const imageItems = await Promise.all(
-    Array.from(dropItems).filter((item) => {
+  const imageChecks = await Promise.all(
+    imageItems.map(async (item) => {
       if (item instanceof File) {
         return true;
-      } else {
         // Check if the URL has an image extension, or perform a network request
-        if (IMG_EXTENSIONS.some((ext) => item.toLowerCase().indexOf(`.${ext}`) !== -1)) {
-          return true;
-        } else {
-          return testImage(item);
-        }
+      } else if (IMG_EXTENSIONS.some((ext) => item.toLowerCase().includes(`.${ext}`))) {
+        return true;
+      } else {
+        return await testImage(item);
       }
     }),
   );
-
+  // Remove all items that are not images from the array.
+  retainArray(imageItems, (_, i) => imageChecks[i]);
   return imageItems;
 }

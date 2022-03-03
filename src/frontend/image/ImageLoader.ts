@@ -1,7 +1,7 @@
 import fse from 'fs-extra';
 import { action } from 'mobx';
 import ExifIO from 'src/backend/ExifIO';
-import { thumbnailMaxSize } from 'src/config';
+import { thumbnailMaxSize } from 'common/config';
 import { ClientFile, IFile, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import TifLoader from './TifLoader';
 import { generateThumbnailUsingWorker } from './ThumbnailGeneration';
@@ -51,7 +51,9 @@ class ImageLoader {
 
   needsThumbnail(file: IFile) {
     // Not using thumbnails for gifs, since they're mostly used for animations, which doesn't get preserved in thumbnails
-    if (file.extension === 'gif') return false;
+    if (file.extension === 'gif') {
+      return false;
+    }
 
     return (
       FormatHandlers[file.extension] !== 'web' ||

@@ -1,6 +1,6 @@
 import fse from 'fs-extra';
 import path from 'path';
-import { debounce } from 'src/frontend/utils';
+import { debounce } from 'common/timeout';
 
 import Backend from './Backend';
 import { NUM_AUTO_BACKUPS, AUTO_BACKUP_TIMEOUT } from './config';
