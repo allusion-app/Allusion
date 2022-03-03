@@ -338,7 +338,7 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
       headerToolbar={
         <Toolbar controls="saved-searches-list" isCompact>
           <ToolbarButton
-            icon={IconSet.ADD}
+            icon={IconSet.PLUS}
             text="Save current search"
             onClick={saveCurrentSearch}
             tooltip={Tooltip.Create}
