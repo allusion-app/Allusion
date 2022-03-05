@@ -545,6 +545,16 @@ const LocationsPanel = observer(() => {
       return;
     }
 
+    // Check if the new location already exists
+    const existingDir = locationStore.exists((dir) => path === dir.path);
+    if (existingDir) {
+      AppToaster.show({
+        message: 'This folder has already been added as a location.',
+        timeout: 5000,
+      });
+      return;
+    }
+
     // Check if the new location is a sub-directory of an existing location
     const parentDir = locationStore.exists((dir) => path.includes(dir.path));
     if (parentDir) {
@@ -556,7 +566,11 @@ const LocationsPanel = observer(() => {
     }
 
     // Check if the new location is a parent-directory of an existing location
-    const childDir = locationStore.exists((dir) => dir.path.includes(path));
+    // Need to add a separator at the end, otherwise the new path /foo is detected as a parent of existing location /football.
+    // - /foo/ is not a parent directory of /football
+    // - /foo/ is     a parent directory of /foo/bar
+    const pathWithSeparator = path.endsWith(SysPath.sep) ? path : path + SysPath.sep;
+    const childDir = locationStore.exists((dir) => dir.path.includes(pathWithSeparator));
     if (childDir) {
       AppToaster.show({
         message: 'You cannot add a location that is a parent-folder of an existing location.',
