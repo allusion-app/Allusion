@@ -83,8 +83,8 @@ class ImageLoader {
     const handlerType = FormatHandlers[extension];
     switch (handlerType) {
       case 'web':
-        generateThumbnailUsingWorker(file, thumbnailPath);
-        // Thumbnail path is updated when the worker finishes (useWorkerListener)
+        await generateThumbnailUsingWorker(file, thumbnailPath);
+        updateThumbnailPath(file, thumbnailPath);
         break;
       case 'tifLoader':
         await generateThumbnail(this.tifLoader, absolutePath, thumbnailPath, thumbnailMaxSize);
