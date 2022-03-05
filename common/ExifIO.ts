@@ -206,7 +206,7 @@ class ExifIO {
 
     const subject = tagNameHierarchy.map((entry) => entry[entry.length - 1]);
 
-    console.log('Writing', tagNameHierarchy.join(', '), 'to', filepath);
+    console.debug('Writing', tagNameHierarchy.join(', '), 'to', filepath);
 
     const res = await ep.writeMetadata(
       filepath,
@@ -234,22 +234,23 @@ class ExifIO {
       onlyIfUndefined?: boolean;
     },
   ): Promise<void> {
-    console.log('Writing', data, 'to', filepath);
+    console.debug('Writing', data, 'to', filepath);
 
     const args = [...defaultWriteArgs, ...this.extraArgs];
 
     let finalData = data;
 
     if (opts?.onlyIfUndefined) {
-      const existingData = await this.readExifTags(filepath, Object.keys(data));
+      const keys = Object.keys(data);
+      const existingData = await this.readExifTags(filepath, keys);
 
       // Filter out keys from data that are already set
       // TODO: this probably doesn't work when writing multiple fields at once
       // exiftool has a built-in option for this but can't get it to work
       // https://exiftool.org/forum/index.php?topic=6519.0
-      const fieldsToWrite = Object.entries(existingData)
-        .filter(([, value]) => !value || (Array.isArray(value) && value.length === 0))
-        .map(([key]) => key);
+      const fieldsToWrite = existingData
+        .filter((value) => !value || (Array.isArray(value) && value.length === 0))
+        .map((_, index) => keys[index]);
 
       if (fieldsToWrite.length === 0) {
         return;
