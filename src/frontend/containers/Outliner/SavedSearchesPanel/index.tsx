@@ -322,15 +322,18 @@ const SavedSearchesPanel = observer(() => {
   const [deletableSearch, setDeletableSearch] = useState<ClientFileSearchItem>();
   const [isCollapsed, setCollapsed] = useState(false);
 
-  const saveCurrentSearch = () =>
-    searchStore.create(
+  const saveCurrentSearch = async () => {
+    const savedSearch = await searchStore.create(
       new ClientFileSearchItem(
         generateId(),
-        'New search', // TODO: generate name based on criteria?
+        uiStore.searchCriteriaList.map((c) => c.getLabel(CustomKeyDict, rootStore)).join(', ') ||
+          'New search',
         uiStore.searchCriteriaList.map((c) => c.serialize(rootStore)),
         uiStore.searchMatchAny,
       ),
     );
+    setEditableSearch(savedSearch);
+  };
 
   return (
     <div className={'section'}>

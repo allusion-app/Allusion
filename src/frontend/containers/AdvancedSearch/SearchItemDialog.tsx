@@ -28,6 +28,7 @@ const SearchItemDialog = observer<ISearchItemDialogProps>(({ searchItem, onClose
 
   const [query, setQuery] = useState(new Map<ID, Criteria>());
   const keySelector = useRef<HTMLSelectElement>(null);
+  const nameInput = useRef<HTMLInputElement>(null);
 
   // Initialize form with current queries. When the form is closed, all inputs
   // are unmounted to save memory.
@@ -37,7 +38,13 @@ const SearchItemDialog = observer<ISearchItemDialogProps>(({ searchItem, onClose
       const [id, query] = fromCriteria(criteria);
       map.set(id, query);
     }
-    requestAnimationFrame(() => requestAnimationFrame(() => keySelector.current?.focus()));
+    // Focus and select the input text so the user can rename immediately after creating a new search item
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        nameInput.current?.focus();
+        nameInput.current?.select();
+      }),
+    );
     setQuery(map);
   });
 
@@ -56,20 +63,30 @@ const SearchItemDialog = observer<ISearchItemDialogProps>(({ searchItem, onClose
       icon={IconSet.SEARCH_EXTENDED}
       onCancel={onClose}
     >
-      <form id="search-form" role="search" method="dialog" onSubmit={(e) => e.preventDefault()}>
+      <form
+        id="search-form"
+        role="search"
+        method="dialog"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+      >
         <label id="name">Name</label>
         <input
           className="input"
           defaultValue={searchItem.name}
           onBlur={(e) => setName(e.target.value)}
           aria-labelledby="name"
+          autoFocus
+          ref={nameInput}
         />
 
         <br />
 
         <CriteriaBuilder keySelector={keySelector} dispatch={setQuery} />
 
-        <QueryEditor query={query} setQuery={setQuery} />
+        <QueryEditor query={query} setQuery={setQuery} submissionButtonText="Save" />
 
         <QueryMatch toggle={toggle} searchMatchAny={searchMatchAny} />
 
