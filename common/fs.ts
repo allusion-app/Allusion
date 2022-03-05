@@ -20,7 +20,7 @@ export function encodeFilePath(filePath: string): string {
   }
   // Take into account weird file names like "C:/Images/https_%2F%2Fcdn/.../my-image.jpg"
   const basename = path.basename(filePath);
-  const basepath = filePath.slice(0, filePath.length - basename.length);
+  let basepath = filePath.slice(0, filePath.length - basename.length);
   let filename = filePath.slice(basepath.length);
   // but don't encode url params, we need those to stay intact, e.g. myImage.jpg?v=1
   // unix allows question marks in filenames though, not bothering with that
@@ -31,6 +31,9 @@ export function encodeFilePath(filePath: string): string {
     params = filename.slice(paramsIndex);
     filename = filename.slice(0, paramsIndex);
   }
+  // edge case for #
+  // TODO: there must be others edge cases like this. Why is this so hard? Is there no built-in function for this?
+  basepath = basepath.replace(/#/g, '%23');
   return `file://${basepath}${encodeURIComponent(filename)}${params}`;
 }
 
