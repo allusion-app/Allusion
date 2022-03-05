@@ -13,11 +13,19 @@ interface MultiSplitProps {
   expansion: boolean[];
   /** when a panel is (un)expanded */
   onUpdateExpansion: (expansion: boolean[]) => void;
+  heights: number[];
+  setHeights: (expansion: number[]) => void;
   /** Must be of type widgets/MultiSplit/Pane */
   children: ReactNode[];
 }
 
-const MultiSplit: React.FC<MultiSplitProps> = ({ children, expansion, onUpdateExpansion }) => {
+const MultiSplit: React.FC<MultiSplitProps> = ({
+  children,
+  expansion,
+  onUpdateExpansion,
+  heights,
+  setHeights,
+}) => {
   const handleToggleExpansion = useCallback(
     (index: number, expand: boolean) => {
       const newExpansion = [...expansion];
@@ -25,6 +33,15 @@ const MultiSplit: React.FC<MultiSplitProps> = ({ children, expansion, onUpdateEx
       onUpdateExpansion(newExpansion);
     },
     [expansion, onUpdateExpansion],
+  );
+
+  const handleSetHeight = useCallback(
+    (index: number, height: number) => {
+      const newHeights = [...heights];
+      newHeights[index] = height;
+      setHeights(newHeights);
+    },
+    [heights, setHeights],
   );
 
   const lastExpandedPanelIndex = expansion.lastIndexOf(true);
@@ -36,9 +53,11 @@ const MultiSplit: React.FC<MultiSplitProps> = ({ children, expansion, onUpdateEx
           React.PropsWithChildren<MultiSplitPaneProps>
         >;
         const isOnlyExpanded = expansion.every((e, i) => e === (i === index ? true : false));
-        const paneProps = {
+        const paneProps: Partial<MultiSplitPaneProps> = {
           setCollapsed: (isCollapsed: boolean) => handleToggleExpansion(index, !isCollapsed),
           isCollapsed: !expansion[index],
+          height: heights[index],
+          setHeight: (height: number) => handleSetHeight(index, height),
           className: `${expansion[index] ? 'expanded' : ''} ${
             lastExpandedPanelIndex === index ? 'last-expanded' : ''
           } ${isOnlyExpanded ? 'only-expanded' : ''}`,

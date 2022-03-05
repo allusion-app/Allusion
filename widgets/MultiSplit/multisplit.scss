@@ -15,7 +15,8 @@
 
     // Show a resize handle when it makes sense for the panel to be resized (inspired by VSCode)
     &:not(:last-child):not(.last-expanded):not(.only-expanded).expanded {
-      > .collapse {
+      > .resizable-collapse {
+        // TODO: the resize handle can be styled using the ::-webkit-resizer selector
         resize: vertical;
       }
     }
@@ -23,7 +24,7 @@
     &.last-expanded {
       flex-grow: 1;
 
-      > .collapse {
+      > .resizable-collapse {
         // The resize: vertical sets a height on the element, need to override it to fully expand it
         height: 100% !important;
       }
@@ -35,16 +36,19 @@
       margin-bottom: 12px;
     }
 
-    .collapse {
+    .resizable-collapse {
       // height: 100%;
       width: 100%;
       overflow: auto;
 
-      transition: none !important;
+      // workaround for the collapse transition interfering with the flex-grow transition
+      > .collapse {
+        transition: none !important;
+      }
     }
 
     &.expanded {
-      > .collapse {
+      > .resizable-collapse {
         padding-bottom: 1rem;
       }
     }
