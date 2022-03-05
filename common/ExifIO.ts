@@ -222,6 +222,7 @@ class ExifIO {
     );
     if (!res.error?.endsWith('1 image files updated')) {
       console.error('Could not update file tags metadata', res);
+      throw new Error(res.error || 'Unknown error');
     }
   }
 
@@ -266,6 +267,7 @@ class ExifIO {
 
     if (!res.error?.endsWith('1 image files updated')) {
       console.error('Could not update file metadata', res);
+      throw new Error(res.error || 'Unknown error');
     }
   }
 
