@@ -44,7 +44,7 @@ const MultiSplit: React.FC<MultiSplitProps> = ({ children, expansion, onUpdateEx
           } ${isOnlyExpanded ? 'only-expanded' : ''}`,
         };
         return (
-          <React.Fragment key={`split-pane-${typedChild?.key || typedChild?.props?.id || index}`}>
+          <React.Fragment key={`split-pane-${typedChild.key || typedChild.props.id || index}`}>
             {React.cloneElement(typedChild, paneProps)}
           </React.Fragment>
         );
