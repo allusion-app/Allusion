@@ -2,7 +2,7 @@ import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
 import Backend from 'src/backend/Backend';
 import { OrderDirection } from 'src/backend/DBRepository';
-import ExifIO from 'src/backend/ExifIO';
+import ExifIO from 'common/ExifIO';
 import {
   getMetaData,
   IFile,

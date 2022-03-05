@@ -6,7 +6,7 @@ import FileStore from './FileStore';
 import TagStore from './TagStore';
 import UiStore from './UiStore';
 import LocationStore from './LocationStore';
-import ExifIO from 'src/backend/ExifIO';
+import ExifIO from 'common/ExifIO';
 import ImageLoader from '../image/ImageLoader';
 
 import { RendererMessenger } from 'src/Messaging';
@@ -43,7 +43,7 @@ class RootStore {
     this.locationStore = new LocationStore(backend, this);
     this.uiStore = new UiStore(this);
     this.searchStore = new SearchStore(backend, this);
-    this.exifTool = new ExifIO();
+    this.exifTool = new ExifIO(localStorage.getItem('hierarchical-separator') || undefined);
     this.imageLoader = new ImageLoader(this.exifTool);
 
     // SAFETY: The backend instance has the same lifetime as the RootStore.

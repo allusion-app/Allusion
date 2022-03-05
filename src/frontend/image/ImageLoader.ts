@@ -1,6 +1,6 @@
 import fse from 'fs-extra';
 import { action } from 'mobx';
-import ExifIO from 'src/backend/ExifIO';
+import ExifIO from 'common/ExifIO';
 import { thumbnailMaxSize } from 'common/config';
 import { ClientFile, IFile, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import TifLoader from './TifLoader';

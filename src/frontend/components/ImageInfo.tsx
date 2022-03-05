@@ -25,18 +25,25 @@ const commonMetadataLabels: Record<keyof CommonMetadata, string> = {
   modified: 'Modified',
 };
 
+type ExifField = { label: string; alwaysVisible?: boolean; format?: (val: string) => ReactNode };
+
 // Details: https://www.vcode.no/web/resource.nsf/ii2lnug/642.htm
-const exifFields: Record<string, { label: string; format?: (val: string) => ReactNode }> = {
+const exifFields: Record<string, ExifField> = {
   PhotometricInterpretation: { label: 'Color Mode' },
   BitsPerSample: { label: 'Bit Depth' },
   Software: { label: 'Creation Software' },
   Artist: { label: 'Creator' },
   CreatorWorkURL: {
     label: 'Creator URL',
-    format: function CreatorURL(url: string) {
+    alwaysVisible: true,
+    format: function CreatorURL(url?: string) {
+      if (!url) {
+        return ' ';
+      }
       return (
         <a
           href={url}
+          title={url}
           target="_blank"
           rel="noreferrer"
           onClick={(e) => {
@@ -88,9 +95,9 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
     const tagValues = await exifTool.readExifTags(filePath, exifTags);
     const extraStats: Record<string, ReactNode> = {};
     tagValues.forEach((val, i) => {
-      if (val !== '' && val !== undefined) {
-        const field = exifFields[exifTags[i]];
-        extraStats[field.label] = field.format?.(val) || val;
+      const field = exifFields[exifTags[i]];
+      if (field.alwaysVisible || (val !== '' && val !== undefined)) {
+        extraStats[field.label] = field.format?.(val || '') || val;
       }
     });
     return extraStats;

@@ -49,4 +49,16 @@ table.file-info {
     padding-left: 1rem;
     word-break: break-word;
   }
+
+  a {
+    // Remove underline for links
+    text-decoration: none;
+
+    // Limit to 3 lines
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
 }

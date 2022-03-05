@@ -7,7 +7,13 @@ let errCount = 0;
 ///////////////////////////////////
 // Communication to Allusion app //
 ///////////////////////////////////
-async function importImage(filename, url) {
+/**
+ *
+ * @param {string} filename The filename of the image, e.g. my-image.jpg
+ * @param {string} url The url of the image, e.g. https://pbs.twimg.com/media/ASDF1234?format=jpg&name=small
+ * @param {string} pageUrl The url of the page where the image is on, e.g. https://twitter.com/User/status/12345
+ */
+async function importImage(filename, url, pageUrl) {
   // We could just send the URL, but in some cases you need permission to view an image (e.g. pixiv)
   // Therefore we send it base64 encoded
 
@@ -27,6 +33,7 @@ async function importImage(filename, url) {
       url,
       imgBase64: base64,
       tagNames: [],
+      pageUrl,
     };
 
     lastSubmittedItem = item;
@@ -148,7 +155,8 @@ chrome.contextMenus.onClicked.addListener(async (props, tab) => {
     filename = filename.slice(0, filename.indexOf('.')); // strip extension
   }
 
-  importImage(filename, srcUrl);
+  const pageUrl = props.pageUrl || '';
+  importImage(filename, srcUrl, pageUrl);
 
   // Otherwise: https://stackoverflow.com/questions/7703697/how-to-retrieve-the-element-where-a-contextmenu-has-been-executed
 });
