@@ -393,7 +393,9 @@ class UiStore {
   }
 
   @action.bound closeMoveFilesToTrash() {
-    this.isMoveFilesToTrashOpen = false;
+    if (this.fileSelection.size > 0) {
+      this.isMoveFilesToTrashOpen = false;
+    }
   }
 
   @action.bound toggleToolbarTagPopover() {

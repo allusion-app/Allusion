@@ -55,6 +55,8 @@ const Main = () => {
     } else if (matches(hotkeyMap.openTagEditor)) {
       e.preventDefault();
       uiStore.openToolbarTagPopover();
+    } else if (matches(hotkeyMap.deleteSelection)) {
+      uiStore.openMoveFilesToTrash();
     }
   });
 
