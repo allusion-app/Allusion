@@ -2,13 +2,16 @@ import './split.scss';
 
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
+export type SplitAxis = 'horizontal' | 'vertical';
+export type SplitAlignment = 'left' | 'right' | 'top' | 'bottom';
+
 interface ISplit {
   id?: string;
   className?: string;
   primary: React.ReactElement;
   secondary: React.ReactElement;
-  axis: 'horizontal' | 'vertical';
-  align: 'left' | 'right' | 'top' | 'bottom';
+  axis: SplitAxis;
+  align: SplitAlignment;
   splitPoint: number;
   // API-wise it would be better to provide a callback function but we keep track
   // of the panel states already.

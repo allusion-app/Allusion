@@ -71,6 +71,7 @@ const NoQueryContent = () => {
   return (
     <ContentPlaceholder title="No images found" icon={IconSet.SEARCH}>
       <p>Try searching for something else.</p>
+      {/* TODO: when search includes a Hidden tag, remind the user that's what might be causing them to see no results */}
       <ButtonGroup align="center">
         <Button
           text="All images"

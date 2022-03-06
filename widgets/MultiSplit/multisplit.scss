@@ -1,0 +1,56 @@
+.multi-split {
+  overflow: hidden auto;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .section {
+    // Grow/shrink depending on the expansion/collapse state using flex-grow
+    flex-grow: 0;
+    transition: flex-grow 0.2s ease-in-out;
+
+    display: flex;
+    flex-direction: column;
+
+    // Show a resize handle when it makes sense for the panel to be resized (inspired by VSCode)
+    &:not(:last-child):not(.last-expanded):not(.only-expanded).expanded {
+      > .resizable-collapse {
+        // TODO: the resize handle can be styled using the ::-webkit-resizer selector
+        resize: vertical;
+      }
+    }
+
+    &.last-expanded {
+      flex-grow: 1;
+
+      > .resizable-collapse {
+        // The resize: vertical sets a height on the element, need to override it to fully expand it
+        height: 100% !important;
+      }
+    }
+
+    // FIXME: note sure why this is necessary. The sections take up more space than the container somehow,
+    // so it was always showing a scrollbar. This is a workaround
+    &:last-child {
+      margin-bottom: 12px;
+    }
+
+    .resizable-collapse {
+      // height: 100%;
+      width: 100%;
+      overflow: auto;
+
+      // workaround for the collapse transition interfering with the flex-grow transition
+      > .collapse {
+        transition: none !important;
+      }
+    }
+
+    &.expanded {
+      > .resizable-collapse {
+        padding-bottom: 1rem;
+      }
+    }
+  }
+}

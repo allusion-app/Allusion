@@ -4,7 +4,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { generateId } from 'src/entities/ID';
 import { CustomKeyDict, FileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
-import { Collapse } from 'src/frontend/components/Collapse';
 import { SavedSearchRemoval } from 'src/frontend/components/RemovalAlert';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
@@ -12,6 +11,7 @@ import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import { emptyFunction, triggerContextMenuEvent } from '../utils';
 import { IconSet } from 'widgets/Icons';
 import { ContextMenu, Menu, MenuItem } from 'widgets/menus';
+import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
 import { Callout } from 'widgets/notifications';
 import { Toolbar, ToolbarButton } from 'widgets/Toolbar';
 import Tree, { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
@@ -311,7 +311,7 @@ const SavedSearchesList = ({
   );
 };
 
-const SavedSearchesPanel = observer(() => {
+const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
   const rootStore = useStore();
   const { searchStore, uiStore } = rootStore;
   const [contextState, { show, hide }] = useContextMenu();
@@ -320,7 +320,6 @@ const SavedSearchesPanel = observer(() => {
 
   const [editableSearch, setEditableSearch] = useState<ClientFileSearchItem>();
   const [deletableSearch, setDeletableSearch] = useState<ClientFileSearchItem>();
-  const [isCollapsed, setCollapsed] = useState(false);
 
   const saveCurrentSearch = () =>
     searchStore.create(
@@ -333,31 +332,31 @@ const SavedSearchesPanel = observer(() => {
     );
 
   return (
-    <div className={'section'}>
-      <header>
-        {/* TODO: maybe call the panel "Bookmarks"? Or "Views"? */}
-        <h2 onClick={() => setCollapsed(!isCollapsed)}>Saved Searches</h2>
+    <MultiSplitPane
+      id="saved-searches"
+      title="Saved Searches"
+      headerToolbar={
         <Toolbar controls="saved-searches-list" isCompact>
           <ToolbarButton
-            icon={IconSet.ADD}
+            icon={IconSet.PLUS}
             text="Save current search"
             onClick={saveCurrentSearch}
             tooltip={Tooltip.Create}
           />
         </Toolbar>
-      </header>
-      <Collapse open={!isCollapsed}>
-        <SavedSearchesList
-          showContextMenu={show}
-          onEdit={setEditableSearch}
-          onDelete={setDeletableSearch}
-          onDuplicate={searchStore.duplicate}
-          onReplace={searchStore.replaceWithActiveSearch}
-        />
-        {isEmpty && (
-          <Callout icon={IconSet.INFO}>Click + to save your current search criteria.</Callout>
-        )}
-      </Collapse>
+      }
+      {...props}
+    >
+      <SavedSearchesList
+        showContextMenu={show}
+        onEdit={setEditableSearch}
+        onDelete={setDeletableSearch}
+        onDuplicate={searchStore.duplicate}
+        onReplace={searchStore.replaceWithActiveSearch}
+      />
+      {isEmpty && (
+        <Callout icon={IconSet.INFO}>Click + to save your current search criteria.</Callout>
+      )}
 
       {editableSearch && (
         <SearchItemDialog
@@ -380,7 +379,7 @@ const SavedSearchesPanel = observer(() => {
       >
         <Menu>{contextState.menu}</Menu>
       </ContextMenu>
-    </div>
+    </MultiSplitPane>
   );
 });
 
