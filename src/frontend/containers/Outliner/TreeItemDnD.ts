@@ -26,8 +26,6 @@ export function createDragReorderHelper(id: string, dndType: string) {
         event.dataTransfer.dropEffect = 'move';
         event.currentTarget.dataset[DnDAttribute.Source] = 'true';
         dndData.source = nodeData;
-
-        console.log(previewElement, text);
       },
     ),
     /** Returns whether the event should be ignored */
@@ -39,7 +37,11 @@ export function createDragReorderHelper(id: string, dndType: string) {
       ) => {
         const dropTarget = event.currentTarget;
         const isSource = dropTarget.dataset[DnDAttribute.Source] === 'true';
-        if (dndData.source === undefined || isSource) {
+        if (
+          dndData.source === undefined ||
+          isSource ||
+          !event.dataTransfer.types.includes(dndType)
+        ) {
           return true;
         }
 
@@ -66,6 +68,9 @@ export function createDragReorderHelper(id: string, dndType: string) {
       },
     ),
     onDragLeave: action((event: React.DragEvent<HTMLDivElement>) => {
+      if (!event.dataTransfer.types.includes(dndType)) {
+        return true;
+      }
       event.dataTransfer.dropEffect = 'none';
       event.preventDefault();
       event.stopPropagation();

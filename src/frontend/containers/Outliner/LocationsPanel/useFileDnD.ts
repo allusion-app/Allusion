@@ -26,6 +26,10 @@ export const useFileDropHandling = (
 
   const handleDragEnter = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
+      // Skip events intended for different handlers
+      if (!event.dataTransfer.types.includes('Files')) {
+        return;
+      }
       event.stopPropagation();
       event.preventDefault();
       const canDrop = onDragOver(event);
@@ -63,6 +67,11 @@ export const useFileDropHandling = (
       // Drag events are also triggered for children??
       // We don't want to detect dragLeave of a child as a dragLeave of the target element, so return immmediately
       if ((event.target as HTMLElement).contains(event.relatedTarget as HTMLElement)) {
+        return;
+      }
+
+      // Skip events intended for different handlers
+      if (!event.dataTransfer.types.includes('Files')) {
         return;
       }
 

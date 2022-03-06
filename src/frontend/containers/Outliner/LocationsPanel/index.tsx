@@ -27,7 +27,7 @@ import LocationCreationDialog from './LocationCreationDialog';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
 import { createDragReorderHelper } from '../TreeItemDnD';
 import { useFileDropHandling } from './useFileDnD';
-import { onDragOver as useDragOverFileDnD } from './dnd';
+import { onDragOver as onDragOverFileDnD } from './dnd';
 
 export class LocationTreeItemRevealer extends TreeItemRevealer {
   private locationStore?: LocationStore;
@@ -263,7 +263,7 @@ const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: IT
       onClick={handleClick}
       onContextMenu={handleContextMenu}
       onDragEnter={handleDragEnter}
-      onDragOver={useDragOverFileDnD}
+      onDragOver={onDragOverFileDnD}
       onDrop={handleDrop}
       onDragLeave={handleDragLeave}
     >
@@ -336,27 +336,31 @@ const Location = observer(
     );
 
     const handleDragOver = useCallback(
-      (event: React.DragEvent<HTMLDivElement>) => DnDHelper.onDragOver(event, dndData, false),
+      (event: React.DragEvent<HTMLDivElement>) => {
+        const ignored = DnDHelper.onDragOver(event, dndData, false);
+        if (ignored) {
+          onDragOverFileDnD(event);
+        }
+      },
       [dndData],
     );
 
     const handleDragLeave = useCallback(
       (event: React.DragEvent<HTMLDivElement>) => {
         runInAction(() => {
-          if (dndData.source) {
-            DnDHelper.onDragLeave(event);
-          } else {
+          const ignored = DnDHelper.onDragLeave(event);
+          if (ignored) {
             fileDnD.handleDragLeave(event);
           }
         });
       },
-      [dndData.source, fileDnD],
+      [fileDnD],
     );
 
     const handleDrop = useCallback(
       (event: React.DragEvent<HTMLDivElement>) => {
         runInAction(() => {
-          if (!dndData.source) {
+          if (!dndData.source || !event.dataTransfer.types.includes(DnDLocationType)) {
             fileDnD.handleDrop(event);
             return;
           }
@@ -564,10 +568,9 @@ const LocationsPanel = observer(() => {
   // Detect file dropping and show a blue outline around location panel
   const { isDropping } = useContext(DropContext);
 
+  // FIXME: something is broken with the isDropping detection. there was "isEmpty || isDropping" in here before
   return (
-    <div
-      className={`section ${isEmpty || isDropping ? 'attention' : ''} ${isDropping ? 'info' : ''}`}
-    >
+    <div className={`section ${isEmpty ? 'attention' : ''} ${isDropping ? 'info' : ''}`}>
       <header>
         <h2 onClick={() => setCollapsed(!isCollapsed)}>Locations</h2>
         <Toolbar controls="location-list" isCompact>
