@@ -6,7 +6,6 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from 're
 import { IFile } from 'src/entities/File';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
-import { Collapse } from 'src/frontend/components/Collapse';
 import { LocationRemoval, SubLocationExclusion } from 'src/frontend/components/RemovalAlert';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import DropContext from 'src/frontend/contexts/DropContext';
@@ -19,6 +18,7 @@ import { triggerContextMenuEvent, emptyFunction } from '../utils';
 import { RendererMessenger } from 'src/Messaging';
 import { IconSet, Tree } from 'widgets';
 import { ContextMenu, Menu, MenuDivider, MenuItem, Toolbar, ToolbarButton } from 'widgets/menus';
+import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
 import { Callout } from 'widgets/notifications';
 import { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
 import { IExpansionState } from '../../types';
@@ -500,14 +500,13 @@ const LocationsTree = ({ onDelete, onExclude, showContextMenu }: ILocationTreePr
   );
 };
 
-const LocationsPanel = observer(() => {
+const LocationsPanel = observer((props: Partial<MultiSplitPaneProps>) => {
   const { locationStore } = useStore();
   const [contextState, { show, hide }] = useContextMenu();
 
   const [creatableLocation, setCreatableLocation] = useState<ClientLocation>();
   const [deletableLocation, setDeletableLocation] = useState<ClientLocation>();
   const [excludableSubLocation, setExcludableSubLocation] = useState<ClientSubLocation>();
-  const [isCollapsed, setCollapsed] = useState(false);
 
   // TODO: Offer option to replace child location(s) with the parent loc, so no data of imported images is lost
   const handleChooseWatchedDir = useCallback(async () => {
@@ -570,9 +569,11 @@ const LocationsPanel = observer(() => {
 
   // FIXME: something is broken with the isDropping detection. there was "isEmpty || isDropping" in here before
   return (
-    <div className={`section ${isEmpty ? 'attention' : ''} ${isDropping ? 'info' : ''}`}>
-      <header>
-        <h2 onClick={() => setCollapsed(!isCollapsed)}>Locations</h2>
+    <MultiSplitPane
+      id="locations"
+      title="Locations"
+      className={`${isEmpty ? 'attention' : ''} ${isDropping ? 'info' : ''}`}
+      headerToolbar={
         <Toolbar controls="location-list" isCompact>
           {locationStore.locationList.length > 0 && (
             <ToolbarButton
@@ -593,15 +594,16 @@ const LocationsPanel = observer(() => {
             tooltip={Tooltip.Location}
           />
         </Toolbar>
-      </header>
-      <Collapse open={!isCollapsed}>
-        <LocationsTree
-          showContextMenu={show}
-          onDelete={setDeletableLocation}
-          onExclude={setExcludableSubLocation}
-        />
-        {isEmpty && <Callout icon={IconSet.INFO}>Click + to choose a location.</Callout>}
-      </Collapse>
+      }
+      {...props}
+    >
+      <LocationsTree
+        showContextMenu={show}
+        onDelete={setDeletableLocation}
+        onExclude={setExcludableSubLocation}
+      />
+      {isEmpty && <Callout icon={IconSet.INFO}>Click + to choose a location.</Callout>}
+
       <LocationRecoveryDialog />
 
       {creatableLocation && (
@@ -631,7 +633,7 @@ const LocationsPanel = observer(() => {
       >
         <Menu>{contextState.menu}</Menu>
       </ContextMenu>
-    </div>
+    </MultiSplitPane>
   );
 });
 

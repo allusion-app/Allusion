@@ -10,6 +10,7 @@ import { Toolbar, ToolbarButton } from 'widgets/menus';
 import TagsTree from './TagsTree';
 import { useAction } from 'src/frontend/hooks/mobx';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
+import { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
 
 // Tooltip info
 const enum TooltipInfo {
@@ -68,7 +69,7 @@ export const OutlinerActionBar = observer(() => {
   );
 });
 
-const TagsPanel = () => {
+const TagsPanel = (props: Partial<MultiSplitPaneProps>) => {
   const { uiStore } = useStore();
 
   const handleShortcuts = useAction((e: React.KeyboardEvent) => {
@@ -87,11 +88,7 @@ const TagsPanel = () => {
     }
   });
 
-  return (
-    <div onKeyDown={handleShortcuts} className="section">
-      <TagsTree />
-    </div>
-  );
+  return <TagsTree onKeyDown={handleShortcuts} {...props} />;
 };
 
 export default TagsPanel;
