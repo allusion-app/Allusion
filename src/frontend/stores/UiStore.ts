@@ -315,6 +315,7 @@ class UiStore {
   }
 
   @action.bound toggleOutliner() {
+    console.log(this.isOutlinerOpen);
     this.setIsOutlinerOpen(!this.isOutlinerOpen);
   }
 

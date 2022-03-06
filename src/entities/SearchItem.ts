@@ -9,6 +9,7 @@ export interface ISearchItem<T> {
   name: string;
   criteria: SearchCriteria<T>[];
   matchAny?: boolean;
+  index: number;
 }
 
 export class ClientSearchItem<T> {
@@ -17,14 +18,24 @@ export class ClientSearchItem<T> {
   @observable matchAny: boolean = false;
   readonly criteria: IObservableArray<ClientBaseCriteria<T>>;
 
+  /** A custom index defined by the user for ordering the search items */
+  index: number = 0;
+
   // TODO: also store sort mode? (filename, descending, etc)
   // Then it wouldn't be a "Saved Search", but a "Saved view" maybe?
 
-  constructor(id: ID, name: string, criteria: SearchCriteria<T>[], matchAny: boolean) {
+  constructor(
+    id: ID,
+    name: string,
+    criteria: SearchCriteria<T>[],
+    matchAny: boolean,
+    index: number,
+  ) {
     this.id = id;
     this.name = name;
     this.criteria = observable(criteria.map((c) => ClientBaseCriteria.deserialize(c)));
     this.matchAny = matchAny;
+    this.index = index;
 
     makeObservable(this);
   }
@@ -41,12 +52,17 @@ export class ClientSearchItem<T> {
     this.criteria.replace(newCriteria);
   }
 
+  @action.bound setIndex(newIndex: number): void {
+    this.index = newIndex;
+  }
+
   @action.bound serialize(rootStore: RootStore): ISearchItem<T> {
     return {
       id: this.id,
       name: this.name,
       criteria: this.criteria.map((c) => c.serialize(rootStore)),
       matchAny: this.matchAny,
+      index: this.index,
     };
   }
 }

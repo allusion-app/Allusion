@@ -9,7 +9,12 @@ import StreamZip from 'node-stream-zip';
 import ExrLoader from './ExrLoader';
 import { generateThumbnail, getBlob } from './util';
 
-type FormatHandlerType = 'web' | 'tifLoader' | 'exrLoader' | 'extractEmbeddedThumbnailOnly';
+type FormatHandlerType =
+  | 'web'
+  | 'tifLoader'
+  | 'exrLoader'
+  | 'extractEmbeddedThumbnailOnly'
+  | 'none';
 
 const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   gif: 'web',
@@ -20,7 +25,7 @@ const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   jfif: 'web',
   webp: 'web',
   bmp: 'web',
-  svg: 'web',
+  svg: 'none',
   tif: 'tifLoader',
   tiff: 'tifLoader',
   psd: 'extractEmbeddedThumbnailOnly',
@@ -109,6 +114,10 @@ class ImageLoader {
         } else {
           updateThumbnailPath(file, thumbnailPath);
         }
+        break;
+      case 'none':
+        // No thumbnail for this format
+        file.setThumbnailPath(file.absolutePath);
         break;
       default:
         console.warn('Unsupported extension', file.absolutePath, file.extension);

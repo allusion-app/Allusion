@@ -1,5 +1,5 @@
 import { shell } from 'electron';
-import { action } from 'mobx';
+import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
@@ -11,7 +11,7 @@ import { LocationRemoval, SubLocationExclusion } from 'src/frontend/components/R
 import { AppToaster } from 'src/frontend/components/Toaster';
 import DropContext from 'src/frontend/contexts/DropContext';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
+import { DnDLocationType, useLocationDnD } from 'src/frontend/contexts/TagDnDContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import LocationStore from 'src/frontend/stores/LocationStore';
@@ -23,9 +23,11 @@ import { Callout } from 'widgets/notifications';
 import { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
 import { IExpansionState } from '../../types';
 import TreeItemRevealer from '../TreeItemRevealer';
-import { handleDragLeave, isAcceptableType, onDragOver, storeDroppedImage } from './dnd';
 import LocationCreationDialog from './LocationCreationDialog';
 import LocationRecoveryDialog from './LocationRecoveryDialog';
+import { createDragReorderHelper } from '../TreeItemDnD';
+import { useFileDropHandling } from './useFileDnD';
+import { onDragOver as onDragOverFileDnD } from './dnd';
 
 export class LocationTreeItemRevealer extends TreeItemRevealer {
   private locationStore?: LocationStore;
@@ -217,86 +219,6 @@ const LocationTreeContextMenu = observer(({ location, onDelete, onExclude }: ICo
   );
 });
 
-export const HOVER_TIME_TO_EXPAND = 600;
-
-const useFileDropHandling = (
-  expansionId: string,
-  fullPath: string,
-  expansion: IExpansionState,
-  setExpansion: (s: IExpansionState) => void,
-) => {
-  // Don't expand immediately, only after hovering over it for a second or so
-  const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
-  const expandDelayed = useCallback(() => {
-    if (expandTimeoutId) {
-      clearTimeout(expandTimeoutId);
-    }
-    const t = window.setTimeout(() => {
-      setExpansion({ ...expansion, [expansionId]: true });
-    }, HOVER_TIME_TO_EXPAND);
-    setExpandTimeoutId(t);
-  }, [expandTimeoutId, expansion, expansionId, setExpansion]);
-
-  const handleDragEnter = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      event.stopPropagation();
-      event.preventDefault();
-      const canDrop = onDragOver(event);
-      if (canDrop && !expansion[expansionId]) {
-        expandDelayed();
-      }
-    },
-    [expansion, expansionId, expandDelayed],
-  );
-
-  const handleDrop = useCallback(
-    async (event: React.DragEvent<HTMLDivElement>) => {
-      event.currentTarget.dataset[DnDAttribute.Target] = 'false';
-
-      if (isAcceptableType(event)) {
-        event.dataTransfer.dropEffect = 'none';
-        try {
-          await storeDroppedImage(event, fullPath);
-        } catch (e) {
-          console.error(e);
-          AppToaster.show({
-            message: 'Something went wrong, could not import image :(',
-            timeout: 100,
-          });
-        }
-      } else {
-        AppToaster.show({ message: 'File type not supported :(', timeout: 100 });
-      }
-    },
-    [fullPath],
-  );
-
-  const handleDragLeaveWrapper = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      // Drag events are also triggered for children??
-      // We don't want to detect dragLeave of a child as a dragLeave of the target element, so return immmediately
-      if ((event.target as HTMLElement).contains(event.relatedTarget as HTMLElement)) {
-        return;
-      }
-
-      event.stopPropagation();
-      event.preventDefault();
-      handleDragLeave(event);
-      if (expandTimeoutId) {
-        clearTimeout(expandTimeoutId);
-        setExpandTimeoutId(undefined);
-      }
-    },
-    [expandTimeoutId],
-  );
-
-  return {
-    handleDragEnter,
-    handleDrop,
-    handleDragLeave: handleDragLeaveWrapper,
-  };
-};
-
 const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: ITreeData }) => {
   const { nodeData, treeData } = props;
   const { uiStore } = useStore();
@@ -341,10 +263,9 @@ const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: IT
       onClick={handleClick}
       onContextMenu={handleContextMenu}
       onDragEnter={handleDragEnter}
+      onDragOver={onDragOverFileDnD}
       onDrop={handleDrop}
       onDragLeave={handleDragLeave}
-      // Note: onDragOver is not needed here, but need to preventDefault() for onDrop to work 🙃
-      onDragOver={onDragOver}
     >
       {!nodeData.isExcluded
         ? expansion[nodeData.path]
@@ -361,9 +282,11 @@ const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: IT
   );
 });
 
+const DnDHelper = createDragReorderHelper('locations-dnd-preview', DnDLocationType);
+
 const Location = observer(
   ({ nodeData, treeData }: { nodeData: ClientLocation; treeData: ITreeData }) => {
-    const { uiStore } = useStore();
+    const { uiStore, locationStore } = useStore();
     const { showContextMenu, expansion, delete: onDelete } = treeData;
     const handleContextMenu = useCallback(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -384,7 +307,6 @@ const Location = observer(
     const existingSearchCrit = uiStore.searchCriteriaList.find(
       (c: any) => c.value === pathAsSearchPath(nodeData.path),
     );
-    // const isSearched = Boolean(existingSearchCrit);
 
     const handleClick = useCallback(
       (event: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -397,11 +319,68 @@ const Location = observer(
       [existingSearchCrit, nodeData.path, uiStore],
     );
 
-    const { handleDragEnter, handleDragLeave, handleDrop } = useFileDropHandling(
+    const fileDnD = useFileDropHandling(
       nodeData.id,
       nodeData.path,
       expansion,
       treeData.setExpansion,
+    );
+
+    const dndData = useLocationDnD();
+    const handleDragStart = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) =>
+        runInAction(() =>
+          DnDHelper.onDragStart(event, nodeData.name, uiStore.theme, dndData, nodeData),
+        ),
+      [dndData, nodeData, uiStore],
+    );
+
+    const handleDragOver = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        const ignored = DnDHelper.onDragOver(event, dndData, false);
+        if (ignored) {
+          onDragOverFileDnD(event);
+        }
+      },
+      [dndData],
+    );
+
+    const handleDragLeave = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        runInAction(() => {
+          const ignored = DnDHelper.onDragLeave(event);
+          if (ignored) {
+            fileDnD.handleDragLeave(event);
+          }
+        });
+      },
+      [fileDnD],
+    );
+
+    const handleDrop = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        runInAction(() => {
+          if (!dndData.source || !event.dataTransfer.types.includes(DnDLocationType)) {
+            fileDnD.handleDrop(event);
+            return;
+          }
+          const relativeMovePos = DnDHelper.onDrop(event);
+
+          if (relativeMovePos === 'middle') {
+            // not possible for locations, no middle position allowed
+          } else {
+            let target = nodeData;
+            if (relativeMovePos === -1) {
+              const index = locationStore.locationList.indexOf(target) - 1;
+              if (index >= 0) {
+                target = locationStore.locationList[index];
+              }
+            }
+            locationStore.reorder(dndData.source, target);
+          }
+        });
+      },
+      [dndData.source, fileDnD, nodeData, locationStore],
     );
 
     return (
@@ -409,9 +388,12 @@ const Location = observer(
         className="tree-content-label"
         onClick={handleClick}
         onContextMenu={handleContextMenu}
-        onDragEnter={handleDragEnter}
-        onDrop={handleDrop}
+        draggable
+        onDragEnter={fileDnD.handleDragEnter}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         {nodeData.isInitialized && !nodeData.isRefreshing
           ? expansion[nodeData.id]
@@ -586,10 +568,9 @@ const LocationsPanel = observer(() => {
   // Detect file dropping and show a blue outline around location panel
   const { isDropping } = useContext(DropContext);
 
+  // FIXME: something is broken with the isDropping detection. there was "isEmpty || isDropping" in here before
   return (
-    <div
-      className={`section ${isEmpty || isDropping ? 'attention' : ''} ${isDropping ? 'info' : ''}`}
-    >
+    <div className={`section ${isEmpty ? 'attention' : ''} ${isDropping ? 'info' : ''}`}>
       <header>
         <h2 onClick={() => setCollapsed(!isCollapsed)}>Locations</h2>
         <Toolbar controls="location-list" isCompact>
