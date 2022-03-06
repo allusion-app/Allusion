@@ -103,6 +103,9 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
         incrImgIndex();
         event.stopPropagation();
       } else if (event.key === 'Escape' || event.key === 'Backspace') {
+        if (event.target instanceof HTMLInputElement) {
+          return;
+        }
         uiStore.disableSlideMode();
         event.stopPropagation();
       }

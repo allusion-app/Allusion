@@ -7,7 +7,7 @@ import {
   reaction,
 } from 'mobx';
 import Path from 'path';
-import ExifIO from 'src/backend/ExifIO';
+import ExifIO from 'common/ExifIO';
 import FileStore from 'src/frontend/stores/FileStore';
 import { FileStats } from 'src/frontend/stores/LocationStore';
 import { ID, IResource, ISerializable } from './ID';

@@ -97,11 +97,7 @@ export function intoCriteria(query: Criteria, tagStore: TagStore): FileSearchCri
     return new ClientNumberSearchCriteria(query.key, query.value * BYTES_IN_MB, query.operator);
   } else if (query.key === 'tags') {
     const tag = query.value !== undefined ? tagStore.get(query.value) : undefined;
-    if (tag !== undefined) {
-      return new ClientTagSearchCriteria('tags', tag.id, query.operator);
-    } else {
-      return new ClientTagSearchCriteria('tags');
-    }
+    return new ClientTagSearchCriteria('tags', tag?.id, query.operator);
   } else {
     return new ClientTagSearchCriteria('tags');
   }

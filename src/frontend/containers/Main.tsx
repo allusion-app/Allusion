@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useEffect, useRef } from 'react';
 import { Split } from 'widgets/Split';
 import { useStore } from '../contexts/StoreContext';
-import TagDnDProvider, { DnDAttribute } from '../contexts/TagDnDContext';
+import { TagDnDProvider, DnDAttribute } from '../contexts/TagDnDContext';
 import AppToolbar from './AppToolbar';
 import ContentView from './ContentView';
 import Outliner from './Outliner';
@@ -55,6 +55,8 @@ const Main = () => {
     } else if (matches(hotkeyMap.openTagEditor)) {
       e.preventDefault();
       uiStore.openToolbarTagPopover();
+    } else if (matches(hotkeyMap.deleteSelection)) {
+      uiStore.openMoveFilesToTrash();
     }
   });
 

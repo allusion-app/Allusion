@@ -2,7 +2,7 @@ import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
 import Backend from 'src/backend/Backend';
 import { OrderDirection } from 'src/backend/DBRepository';
-import ExifIO from 'src/backend/ExifIO';
+import ExifIO from 'common/ExifIO';
 import {
   getMetaData,
   IFile,
@@ -68,8 +68,14 @@ class LocationStore {
 
     // Get dirs from backend
     const dirs = await this.backend.fetchLocations('dateAdded', OrderDirection.Asc);
+
+    // backwards compatibility
+    dirs.sort((a, b) =>
+      a.index === b.index ? a.dateAdded.getTime() - b.dateAdded.getTime() : a.index - b.index,
+    );
+
     const locations = dirs.map(
-      (dir) =>
+      (dir, i) =>
         new ClientLocation(
           this,
           dir.id,
@@ -77,6 +83,7 @@ class LocationStore {
           dir.dateAdded,
           dir.subLocations,
           runInAction(() => Array.from(this.enabledFileExtensions)),
+          dir.index ?? i,
         ),
     );
     runInAction(() => this.locationList.replace(locations));
@@ -332,6 +339,7 @@ class LocationStore {
       location.dateAdded,
       location.subLocations,
       runInAction(() => Array.from(this.enabledFileExtensions)),
+      this.locationList.length,
     );
     runInAction(() => (this.locationList[index] = newLocation));
     await this.initLocation(newLocation);
@@ -355,6 +363,7 @@ class LocationStore {
       new Date(),
       [],
       runInAction(() => Array.from(this.enabledFileExtensions)),
+      this.locationList.length,
     );
     await this.backend.createLocation(location.serialize());
     runInAction(() => this.locationList.push(location));
@@ -509,6 +518,24 @@ class LocationStore {
     const files = await this.backend.searchFiles(crit, 'id', OrderDirection.Asc);
     await this.backend.removeFiles(files.map((f) => f.id));
     this.rootStore.fileStore.refetch();
+  }
+
+  /** Source is moved to where Target currently is */
+  @action.bound reorder(source: ClientLocation, target: ClientLocation) {
+    const sourceIndex = this.locationList.indexOf(source);
+    const targetIndex = this.locationList.indexOf(target);
+
+    // Remove the source element and insert it at the target index
+    this.locationList.remove(source);
+    this.locationList.splice(targetIndex, 0, source);
+
+    // Update the index for all changed items: all items between source and target have been moved
+    const startIndex = Math.min(sourceIndex, targetIndex);
+    const endIndex = Math.max(sourceIndex, targetIndex);
+    for (let i = startIndex; i <= endIndex; i++) {
+      this.locationList[i].setIndex(i);
+      this.save(this.locationList[i].serialize());
+    }
   }
 }
 

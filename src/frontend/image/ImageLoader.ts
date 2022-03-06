@@ -1,6 +1,6 @@
 import fse from 'fs-extra';
 import { action } from 'mobx';
-import ExifIO from 'src/backend/ExifIO';
+import ExifIO from 'common/ExifIO';
 import { thumbnailMaxSize } from 'common/config';
 import { ClientFile, IFile, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import TifLoader from './TifLoader';
@@ -9,7 +9,12 @@ import StreamZip from 'node-stream-zip';
 import ExrLoader from './ExrLoader';
 import { generateThumbnail, getBlob } from './util';
 
-type FormatHandlerType = 'web' | 'tifLoader' | 'exrLoader' | 'extractEmbeddedThumbnailOnly';
+type FormatHandlerType =
+  | 'web'
+  | 'tifLoader'
+  | 'exrLoader'
+  | 'extractEmbeddedThumbnailOnly'
+  | 'none';
 
 const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   gif: 'web',
@@ -20,7 +25,7 @@ const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   jfif: 'web',
   webp: 'web',
   bmp: 'web',
-  svg: 'web',
+  svg: 'none',
   tif: 'tifLoader',
   tiff: 'tifLoader',
   psd: 'extractEmbeddedThumbnailOnly',
@@ -83,8 +88,8 @@ class ImageLoader {
     const handlerType = FormatHandlers[extension];
     switch (handlerType) {
       case 'web':
-        generateThumbnailUsingWorker(file, thumbnailPath);
-        // Thumbnail path is updated when the worker finishes (useWorkerListener)
+        await generateThumbnailUsingWorker(file, thumbnailPath);
+        updateThumbnailPath(file, thumbnailPath);
         break;
       case 'tifLoader':
         await generateThumbnail(this.tifLoader, absolutePath, thumbnailPath, thumbnailMaxSize);
@@ -109,6 +114,10 @@ class ImageLoader {
         } else {
           updateThumbnailPath(file, thumbnailPath);
         }
+        break;
+      case 'none':
+        // No thumbnail for this format
+        file.setThumbnailPath(file.absolutePath);
         break;
       default:
         console.warn('Unsupported extension', file.absolutePath, file.extension);

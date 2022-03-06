@@ -25,9 +25,6 @@ const Inspector = observer(() => {
   return (
     <aside id="inspector">
       <section>
-        <header>
-          <h2>Information</h2>
-        </header>
         <ImageInfo file={first} />
       </section>
       <section>

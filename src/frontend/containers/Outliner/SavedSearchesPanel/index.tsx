@@ -1,6 +1,6 @@
-import { runInAction } from 'mobx';
+import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { generateId } from 'src/entities/ID';
 import { CustomKeyDict, FileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
@@ -17,6 +17,12 @@ import { Toolbar, ToolbarButton } from 'widgets/Toolbar';
 import Tree, { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
 import SearchItemDialog from '../../AdvancedSearch/SearchItemDialog';
 import { IExpansionState } from '../../types';
+import { createDragReorderHelper } from '../TreeItemDnD';
+import {
+  DnDSearchType,
+  SearchDnDProvider,
+  useSearchDnD,
+} from 'src/frontend/contexts/TagDnDContext';
 
 // Tooltip info
 const enum Tooltip {
@@ -128,9 +134,11 @@ const SearchItemContextMenu = observer(
   },
 );
 
+const DnDHelper = createDragReorderHelper('saved-searches-dnd-preview', DnDSearchType);
+
 const SearchItem = observer(
   ({ nodeData, treeData }: { nodeData: ClientFileSearchItem; treeData: ITreeData }) => {
-    const { uiStore } = useStore();
+    const { uiStore, searchStore } = useStore();
     const {
       showContextMenu,
       edit: onEdit,
@@ -155,12 +163,20 @@ const SearchItem = observer(
       [showContextMenu, nodeData, onEdit, onDelete, onDuplicate, onReplace],
     );
 
-    const handleClick = useCallback(() => {
-      uiStore.replaceSearchCriterias(nodeData.criteria);
-      if (runInAction(() => uiStore.searchMatchAny !== nodeData.matchAny)) {
-        uiStore.toggleSearchMatchAny();
-      }
-    }, [nodeData.criteria, nodeData.matchAny, uiStore]);
+    const handleClick = useCallback(
+      (e: React.MouseEvent) => {
+        if (!e.ctrlKey) {
+          uiStore.replaceSearchCriterias(nodeData.criteria);
+          if (runInAction(() => uiStore.searchMatchAny !== nodeData.matchAny)) {
+            uiStore.toggleSearchMatchAny();
+          }
+        } else {
+          // TODO: With ctrl key, toggle searching
+          // uiStore.toggleSearchCriterias(nodeData.criteria);
+        }
+      },
+      [nodeData.criteria, nodeData.matchAny, uiStore],
+    );
 
     const handleEdit = useCallback(
       (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -171,8 +187,61 @@ const SearchItem = observer(
       [nodeData, treeData],
     );
 
+    const dndData = useSearchDnD();
+    const handleDragStart = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) =>
+        runInAction(() =>
+          DnDHelper.onDragStart(event, nodeData.name, uiStore.theme, dndData, nodeData),
+        ),
+      [dndData, nodeData, uiStore],
+    );
+
+    const handleDragOver = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => DnDHelper.onDragOver(event, dndData, false),
+      [dndData],
+    );
+
+    const handleDragLeave = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => DnDHelper.onDragLeave(event),
+      [],
+    );
+
+    const handleDrop = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        runInAction(() => {
+          if (!dndData.source) {
+            return;
+          }
+          const relativeMovePos = DnDHelper.onDrop(event);
+
+          if (relativeMovePos === 'middle') {
+            // not possible for searches, no middle position allowed
+          } else {
+            let target = nodeData;
+            if (relativeMovePos === -1) {
+              const index = searchStore.searchList.indexOf(target) - 1;
+              if (index >= 0) {
+                target = searchStore.searchList[index];
+              }
+            }
+            searchStore.reorder(dndData.source, target);
+          }
+        });
+      },
+      [dndData.source, nodeData, searchStore],
+    );
+
     return (
-      <div className="tree-content-label" onClick={handleClick} onContextMenu={handleContextMenu}>
+      <div
+        className="tree-content-label"
+        onClick={handleClick}
+        draggable
+        onContextMenu={handleContextMenu}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         {/* {IconSet.SEARCH} */}
         {nodeData.matchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
         <div className="label-text">{nodeData.name}</div>
@@ -321,65 +390,73 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
   const [editableSearch, setEditableSearch] = useState<ClientFileSearchItem>();
   const [deletableSearch, setDeletableSearch] = useState<ClientFileSearchItem>();
 
-  const saveCurrentSearch = () =>
-    searchStore.create(
+  const saveCurrentSearch = async () => {
+    const savedSearch = await searchStore.create(
       new ClientFileSearchItem(
         generateId(),
-        'New search', // TODO: generate name based on criteria?
+        uiStore.searchCriteriaList.map((c) => c.getLabel(CustomKeyDict, rootStore)).join(', ') ||
+          'New search',
         uiStore.searchCriteriaList.map((c) => c.serialize(rootStore)),
         uiStore.searchMatchAny,
+        searchStore.searchList.length,
       ),
     );
+    setEditableSearch(savedSearch);
+  };
+
+  const data = useRef(observable({ source: undefined }));
 
   return (
-    <MultiSplitPane
-      id="saved-searches"
-      title="Saved Searches"
-      headerToolbar={
-        <Toolbar controls="saved-searches-list" isCompact>
-          <ToolbarButton
-            icon={IconSet.PLUS}
-            text="Save current search"
-            onClick={saveCurrentSearch}
-            tooltip={Tooltip.Create}
-          />
-        </Toolbar>
-      }
-      {...props}
-    >
-      <SavedSearchesList
-        showContextMenu={show}
-        onEdit={setEditableSearch}
-        onDelete={setDeletableSearch}
-        onDuplicate={searchStore.duplicate}
-        onReplace={searchStore.replaceWithActiveSearch}
-      />
-      {isEmpty && (
-        <Callout icon={IconSet.INFO}>Click + to save your current search criteria.</Callout>
-      )}
-
-      {editableSearch && (
-        <SearchItemDialog
-          searchItem={editableSearch}
-          onClose={() => setEditableSearch(undefined)}
-        />
-      )}
-      {deletableSearch && (
-        <SavedSearchRemoval
-          object={deletableSearch}
-          onClose={() => setDeletableSearch(undefined)}
-        />
-      )}
-      <ContextMenu
-        isOpen={contextState.open}
-        x={contextState.x}
-        y={contextState.y}
-        close={hide}
-        usePortal
+    <SearchDnDProvider value={data.current}>
+      <MultiSplitPane
+        id="saved-searches"
+        title="Saved Searches"
+        headerToolbar={
+          <Toolbar controls="saved-searches-list" isCompact>
+            <ToolbarButton
+              icon={IconSet.PLUS}
+              text="Save current search"
+              onClick={saveCurrentSearch}
+              tooltip={Tooltip.Create}
+            />
+          </Toolbar>
+        }
+        {...props}
       >
-        <Menu>{contextState.menu}</Menu>
-      </ContextMenu>
-    </MultiSplitPane>
+        <SavedSearchesList
+          showContextMenu={show}
+          onEdit={setEditableSearch}
+          onDelete={setDeletableSearch}
+          onDuplicate={searchStore.duplicate}
+          onReplace={searchStore.replaceWithActiveSearch}
+        />
+        {isEmpty && (
+          <Callout icon={IconSet.INFO}>Click + to save your current search criteria.</Callout>
+        )}
+
+        {editableSearch && (
+          <SearchItemDialog
+            searchItem={editableSearch}
+            onClose={() => setEditableSearch(undefined)}
+          />
+        )}
+        {deletableSearch && (
+          <SavedSearchRemoval
+            object={deletableSearch}
+            onClose={() => setDeletableSearch(undefined)}
+          />
+        )}
+        <ContextMenu
+          isOpen={contextState.open}
+          x={contextState.x}
+          y={contextState.y}
+          close={hide}
+          usePortal
+        >
+          <Menu>{contextState.menu}</Menu>
+        </ContextMenu>
+      </MultiSplitPane>
+    </SearchDnDProvider>
   );
 });
 

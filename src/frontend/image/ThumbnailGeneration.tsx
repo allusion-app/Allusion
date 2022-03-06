@@ -1,14 +1,10 @@
-import { useEffect } from 'react';
-import fse from 'fs-extra';
-import path from 'path';
-import { action } from 'mobx';
-
 import { thumbnailFormat } from 'common/config';
-
-import { ID } from 'src/entities/ID';
+import fse from 'fs-extra';
+import { action } from 'mobx';
+import path from 'path';
+import { useEffect } from 'react';
 import { ClientFile } from 'src/entities/File';
-
-import { useStore } from '../contexts/StoreContext';
+import { ID } from 'src/entities/ID';
 
 export interface IThumbnailMessage {
   filePath: string;
@@ -35,53 +31,89 @@ for (let i = 0; i < NUM_THUMBNAIL_WORKERS; i++) {
 
 let lastSubmittedWorker = 0;
 
+type Callback = (success: boolean) => void;
+/** A map of File ID and a callback function for when thumbnail generation is finished or has failed */
+const listeners = new Map<ID, Callback[]>();
+
 /**
  * Generates a thumbnail in a Worker: {@link ../workers/thumbnailGenerator.worker}
  * When the worker is finished, the file.thumbnailPath will be updated with ?v=1,
  * causing the image to update in the view where ever it is used
  **/
 export const generateThumbnailUsingWorker = action(
-  (file: ClientFile, thumbnailFilePath: string) => {
+  async (file: ClientFile, thumbnailFilePath: string, timeout = 10000) => {
     const msg: IThumbnailMessage = {
       filePath: file.absolutePath,
       thumbnailFilePath,
       thumbnailFormat,
       fileId: file.id,
     };
-    workers[lastSubmittedWorker].postMessage(msg);
-    lastSubmittedWorker = (lastSubmittedWorker + 1) % workers.length;
+
+    return new Promise<void>((resolve, reject) => {
+      setTimeout(() => {
+        if (listeners.has(msg.fileId)) {
+          reject();
+          listeners.delete(msg.fileId);
+        }
+      }, timeout);
+
+      // Might already be in progress if called earlier
+      const existingListeners = listeners.get(file.id);
+      if (existingListeners) {
+        existingListeners.push((success) => (success ? resolve() : reject()));
+        return;
+      }
+
+      // Otherwise, create a new listener and submit to a worker
+      listeners.set(msg.fileId, [(success) => (success ? resolve() : reject())]);
+      workers[lastSubmittedWorker].postMessage(msg);
+      lastSubmittedWorker = (lastSubmittedWorker + 1) % workers.length;
+    });
   },
 );
 
-// Listens and processes events from the Workers. Should only be used once in the entire app
+/**
+ * Listens and processes events from the Workers. Should only be used once in the entire app
+ * TODO: no need for this to be a hook anymore, should just make a class out of it
+ */
 export const useWorkerListener = () => {
-  const { fileStore } = useStore();
-
   useEffect(() => {
     for (let i = 0; i < workers.length; i++) {
       workers[i].onmessage = (e: { data: IThumbnailMessageResponse }) => {
-        const { fileId, thumbnailPath } = e.data;
-        const clientFile = fileStore.get(fileId);
-        if (clientFile) {
-          // update the thumbnail path so that the image will reload, as it did not exist before
-          clientFile.setThumbnailPath(`${thumbnailPath}?v=1`);
+        const { fileId } = e.data;
+
+        const callbacks = listeners.get(fileId);
+        if (callbacks) {
+          callbacks.forEach((cb) => cb(true));
+          listeners.delete(fileId);
         } else {
-          console.error('Could not find file to set the thumbnail for', fileId);
+          console.debug(
+            'No callbacks found for fileId after successful thumbnail creation:',
+            fileId,
+            'Might have timed out',
+          );
         }
       };
 
       workers[i].onerror = (err) => {
         console.error('Could not generate thumbnail', `worker ${i}`, err);
         const fileId = err.message;
-        const clientFile = fileStore.get(fileId);
-        if (clientFile) {
-          // Load normal image as fallback, with v=1 to indicate it has changed
-          clientFile.setThumbnailPath(`${clientFile.absolutePath}?v=1`);
+
+        const callbacks = listeners.get(fileId);
+        if (callbacks) {
+          callbacks.forEach((cb) => cb(false));
+          listeners.delete(fileId);
+        } else {
+          console.debug(
+            'No callbacks found for fileId after unsuccessful thumbnail creation:',
+            fileId,
+            'Might have timed out',
+          );
         }
       };
     }
     return () => workers.forEach((worker) => worker.terminate());
-  }, [fileStore]);
+  }, []);
 };
 
 // Moves all thumbnail files from one directory to another

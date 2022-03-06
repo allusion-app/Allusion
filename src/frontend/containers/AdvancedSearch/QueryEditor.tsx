@@ -12,9 +12,14 @@ export type QueryDispatch = React.Dispatch<React.SetStateAction<Query>>;
 export interface QueryEditorProps {
   query: Query;
   setQuery: QueryDispatch;
+  submissionButtonText?: string;
 }
 
-export const QueryEditor = memo(function QueryEditor({ query, setQuery }: QueryEditorProps) {
+export const QueryEditor = memo(function QueryEditor({
+  query,
+  setQuery,
+  submissionButtonText = 'Search',
+}: QueryEditorProps) {
   return (
     <fieldset aria-labelledby="query-editor-container-label">
       <div style={{ display: 'flex' }}>
@@ -37,7 +42,8 @@ export const QueryEditor = memo(function QueryEditor({ query, setQuery }: QueryE
       </div>
       {query.size === 0 ? (
         <Callout icon={IconSet.INFO} header="Empty Query">
-          Your query is currently empty. Create a criteria above to enable the <b>Search</b> button.
+          Your query is currently empty. Create a criteria above to enable the{' '}
+          <b>{submissionButtonText}</b> button.
         </Callout>
       ) : undefined}
       <div id="query-editor-container">

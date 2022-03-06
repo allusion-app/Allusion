@@ -7,7 +7,13 @@ let errCount = 0;
 ///////////////////////////////////
 // Communication to Allusion app //
 ///////////////////////////////////
-async function importImage(filename, url) {
+/**
+ *
+ * @param {string} filename The filename of the image, e.g. my-image.jpg
+ * @param {string} url The url of the image, e.g. https://pbs.twimg.com/media/ASDF1234?format=jpg&name=small
+ * @param {string} pageUrl The url of the page where the image is on, e.g. https://twitter.com/User/status/12345
+ */
+async function importImage(filename, url, pageUrl) {
   // We could just send the URL, but in some cases you need permission to view an image (e.g. pixiv)
   // Therefore we send it base64 encoded
 
@@ -27,6 +33,7 @@ async function importImage(filename, url) {
       url,
       imgBase64: base64,
       tagNames: [],
+      pageUrl,
     };
 
     lastSubmittedItem = item;
@@ -73,6 +80,19 @@ function imageAsBase64(url) {
   });
 }
 
+function filenameFromUrl(srcUrl, fallback) {
+  // Get the filename from the url
+  let filename = srcUrl.split('/').pop().split('#')[0].split('?')[0];
+
+  // If the url is purely data or there is no extension, use a fallback (tab title)
+  if (srcUrl.startsWith('data:image/') || filename.indexOf('.') === -1) {
+    filename = fallback;
+  } else {
+    filename = filename.slice(0, filename.indexOf('.')); // strip extension
+  }
+  return filename;
+}
+
 ////////////////////////////////
 // Context menu ////////////////
 ////////////////////////////////
@@ -96,8 +116,10 @@ chrome.runtime.onInstalled.addListener(() => {
   setupContextMenus();
 });
 
-// Communication with popup script
+// Communication with popup and content script
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  console.debug('Received message', msg);
+
   if (msg.type === 'setTags' && lastSubmittedItem !== undefined) {
     const tagNames = msg.tagNames;
 
@@ -132,23 +154,21 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       })
       .catch(() => sendResponse([]));
     return true;
+  } else if (msg.type === 'picked-image') {
+    if (msg) {
+      const { src, alt, pageTitle, pageUrl } = msg;
+      const filename = filenameFromUrl(src, alt || pageTitle);
+      importImage(filename, src, pageUrl);
+    }
   }
 });
 
 chrome.contextMenus.onClicked.addListener(async (props, tab) => {
   const srcUrl = props.srcUrl;
+  const filename = filenameFromUrl(srcUrl, tab.title);
+  const pageUrl = props.pageUrl || '';
 
-  // Get the filename from the url
-  let filename = srcUrl.split('/').pop().split('#')[0].split('?')[0];
-
-  // If the url is purely data or there is no extension, use a fallback (tab title)
-  if (srcUrl.startsWith('data:image/') || filename.indexOf('.') === -1) {
-    filename = tab.title;
-  } else {
-    filename = filename.slice(0, filename.indexOf('.')); // strip extension
-  }
-
-  importImage(filename, srcUrl);
+  importImage(filename, srcUrl, pageUrl);
 
   // Otherwise: https://stackoverflow.com/questions/7703697/how-to-retrieve-the-element-where-a-contextmenu-has-been-executed
 });
@@ -158,5 +178,16 @@ chrome.notifications.onButtonClicked.addListener((id, buttonIndex) => {
   console.log('Clicked notification button', id, buttonIndex, lastSubmittedItem);
   if (id.startsWith('import-error') && buttonIndex === 0 && lastSubmittedItem) {
     importImage(lastSubmittedItem.filename, lastSubmittedItem.url);
+  }
+});
+
+chrome.commands.onCommand.addListener((command) => {
+  console.log(command);
+  // Pick an image from the current tab
+  if (command === 'pick-image') {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs[0];
+      chrome.tabs.sendMessage(tab.id, { type: 'pick-image' });
+    });
   }
 });

@@ -42,22 +42,28 @@
 // finds:
 // - automatically update Subject/Keywords when updating HierarchicalSubject: https://exiftool.org/forum/index.php?topic=9208.0
 // Update: only doing an export/import for all images for now, not real-time updates
-
+import { Awaited } from './core';
 import fse from 'fs-extra';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import exiftool from 'node-exiftool';
 import path from 'path';
-import { Awaited } from 'common/core';
-import { IS_DEV, IS_WIN } from 'common/process';
+import { IS_DEV, IS_WIN } from './process';
 
 // The exif binary is placed using ElectronBuilder's extraResources: https://www.electron.build/configuration/contents#extraresources
 // there also is process.resourcesPath but that doesn't work in dev mode
 const resourcesPath = (IS_DEV ? '../' : '../../') + 'resources' + '/exiftool';
 const exiftoolRunnable = IS_WIN ? 'exiftool.exe' : 'exiftool.pl';
-const exiftoolPath = path.resolve(__dirname, resourcesPath, exiftoolRunnable);
 
-console.log('Exif tool path: ', exiftoolPath);
-const ep = new exiftool.ExiftoolProcess(exiftoolPath);
+const EXIF_TOOL_PATH = path.resolve(__dirname, resourcesPath, exiftoolRunnable);
+
+console.log('Exif tool path: ', EXIF_TOOL_PATH);
+const ep = new exiftool.ExiftoolProcess(EXIF_TOOL_PATH);
+
+const defaultWriteArgs = [
+  'overwrite_original', // added this because it was leaving behind duplicate files (with _original appended to filename)
+  'codedcharacterset=utf8', // needed for adobe products: https://www.npmjs.com/package/node-exiftool#writing-tags-for-adobe-in-utf8
+  'P', // for preserving the modified date of files
+];
 
 class ExifIO {
   @observable hierarchicalSeparator: string;
@@ -68,8 +74,8 @@ class ExifIO {
   // https://www.npmjs.com/package/node-exiftool#reading-utf8-encoded-filename-on-windows
   extraArgs = IS_WIN ? ['charset filename=utf8'] : [];
 
-  constructor() {
-    this.hierarchicalSeparator = localStorage.getItem('hierarchical-separator') || '|';
+  constructor(hierarchicalSeparator: string = '|') {
+    this.hierarchicalSeparator = hierarchicalSeparator;
 
     makeObservable(this);
   }
@@ -200,7 +206,7 @@ class ExifIO {
 
     const subject = tagNameHierarchy.map((entry) => entry[entry.length - 1]);
 
-    console.log('Writing', tagNameHierarchy.join(', '), 'to', filepath);
+    console.debug('Writing', tagNameHierarchy.join(', '), 'to', filepath);
 
     const res = await ep.writeMetadata(
       filepath,
@@ -212,15 +218,56 @@ class ExifIO {
         Keywords: subject,
         // History: {},
       },
-      [
-        'overwrite_original', // added this because it was leaving behind duplicate files (with _original appended to filename)
-        'codedcharacterset=utf8', // needed for adobe products: https://www.npmjs.com/package/node-exiftool#writing-tags-for-adobe-in-utf8
-        'P', // for preserving the modified date of files
-        ...this.extraArgs,
-      ],
+      [...defaultWriteArgs, ...this.extraArgs],
     );
     if (!res.error?.endsWith('1 image files updated')) {
+      console.error('Could not update file tags metadata', res);
+      throw new Error(res.error || 'Unknown error');
+    }
+  }
+
+  /** Can be used to write arbitrary metadata. For "Subject" data (the "tags" in Allusion), use writeTags! */
+  @action.bound async writeData(
+    filepath: string,
+    data: exiftool.IMetadata,
+    opts?: {
+      /** Only writes fields if they have not been set yet */
+      onlyIfUndefined?: boolean;
+    },
+  ): Promise<void> {
+    console.debug('Writing', data, 'to', filepath);
+
+    const args = [...defaultWriteArgs, ...this.extraArgs];
+
+    let finalData = data;
+
+    if (opts?.onlyIfUndefined) {
+      const keys = Object.keys(data);
+      const existingData = await this.readExifTags(filepath, keys);
+
+      // Filter out keys from data that are already set
+      // TODO: this probably doesn't work when writing multiple fields at once
+      // exiftool has a built-in option for this but can't get it to work
+      // https://exiftool.org/forum/index.php?topic=6519.0
+      const fieldsToWrite = existingData
+        .filter((value) => !value || (Array.isArray(value) && value.length === 0))
+        .map((_, index) => keys[index]);
+
+      if (fieldsToWrite.length === 0) {
+        return;
+      }
+
+      finalData = {};
+      fieldsToWrite.forEach((key) => {
+        finalData[key] = data[key];
+      });
+    }
+
+    const res = await ep.writeMetadata(filepath, finalData, args);
+
+    if (!res.error?.endsWith('1 image files updated')) {
       console.error('Could not update file metadata', res);
+      throw new Error(res.error || 'Unknown error');
     }
   }
 
