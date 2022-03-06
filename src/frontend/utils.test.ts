@@ -20,7 +20,7 @@ describe('utils', () => {
       // Filename
       expect(encodeFilePath('C:/test/test#.jpg')).toEqual('file://C:/test/test%23.jpg');
       // Also in path
-      expect(encodeFilePath('C:/test#/test.jpg')).toEqual('file://C:/test#/test%23.jpg');
+      expect(encodeFilePath('C:/test#/test.jpg')).toEqual('file://C:/test%23/test.jpg');
     });
   });
 });
