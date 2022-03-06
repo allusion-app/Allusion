@@ -3,6 +3,13 @@
     "persistent": false,
     "scripts": ["background.js"]
   },
+
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["ElementPicker.js", "content-script.js"]
+    }
+  ],
   
   "browser_action": {
     "default_title": "Allusion",
@@ -14,6 +21,13 @@
       "suggested_key": {
         "default": "Ctrl+Shift+L",
         "mac": "Command+Shift+L"
+      }
+    },
+    "pick-image": {
+      "description": "Pick an image from the page to import into Allusion",
+      "suggested_key": {
+        "default": "Ctrl+Shift+1",
+        "mac": "Command+Shift+1"
       }
     }
   },
