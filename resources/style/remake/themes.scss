@@ -7,7 +7,7 @@
 
   --background-color: rgb(28, 30, 35);
   --background-color-alt: rgb(35, 37, 46);
-  --background-color-selected: #2E5B84;
+  --background-color-selected: #2e5b84;
 
   --shade1: rgb(21, 23, 26);
   --shade2: rgb(18, 18, 24);
@@ -19,13 +19,13 @@
   --hover-color-alt: var(--shade2);
 
   --scrollbar-track-color: var(--shade1);
-  --scrollbar-thumb-color: var(--background-color-alt);
-  --scrollbar-thumb-hover-color: var(--text-color-muted);
+  --scrollbar-thumb-color: var(--text-color-muted);
+  --scrollbar-thumb-hover-color: var(--text-color);
 
   --border-color: var(--shade2);
 
   --titlebar-background-color: #14181a;
-  --titlebar-background-color-alt: #1f2224;;
+  --titlebar-background-color-alt: #1f2224;
   --titlebar-color: #888;
 }
 
@@ -50,8 +50,8 @@
   --hover-color-alt: var(--shade2);
 
   --scrollbar-track-color: var(--shade1);
-  --scrollbar-thumb-color: var(--background-color-alt);
-  --scrollbar-thumb-hover-color: var(--text-color-muted);
+  --scrollbar-thumb-color: var(--text-color-muted);
+  --scrollbar-thumb-hover-color: var(--text-color);
 
   --border-color: var(--shade2);
 
