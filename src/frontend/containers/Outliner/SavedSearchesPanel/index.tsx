@@ -1,6 +1,6 @@
-import { runInAction } from 'mobx';
+import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { generateId } from 'src/entities/ID';
 import { CustomKeyDict, FileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
@@ -17,6 +17,8 @@ import { Toolbar, ToolbarButton } from 'widgets/Toolbar';
 import Tree, { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
 import SearchItemDialog from '../../AdvancedSearch/SearchItemDialog';
 import { IExpansionState } from '../../types';
+import { createDragReorderHelper } from '../TreeItemDnD';
+import { DnDAttribute, SearchDnDProvider, useSearchDnD } from 'src/frontend/contexts/TagDnDContext';
 
 // Tooltip info
 const enum Tooltip {
@@ -128,9 +130,11 @@ const SearchItemContextMenu = observer(
   },
 );
 
+const DnDHelper = createDragReorderHelper('saved-searches-dnd-preview');
+
 const SearchItem = observer(
   ({ nodeData, treeData }: { nodeData: ClientFileSearchItem; treeData: ITreeData }) => {
-    const { uiStore } = useStore();
+    const { uiStore, searchStore } = useStore();
     const {
       showContextMenu,
       edit: onEdit,
@@ -155,12 +159,20 @@ const SearchItem = observer(
       [showContextMenu, nodeData, onEdit, onDelete, onDuplicate, onReplace],
     );
 
-    const handleClick = useCallback(() => {
-      uiStore.replaceSearchCriterias(nodeData.criteria);
-      if (runInAction(() => uiStore.searchMatchAny !== nodeData.matchAny)) {
-        uiStore.toggleSearchMatchAny();
-      }
-    }, [nodeData.criteria, nodeData.matchAny, uiStore]);
+    const handleClick = useCallback(
+      (e: React.MouseEvent) => {
+        if (!e.ctrlKey) {
+          uiStore.replaceSearchCriterias(nodeData.criteria);
+          if (runInAction(() => uiStore.searchMatchAny !== nodeData.matchAny)) {
+            uiStore.toggleSearchMatchAny();
+          }
+        } else {
+          // TODO: With ctrl key, toggle searching
+          // uiStore.toggleSearchCriterias(nodeData.criteria);
+        }
+      },
+      [nodeData.criteria, nodeData.matchAny, uiStore],
+    );
 
     const handleEdit = useCallback(
       (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -171,8 +183,76 @@ const SearchItem = observer(
       [nodeData, treeData],
     );
 
+    const dndData = useSearchDnD();
+    const handleDragStart = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        runInAction(() =>
+          DnDHelper.onDragStart(event, nodeData.name, uiStore.theme, dndData, nodeData),
+        );
+      },
+      [dndData, nodeData, uiStore],
+    );
+
+    const handleDragOver = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        runInAction(() => {
+          const dropTarget = event.currentTarget;
+          const isSource = dropTarget.dataset[DnDAttribute.Source] === 'true';
+          if (dndData.source === undefined || isSource) {
+            return;
+          }
+
+          DnDHelper.onDragOver(event, false);
+        });
+      },
+      [dndData],
+    );
+
+    const handleDragLeave = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        if (runInAction(() => dndData.source !== undefined)) {
+          DnDHelper.onDragLeave(event);
+        }
+      },
+      [dndData],
+    );
+
+    const handleDrop = useCallback(
+      (event: React.DragEvent<HTMLDivElement>) => {
+        runInAction(() => {
+          if (!dndData.source) {
+            return;
+          }
+          const relativeMovePos = DnDHelper.onDrop(event);
+
+          if (relativeMovePos === 'middle') {
+            // not possible for searches, no middle position allowed
+          } else {
+            let target = nodeData;
+            if (relativeMovePos === -1) {
+              const index = searchStore.searchList.indexOf(target) - 1;
+              if (index >= 0) {
+                target = searchStore.searchList[index];
+              }
+            }
+            searchStore.swapOrder(dndData.source, target);
+          }
+        });
+      },
+      [dndData.source, nodeData, searchStore],
+    );
+
     return (
-      <div className="tree-content-label" onClick={handleClick} onContextMenu={handleContextMenu}>
+      <div
+        className="tree-content-label"
+        onClick={handleClick}
+        draggable
+        onContextMenu={handleContextMenu}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         {/* {IconSet.SEARCH} */}
         {nodeData.matchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
         <div className="label-text">{nodeData.name}</div>
@@ -335,55 +415,59 @@ const SavedSearchesPanel = observer(() => {
     setEditableSearch(savedSearch);
   };
 
-  return (
-    <div className={'section'}>
-      <header>
-        {/* TODO: maybe call the panel "Bookmarks"? Or "Views"? */}
-        <h2 onClick={() => setCollapsed(!isCollapsed)}>Saved Searches</h2>
-        <Toolbar controls="saved-searches-list" isCompact>
-          <ToolbarButton
-            icon={IconSet.ADD}
-            text="Save current search"
-            onClick={saveCurrentSearch}
-            tooltip={Tooltip.Create}
-          />
-        </Toolbar>
-      </header>
-      <Collapse open={!isCollapsed}>
-        <SavedSearchesList
-          showContextMenu={show}
-          onEdit={setEditableSearch}
-          onDelete={setDeletableSearch}
-          onDuplicate={searchStore.duplicate}
-          onReplace={searchStore.replaceWithActiveSearch}
-        />
-        {isEmpty && (
-          <Callout icon={IconSet.INFO}>Click + to save your current search criteria.</Callout>
-        )}
-      </Collapse>
+  const data = useRef(observable({ source: undefined }));
 
-      {editableSearch && (
-        <SearchItemDialog
-          searchItem={editableSearch}
-          onClose={() => setEditableSearch(undefined)}
-        />
-      )}
-      {deletableSearch && (
-        <SavedSearchRemoval
-          object={deletableSearch}
-          onClose={() => setDeletableSearch(undefined)}
-        />
-      )}
-      <ContextMenu
-        isOpen={contextState.open}
-        x={contextState.x}
-        y={contextState.y}
-        close={hide}
-        usePortal
-      >
-        <Menu>{contextState.menu}</Menu>
-      </ContextMenu>
-    </div>
+  return (
+    <SearchDnDProvider value={data.current}>
+      <div className={'section'}>
+        <header>
+          {/* TODO: maybe call the panel "Bookmarks"? Or "Views"? */}
+          <h2 onClick={() => setCollapsed(!isCollapsed)}>Saved Searches</h2>
+          <Toolbar controls="saved-searches-list" isCompact>
+            <ToolbarButton
+              icon={IconSet.ADD}
+              text="Save current search"
+              onClick={saveCurrentSearch}
+              tooltip={Tooltip.Create}
+            />
+          </Toolbar>
+        </header>
+        <Collapse open={!isCollapsed}>
+          <SavedSearchesList
+            showContextMenu={show}
+            onEdit={setEditableSearch}
+            onDelete={setDeletableSearch}
+            onDuplicate={searchStore.duplicate}
+            onReplace={searchStore.replaceWithActiveSearch}
+          />
+          {isEmpty && (
+            <Callout icon={IconSet.INFO}>Click + to save your current search criteria.</Callout>
+          )}
+        </Collapse>
+
+        {editableSearch && (
+          <SearchItemDialog
+            searchItem={editableSearch}
+            onClose={() => setEditableSearch(undefined)}
+          />
+        )}
+        {deletableSearch && (
+          <SavedSearchRemoval
+            object={deletableSearch}
+            onClose={() => setDeletableSearch(undefined)}
+          />
+        )}
+        <ContextMenu
+          isOpen={contextState.open}
+          x={contextState.x}
+          y={contextState.y}
+          close={hide}
+          usePortal
+        >
+          <Menu>{contextState.menu}</Menu>
+        </ContextMenu>
+      </div>
+    </SearchDnDProvider>
   );
 });
 

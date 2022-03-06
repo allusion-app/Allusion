@@ -73,6 +73,12 @@ class SearchStore {
     );
   }
 
+  @action.bound swapOrder(searchA: ClientFileSearchItem, searchB: ClientFileSearchItem) {
+    const indexB = this.searchList.indexOf(searchB);
+    this.searchList.splice(this.searchList.indexOf(searchA), 1, searchB);
+    this.searchList.splice(indexB, 1, searchA);
+  }
+
   save(search: ClientFileSearchItem) {
     this.backend.saveSearch(search.serialize(this.rootStore));
   }

@@ -1,14 +1,12 @@
 import React, { useContext } from 'react';
 import { ClientFile } from 'src/entities/File';
+import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import { ClientTag } from 'src/entities/Tag';
 
-export interface ITagDnDData {
-  source: ClientTag | undefined;
-  target: ClientFile | undefined;
-}
-
-/** Data transfer type of tag items. */
-export const DnDTagType = 'tag';
+// Common
+export type IDnDData<T extends { id: string }> = {
+  source: T | undefined;
+};
 
 /** Data attributes that will be available on every drag operation. */
 export const enum DnDAttribute {
@@ -17,10 +15,36 @@ export const enum DnDAttribute {
   // DropEffect = 'dnd-drop-effect' // TODO: Combine this with custom pointer!
 }
 
+// ----------- Tag -----------------
+export type ITagDnDData = IDnDData<ClientTag> & {
+  target: ClientFile | undefined;
+};
+
+export const DnDTagType = 'tag';
+
 const TagDnDContext = React.createContext<ITagDnDData>({} as ITagDnDData);
 
 export function useTagDnD(): ITagDnDData {
   return useContext(TagDnDContext);
 }
 
-export default TagDnDContext.Provider;
+export const TagDnDProvider = TagDnDContext.Provider;
+
+// ----------- Search ---------------
+
+export type ISearchItemCriteriaDnDData = IDnDData<ClientFileSearchItem>;
+
+export const DnDSearchType = 'search';
+
+const SearchDnDContext = React.createContext<ISearchItemCriteriaDnDData>(
+  {} as ISearchItemCriteriaDnDData,
+);
+
+export function useSearchDnD(): ISearchItemCriteriaDnDData {
+  return useContext(SearchDnDContext);
+}
+
+export const SearchDnDProvider = SearchDnDContext.Provider;
+
+// ----------- Locations ------------
+// TODO
