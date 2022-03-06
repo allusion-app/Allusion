@@ -1,3 +1,4 @@
+import { clamp } from 'common/core';
 import { debounce } from 'common/timeout';
 import React, { ReactNode, useLayoutEffect, useMemo, useRef } from 'react';
 import { Collapse } from 'src/frontend/components/Collapse';
@@ -37,7 +38,7 @@ const ResizableCollapse = ({
       const height = Number(heightStr) || 0;
       if (height !== 0) {
         const maxHeight = window.innerHeight;
-        debouncedSetHeight(Math.min(height, maxHeight));
+        debouncedSetHeight(clamp(height, 0, maxHeight));
       }
     },
     { attributes: true },
@@ -52,6 +53,16 @@ const ResizableCollapse = ({
     ref.current.style.height = newHeight;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isCollapsed]);
+
+  // Reset height when height is set to 0 (e.g. double clicking the header)
+  useLayoutEffect(() => {
+    if (!ref.current) {
+      return;
+    }
+    if (height === 0) {
+      ref.current.style.height = '';
+    }
+  }, [height]);
 
   return (
     <div ref={ref} className="resizable-collapse">
@@ -76,7 +87,13 @@ const MultiSplitPane: React.FC<MultiSplitPaneProps> = ({
   return (
     <div className={`section ${className || ''}`} {...props} ref={ref}>
       <header {...(headerProps || {})}>
-        <h2 onClick={() => setCollapsed?.(!isCollapsed)}>{title}</h2>
+        <h2
+          onClick={() => setCollapsed?.(!isCollapsed)}
+          // Reset the height to grow with the content by double clicking
+          onDoubleClick={() => setHeight?.(0)}
+        >
+          {title}
+        </h2>
         {headerToolbar}
       </header>
       {setHeight ? (
