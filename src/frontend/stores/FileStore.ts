@@ -519,7 +519,7 @@ class FileStore {
         this.setOrderDirection(prefs.orderDirection || prefs.fileOrder); // orderDirection used to be called fileOrder, needed for backwards compatibility
         this.setOrderBy(prefs.orderBy);
       } catch (e) {
-        console.log('Cannot parse persistent preferences:', FILE_STORAGE_KEY, e);
+        console.error('Cannot parse persistent preferences:', FILE_STORAGE_KEY, e);
       }
     }
   }
@@ -692,7 +692,7 @@ class FileStore {
     });
   }
 
-  @action private setOrderDirection(order: OrderDirection = OrderDirection.Desc) {
+  @action private setOrderDirection(order: OrderDirection) {
     this.orderDirection = order;
   }
 

@@ -73,6 +73,7 @@ class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBoundaryS
 
   componentDidCatch(error: Error) {
     // TODO: Send error to logging service
+    console.error(error);
 
     // Map compiled error to source code
     mapStackTrace(error.stack, (sourceMappedStack: string[]) => {
@@ -104,6 +105,7 @@ class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBoundaryS
   render() {
     const { hasError, error } = this.state;
     if (hasError) {
+      console.error(error);
       // You can render any custom fallback UI
       return (
         <div className="error-boundary">

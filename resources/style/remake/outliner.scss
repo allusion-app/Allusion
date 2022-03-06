@@ -7,8 +7,7 @@
 }
 
 #outliner-content {
-  // Show y scrollbar when there's loads of tags or location list items
-  overflow-x: hidden;
+  overflow: hidden;
   position: absolute;
   bottom: 2.5rem;
   left: 0rem;
@@ -22,7 +21,7 @@
 }
 
 .section {
-  margin-bottom: 1rem;
+  // margin-bottom: 1rem;
 
   // Show an outline to indicate the section needs attention
   &.attention {

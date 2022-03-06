@@ -96,6 +96,7 @@ export interface INumberSearchCriteria<T> extends IBaseSearchCriteria<T> {
 
 export interface IDateSearchCriteria<T> extends IBaseSearchCriteria<T> {
   value: Date;
+  /** TODO: Would be cool to have relative time: e.g. modified today/last month */
   operator: NumberOperatorType;
 }
 

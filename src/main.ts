@@ -225,6 +225,11 @@ function createWindow() {
         accelerator: 'CommandOrControl+R',
         click: forceRelaunch,
       },
+      {
+        label: 'Refresh',
+        accelerator: 'F5',
+        click: (_, win) => win?.webContents?.reload(),
+      },
       { role: 'toggleDevTools' },
       { type: 'separator' },
       {
@@ -665,7 +670,9 @@ MainMessenger.onClearDatabase(forceRelaunch);
 
 MainMessenger.onToggleDevTools(() => mainWindow?.webContents.toggleDevTools());
 
-MainMessenger.onReload(forceRelaunch);
+MainMessenger.onReload((frontEndOnly) =>
+  frontEndOnly ? mainWindow?.webContents.reload() : forceRelaunch,
+);
 
 MainMessenger.onOpenDialog(dialog);
 
