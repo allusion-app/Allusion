@@ -12,7 +12,7 @@ import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
 import { IS_PREVIEW_WINDOW } from 'common/window';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
-import { clamp } from 'common/core';
+import { clamp, notEmpty } from 'common/core';
 import { debounce } from 'common/timeout';
 import RootStore from './RootStore';
 
@@ -146,7 +146,7 @@ class UiStore {
   @observable isThumbnailTagOverlayEnabled: boolean = true;
   @observable isThumbnailFilenameOverlayEnabled: boolean = false;
   /** Whether to restore the last search query on start-up */
-  @observable isRememberSearchEnabled: boolean = false;
+  @observable isRememberSearchEnabled: boolean = true;
   /** Index of the first item in the viewport. Also acts as the current item shown in slide mode */
   // TODO: Might be better to store the ID to the file. I believe we were storing the index for performance, but we have instant conversion between index/ID now
   @observable firstItem: number = 0;
@@ -315,7 +315,6 @@ class UiStore {
   }
 
   @action.bound toggleOutliner() {
-    console.log(this.isOutlinerOpen);
     this.setIsOutlinerOpen(!this.isOutlinerOpen);
   }
 
@@ -616,6 +615,33 @@ class UiStore {
     this.searchCriteriaList.push(...queries);
     queries.forEach((query) => query.observe(this.debouncedStorePersistentPreferences));
     this.viewQueryContent();
+  }
+
+  @action.bound toggleSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+    // TODO: can be improved
+    const deepEqual = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
+
+    // With control, add or remove the criteria based on whether they're already being searched with
+    const existingMatchingCriterias = queries.map((crit) =>
+      this.searchCriteriaList.find((other) =>
+        deepEqual(other.serialize(this.rootStore), crit.serialize(this.rootStore)),
+      ),
+    );
+    if (existingMatchingCriterias.every(notEmpty)) {
+      // If they're already in there, remove them
+      existingMatchingCriterias.forEach((query) => {
+        this.searchCriteriaList.remove(query);
+        query.dispose();
+      });
+      if (this.searchCriteriaList.length > 0) {
+        this.viewQueryContent();
+      } else {
+        this.viewAllContent();
+      }
+    } else {
+      // If they're not already in there, add them
+      this.addSearchCriterias(queries);
+    }
   }
 
   @action.bound removeSearchCriteria(query: FileSearchCriteria) {

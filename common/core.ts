@@ -52,3 +52,7 @@ export function retainArray<T>(array: T[], predicate: (element: T, index: number
   }
   array.length = len - deleteCount;
 }
+
+export function notEmpty<TValue>(value: TValue): value is NonNullable<TValue> {
+  return value !== null && value !== undefined;
+}

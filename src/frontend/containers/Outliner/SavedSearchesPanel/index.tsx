@@ -6,9 +6,13 @@ import { CustomKeyDict, FileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import { SavedSearchRemoval } from 'src/frontend/components/RemovalAlert';
 import { useStore } from 'src/frontend/contexts/StoreContext';
+import {
+  DnDSearchType,
+  SearchDnDProvider,
+  useSearchDnD,
+} from 'src/frontend/contexts/TagDnDContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
-import { emptyFunction, triggerContextMenuEvent } from '../utils';
 import { IconSet } from 'widgets/Icons';
 import { ContextMenu, Menu, MenuItem } from 'widgets/menus';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
@@ -18,11 +22,7 @@ import Tree, { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
 import SearchItemDialog from '../../AdvancedSearch/SearchItemDialog';
 import { IExpansionState } from '../../types';
 import { createDragReorderHelper } from '../TreeItemDnD';
-import {
-  DnDSearchType,
-  SearchDnDProvider,
-  useSearchDnD,
-} from 'src/frontend/contexts/TagDnDContext';
+import { emptyFunction, triggerContextMenuEvent } from '../utils';
 
 // Tooltip info
 const enum Tooltip {
@@ -138,7 +138,8 @@ const DnDHelper = createDragReorderHelper('saved-searches-dnd-preview', DnDSearc
 
 const SearchItem = observer(
   ({ nodeData, treeData }: { nodeData: ClientFileSearchItem; treeData: ITreeData }) => {
-    const { uiStore, searchStore } = useStore();
+    const rootStore = useStore();
+    const { uiStore, searchStore } = rootStore;
     const {
       showContextMenu,
       edit: onEdit,
@@ -165,15 +166,16 @@ const SearchItem = observer(
 
     const handleClick = useCallback(
       (e: React.MouseEvent) => {
-        if (!e.ctrlKey) {
-          uiStore.replaceSearchCriterias(nodeData.criteria);
-          if (runInAction(() => uiStore.searchMatchAny !== nodeData.matchAny)) {
-            uiStore.toggleSearchMatchAny();
+        runInAction(() => {
+          if (!e.ctrlKey) {
+            uiStore.replaceSearchCriterias(nodeData.criteria.toJSON());
+            if (uiStore.searchMatchAny !== nodeData.matchAny) {
+              uiStore.toggleSearchMatchAny();
+            }
+          } else {
+            uiStore.toggleSearchCriterias(nodeData.criteria.toJSON());
           }
-        } else {
-          // TODO: With ctrl key, toggle searching
-          // uiStore.toggleSearchCriterias(nodeData.criteria);
-        }
+        });
       },
       [nodeData.criteria, nodeData.matchAny, uiStore],
     );
@@ -276,9 +278,18 @@ const SearchItemCriteria = observer(
     //   [showContextMenu, nodeData, onDelete, treeData.exclude],
     // );
 
-    const handleClick = useCallback(() => {
-      uiStore.replaceSearchCriterias([nodeData]);
-    }, [nodeData, uiStore]);
+    const handleClick = useCallback(
+      (e: React.MouseEvent) => {
+        runInAction(() => {
+          if (!e.ctrlKey) {
+            uiStore.replaceSearchCriterias([nodeData]);
+          } else {
+            uiStore.toggleSearchCriterias([nodeData]);
+          }
+        });
+      },
+      [nodeData, uiStore],
+    );
 
     const label = nodeData.getLabel(CustomKeyDict, rootStore);
 
