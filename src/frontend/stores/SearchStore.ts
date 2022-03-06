@@ -25,9 +25,12 @@ class SearchStore {
   async init() {
     try {
       const fetchedSearches = await this.backend.fetchSearches();
+      fetchedSearches.sort((a, b) => a.index - b.index);
+
       this.searchList.push(
         ...fetchedSearches.map(
-          (s) => new ClientFileSearchItem(s.id, s.name, s.criteria, s.matchAny === true),
+          (s, i) =>
+            new ClientFileSearchItem(s.id, s.name, s.criteria, s.matchAny === true, s.index ?? i),
         ),
       );
     } catch (err) {
@@ -57,6 +60,7 @@ class SearchStore {
       `${search.name} (copy)`,
       search.criteria.map((c) => c.serialize(this.rootStore)),
       search.matchAny,
+      this.searchList.length,
     );
     // TODO: insert below given item or keep it at the end like this?
     this.searchList.push(newSearch);
@@ -73,10 +77,22 @@ class SearchStore {
     );
   }
 
-  @action.bound swapOrder(searchA: ClientFileSearchItem, searchB: ClientFileSearchItem) {
-    const indexB = this.searchList.indexOf(searchB);
-    this.searchList.splice(this.searchList.indexOf(searchA), 1, searchB);
-    this.searchList.splice(indexB, 1, searchA);
+  /** Source is moved to where Target currently is */
+  @action.bound reorder(source: ClientFileSearchItem, target: ClientFileSearchItem) {
+    const sourceIndex = this.searchList.indexOf(source);
+    const targetIndex = this.searchList.indexOf(target);
+
+    // Remove the source element and insert it at the target index
+    this.searchList.remove(source);
+    this.searchList.splice(targetIndex, 0, source);
+
+    // Update the index for all changed items: all items between source and target have been moved
+    const startIndex = Math.min(sourceIndex, targetIndex);
+    const endIndex = Math.max(sourceIndex, targetIndex);
+    for (let i = startIndex; i <= endIndex; i++) {
+      this.searchList[i].setIndex(i);
+      this.save(this.searchList[i]);
+    }
   }
 
   save(search: ClientFileSearchItem) {

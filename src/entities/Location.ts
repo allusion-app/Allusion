@@ -15,6 +15,7 @@ export interface ILocation extends IResource {
   path: string;
   dateAdded: Date;
   subLocations: ISubLocation[];
+  index: number;
 }
 
 export interface ISubLocation {
@@ -91,6 +92,8 @@ export class ClientLocation implements ISerializable<ILocation> {
   // true when the path no longer exists (broken link)
   @observable isBroken = false;
 
+  index: number;
+
   /** The file extensions for the files to be watched */
   extensions: IMG_EXTENSIONS_TYPE[];
 
@@ -109,12 +112,14 @@ export class ClientLocation implements ISerializable<ILocation> {
     dateAdded: Date,
     subLocations: ISubLocation[],
     extensions: IMG_EXTENSIONS_TYPE[],
+    index: number,
   ) {
     this.store = store;
     this.id = id;
     this.path = path;
     this.dateAdded = dateAdded;
     this.extensions = extensions;
+    this.index = index;
 
     this.subLocations = observable(
       subLocations
@@ -225,7 +230,12 @@ export class ClientLocation implements ISerializable<ILocation> {
       path: this.path,
       dateAdded: this.dateAdded,
       subLocations: this.subLocations.map((sl) => sl.serialize()),
+      index: this.index,
     };
+  }
+
+  @action.bound setIndex(index: number): void {
+    this.index = index;
   }
 
   /** Cleanup resources */

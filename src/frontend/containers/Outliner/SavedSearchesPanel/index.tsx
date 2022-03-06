@@ -235,7 +235,7 @@ const SearchItem = observer(
                 target = searchStore.searchList[index];
               }
             }
-            searchStore.swapOrder(dndData.source, target);
+            searchStore.reorder(dndData.source, target);
           }
         });
       },
@@ -410,6 +410,7 @@ const SavedSearchesPanel = observer(() => {
           'New search',
         uiStore.searchCriteriaList.map((c) => c.serialize(rootStore)),
         uiStore.searchMatchAny,
+        searchStore.searchList.length,
       ),
     );
     setEditableSearch(savedSearch);
