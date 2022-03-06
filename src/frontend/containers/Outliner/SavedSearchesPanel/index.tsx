@@ -18,7 +18,11 @@ import Tree, { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
 import SearchItemDialog from '../../AdvancedSearch/SearchItemDialog';
 import { IExpansionState } from '../../types';
 import { createDragReorderHelper } from '../TreeItemDnD';
-import { DnDAttribute, SearchDnDProvider, useSearchDnD } from 'src/frontend/contexts/TagDnDContext';
+import {
+  DnDSearchType,
+  SearchDnDProvider,
+  useSearchDnD,
+} from 'src/frontend/contexts/TagDnDContext';
 
 // Tooltip info
 const enum Tooltip {
@@ -130,7 +134,7 @@ const SearchItemContextMenu = observer(
   },
 );
 
-const DnDHelper = createDragReorderHelper('saved-searches-dnd-preview');
+const DnDHelper = createDragReorderHelper('saved-searches-dnd-preview', DnDSearchType);
 
 const SearchItem = observer(
   ({ nodeData, treeData }: { nodeData: ClientFileSearchItem; treeData: ITreeData }) => {
@@ -185,36 +189,21 @@ const SearchItem = observer(
 
     const dndData = useSearchDnD();
     const handleDragStart = useCallback(
-      (event: React.DragEvent<HTMLDivElement>) => {
+      (event: React.DragEvent<HTMLDivElement>) =>
         runInAction(() =>
           DnDHelper.onDragStart(event, nodeData.name, uiStore.theme, dndData, nodeData),
-        );
-      },
+        ),
       [dndData, nodeData, uiStore],
     );
 
     const handleDragOver = useCallback(
-      (event: React.DragEvent<HTMLDivElement>) => {
-        runInAction(() => {
-          const dropTarget = event.currentTarget;
-          const isSource = dropTarget.dataset[DnDAttribute.Source] === 'true';
-          if (dndData.source === undefined || isSource) {
-            return;
-          }
-
-          DnDHelper.onDragOver(event, false);
-        });
-      },
+      (event: React.DragEvent<HTMLDivElement>) => DnDHelper.onDragOver(event, dndData, false),
       [dndData],
     );
 
     const handleDragLeave = useCallback(
-      (event: React.DragEvent<HTMLDivElement>) => {
-        if (runInAction(() => dndData.source !== undefined)) {
-          DnDHelper.onDragLeave(event);
-        }
-      },
-      [dndData],
+      (event: React.DragEvent<HTMLDivElement>) => DnDHelper.onDragLeave(event),
+      [],
     );
 
     const handleDrop = useCallback(

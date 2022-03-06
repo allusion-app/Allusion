@@ -1,3 +1,4 @@
+import { formatTagCountText } from 'common/fmt';
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
@@ -7,22 +8,21 @@ import { Collapse } from 'src/frontend/components/Collapse';
 import { TagRemoval } from 'src/frontend/components/RemovalAlert';
 import { TagMerge } from 'src/frontend/containers/Outliner/TagsPanel/TagMerge';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { DnDAttribute, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
+import { DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { useAction } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import TagStore from 'src/frontend/stores/TagStore';
 import UiStore from 'src/frontend/stores/UiStore';
-import { formatTagCountText } from 'common/fmt';
 import { IconSet, Tree } from 'widgets';
 import { ContextMenu, Toolbar, ToolbarButton } from 'widgets/menus';
 import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem, TreeLabel } from 'widgets/Tree';
 import { IExpansionState } from '../../types';
-import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel';
+import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel/useFileDnD';
+import { createDragReorderHelper } from '../TreeItemDnD';
 import TreeItemRevealer from '../TreeItemRevealer';
 import { TagItemContextMenu } from './ContextMenu';
 import SearchButton from './SearchButton';
 import { Action, Factory, reducer, State } from './state';
-import { createDragReorderHelper } from '../TreeItemDnD';
 
 export class TagsTreeItemRevealer extends TreeItemRevealer {
   public static readonly instance: TagsTreeItemRevealer = new TagsTreeItemRevealer();
@@ -120,7 +120,7 @@ const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
   }
 };
 
-const DnDHelper = createDragReorderHelper('tag-dnd-preview');
+const DnDHelper = createDragReorderHelper('tag-dnd-preview', DnDTagType);
 
 const TagItem = observer((props: ITagItemProps) => {
   const { nodeData, dispatch, expansion, isEditing, submit, pos, select, showContextMenu } = props;
@@ -176,20 +176,17 @@ const TagItem = observer((props: ITagItemProps) => {
   const handleDragOver = useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
       runInAction(() => {
-        if (dndData.source === undefined) {
-          return;
-        }
-        const dropTarget = event.currentTarget;
-        const isSource = dropTarget.dataset[DnDAttribute.Source] === 'true';
         if (
-          isSource ||
-          (dndData.source.isSelected && nodeData.isSelected) ||
-          nodeData.isAncestor(dndData.source)
+          (dndData.source?.isSelected && nodeData.isSelected) ||
+          nodeData.isAncestor(dndData.source!)
         ) {
           return;
         }
 
-        DnDHelper.onDragOver(event);
+        const isIgnored = DnDHelper.onDragOver(event, dndData);
+        if (isIgnored) {
+          return;
+        }
 
         // Don't expand when hovering over top/bottom border
         const targetClasses = event.currentTarget.classList;

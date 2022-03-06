@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { ClientFile } from 'src/entities/File';
+import { ClientLocation } from 'src/entities/Location';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import { ClientTag } from 'src/entities/Tag';
 
@@ -31,7 +32,6 @@ export function useTagDnD(): ITagDnDData {
 export const TagDnDProvider = TagDnDContext.Provider;
 
 // ----------- Search ---------------
-
 export type ISearchItemCriteriaDnDData = IDnDData<ClientFileSearchItem>;
 
 export const DnDSearchType = 'search';
@@ -47,4 +47,14 @@ export function useSearchDnD(): ISearchItemCriteriaDnDData {
 export const SearchDnDProvider = SearchDnDContext.Provider;
 
 // ----------- Locations ------------
-// TODO
+export type ILocationDnDData = IDnDData<ClientLocation>;
+
+export const DnDLocationType = 'location';
+
+const LocationDnDContext = React.createContext<ILocationDnDData>({} as ILocationDnDData);
+
+export function useLocationDnD(): ILocationDnDData {
+  return useContext(LocationDnDContext);
+}
+
+export const LocationDnDProvider = LocationDnDContext.Provider;

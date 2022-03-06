@@ -534,7 +534,7 @@ class LocationStore {
     const endIndex = Math.max(sourceIndex, targetIndex);
     for (let i = startIndex; i <= endIndex; i++) {
       this.locationList[i].setIndex(i);
-      this.save(this.locationList[i]);
+      this.save(this.locationList[i].serialize());
     }
   }
 }
