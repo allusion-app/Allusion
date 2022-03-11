@@ -147,6 +147,7 @@ class ImageLoader {
       }
       // TODO: krita has full image also embedded (mergedimage.png)
       case 'extractEmbeddedThumbnailOnly':
+      case 'none':
         return undefined;
       default:
         console.warn('Unsupported extension', file.absolutePath, file.extension);

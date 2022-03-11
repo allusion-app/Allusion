@@ -654,6 +654,15 @@ MainMessenger.onDragExport(async (absolutePaths) => {
     });
   } catch (e) {
     console.error('Could not create drag icon', absolutePaths[0], e);
+    try {
+      const fallbackIconPath = path.join(__dirname, TrayIcon);
+      previewIcon = await nativeImage.createThumbnailFromPath(fallbackIconPath, {
+        width: 200,
+        height: 200,
+      });
+    } catch (e) {
+      console.error('Could not create fallback drag icon', TrayIcon, e);
+    }
   }
 
   mainWindow.webContents.startDrag({
