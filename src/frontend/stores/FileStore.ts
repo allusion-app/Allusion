@@ -508,7 +508,6 @@ class FileStore {
   private async saveFilesToSave() {
     await this.backend.saveFiles(Array.from(this.filesToSave.values()));
     this.filesToSave.clear();
-    this.refetch();
   }
 
   @action recoverPersistentPreferences() {
