@@ -231,6 +231,11 @@ export class RendererMessenger {
     const userDataPath = await RendererMessenger.getPath('userData');
     return path.join(userDataPath, 'backups');
   };
+
+  static getThemesDirectory = async () => {
+    const userDataPath = await RendererMessenger.getPath('userData');
+    return path.join(userDataPath, 'themes');
+  };
 }
 
 export class MainMessenger {

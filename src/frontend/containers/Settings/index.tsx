@@ -1,13 +1,16 @@
+import { chromeExtensionUrl } from 'common/config';
+import { getFilenameFriendlyFormattedDateTime } from 'common/fmt';
+import { getThumbnailPath, isDirEmpty } from 'common/fs';
+import { WINDOW_STORAGE_KEY } from 'common/window';
 import { shell } from 'electron';
+import fse from 'fs-extra';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
-import { chromeExtensionUrl } from 'common/config';
 import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
-import { WINDOW_STORAGE_KEY } from 'common/window';
 import {
   Button,
   ButtonGroup,
@@ -23,8 +26,6 @@ import { Alert, DialogButton } from 'widgets/popovers';
 import PopupWindow from '../../components/PopupWindow';
 import { useStore } from '../../contexts/StoreContext';
 import { moveThumbnailDir } from '../../image/ThumbnailGeneration';
-import { getFilenameFriendlyFormattedDateTime } from 'common/fmt';
-import { getThumbnailPath, isDirEmpty } from 'common/fs';
 import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';
 import Tabs, { TabItem } from './Tabs';
@@ -73,13 +74,17 @@ const Appearance = observer(() => {
           <Toggle checked={uiStore.theme === 'dark'} onChange={uiStore.toggleTheme} />
         </fieldset>
 
+        <CustomThemePicker />
+      </div>
+
+      <div className="input-group">
+        <Zoom />
+
         <fieldset>
           <legend>Full screen</legend>
           <Toggle checked={uiStore.isFullScreen} onChange={toggleFullScreen} />
         </fieldset>
       </div>
-
-      <Zoom />
 
       <h3>Thumbnail</h3>
 
@@ -150,6 +155,80 @@ const Zoom = () => {
           text="Increase"
         />
       </span>
+    </fieldset>
+  );
+};
+
+const CustomThemePicker = () => {
+  const [themeDir, setThemeDir] = useState('');
+  const [themeFiles, setThemeFiles] = useState<string[]>([]);
+
+  // TODO: persist this somewhere. UIStore? LocalStorage?
+  const [selectedTheme, setSelectedTheme] = useState<string>();
+
+  // Load theme files in the Electron application's themes/ directory
+  const loadThemeFiles = useCallback(async (themeDir: string) => {
+    try {
+      await fse.ensureDir(themeDir);
+      const files = await fse.readdir(themeDir);
+      console.log('setting state', files);
+      setThemeFiles(files.filter((f) => f.endsWith('.css')));
+    } catch (e) {
+      console.error(e);
+    }
+  }, []);
+
+  const setTheme = useCallback(() => {
+    // TODO: Should move this somewhere else too, should be applied on start-up
+    const customThemeLinkId = 'custom-theme-link';
+    document.getElementById(customThemeLinkId)?.remove();
+
+    if (selectedTheme) {
+      const link = document.createElement('link');
+      link.id = customThemeLinkId;
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = `file:///${themeDir}/${selectedTheme}`;
+      document.head.appendChild(link);
+    }
+  }, [selectedTheme, themeDir]);
+
+  useEffect(
+    () => {
+      RendererMessenger.getThemesDirectory().then((dir) => {
+        setThemeDir(dir);
+        loadThemeFiles(dir);
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  return (
+    <fieldset>
+      <legend>Custom themes</legend>
+      <select onChange={(e) => setSelectedTheme(e.target.value)}>
+        {<option>None (default)</option>}
+        {themeFiles.map((file) => (
+          <option key={file}>{file}</option>
+        ))}
+      </select>
+
+      <Button
+        styling="minimal"
+        icon={IconSet.RELOAD}
+        text="Refresh"
+        onClick={() => loadThemeFiles(themeDir)}
+      />
+
+      <Button styling="minimal" icon={IconSet.SELECT_CHECKED} text="Apply" onClick={setTheme} />
+
+      <Button
+        styling="minimal"
+        icon={IconSet.FOLDER_CLOSE}
+        text="Open"
+        onClick={() => shell.showItemInFolder(themeDir)}
+      />
     </fieldset>
   );
 };
