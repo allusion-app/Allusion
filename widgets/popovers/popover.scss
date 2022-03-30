@@ -83,7 +83,7 @@ dialog {
 dialog[role='alertdialog'] {
   .alert-content {
     display: grid;
-    grid-template: 'dialog-icon dialog-title' 'dialog-icon alert-message' 'dialog-actions dialog-actions';
+    grid-template-areas: 'dialog-icon dialog-title' 'dialog-icon alert-message' 'dialog-actions dialog-actions';
     grid-template-columns: min-content 1fr;
     max-height: 80vh;
     gap: 0.5rem;
