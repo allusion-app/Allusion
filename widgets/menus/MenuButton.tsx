@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import { Menu, MenuChildren } from './menus';
-import { RawPopover } from '../popovers/RawPopover';
+import { usePopover } from '../popovers/usePopover';
 
 export interface MenuButtonProps {
   id: string;
@@ -25,18 +25,20 @@ export const MenuButton = ({
   children,
 }: MenuButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const container = useRef<HTMLDivElement>(null);
+  const menu = useRef<HTMLUListElement>(null);
+  const { style, reference, floating, update } = usePopover('bottom');
 
   // Whenever the menu is opened, focus the first focusable menu item!
   useEffect(() => {
-    if (container.current && isOpen) {
-      const first: HTMLElement | null = container.current.querySelector('[role^="menuitem"]');
+    if (menu.current && isOpen) {
+      const first: HTMLElement | null = menu.current.querySelector('[role^="menuitem"]');
       // The Menu component will handle setting the tab indices.
       if (first !== null) {
         first.focus();
       }
+      update();
     }
-  }, [isOpen]);
+  }, [isOpen, update]);
 
   const handleBlur = (e: React.FocusEvent) => {
     const button = e.currentTarget.previousElementSibling as HTMLElement;
@@ -64,35 +66,37 @@ export const MenuButton = ({
   };
 
   return (
-    <RawPopover
-      popoverRef={container}
-      isOpen={isOpen}
-      target={
-        <button
-          id={id}
-          className="toolbar-button"
-          aria-disabled={disabled}
-          data-collapsible={isCollapsible ?? true}
-          data-tooltip={tooltip ?? text}
-          onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
-          aria-expanded={isOpen}
-          aria-controls={menuID}
-          aria-haspopup="menu"
-        >
-          <span className="btn-content-icon" aria-hidden>
-            {icon}
-          </span>
-          <span className="btn-content-text">{text}</span>
-        </button>
-      }
-      placement="bottom"
-      onBlur={handleBlur}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-    >
-      <Menu id={menuID} labelledby={id}>
-        {children}
-      </Menu>
-    </RawPopover>
+    <>
+      <button
+        id={id}
+        ref={reference}
+        className="toolbar-button"
+        aria-disabled={disabled}
+        data-collapsible={isCollapsible ?? true}
+        data-tooltip={tooltip ?? text}
+        onClick={disabled ? undefined : () => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        aria-controls={menuID}
+        aria-haspopup="menu"
+      >
+        <span className="btn-content-icon" aria-hidden>
+          {icon}
+        </span>
+        <span className="btn-content-text">{text}</span>
+      </button>
+      <div
+        ref={floating}
+        data-popover
+        data-open={isOpen}
+        style={style}
+        onBlur={handleBlur}
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+      >
+        <Menu ref={menu} id={menuID} labelledby={id}>
+          {children}
+        </Menu>
+      </div>
+    </>
   );
 };

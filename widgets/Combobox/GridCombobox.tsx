@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { usePopper } from 'react-popper';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { usePopover } from 'widgets/popovers/usePopover';
 import { generateWidgetId } from 'widgets/utility';
 
 interface OptionGroup {
@@ -38,7 +38,6 @@ export const GridCombobox = ({
   const popupId = useRef(generateWidgetId('__combobox-popup')).current;
   const input = useRef<HTMLInputElement>(null);
   const activeDescendant = useRef<HTMLElement | null>(null);
-  const popup = useRef<HTMLDivElement>(null);
   const rowCount = useRef(data.length);
   const rowIndex = useRef(-1);
   const colIndex = useRef(0);
@@ -69,21 +68,9 @@ export const GridCombobox = ({
   });
   const [matches, setMatches] = useState(data);
 
-  const { styles, attributes, update } = usePopper(input.current, popup.current, {
-    placement: 'bottom-start',
-    modifiers: [
-      {
-        name: 'preventOverflow',
-        options: {
-          // Prevents dialogs from moving elements to the side
-          boundary: document.body,
-          altAxis: true,
-          padding: 8,
-        },
-      },
-      { name: 'flips', options: { fallbackPlacements: ['top-start'] } },
-    ],
-  });
+  const { style, reference, floating, update } = usePopover('bottom-start', ['top-start']);
+
+  useEffect(() => reference(input.current), [reference]);
 
   // Moves visual focus back to textbox
   const clearVisualFocus = useRef(() => {
@@ -95,9 +82,9 @@ export const GridCombobox = ({
     rowIndex.current = -1;
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (expanded) {
-      update?.();
+      update();
     } else {
       // Remove visual focus from active row and cell
       clearVisualFocus.current();
@@ -304,11 +291,10 @@ export const GridCombobox = ({
       />
       {/* TODO: might not fit in its container (e.g. long tag names in Advanced Search). Move to portal? */}
       <div
-        ref={popup}
+        ref={floating}
         data-popover
         data-open={expanded}
-        style={styles.popper}
-        {...attributes.popper}
+        style={style}
         id={popupId}
         role="grid"
         aria-labelledby={popupLabelledby}

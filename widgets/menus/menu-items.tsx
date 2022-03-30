@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { ForwardedRef, forwardRef, useCallback, useRef } from 'react';
 
 import { IconSet } from '../Icons';
 
@@ -138,16 +138,20 @@ export const MenuSliderItem = ({
 
 export const MenuDivider = () => <li role="separator" className="menu-separator"></li>;
 
-export interface IMenuItemLink {
+export interface MenuItemLinkProps {
   icon?: JSX.Element;
   text: string;
   disabled?: boolean;
   expanded: boolean;
 }
 
-export const MenuItemLink = ({ expanded, disabled, icon, text }: IMenuItemLink) => {
+export const MenuItemLink = forwardRef(function MenuItemLink(
+  { expanded, disabled, icon, text }: MenuItemLinkProps,
+  ref: ForwardedRef<HTMLAnchorElement>,
+) {
   return (
     <a
+      ref={ref}
       tabIndex={-1}
       role="menuitem"
       aria-haspopup="menu"
@@ -162,4 +166,4 @@ export const MenuItemLink = ({ expanded, disabled, icon, text }: IMenuItemLink) 
       <span className="item-accelerator">{IconSet.ARROW_RIGHT}</span>
     </a>
   );
-};
+});

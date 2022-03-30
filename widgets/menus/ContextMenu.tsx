@@ -1,12 +1,13 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
-import { RawPopover } from '../popovers/RawPopover';
-import { IMenu } from './menus';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import { Portal } from 'src/frontend/hooks/usePortal';
+import { usePopover } from '../popovers/usePopover';
+import { MenuProps } from './menus';
 
 export interface IContextMenu {
   isOpen: boolean;
   x: number;
   y: number;
-  children?: React.ReactElement<IMenu> | React.ReactFragment;
+  children?: React.ReactElement<MenuProps> | React.ReactFragment;
   close: () => void;
   usePortal?: boolean;
 }
@@ -36,9 +37,12 @@ export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = true }:
       y,
     }),
   );
-  const [virtualElement, setVirtualElement] = useState({
-    getBoundingClientRect: () => boundingRect.current,
-  });
+  const { style, reference, floating, update } = usePopover('right-start');
+
+  useEffect(() => {
+    floating(container.current);
+    reference({ getBoundingClientRect: () => boundingRect.current });
+  }, [floating, reference]);
 
   useLayoutEffect(() => {
     // layoutEffect to avoid the flicker where the placement is wrong at the start
@@ -47,17 +51,15 @@ export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = true }:
       container.current.focus();
 
       // Update bounding rect
-      const rect = DOMRect.fromRect({
-        width: boundingRect.current.width,
-        height: boundingRect.current.height,
+      boundingRect.current = DOMRect.fromRect({
+        width: 0,
+        height: 0,
         x,
         y,
       });
-      setVirtualElement({
-        getBoundingClientRect: () => rect,
-      });
+      update();
     }
-  }, [isOpen, x, y]);
+  }, [isOpen, update, x, y]);
 
   // Close upon executing a command from a menu item
   const handleClick = (e: React.MouseEvent) => {
@@ -95,23 +97,28 @@ export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = true }:
     }
   };
 
-  return (
-    <RawPopover
-      anchorElement={virtualElement}
-      popoverRef={container}
-      isOpen={isOpen}
+  const menu = (
+    <div
+      ref={container}
+      style={style}
+      data-popover
+      data-open={isOpen}
       data-contextmenu
-      placement="right-start"
       tabIndex={-1}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       onClick={handleClick}
       onMouseOver={handleMouseOver}
-      portalId={usePortal ? 'context-menu-portal' : undefined}
     >
       {isOpen ? children : null}
-    </RawPopover>
+    </div>
   );
+
+  if (usePortal) {
+    return <Portal id="context-menu-portal">{menu}</Portal>;
+  } else {
+    return menu;
+  }
 };
 
 // Applies focus to the menu item which allows to use keyboard navigation immediately

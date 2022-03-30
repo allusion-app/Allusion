@@ -116,7 +116,8 @@
     "webpack-cli": "^4.9.1"
   },
   "dependencies": {
-    "@popperjs/core": "^2.9.3",
+    "@floating-ui/core": "^0.6.1",
+    "@floating-ui/react-dom": "^0.6.0",
     "chokidar": "^3.5.2",
     "comlink": "^4.3.1",
     "dexie": "^3.2.0",
@@ -130,7 +131,6 @@
     "react": "^17.0.2",
     "react-colorful": "^5.5.1",
     "react-dom": "^17.0.2",
-    "react-popper": "^2.2.5",
     "react-window": "^1.8.6",
     "sourcemapped-stacktrace": "^1.1.11",
     "utif": "^3.1.0",

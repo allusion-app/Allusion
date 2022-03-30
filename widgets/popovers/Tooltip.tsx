@@ -1,34 +1,19 @@
-import { Placement, VirtualElement } from '@popperjs/core';
+import { VirtualElement, autoPlacement, offset, shift } from '@floating-ui/core';
+import { useFloating } from '@floating-ui/react-dom';
 import React, { useEffect, useRef, useState } from 'react';
-import { usePopper } from 'react-popper';
 
 export const TooltipLayer = ({ document }: { document: Document }) => {
-  const popoverElement = useRef<HTMLDivElement>(null);
-  const virtualElement = useRef<VirtualElement | null>(null);
-  const popperOptions = useRef({
-    placement: 'auto' as Placement,
-    modifiers: [
-      {
-        name: 'preventOverflow',
-        options: {
-          // Prevents dialogs from moving elements to the side
-          boundary: document.body,
-          altAxis: true,
-          padding: 8,
-        },
-      },
-      {
-        name: 'offset',
-        options: { offset: [0, 4] },
-      },
+  const virtualElement = useRef<VirtualElement>({
+    getBoundingClientRect: () => DOMRect.fromRect({ x: 0, y: 0, width: 4, height: 4 }),
+    contextElement: null,
+  });
+  const { x, y, reference, floating, strategy, update } = useFloating({
+    middleware: [
+      offset({ mainAxis: 4, crossAxis: 0 }),
+      shift({ boundary: document.body, crossAxis: true, padding: 8 }),
+      autoPlacement(),
     ],
-  }).current;
-  const { styles, attributes, forceUpdate } = usePopper(
-    virtualElement.current,
-    popoverElement.current,
-    popperOptions,
-  );
-
+  });
   const [isOpen, setIsOpen] = useState(false);
   const content = useRef<string>('');
   const timerID = useRef<number>();
@@ -41,12 +26,13 @@ export const TooltipLayer = ({ document }: { document: Document }) => {
       }
       const tooltip = target.dataset['tooltip'];
       content.current = tooltip;
-      if (virtualElement.current?.contextElement !== target) {
+      if (virtualElement.current.contextElement !== target) {
         window.clearTimeout(timerID.current);
         timerID.current = window.setTimeout(() => {
           timerID.current = undefined;
-          forceUpdate?.();
           setIsOpen(true);
+          reference(virtualElement.current);
+          update();
         }, 500);
       }
       return target;
@@ -58,15 +44,7 @@ export const TooltipLayer = ({ document }: { document: Document }) => {
         const x = e.clientX;
         const y = e.clientY;
         virtualElement.current = {
-          getBoundingClientRect: () =>
-            ({
-              width: 4,
-              height: 4,
-              top: y,
-              right: x,
-              bottom: y,
-              left: x,
-            } as DOMRect),
+          getBoundingClientRect: () => DOMRect.fromRect({ x, y, width: 4, height: 4 }),
           contextElement: target,
         };
       }
@@ -83,15 +61,11 @@ export const TooltipLayer = ({ document }: { document: Document }) => {
     };
 
     const handleHide = (e: MouseEvent | FocusEvent) => {
-      if (
-        virtualElement.current === null ||
-        virtualElement.current.contextElement?.contains(e.relatedTarget as Node)
-      ) {
+      if (virtualElement.current.contextElement?.contains(e.relatedTarget as Node)) {
         return;
       }
-      forceUpdate?.();
       setIsOpen(false);
-      virtualElement.current = null;
+      virtualElement.current.contextElement = null;
       window.clearTimeout(timerID.current);
       timerID.current = undefined;
     };
@@ -99,7 +73,7 @@ export const TooltipLayer = ({ document }: { document: Document }) => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsOpen(false);
-        virtualElement.current = null;
+        virtualElement.current.contextElement = null;
       }
     };
 
@@ -110,19 +84,23 @@ export const TooltipLayer = ({ document }: { document: Document }) => {
     document.addEventListener('keydown', handleEscape, true);
 
     return () => {
-      document.removeEventListener('mouseover', handleShow, true);
+      document.removeEventListener('mouseover', handleMouseover, true);
       document.removeEventListener('mouseout', handleHide, true);
-      document.removeEventListener('focus', handleShow, true);
+      document.removeEventListener('focus', handleFocus, true);
       document.removeEventListener('blur', handleHide, true);
       document.removeEventListener('keydown', handleEscape, true);
     };
-  }, [document, forceUpdate]);
+  }, [document, update, reference]);
 
   return (
     <div
-      ref={popoverElement}
-      style={styles.popper}
-      {...attributes.popper}
+      ref={floating}
+      style={{
+        position: strategy,
+        top: 0,
+        left: 0,
+        transform: `translate(${Math.round(x ?? 0.0)}px,${Math.round(y ?? 0.0)}px)`,
+      }}
       role="tooltip"
       data-popover
       data-open={isOpen}
