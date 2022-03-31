@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 export const TooltipLayer = ({ document }: { document: Document }) => {
   const virtualElement = useRef<VirtualElement>({
-    getBoundingClientRect: () => DOMRect.fromRect({ x: 0, y: 0, width: 4, height: 4 }),
+    getBoundingClientRect: () => new DOMRect(),
     contextElement: null,
   });
   const { x, y, reference, floating, strategy, update } = useFloating({
@@ -19,45 +19,25 @@ export const TooltipLayer = ({ document }: { document: Document }) => {
   const timerID = useRef<number>();
 
   useEffect(() => {
+    reference(virtualElement.current);
+
     const handleShow = (e: MouseEvent | FocusEvent): HTMLElement | undefined => {
       const target = e.target;
       if (!(target instanceof HTMLElement) || !target.dataset['tooltip']) {
         return;
       }
-      const tooltip = target.dataset['tooltip'];
-      content.current = tooltip;
+      content.current = target.dataset['tooltip'];
       if (virtualElement.current.contextElement !== target) {
         window.clearTimeout(timerID.current);
         timerID.current = window.setTimeout(() => {
           timerID.current = undefined;
           setIsOpen(true);
-          reference(virtualElement.current);
           update();
         }, 500);
       }
-      return target;
-    };
-
-    const handleMouseover = (e: MouseEvent) => {
-      const target = handleShow(e);
-      if (target !== undefined) {
-        const x = e.clientX;
-        const y = e.clientY;
-        virtualElement.current = {
-          getBoundingClientRect: () => DOMRect.fromRect({ x, y, width: 4, height: 4 }),
-          contextElement: target,
-        };
-      }
-    };
-
-    const handleFocus = (e: FocusEvent) => {
-      const target = handleShow(e);
-      if (target !== undefined) {
-        virtualElement.current = {
-          getBoundingClientRect: () => target.getBoundingClientRect(),
-          contextElement: target,
-        };
-      }
+      const boundingRect = target.getBoundingClientRect();
+      virtualElement.current.getBoundingClientRect = () => boundingRect;
+      virtualElement.current.contextElement = target;
     };
 
     const handleHide = (e: MouseEvent | FocusEvent) => {
@@ -77,16 +57,16 @@ export const TooltipLayer = ({ document }: { document: Document }) => {
       }
     };
 
-    document.addEventListener('mouseover', handleMouseover, true);
+    document.addEventListener('mouseover', handleShow, true);
     document.addEventListener('mouseout', handleHide, true);
-    document.addEventListener('focus', handleFocus, true);
+    document.addEventListener('focus', handleShow, true);
     document.addEventListener('blur', handleHide, true);
     document.addEventListener('keydown', handleEscape, true);
 
     return () => {
-      document.removeEventListener('mouseover', handleMouseover, true);
+      document.removeEventListener('mouseover', handleShow, true);
       document.removeEventListener('mouseout', handleHide, true);
-      document.removeEventListener('focus', handleFocus, true);
+      document.removeEventListener('focus', handleShow, true);
       document.removeEventListener('blur', handleHide, true);
       document.removeEventListener('keydown', handleEscape, true);
     };

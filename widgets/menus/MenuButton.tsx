@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 
 import { Menu, MenuChildren } from './menus';
 import { usePopover } from '../popovers/usePopover';
@@ -29,7 +29,7 @@ export const MenuButton = ({
   const { style, reference, floating, update } = usePopover('bottom');
 
   // Whenever the menu is opened, focus the first focusable menu item!
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (menu.current && isOpen) {
       const first: HTMLElement | null = menu.current.querySelector('[role^="menuitem"]');
       // The Menu component will handle setting the tab indices.

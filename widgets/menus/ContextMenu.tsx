@@ -29,34 +29,25 @@ export interface IContextMenu {
  */
 export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = true }: IContextMenu) => {
   const container = useRef<HTMLDivElement>(null);
-  const boundingRect = useRef<DOMRect>(
-    DOMRect.fromRect({
-      width: 0,
-      height: 0,
-      x,
-      y,
-    }),
-  );
+  const boundingRect = useRef(new DOMRect());
   const { style, reference, floating, update } = usePopover('right-start');
 
   useEffect(() => {
     floating(container.current);
-    reference({ getBoundingClientRect: () => boundingRect.current });
+    // Capture only the DOMRect and not the React MutableRefObject
+    const boundingRectRef = boundingRect.current;
+    reference({ getBoundingClientRect: () => boundingRectRef });
   }, [floating, reference]);
 
   useLayoutEffect(() => {
-    // layoutEffect to avoid the flicker where the placement is wrong at the start
     if (container.current && isOpen) {
       // Focus container so the keydown event can be handled even without a mouse.
       container.current.focus();
 
       // Update bounding rect
-      boundingRect.current = DOMRect.fromRect({
-        width: 0,
-        height: 0,
-        x,
-        y,
-      });
+      // Do not replace the DOMRect object reference!
+      boundingRect.current.x = x;
+      boundingRect.current.y = y;
       update();
     }
   }, [isOpen, update, x, y]);
