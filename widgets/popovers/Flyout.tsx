@@ -1,14 +1,16 @@
-import React, { useRef } from 'react';
-import { Placement } from '@popperjs/core/lib/enums';
+import React, { useLayoutEffect } from 'react';
+import { Placement, VirtualElement } from '@floating-ui/core';
 
-import { RawPopover } from './RawPopover';
+import { usePopover } from './usePopover';
 
-export interface IFlyout {
+export interface FlyoutProps {
   isOpen: boolean;
   label?: string;
   labelledby?: string;
   describedby?: string;
-  target: React.ReactElement<HTMLElement>;
+  target: (
+    ref: (element: Element | VirtualElement | null) => void,
+  ) => React.ReactElement<HTMLElement>;
   /** The popover content. */
   children: React.ReactNode;
   /** Closes the flyout when the `Escape` key is pressed or clicked outside. */
@@ -16,15 +18,12 @@ export interface IFlyout {
   /** When this specific element is focused, the FlyOut is not closed */
   ignoreCloseForElementOnBlur?: HTMLElement;
   placement?: Placement;
-  /** Flip modifier settings */
-  fallbackPlacements?: Placement[];
-  allowedAutoPlacements?: Placement[];
 }
 
 /**
  * A dismissable dialog modal
  */
-export const Flyout = (props: IFlyout) => {
+export const Flyout = (props: FlyoutProps) => {
   const {
     isOpen,
     label,
@@ -35,11 +34,14 @@ export const Flyout = (props: IFlyout) => {
     target,
     children,
     placement,
-    fallbackPlacements,
-    allowedAutoPlacements,
   } = props;
+  const { style, reference, floating, update } = usePopover(placement);
 
-  const popover = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (isOpen) {
+      update();
+    }
+  }, [isOpen, update]);
 
   const handleBlur = (e: React.FocusEvent) => {
     if (e.relatedTarget === ignoreCloseForElementOnBlur) {
@@ -60,24 +62,25 @@ export const Flyout = (props: IFlyout) => {
   };
 
   return (
-    <RawPopover
-      popoverRef={popover}
-      isOpen={isOpen}
-      target={target}
-      placement={placement}
-      fallbackPlacements={fallbackPlacements}
-      allowedAutoPlacements={allowedAutoPlacements}
-      role="dialog"
-      aria-modal={true}
-      data-flyout
-      aria-label={label}
-      aria-labelledby={labelledby}
-      aria-describedby={describedby}
-      onBlur={handleBlur}
-      onKeyDown={handleKeyDown}
-    >
-      {children}
-    </RawPopover>
+    <>
+      {target(reference)}
+      <div
+        ref={floating}
+        style={style}
+        data-open={isOpen}
+        data-popover
+        role="dialog"
+        aria-modal={true}
+        data-flyout
+        aria-label={label}
+        aria-labelledby={labelledby}
+        aria-describedby={describedby}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+      >
+        {children}
+      </div>
+    </>
   );
 };
 

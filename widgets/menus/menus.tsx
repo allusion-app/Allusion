@@ -1,9 +1,16 @@
 import './menu.scss';
-import React, { useRef, useState } from 'react';
+import React, { ForwardedRef, forwardRef, useLayoutEffect, useState } from 'react';
 
-import { IMenuCheckboxItem, IMenuItem, IMenuItemLink, IMenuRadioItem } from './menu-items';
+import {
+  IMenuCheckboxItem,
+  IMenuItem,
+  MenuItemLinkProps,
+  IMenuRadioItem,
+  MenuItemLink,
+} from './menu-items';
+import { usePopover } from '../popovers/usePopover';
 
-export interface IMenu {
+export interface MenuProps {
   id?: string;
   children: MenuChildren;
   label?: string;
@@ -15,14 +22,18 @@ export type MenuChildren = MenuChild | MenuChild[] | React.ReactFragment;
 export type MenuChild =
   | React.ReactElement<IMenuCheckboxItem>
   | React.ReactElement<IMenuItem>
-  | React.ReactElement<IMenuItemLink>
+  | React.ReactElement<MenuItemLinkProps>
   | React.ReactElement<IMenuRadioGroup>
   | React.ReactElement<IMenuRadioGroup>
-  | React.ReactElement<IMenuSubItem>;
+  | React.ReactElement<MenuSubItemProps>;
 
-export const Menu = ({ id, children, label, labelledby }: IMenu) => {
+export const Menu = forwardRef(function Menu(
+  { id, children, label, labelledby }: MenuProps,
+  ref: ForwardedRef<HTMLUListElement>,
+) {
   return (
     <ul
+      ref={ref}
       id={id}
       role="menu"
       aria-label={label}
@@ -33,21 +44,30 @@ export const Menu = ({ id, children, label, labelledby }: IMenu) => {
       {children}
     </ul>
   );
-};
+});
 
-import { RawPopover } from '../popovers/RawPopover';
-import { MenuItemLink } from './menu-items';
-
-export interface IMenuSubItem {
+export interface MenuSubItemProps {
   icon?: JSX.Element;
   text: string;
   disabled?: boolean;
   children: React.ReactNode;
 }
 
-export const MenuSubItem = ({ text, icon, disabled, children }: IMenuSubItem) => {
+export const MenuSubItem = ({ text, icon, disabled, children }: MenuSubItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const menu = useRef<HTMLUListElement>(null);
+  const { style, reference, floating, update } = usePopover('right-start', [
+    'right',
+    'right-end',
+    'left-start',
+    'left',
+    'left-end',
+  ]);
+
+  useLayoutEffect(() => {
+    if (isOpen) {
+      update();
+    }
+  }, [isOpen, update]);
 
   const handleBlur = (e: React.FocusEvent) => {
     if (isOpen && !e.currentTarget.contains(e.relatedTarget as Node)) {
@@ -104,19 +124,18 @@ export const MenuSubItem = ({ text, icon, disabled, children }: IMenuSubItem) =>
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <RawPopover
-        popoverRef={menu}
-        isOpen={isOpen}
-        target={<MenuItemLink expanded={isOpen} text={text} icon={icon} disabled={disabled} />}
-        container="ul"
-        placement="right-start"
-        fallbackPlacements={['right-end', 'right']}
+      <MenuItemLink ref={reference} expanded={isOpen} text={text} icon={icon} disabled={disabled} />
+      <ul
+        ref={floating}
+        data-popover
+        data-open={isOpen}
+        style={style}
         role="menu"
         aria-label={text}
         className="menu"
       >
         {children}
-      </RawPopover>
+      </ul>
     </li>
   );
 };

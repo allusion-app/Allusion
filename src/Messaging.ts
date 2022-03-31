@@ -131,7 +131,7 @@ export class RendererMessenger {
 
   static toggleDevTools = () => ipcRenderer.send(TOGGLE_DEV_TOOLS);
 
-  static reload = (frontEndOnly?: boolean) => ipcRenderer.invoke(RELOAD, frontEndOnly);
+  static reload = (frontEndOnly?: boolean) => ipcRenderer.send(RELOAD, frontEndOnly);
 
   static openDialog = (
     options: Electron.OpenDialogOptions,
@@ -248,7 +248,7 @@ export class MainMessenger {
   static onToggleDevTools = (cb: () => void) => ipcMain.on(TOGGLE_DEV_TOOLS, cb);
 
   static onReload = (cb: (frontEndOnly?: boolean) => void) =>
-    ipcMain.handle(RELOAD, (_, frontEndOnly) => cb(frontEndOnly));
+    ipcMain.on(RELOAD, (_, frontEndOnly) => cb(frontEndOnly));
 
   static onOpenDialog = (dialog: Electron.Dialog) =>
     ipcMain.handle(OPEN_DIALOG, (_, options) => dialog.showOpenDialog(options));

@@ -124,8 +124,8 @@ const TagSelector = (props: TagSelectorProps) => {
         cancel={() => setIsOpen(false)}
         placement="bottom-start"
         ignoreCloseForElementOnBlur={inputRef.current || undefined}
-        target={
-          <div className="multiautocomplete-input">
+        target={(ref) => (
+          <div ref={ref} className="multiautocomplete-input">
             <div className="input-wrapper">
               {selection.map((t) => (
                 <SelectedTag
@@ -152,7 +152,7 @@ const TagSelector = (props: TagSelectorProps) => {
             {extraIconButtons}
             <IconButton icon={IconSet.CLOSE} text="Clear" onClick={clearSelection} />
           </div>
-        }
+        )}
       >
         <SuggestedTagsList
           ref={gridRef}

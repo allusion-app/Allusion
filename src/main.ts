@@ -92,8 +92,6 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: true,
-      // window.open should open a normal window like in a browser, not an electron BrowserWindowProxy
-      nativeWindowOpen: true,
       nodeIntegrationInSubFrames: true,
       contextIsolation: false,
     },
@@ -228,7 +226,7 @@ function createWindow() {
       {
         label: 'Refresh',
         accelerator: 'F5',
-        click: (_, win) => win?.webContents?.reload(),
+        click: (_, win) => win?.webContents.reload(),
       },
       { role: 'toggleDevTools' },
       { type: 'separator' },
@@ -680,7 +678,7 @@ MainMessenger.onClearDatabase(forceRelaunch);
 MainMessenger.onToggleDevTools(() => mainWindow?.webContents.toggleDevTools());
 
 MainMessenger.onReload((frontEndOnly) =>
-  frontEndOnly ? mainWindow?.webContents.reload() : forceRelaunch,
+  frontEndOnly ? mainWindow?.webContents.reload() : forceRelaunch(),
 );
 
 MainMessenger.onOpenDialog(dialog);

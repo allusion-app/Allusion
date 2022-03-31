@@ -17,7 +17,8 @@ import LocationStore from 'src/frontend/stores/LocationStore';
 import { triggerContextMenuEvent, emptyFunction } from '../utils';
 import { RendererMessenger } from 'src/Messaging';
 import { IconSet, Tree } from 'widgets';
-import { ContextMenu, Menu, MenuDivider, MenuItem, Toolbar, ToolbarButton } from 'widgets/menus';
+import { Menu, MenuDivider, MenuItem, Toolbar, ToolbarButton } from 'widgets/menus';
+import ContextMenu from 'src/frontend/components/ContextMenu';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
 import { Callout } from 'widgets/notifications';
 import { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
@@ -624,13 +625,7 @@ const LocationsPanel = observer((props: Partial<MultiSplitPaneProps>) => {
           onClose={() => setExcludableSubLocation(undefined)}
         />
       )}
-      <ContextMenu
-        isOpen={contextState.open}
-        x={contextState.x}
-        y={contextState.y}
-        close={hide}
-        usePortal
-      >
+      <ContextMenu isOpen={contextState.open} x={contextState.x} y={contextState.y} close={hide}>
         <Menu>{contextState.menu}</Menu>
       </ContextMenu>
     </MultiSplitPane>
