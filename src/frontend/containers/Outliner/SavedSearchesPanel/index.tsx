@@ -14,7 +14,8 @@ import {
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import { IconSet } from 'widgets/Icons';
-import { ContextMenu, Menu, MenuItem } from 'widgets/menus';
+import { Menu, MenuItem } from 'widgets/menus';
+import ContextMenu from 'src/frontend/components/ContextMenu';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
 import { Callout } from 'widgets/notifications';
 import { Toolbar, ToolbarButton } from 'widgets/Toolbar';
@@ -457,13 +458,7 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
             onClose={() => setDeletableSearch(undefined)}
           />
         )}
-        <ContextMenu
-          isOpen={contextState.open}
-          x={contextState.x}
-          y={contextState.y}
-          close={hide}
-          usePortal
-        >
+        <ContextMenu isOpen={contextState.open} x={contextState.x} y={contextState.y} close={hide}>
           <Menu>{contextState.menu}</Menu>
         </ContextMenu>
       </MultiSplitPane>

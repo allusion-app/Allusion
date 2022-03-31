@@ -6,7 +6,8 @@ import { useStore } from '../../contexts/StoreContext';
 import useContextMenu from '../../hooks/useContextMenu';
 
 import { IconSet } from 'widgets';
-import { ContextMenu, MenuSubItem, Menu, MenuChild, MenuDivider } from 'widgets/menus';
+import { MenuSubItem, Menu, MenuChild, MenuDivider } from 'widgets/menus';
+import ContextMenu from 'src/frontend/components/ContextMenu';
 
 import Placeholder from './Placeholder';
 import Layout from './LayoutSwitcher';

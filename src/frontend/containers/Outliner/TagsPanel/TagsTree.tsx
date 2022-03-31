@@ -13,7 +13,8 @@ import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import TagStore from 'src/frontend/stores/TagStore';
 import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet, Tree } from 'widgets';
-import { ContextMenu, Toolbar, ToolbarButton } from 'widgets/menus';
+import { Toolbar, ToolbarButton } from 'widgets/menus';
+import ContextMenu from 'src/frontend/components/ContextMenu';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
 import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem, TreeLabel } from 'widgets/Tree';
 import { IExpansionState } from '../../types';
@@ -632,13 +633,7 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
         <TagMerge tag={state.mergableNode} onClose={() => dispatch(Factory.abortMerge())} />
       )}
 
-      <ContextMenu
-        isOpen={contextState.open}
-        x={contextState.x}
-        y={contextState.y}
-        close={hide}
-        usePortal
-      >
+      <ContextMenu isOpen={contextState.open} x={contextState.x} y={contextState.y} close={hide}>
         {contextState.menu}
       </ContextMenu>
     </MultiSplitPane>

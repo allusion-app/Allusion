@@ -1,15 +1,13 @@
 import React, { useEffect, useLayoutEffect, useRef } from 'react';
-import { Portal } from 'src/frontend/hooks/usePortal';
 import { usePopover } from '../popovers/usePopover';
 import { MenuProps } from './menus';
 
-export interface IContextMenu {
+export interface ContextMenuProps {
   isOpen: boolean;
   x: number;
   y: number;
-  children?: React.ReactElement<MenuProps> | React.ReactFragment;
+  children: React.ReactElement<MenuProps> | React.ReactFragment;
   close: () => void;
-  usePortal?: boolean;
 }
 
 /**
@@ -27,7 +25,7 @@ export interface IContextMenu {
  * `useContextMenu` hook can be used to create all the necessary state and
  * callbacks which can be used to set the state from deep within a tree.
  */
-export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = true }: IContextMenu) => {
+export const ContextMenu = ({ isOpen, x, y, children, close }: ContextMenuProps) => {
   const container = useRef<HTMLDivElement>(null);
   const boundingRect = useRef(new DOMRect());
   const { style, reference, floating, update } = usePopover('right-start');
@@ -88,7 +86,7 @@ export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = true }:
     }
   };
 
-  const menu = (
+  return (
     <div
       ref={container}
       style={style}
@@ -104,12 +102,6 @@ export const ContextMenu = ({ isOpen, x, y, children, close, usePortal = true }:
       {isOpen ? children : null}
     </div>
   );
-
-  if (usePortal) {
-    return <Portal id="context-menu-portal">{menu}</Portal>;
-  } else {
-    return menu;
-  }
 };
 
 // Applies focus to the menu item which allows to use keyboard navigation immediately

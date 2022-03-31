@@ -8,7 +8,8 @@ import { TagSelector } from './TagSelector';
 import useContextMenu from '../hooks/useContextMenu';
 import { FileTagMenuItems } from '../containers/ContentView/menu-items';
 import { ClientTag } from 'src/entities/Tag';
-import { ContextMenu, Menu } from 'widgets/menus';
+import { Menu } from 'widgets/menus';
+import ContextMenu from './ContextMenu';
 
 interface IFileTagProp {
   file: ClientFile;
@@ -63,13 +64,7 @@ const FileTags = observer(({ file }: IFileTagProp) => {
 
       {/* TODO: probably not the right place for the ContextMenu component.
       Why not a single one at the root element that can be interacted with through a Context? */}
-      <ContextMenu
-        isOpen={contextState.open}
-        x={contextState.x}
-        y={contextState.y}
-        close={hide}
-        usePortal
-      >
+      <ContextMenu isOpen={contextState.open} x={contextState.x} y={contextState.y} close={hide}>
         <Menu>{contextState.menu}</Menu>
       </ContextMenu>
     </>
