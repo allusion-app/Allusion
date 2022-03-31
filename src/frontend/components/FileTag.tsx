@@ -5,11 +5,10 @@ import { IconSet } from 'widgets/Icons';
 import { Row } from 'widgets';
 import { useStore } from '../contexts/StoreContext';
 import { TagSelector } from './TagSelector';
-import useContextMenu from '../hooks/useContextMenu';
 import { FileTagMenuItems } from '../containers/ContentView/menu-items';
 import { ClientTag } from 'src/entities/Tag';
 import { Menu } from 'widgets/menus';
-import ContextMenu from './ContextMenu';
+import { useContextMenu } from './ContextMenu';
 
 interface IFileTagProp {
   file: ClientFile;
@@ -17,8 +16,6 @@ interface IFileTagProp {
 
 const FileTags = observer(({ file }: IFileTagProp) => {
   const { tagStore } = useStore();
-
-  const [contextState, { show, hide }] = useContextMenu();
 
   const renderCreateOption = useCallback(
     (tagName: string, resetTextBox: () => void) => (
@@ -37,37 +34,32 @@ const FileTags = observer(({ file }: IFileTagProp) => {
     [file, tagStore],
   );
 
+  const show = useContextMenu();
   const handleTagContextMenu = useCallback(
     (event: React.MouseEvent<HTMLElement>, tag: ClientTag) => {
       event.stopPropagation();
-      show(event.clientX, event.clientY, [
-        <React.Fragment key="file-tag-context-menu">
+      show(
+        event.clientX,
+        event.clientY,
+        <Menu>
           <FileTagMenuItems file={file} tag={tag} />
-        </React.Fragment>,
-      ]);
+        </Menu>,
+      );
     },
     [file, show],
   );
 
   return (
-    <>
-      <TagSelector
-        disabled={file.isBroken}
-        selection={Array.from(file.tags)}
-        onClear={file.clearTags}
-        onDeselect={file.removeTag}
-        onSelect={file.addTag}
-        renderCreateOption={renderCreateOption}
-        showTagContextMenu={handleTagContextMenu}
-        multiline
-      />
-
-      {/* TODO: probably not the right place for the ContextMenu component.
-      Why not a single one at the root element that can be interacted with through a Context? */}
-      <ContextMenu isOpen={contextState.open} x={contextState.x} y={contextState.y} close={hide}>
-        <Menu>{contextState.menu}</Menu>
-      </ContextMenu>
-    </>
+    <TagSelector
+      disabled={file.isBroken}
+      selection={Array.from(file.tags)}
+      onClear={file.clearTags}
+      onDeselect={file.removeTag}
+      onSelect={file.addTag}
+      renderCreateOption={renderCreateOption}
+      showTagContextMenu={handleTagContextMenu}
+      multiline
+    />
   );
 });
 

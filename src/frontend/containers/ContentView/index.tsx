@@ -1,13 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { useStore } from '../../contexts/StoreContext';
 
-import useContextMenu from '../../hooks/useContextMenu';
-
 import { IconSet } from 'widgets';
-import { MenuSubItem, Menu, MenuChild, MenuDivider } from 'widgets/menus';
-import ContextMenu from 'src/frontend/components/ContextMenu';
+import { MenuSubItem, Menu } from 'widgets/menus';
+import { useContextMenu } from 'src/frontend/components/ContextMenu';
 
 import Placeholder from './Placeholder';
 import Layout from './LayoutSwitcher';
@@ -37,20 +35,28 @@ const ContentView = observer(() => {
 const Content = observer(() => {
   const { fileStore, uiStore } = useStore();
   const dndData = useTagDnD();
-  const [contextState, { show, hide }] = useContextMenu({ initialMenu: [<></>, <></>] });
-  const { open, x, y, menu } = contextState;
-  const [fileMenu, externalMenu] = menu as [MenuChild, MenuChild];
   const { fileList } = fileStore;
   const [contentRect, setContentRect] = useState({ width: 1, height: 1 });
   const container = useRef<HTMLDivElement>(null);
   const isMaximized = useIsWindowMaximized();
 
-  const handleContextMenu = useCallback(
-    (e: React.MouseEvent) => {
-      show(e.clientX, e.clientY, []);
-    },
-    [show],
-  );
+  const show = useContextMenu();
+  const handleContextMenu = useAction((e: React.MouseEvent) => {
+    if (!uiStore.isSlideMode) {
+      show(
+        e.clientX,
+        e.clientY,
+        <Menu>
+          <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
+            <LayoutMenuItems />
+          </MenuSubItem>
+          <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
+            <SortMenuItems />
+          </MenuSubItem>
+        </Menu>,
+      );
+    }
+  });
 
   const resizeObserver = useRef(
     new ResizeObserver((entries) => {
@@ -101,27 +107,7 @@ const Content = observer(() => {
       onClick={clearFileSelection}
       onKeyDown={handleKeyDown}
     >
-      <Layout contentRect={contentRect} showContextMenu={show} />
-
-      <ContextMenu isOpen={open} x={x} y={y} close={hide}>
-        <Menu>
-          {fileMenu}
-          {!uiStore.isSlideMode && (
-            <>
-              {fileMenu && <MenuDivider />}
-              <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
-                <LayoutMenuItems />
-              </MenuSubItem>
-              <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-                <SortMenuItems />
-              </MenuSubItem>
-            </>
-          )}
-          {externalMenu && <MenuDivider />}
-          {externalMenu}
-        </Menu>
-      </ContextMenu>
-
+      <Layout contentRect={contentRect} />
       <MoveFilesToTrashBin />
     </div>
   );

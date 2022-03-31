@@ -12,18 +12,6 @@ export interface ContextMenuProps {
 
 /**
  * The classic desktop context menu
- *
- * Unlike other implementations there is no single context menu added through a
- * React portal. This component is driven entirely by the state of your app.
- *
- * This might seem inconvenient but the upside is that styling has not to be
- * re-applied to a portal and that multiple context menus can exist without
- * harming performance. In short this component is more inconvenient but allows
- * for better composability.
- *
- * Since it is really annoying to always write out the same lines of code, the
- * `useContextMenu` hook can be used to create all the necessary state and
- * callbacks which can be used to set the state from deep within a tree.
  */
 export const ContextMenu = ({ isOpen, x, y, children, close }: ContextMenuProps) => {
   const container = useRef<HTMLDivElement>(null);

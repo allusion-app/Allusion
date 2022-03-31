@@ -9,12 +9,11 @@ import { TagMerge } from 'src/frontend/containers/Outliner/TagsPanel/TagMerge';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { useAction } from 'src/frontend/hooks/mobx';
-import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import TagStore from 'src/frontend/stores/TagStore';
 import UiStore from 'src/frontend/stores/UiStore';
 import { IconSet, Tree } from 'widgets';
 import { Toolbar, ToolbarButton } from 'widgets/menus';
-import ContextMenu from 'src/frontend/components/ContextMenu';
+import { useContextMenu } from 'src/frontend/components/ContextMenu';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
 import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem, TreeLabel } from 'widgets/Tree';
 import { IExpansionState } from '../../types';
@@ -88,7 +87,6 @@ const Label = (props: ILabelProps) =>
   );
 
 interface ITagItemProps {
-  showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   nodeData: ClientTag;
   dispatch: React.Dispatch<Action>;
   isEditing: boolean;
@@ -124,18 +122,19 @@ const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
 const DnDHelper = createDragReorderHelper('tag-dnd-preview', DnDTagType);
 
 const TagItem = observer((props: ITagItemProps) => {
-  const { nodeData, dispatch, expansion, isEditing, submit, pos, select, showContextMenu } = props;
+  const { nodeData, dispatch, expansion, isEditing, submit, pos, select } = props;
   const { uiStore } = useStore();
   const dndData = useTagDnD();
 
+  const show = useContextMenu();
   const handleContextMenu = useCallback(
     (e) =>
-      showContextMenu(
+      show(
         e.clientX,
         e.clientY,
         <TagItemContextMenu dispatch={dispatch} tag={nodeData} pos={pos} />,
       ),
-    [dispatch, nodeData, pos, showContextMenu],
+    [dispatch, nodeData, pos, show],
   );
 
   const handleDragStart = useCallback(
@@ -328,7 +327,6 @@ const TagItem = observer((props: ITagItemProps) => {
 });
 
 interface ITreeData {
-  showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   state: State;
   dispatch: React.Dispatch<Action>;
   submit: (target: EventTarget & HTMLInputElement) => void;
@@ -345,7 +343,6 @@ const TagItemLabel: TreeLabel = ({
   pos: number;
 }) => (
   <TagItem
-    showContextMenu={treeData.showContextMenu}
     nodeData={nodeData}
     dispatch={treeData.dispatch}
     expansion={treeData.state.expansion}
@@ -438,7 +435,6 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
     deletableNode: undefined,
     mergableNode: undefined,
   });
-  const [contextState, { show, hide }] = useContextMenu();
   const dndData = useTagDnD();
 
   /** Header and Footer drop zones of the root node */
@@ -504,13 +500,12 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
 
   const treeData: ITreeData = useMemo(
     () => ({
-      showContextMenu: show,
       state,
       dispatch,
       submit: submit.current,
       select,
     }),
-    [select, show, state],
+    [select, state],
   );
 
   const handleRootAddTag = useAction(() =>
@@ -632,10 +627,6 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
       {state.mergableNode && (
         <TagMerge tag={state.mergableNode} onClose={() => dispatch(Factory.abortMerge())} />
       )}
-
-      <ContextMenu isOpen={contextState.open} x={contextState.x} y={contextState.y} close={hide}>
-        {contextState.menu}
-      </ContextMenu>
     </MultiSplitPane>
   );
 });

@@ -12,13 +12,12 @@ import DropContext from 'src/frontend/contexts/DropContext';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDLocationType, useLocationDnD } from 'src/frontend/contexts/TagDnDContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
-import useContextMenu from 'src/frontend/hooks/useContextMenu';
 import LocationStore from 'src/frontend/stores/LocationStore';
 import { triggerContextMenuEvent, emptyFunction } from '../utils';
 import { RendererMessenger } from 'src/Messaging';
 import { IconSet, Tree } from 'widgets';
 import { Menu, MenuDivider, MenuItem, Toolbar, ToolbarButton } from 'widgets/menus';
-import ContextMenu from 'src/frontend/components/ContextMenu';
+import { useContextMenu } from 'src/frontend/components/ContextMenu';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
 import { Callout } from 'widgets/notifications';
 import { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
@@ -80,7 +79,6 @@ const enum Tooltip {
 }
 
 interface ITreeData {
-  showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   expansion: IExpansionState;
   setExpansion: React.Dispatch<IExpansionState>;
   delete: (location: ClientLocation) => void;
@@ -200,38 +198,41 @@ const LocationTreeContextMenu = observer(({ location, onDelete, onExclude }: ICo
 
   if (location.isBroken) {
     return (
-      <>
+      <Menu>
         <MenuItem
           text="Open Recovery Panel"
           onClick={() => uiStore.openLocationRecovery(location.id)}
           icon={IconSet.WARNING_BROKEN_LINK}
         />
         <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
-      </>
+      </Menu>
     );
   }
 
   return (
-    <>
+    <Menu>
       <DirectoryMenu location={location} onExclude={onExclude} />
       <MenuDivider />
       <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
-    </>
+    </Menu>
   );
 });
 
 const SubLocation = observer((props: { nodeData: ClientSubLocation; treeData: ITreeData }) => {
   const { nodeData, treeData } = props;
   const { uiStore } = useStore();
-  const { showContextMenu, expansion, setExpansion } = treeData;
+  const { expansion, setExpansion } = treeData;
+  const show = useContextMenu();
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) =>
-      showContextMenu(
+      show(
         e.clientX,
         e.clientY,
-        <DirectoryMenu location={nodeData} onExclude={treeData.exclude} />,
+        <Menu>
+          <DirectoryMenu location={nodeData} onExclude={treeData.exclude} />
+        </Menu>,
       ),
-    [nodeData, showContextMenu, treeData.exclude],
+    [nodeData, show, treeData.exclude],
   );
 
   const existingSearchCrit = uiStore.searchCriteriaList.find(
@@ -288,10 +289,11 @@ const DnDHelper = createDragReorderHelper('locations-dnd-preview', DnDLocationTy
 const Location = observer(
   ({ nodeData, treeData }: { nodeData: ClientLocation; treeData: ITreeData }) => {
     const { uiStore, locationStore } = useStore();
-    const { showContextMenu, expansion, delete: onDelete } = treeData;
+    const { expansion, delete: onDelete } = treeData;
+    const show = useContextMenu();
     const handleContextMenu = useCallback(
       (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        showContextMenu(
+        show(
           event.clientX,
           event.clientY,
           <LocationTreeContextMenu
@@ -301,7 +303,7 @@ const Location = observer(
           />,
         );
       },
-      [showContextMenu, nodeData, onDelete, treeData.exclude],
+      [show, nodeData, onDelete, treeData.exclude],
     );
 
     // TODO: idem
@@ -432,12 +434,11 @@ const LocationLabel = ({ nodeData, treeData }: { nodeData: any; treeData: any })
 );
 
 interface ILocationTreeProps {
-  showContextMenu: (x: number, y: number, menu: JSX.Element) => void;
   onDelete: (loc: ClientLocation) => void;
   onExclude: (loc: ClientSubLocation) => void;
 }
 
-const LocationsTree = ({ onDelete, onExclude, showContextMenu }: ILocationTreeProps) => {
+const LocationsTree = ({ onDelete, onExclude }: ILocationTreeProps) => {
   const { locationStore, uiStore } = useStore();
   const [expansion, setExpansion] = useState<IExpansionState>({});
   const treeData: ITreeData = useMemo<ITreeData>(
@@ -446,9 +447,8 @@ const LocationsTree = ({ onDelete, onExclude, showContextMenu }: ILocationTreePr
       setExpansion,
       delete: onDelete,
       exclude: onExclude,
-      showContextMenu,
     }),
-    [expansion, onDelete, onExclude, showContextMenu],
+    [expansion, onDelete, onExclude],
   );
   const [branches, setBranches] = useState<ITreeItem[]>([]);
 
@@ -503,7 +503,6 @@ const LocationsTree = ({ onDelete, onExclude, showContextMenu }: ILocationTreePr
 
 const LocationsPanel = observer((props: Partial<MultiSplitPaneProps>) => {
   const { locationStore } = useStore();
-  const [contextState, { show, hide }] = useContextMenu();
 
   const [creatableLocation, setCreatableLocation] = useState<ClientLocation>();
   const [deletableLocation, setDeletableLocation] = useState<ClientLocation>();
@@ -598,11 +597,7 @@ const LocationsPanel = observer((props: Partial<MultiSplitPaneProps>) => {
       }
       {...props}
     >
-      <LocationsTree
-        showContextMenu={show}
-        onDelete={setDeletableLocation}
-        onExclude={setExcludableSubLocation}
-      />
+      <LocationsTree onDelete={setDeletableLocation} onExclude={setExcludableSubLocation} />
       {isEmpty && <Callout icon={IconSet.INFO}>Click + to choose a location.</Callout>}
 
       <LocationRecoveryDialog />
@@ -625,9 +620,6 @@ const LocationsPanel = observer((props: Partial<MultiSplitPaneProps>) => {
           onClose={() => setExcludableSubLocation(undefined)}
         />
       )}
-      <ContextMenu isOpen={contextState.open} x={contextState.x} y={contextState.y} close={hide}>
-        <Menu>{contextState.menu}</Menu>
-      </ContextMenu>
     </MultiSplitPane>
   );
 });

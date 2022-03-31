@@ -10,6 +10,7 @@ import { Toolbar, ToolbarButton } from 'widgets/menus';
 
 import { useWorkerListener } from './image/ThumbnailGeneration';
 import SplashScreen from './containers/SplashScreen';
+import { ContextMenuLayer } from './components/ContextMenu';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -77,7 +78,9 @@ const PreviewApp = observer(() => {
           />
         </Toolbar>
 
-        <ContentView />
+        <ContextMenuLayer>
+          <ContentView />
+        </ContextMenuLayer>
       </ErrorBoundary>
     </div>
   );

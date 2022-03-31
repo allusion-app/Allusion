@@ -3,10 +3,14 @@ import React from 'react';
 import { useEffect } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
+import { useContextMenu } from 'src/frontend/components/ContextMenu';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDAttribute, DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
+import { useAction } from 'src/frontend/hooks/mobx';
 import { RendererMessenger } from 'src/Messaging';
-import { MenuDivider } from 'widgets/menus';
+import { IconSet } from 'widgets/Icons';
+import { Menu, MenuDivider, MenuSubItem } from 'widgets/menus';
+import { LayoutMenuItems, SortMenuItems } from '../AppToolbar/Menus';
 import {
   ExternalAppMenuItems,
   FileTagMenuItems,
@@ -142,10 +146,34 @@ export class CommandDispatcher {
 
 export function useCommandHandler(
   select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void,
-  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void,
 ) {
   const dndData = useTagDnD();
   const { uiStore } = useStore();
+  const show = useContextMenu();
+  const showContextMenu = useAction(
+    (x: number, y: number, fileMenu: JSX.Element, externalMenu: JSX.Element) => {
+      show(
+        x,
+        y,
+        <Menu>
+          {fileMenu}
+          {!uiStore.isSlideMode && (
+            <>
+              <MenuDivider />
+              <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
+                <LayoutMenuItems />
+              </MenuSubItem>
+              <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
+                <SortMenuItems />
+              </MenuSubItem>
+            </>
+          )}
+          <MenuDivider />
+          {externalMenu}
+        </Menu>,
+      );
+    },
+  );
 
   useEffect(() => {
     const handleSelect = action((event: Event) => {
@@ -167,10 +195,12 @@ export function useCommandHandler(
     const handleContextMenu = action((event: Event) => {
       event.stopPropagation();
       const { file, x, y } = (event as CommandHandlerEvent<ContextMenuPayload>).detail;
-      showContextMenu(x, y, [
+      showContextMenu(
+        x,
+        y,
         file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />,
-        <ExternalAppMenuItems key="external" file={file} />,
-      ]);
+        <ExternalAppMenuItems file={file} />,
+      );
       if (!uiStore.fileSelection.has(file)) {
         // replace selection with context menu, like Windows file explorer
         select(file, false, false);
@@ -180,14 +210,16 @@ export function useCommandHandler(
     const handleTagContextMenu = action((event: Event) => {
       event.stopPropagation();
       const { file, x, y, tag } = (event as CommandHandlerEvent<TagContextMenuPayload>).detail;
-      showContextMenu(x, y, [
+      showContextMenu(
+        x,
+        y,
         <>
           <FileTagMenuItems file={file} tag={tag} />
           <MenuDivider />
           {file.isBroken ? <MissingFileMenuItems /> : <FileViewerMenuItems file={file} />}
         </>,
-        <ExternalAppMenuItems key="external" file={file} />,
-      ]);
+        <ExternalAppMenuItems file={file} />,
+      );
       if (!uiStore.fileSelection.has(file)) {
         // replace selection with context menu, like Windows file explorer
         select(file, false, false);
@@ -197,10 +229,12 @@ export function useCommandHandler(
     const handleSlideContextMenu = action((event: Event) => {
       event.stopPropagation();
       const { file, x, y } = (event as CommandHandlerEvent<ContextMenuPayload>).detail;
-      showContextMenu(x, y, [
+      showContextMenu(
+        x,
+        y,
         file.isBroken ? <MissingFileMenuItems /> : <SlideFileViewerMenuItems file={file} />,
-        <ExternalAppMenuItems key="external" file={file} />,
-      ]);
+        <ExternalAppMenuItems file={file} />,
+      );
       if (!uiStore.fileSelection.has(file)) {
         // replace selection with context menu, like Windows file explorer
         select(file, false, false);
