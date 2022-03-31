@@ -678,7 +678,7 @@ MainMessenger.onClearDatabase(forceRelaunch);
 MainMessenger.onToggleDevTools(() => mainWindow?.webContents.toggleDevTools());
 
 MainMessenger.onReload((frontEndOnly) =>
-  frontEndOnly ? mainWindow?.webContents.reload() : forceRelaunch,
+  frontEndOnly ? mainWindow?.webContents.reload() : forceRelaunch(),
 );
 
 MainMessenger.onOpenDialog(dialog);
