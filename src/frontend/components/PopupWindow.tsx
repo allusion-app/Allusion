@@ -30,6 +30,11 @@ const PopupWindow: React.FC<IPopupWindowProps> = (props) => {
     copyStyles(document, externalWindow.document);
     containerEl.setAttribute('data-os', PLATFORM);
 
+    // Hacky func for re-applying CSS to settings when changing that of the main window
+    (window as any).reapplyPopupStyles = () => {
+      copyStyles(document, externalWindow.document);
+    };
+
     externalWindow.addEventListener('beforeunload', props.onClose);
 
     if (props.closeOnEscape) {
@@ -61,6 +66,11 @@ const PopupWindow: React.FC<IPopupWindowProps> = (props) => {
 export default PopupWindow;
 
 function copyStyles(sourceDoc: Document, targetDoc: Document) {
+  // First clear any existing styles
+  ['style', 'link'].forEach((t) =>
+    Array.from(targetDoc.getElementsByTagName(t)).forEach((i) => i.parentElement?.removeChild(i)),
+  );
+
   for (let i = 0; i < sourceDoc.styleSheets.length; i++) {
     const styleSheet = sourceDoc.styleSheets[i];
     // production mode bundles CSS in one file

@@ -3,13 +3,13 @@ import { getFilenameFriendlyFormattedDateTime } from 'common/fmt';
 import { getThumbnailPath, isDirEmpty } from 'common/fs';
 import { WINDOW_STORAGE_KEY } from 'common/window';
 import { shell } from 'electron';
-import fse from 'fs-extra';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
 import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
+import useCustomTheme from 'src/frontend/hooks/useCustomTheme';
 import { RendererMessenger } from 'src/Messaging';
 import {
   Button,
@@ -160,74 +160,35 @@ const Zoom = () => {
 };
 
 const CustomThemePicker = () => {
-  const [themeDir, setThemeDir] = useState('');
-  const [themeFiles, setThemeFiles] = useState<string[]>([]);
+  const { theme, setTheme, refresh, options, themeDir } = useCustomTheme();
 
-  // TODO: persist this somewhere. UIStore? LocalStorage?
-  const [selectedTheme, setSelectedTheme] = useState<string>();
-
-  // Load theme files in the Electron application's themes/ directory
-  const loadThemeFiles = useCallback(async (themeDir: string) => {
-    try {
-      await fse.ensureDir(themeDir);
-      const files = await fse.readdir(themeDir);
-      console.log('setting state', files);
-      setThemeFiles(files.filter((f) => f.endsWith('.css')));
-    } catch (e) {
-      console.error(e);
-    }
-  }, []);
-
-  const setTheme = useCallback(() => {
-    // TODO: Should move this somewhere else too, should be applied on start-up
-    const customThemeLinkId = 'custom-theme-link';
-    document.getElementById(customThemeLinkId)?.remove();
-
-    if (selectedTheme) {
-      const link = document.createElement('link');
-      link.id = customThemeLinkId;
-      link.rel = 'stylesheet';
-      link.type = 'text/css';
-      link.href = `file:///${themeDir}/${selectedTheme}`;
-      document.head.appendChild(link);
-    }
-  }, [selectedTheme, themeDir]);
-
-  useEffect(
-    () => {
-      RendererMessenger.getThemesDirectory().then((dir) => {
-        setThemeDir(dir);
-        loadThemeFiles(dir);
-      });
-    },
+  useEffect(() => {
+    refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  }, []);
 
   return (
     <fieldset>
-      <legend>Custom themes</legend>
-      <select onChange={(e) => setSelectedTheme(e.target.value)}>
-        {<option>None (default)</option>}
-        {themeFiles.map((file) => (
-          <option key={file}>{file}</option>
+      <legend>Theme customization</legend>
+      <select onChange={(e) => setTheme(e.target.value)} defaultValue={theme}>
+        {<option value="">None (default)</option>}
+        {options.map((file) => (
+          <option key={file} value={file}>
+            {file.replace('.css', '')}
+          </option>
         ))}
-      </select>
-
-      <Button
-        styling="minimal"
+      </select>{' '}
+      <IconButton
         icon={IconSet.RELOAD}
         text="Refresh"
-        onClick={() => loadThemeFiles(themeDir)}
+        onClick={refresh}
+        data-tooltip="Reload the list of themes and current theme"
       />
-
-      <Button styling="minimal" icon={IconSet.SELECT_CHECKED} text="Apply" onClick={setTheme} />
-
-      <Button
-        styling="minimal"
+      <IconButton
         icon={IconSet.FOLDER_CLOSE}
         text="Open"
         onClick={() => shell.showItemInFolder(themeDir)}
+        data-tooltip="Open the directory containing the theme files"
       />
     </fieldset>
   );

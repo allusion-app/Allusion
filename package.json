@@ -53,6 +53,9 @@
         "resources/exiftool/.Exiftool_config"
       ]
     },
+    "extraResources": [
+      "resources/themes"
+    ],
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true

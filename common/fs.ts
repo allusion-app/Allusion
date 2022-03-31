@@ -1,8 +1,9 @@
 // Needed for test:
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const path = require('path');
+import path from 'path';
 import fse from 'fs-extra';
-import { thumbnailFormat } from 'common/config';
+import { thumbnailFormat } from '../common/config';
+import { IS_DEV } from './process';
 
 export function getThumbnailPath(filePath: string, thumbnailDirectory: string): string {
   const baseFilename = path.basename(filePath, path.extname(filePath));
@@ -56,4 +57,16 @@ function hashString(s: string) {
     hash |= 0; // Convert to 32bit integer
   }
   return hash;
+}
+
+/**
+ * Gets the path to a resource set up in `"extraResources`" in the package.json.
+ * See https://www.electron.build/configuration/contents#extraresources
+ * Could look into process.resourcesPath, but that doesn't seem to work in dev mode
+ * @param resourcePath The from from the resources directory, e.g. `"themes/myTheme.css"`
+ */
+export function getExtraResourcePath(resourcePath: string): string {
+  const relativeResourcesPath = (IS_DEV ? '../' : '../../') + 'resources';
+  console.log({ relativeResourcesPath, __dirname, resourcePath });
+  return path.resolve(__dirname, relativeResourcesPath, resourcePath);
 }

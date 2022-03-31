@@ -46,15 +46,13 @@ import { Awaited } from './core';
 import fse from 'fs-extra';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import exiftool from 'node-exiftool';
-import path from 'path';
-import { IS_DEV, IS_WIN } from './process';
+import { IS_WIN } from './process';
+import { getExtraResourcePath } from './fs';
 
-// The exif binary is placed using ElectronBuilder's extraResources: https://www.electron.build/configuration/contents#extraresources
-// there also is process.resourcesPath but that doesn't work in dev mode
-const resourcesPath = (IS_DEV ? '../' : '../../') + 'resources' + '/exiftool';
+// The exif binary is placed using ElectronBuilder's extraResources:
 const exiftoolRunnable = IS_WIN ? 'exiftool.exe' : 'exiftool.pl';
 
-const EXIF_TOOL_PATH = path.resolve(__dirname, resourcesPath, exiftoolRunnable);
+const EXIF_TOOL_PATH = getExtraResourcePath(`exiftool/${exiftoolRunnable}`);
 
 console.log('Exif tool path: ', EXIF_TOOL_PATH);
 const ep = new exiftool.ExiftoolProcess(EXIF_TOOL_PATH);

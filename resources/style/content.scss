@@ -80,7 +80,7 @@
 
 [aria-selected='true'] > .thumbnail {
   // If selected, show a blue border
-  background-color: var(--accent-color-blue);
+  background-color: var(--accent-color);
   > img,
   > .image-error {
     clip-path: inset(0.25rem round 0.125rem); // old design
@@ -159,7 +159,7 @@
   margin: auto;
   border-radius: 50%;
   border: 0.25rem solid var(--background-color);
-  border-top-color: var(--accent-color-blue);
+  border-top-color: var(--accent-color);
   animation: 1.5s spin infinite linear;
 
   @keyframes spin {
@@ -187,7 +187,7 @@
     contain: layout size;
 
     &[aria-selected='true'] {
-      background-color: var(--accent-color-blue);
+      background-color: var(--accent-color);
       color: white;
     }
 
@@ -266,7 +266,7 @@
 
     &:active,
     &:hover {
-      background-color: var(--accent-color-blue);
+      background-color: var(--accent-color);
     }
   }
 

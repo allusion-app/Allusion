@@ -1,0 +1,39 @@
+.dark {
+  --text-color: rgb(200, 200, 200);
+  --text-color-alt: rgb(0, 0, 0);
+  --text-color-muted: rgb(128, 128, 128);
+  --text-color-strong: rgb(255, 255, 255);
+
+  --background-color: hsl(0, 0%, 12%);
+  --background-color-alt: hsl(0, 0%, 16%);
+  --background-color-selected: hsl(209, 0%, 35%);
+
+  --shade1: hsl(216, 0%, 9%);
+  --shade2: hsl(240, 0%, 8%);
+
+  --titlebar-background-color: hsl(200, 0%, 9%);
+  --titlebar-background-color-alt: hsl(204, 0%, 13%);
+  --titlebar-color: #888;
+}
+
+.light {
+  --text-color: rgb(64, 64, 64);
+  --text-color-alt: rgb(255, 255, 255);
+  --text-color-muted: rgb(128, 128, 128);
+  --text-color-strong: rgb(0, 0, 0);
+
+  --background-color: rgb(240, 240, 240);
+  --background-color-alt: rgb(248, 248, 248);
+  --background-color-selected: hsl(209, 0%, 77%);
+
+  --shade1: hsl(0, 0%, 91%);
+  --shade2: hsl(0, 0%, 87%);
+
+  --titlebar-background-color: hsl(0, 0%, 88%);
+  --titlebar-background-color-alt: hsl(216, 0%, 80%);
+  --titlebar-color: #888;
+}
+
+.dark, .light {
+  --accent-color: #888;
+}
