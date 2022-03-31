@@ -6,7 +6,6 @@ import { ClientTag } from 'src/entities/Tag';
 import { useContextMenu } from 'src/frontend/components/ContextMenu';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDAttribute, DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
-import { useAction } from 'src/frontend/hooks/mobx';
 import { RendererMessenger } from 'src/Messaging';
 import { IconSet } from 'widgets/Icons';
 import { Menu, MenuDivider, MenuSubItem } from 'widgets/menus';
@@ -150,32 +149,32 @@ export function useCommandHandler(
   const dndData = useTagDnD();
   const { uiStore } = useStore();
   const show = useContextMenu();
-  const showContextMenu = useAction(
-    (x: number, y: number, fileMenu: JSX.Element, externalMenu: JSX.Element) => {
+
+  useEffect(() => {
+    const showContextMenu = (
+      x: number,
+      y: number,
+      fileMenu: JSX.Element,
+      externalMenu: JSX.Element,
+    ) => {
       show(
         x,
         y,
         <Menu>
           {fileMenu}
-          {!uiStore.isSlideMode && (
-            <>
-              <MenuDivider />
-              <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
-                <LayoutMenuItems />
-              </MenuSubItem>
-              <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
-                <SortMenuItems />
-              </MenuSubItem>
-            </>
-          )}
+          <MenuDivider />
+          <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
+            <LayoutMenuItems />
+          </MenuSubItem>
+          <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
+            <SortMenuItems />
+          </MenuSubItem>
           <MenuDivider />
           {externalMenu}
         </Menu>,
       );
-    },
-  );
+    };
 
-  useEffect(() => {
     const handleSelect = action((event: Event) => {
       event.stopPropagation();
       const { file, selectAdditive, selectRange } = (event as CommandHandlerEvent<SelectPayload>)
@@ -229,11 +228,14 @@ export function useCommandHandler(
     const handleSlideContextMenu = action((event: Event) => {
       event.stopPropagation();
       const { file, x, y } = (event as CommandHandlerEvent<ContextMenuPayload>).detail;
-      showContextMenu(
+      show(
         x,
         y,
-        file.isBroken ? <MissingFileMenuItems /> : <SlideFileViewerMenuItems file={file} />,
-        <ExternalAppMenuItems file={file} />,
+        <Menu>
+          {file.isBroken ? <MissingFileMenuItems /> : <SlideFileViewerMenuItems file={file} />}
+          <MenuDivider />
+          <ExternalAppMenuItems file={file} />
+        </Menu>,
       );
       if (!uiStore.fileSelection.has(file)) {
         // replace selection with context menu, like Windows file explorer
@@ -309,7 +311,7 @@ export function useCommandHandler(
       el.removeEventListener(Selector.FileDragLeave, handleDragLeave, true);
       el.removeEventListener(Selector.FileDrop, handleDrop, true);
     };
-  }, [uiStore, dndData, select, showContextMenu]);
+  }, [uiStore, dndData, select, show]);
 }
 
 /**
