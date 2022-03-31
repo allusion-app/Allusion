@@ -153,9 +153,9 @@ export class ClientTag implements ISerializable<ITag> {
     this.color = color;
   }
 
-  @action.bound insertSubTag(tag: ClientTag, at: number): void {
-    if (this === tag || this.parent.isAncestor(tag) || tag.id === ROOT_TAG_ID) {
-      return;
+  @action.bound insertSubTag(tag: ClientTag, at: number): boolean {
+    if (this === tag || this.isAncestor(tag) || tag.id === ROOT_TAG_ID) {
+      return false;
     }
     // Move to different pos in same parent: Reorder tag.subTags and return
     if (this === tag.parent) {
@@ -176,6 +176,7 @@ export class ClientTag implements ISerializable<ITag> {
       }
       tag.setParent(this);
     }
+    return true;
   }
 
   @action.bound incrementFileCount(amount = 1): void {
