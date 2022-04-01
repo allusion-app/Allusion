@@ -4,8 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { useStore } from '../../contexts/StoreContext';
 
 import { IconSet } from 'widgets';
-import { MenuSubItem, Menu } from 'widgets/menus';
-import { useContextMenu } from 'src/frontend/components/ContextMenu';
+import { MenuSubItem, Menu, useContextMenu } from 'widgets/menus';
 
 import Placeholder from './Placeholder';
 import Layout from './LayoutSwitcher';

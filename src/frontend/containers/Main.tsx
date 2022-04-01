@@ -9,7 +9,7 @@ import AppToolbar from './AppToolbar';
 import ContentView from './ContentView';
 import Outliner from './Outliner';
 import { useAction } from '../hooks/mobx';
-import { ContextMenuLayer } from '../components/ContextMenu';
+import { ContextMenuLayer } from 'widgets/menus';
 
 const Main = () => {
   const { uiStore } = useStore();

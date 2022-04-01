@@ -13,8 +13,7 @@ import {
 } from 'src/frontend/contexts/TagDnDContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import { IconSet } from 'widgets/Icons';
-import { Menu, MenuItem } from 'widgets/menus';
-import { useContextMenu } from 'src/frontend/components/ContextMenu';
+import { Menu, MenuItem, useContextMenu } from 'widgets/menus';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
 import { Callout } from 'widgets/notifications';
 import { Toolbar, ToolbarButton } from 'widgets/Toolbar';

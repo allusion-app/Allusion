@@ -3,12 +3,11 @@ import React from 'react';
 import { useEffect } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
-import { useContextMenu } from 'src/frontend/components/ContextMenu';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDAttribute, DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { RendererMessenger } from 'src/Messaging';
 import { IconSet } from 'widgets/Icons';
-import { Menu, MenuDivider, MenuSubItem } from 'widgets/menus';
+import { Menu, MenuDivider, MenuSubItem, useContextMenu } from 'widgets/menus';
 import { LayoutMenuItems, SortMenuItems } from '../AppToolbar/Menus';
 import {
   ExternalAppMenuItems,

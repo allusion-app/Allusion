@@ -7,8 +7,7 @@ import { useStore } from '../contexts/StoreContext';
 import { TagSelector } from './TagSelector';
 import { FileTagMenuItems } from '../containers/ContentView/menu-items';
 import { ClientTag } from 'src/entities/Tag';
-import { Menu } from 'widgets/menus';
-import { useContextMenu } from './ContextMenu';
+import { Menu, useContextMenu } from 'widgets/menus';
 
 interface IFileTagProp {
   file: ClientFile;
