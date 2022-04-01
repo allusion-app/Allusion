@@ -1,6 +1,6 @@
 // Needed for test:
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-import path from 'path';
+const path = require('path');
 import fse from 'fs-extra';
 import { thumbnailFormat } from '../common/config';
 import { IS_DEV } from './process';
