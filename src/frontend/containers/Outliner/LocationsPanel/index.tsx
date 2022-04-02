@@ -535,8 +535,11 @@ const LocationsPanel = observer((props: Partial<MultiSplitPaneProps>) => {
       return;
     }
 
+    const addSeparator = (path: string) => (path.endsWith(SysPath.sep) ? path : path + SysPath.sep);
+
     // Check if the new location is a sub-directory of an existing location
-    const parentDir = locationStore.exists((dir) => path.includes(dir.path));
+    // add separator to prevent /foo/bar2 from being detected as parent directory of /foo/bar
+    const parentDir = locationStore.exists((dir) => path.includes(addSeparator(dir.path)));
     if (parentDir) {
       AppToaster.show({
         message: 'You cannot add a location that is a sub-folder of an existing location.',
@@ -549,7 +552,7 @@ const LocationsPanel = observer((props: Partial<MultiSplitPaneProps>) => {
     // Need to add a separator at the end, otherwise the new path /foo is detected as a parent of existing location /football.
     // - /foo/ is not a parent directory of /football
     // - /foo/ is     a parent directory of /foo/bar
-    const pathWithSeparator = path.endsWith(SysPath.sep) ? path : path + SysPath.sep;
+    const pathWithSeparator = addSeparator(path);
     const childDir = locationStore.exists((dir) => dir.path.includes(pathWithSeparator));
     if (childDir) {
       AppToaster.show({
