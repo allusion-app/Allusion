@@ -9,6 +9,7 @@ import AppToolbar from './AppToolbar';
 import ContentView from './ContentView';
 import Outliner from './Outliner';
 import { useAction } from '../hooks/mobx';
+import { ContextMenuLayer } from 'widgets/menus';
 
 const Main = () => {
   const { uiStore } = useStore();
@@ -61,23 +62,25 @@ const Main = () => {
   });
 
   return (
-    <TagDnDProvider value={data.current}>
-      <Split
-        id="window-splitter"
-        primary={<Outliner />}
-        secondary={
-          <main id="main" onKeyDown={handleShortcuts}>
-            <AppToolbar />
-            <ContentView />
-          </main>
-        }
-        axis="vertical"
-        align="left"
-        splitPoint={uiStore.outlinerWidth}
-        isExpanded={uiStore.isOutlinerOpen}
-        onMove={uiStore.moveOutlinerSplitter}
-      />
-    </TagDnDProvider>
+    <ContextMenuLayer>
+      <TagDnDProvider value={data.current}>
+        <Split
+          id="window-splitter"
+          primary={<Outliner />}
+          secondary={
+            <main id="main" onKeyDown={handleShortcuts}>
+              <AppToolbar />
+              <ContentView />
+            </main>
+          }
+          axis="vertical"
+          align="left"
+          splitPoint={uiStore.outlinerWidth}
+          isExpanded={uiStore.isOutlinerOpen}
+          onMove={uiStore.moveOutlinerSplitter}
+        />
+      </TagDnDProvider>
+    </ContextMenuLayer>
   );
 };
 

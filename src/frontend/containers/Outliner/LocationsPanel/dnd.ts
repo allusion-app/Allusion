@@ -44,16 +44,17 @@ export function handleDragLeave(event: React.DragEvent<HTMLDivElement>) {
 
 export async function storeDroppedImage(e: React.DragEvent, directory: string) {
   const dropData = await getDropData(e);
+
   for (const dataItem of dropData) {
     let fileData: IStoreFileMessage | undefined;
 
     // Store file -> detected by watching the directory -> automatically imported
     if (dataItem instanceof File) {
-      const file = await fse.readFile(dataItem.path);
+      const buffer = dataItem.path ? await fse.readFile(dataItem.path) : dataItem;
       fileData = {
         directory,
         filenameWithExt: path.basename(dataItem.path),
-        imgBase64: file.toString('base64'),
+        imgBase64: buffer.toString('base64'),
       };
     } else if (typeof dataItem === 'string') {
       // It's probably a URL, so we can download it to get the image data

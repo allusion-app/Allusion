@@ -1,31 +1,51 @@
-import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePopover } from '../popovers/usePopover';
-import { MenuProps } from './menus';
+import { Menu, MenuProps } from './menus';
 
-export interface ContextMenuProps {
+export const ContextMenuLayer = ({ children }: { children: React.ReactNode }) => {
+  const [state, setState] = useState({ isOpen: false, x: 0, y: 0, menu: <Menu>{[]}</Menu> });
+  const { show, hide } = useRef({
+    show: (x: number, y: number, menu: React.ReactElement<MenuProps>) => {
+      setState({ isOpen: true, x, y, menu });
+    },
+    hide: () => {
+      setState({ isOpen: false, x: 0, y: 0, menu: <Menu>{[]}</Menu> });
+    },
+  }).current;
+
+  return (
+    <ContextMenuProvider value={show}>
+      {children}
+      <ContextMenu isOpen={state.isOpen} x={state.x} y={state.y} close={hide}>
+        {state.menu}
+      </ContextMenu>
+    </ContextMenuProvider>
+  );
+};
+
+export const useContextMenu = () => {
+  return useContext(ContextMenuContext);
+};
+
+type ContextMenuActions = (x: number, y: number, menu: React.ReactElement<MenuProps>) => void;
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const ContextMenuContext = React.createContext<ContextMenuActions>(() => {});
+
+const ContextMenuProvider = ContextMenuContext.Provider;
+
+interface ContextMenuProps {
   isOpen: boolean;
   x: number;
   y: number;
-  children: React.ReactElement<MenuProps> | React.ReactFragment;
+  children: React.ReactElement<MenuProps>;
   close: () => void;
 }
 
 /**
  * The classic desktop context menu
- *
- * Unlike other implementations there is no single context menu added through a
- * React portal. This component is driven entirely by the state of your app.
- *
- * This might seem inconvenient but the upside is that styling has not to be
- * re-applied to a portal and that multiple context menus can exist without
- * harming performance. In short this component is more inconvenient but allows
- * for better composability.
- *
- * Since it is really annoying to always write out the same lines of code, the
- * `useContextMenu` hook can be used to create all the necessary state and
- * callbacks which can be used to set the state from deep within a tree.
  */
-export const ContextMenu = ({ isOpen, x, y, children, close }: ContextMenuProps) => {
+const ContextMenu = ({ isOpen, x, y, children, close }: ContextMenuProps) => {
   const container = useRef<HTMLDivElement>(null);
   const boundingRect = useRef(new DOMRect());
   const { style, reference, floating, update } = usePopover('right-start');
@@ -99,7 +119,7 @@ export const ContextMenu = ({ isOpen, x, y, children, close }: ContextMenuProps)
       onClick={handleClick}
       onMouseOver={handleMouseOver}
     >
-      {isOpen ? children : null}
+      {children}
     </div>
   );
 };

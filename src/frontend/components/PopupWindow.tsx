@@ -55,7 +55,8 @@ const PopupWindow: React.FC<IPopupWindowProps> = (props) => {
   if (win) {
     return ReactDOM.createPortal(
       <>
-        {props.children} <Overlay document={win.document} />
+        {props.children}
+        <Overlay document={win.document} />
       </>,
       containerEl,
     );

@@ -103,7 +103,8 @@ const QuickSearchList = observer(() => {
 const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
   const { fileStore, uiStore } = useStore();
 
-  const handleClick = useRef(() => {
+  const handleClick = useRef((e: React.MouseEvent) => {
+    e.stopPropagation();
     uiStore.toggleSearchMatchAny();
     fileStore.refetch();
   }).current;
@@ -148,6 +149,7 @@ const CriteriaList = observer(() => {
               fileStore.refetch();
               e.stopPropagation();
               e.preventDefault();
+              // TODO: search input element keeps focus after click???
             }}
             className="btn-icon-large"
           />

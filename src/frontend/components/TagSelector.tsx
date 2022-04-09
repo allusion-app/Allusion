@@ -48,10 +48,14 @@ const TagSelector = (props: TagSelectorProps) => {
     setQuery(e.target.value);
   }).current;
 
-  const clearSelection = useCallback(() => {
-    setQuery('');
-    onClear();
-  }, [onClear]);
+  const clearSelection = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setQuery('');
+      onClear();
+    },
+    [onClear],
+  );
 
   const isInputEmpty = query.length === 0;
 

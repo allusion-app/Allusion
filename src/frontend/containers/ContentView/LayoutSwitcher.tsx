@@ -14,10 +14,9 @@ import { ContentRect } from './utils';
 
 interface LayoutProps {
   contentRect: ContentRect;
-  showContextMenu: (x: number, y: number, menu: [JSX.Element, JSX.Element]) => void;
 }
 
-const Layout = ({ contentRect, showContextMenu }: LayoutProps) => {
+const Layout = ({ contentRect }: LayoutProps) => {
   const { fileStore, uiStore } = useStore();
 
   // Todo: Select by dragging a rectangle shape
@@ -121,7 +120,7 @@ const Layout = ({ contentRect, showContextMenu }: LayoutProps) => {
     return () => window.clearTimeout(handle);
   }, [isSlideMode]);
 
-  useCommandHandler(handleFileSelect, showContextMenu);
+  useCommandHandler(handleFileSelect);
 
   if (contentRect.width < 10) {
     return null;

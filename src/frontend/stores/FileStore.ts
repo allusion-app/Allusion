@@ -547,7 +547,7 @@ class FileStore {
     }
   }
 
-  @action private async updateFromBackend(backendFiles: IFile[]): Promise<void> {
+  @action async updateFromBackend(backendFiles: IFile[]): Promise<void> {
     if (backendFiles.length === 0) {
       this.rootStore.uiStore.clearFileSelection();
       this.fileListLastModified = new Date();

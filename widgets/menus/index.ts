@@ -20,7 +20,7 @@ import {
   IMenuRadioItem,
   MenuItemLinkProps,
 } from './menu-items';
-import { ContextMenu } from './ContextMenu';
+import { ContextMenuLayer, useContextMenu } from './ContextMenu';
 import { MenuButton } from './MenuButton';
 
 export {
@@ -44,4 +44,12 @@ export {
 
 import { Toolbar, ToolbarButton, ToolbarSegment, ToolbarSegmentButton } from '../Toolbar';
 
-export { ContextMenu, ToolbarButton, MenuButton, ToolbarSegment, ToolbarSegmentButton, Toolbar };
+export {
+  ContextMenuLayer,
+  useContextMenu,
+  ToolbarButton,
+  MenuButton,
+  ToolbarSegment,
+  ToolbarSegmentButton,
+  Toolbar,
+};

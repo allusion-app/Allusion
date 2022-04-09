@@ -39,7 +39,7 @@ backend
 
 if (IS_PREVIEW_WINDOW) {
   RendererMessenger.onReceivePreviewFiles(
-    ({ ids, thumbnailDirectory, viewMethod, activeImgId }) => {
+    async ({ ids, thumbnailDirectory, viewMethod, activeImgId }) => {
       rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
       rootStore.uiStore.setMethod(viewMethod);
       rootStore.uiStore.enableSlideMode();
@@ -50,9 +50,19 @@ if (IS_PREVIEW_WINDOW) {
         }
       });
 
-      rootStore.fileStore.fetchFilesByIDs(ids).then(() => {
-        rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
-      });
+      const files = await backend.fetchFilesByID(ids);
+
+      // If a file has a location we don't know about (e.g. when a new location was added to the main window),
+      // re-fetch the locations in the preview window
+      const hasNewLocation = runInAction(() =>
+        files.some((f) => !rootStore.locationStore.locationList.find((l) => l.id === f.id)),
+      );
+      if (hasNewLocation) {
+        await rootStore.locationStore.init();
+      }
+
+      await rootStore.fileStore.updateFromBackend(files);
+      rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
     },
   );
 

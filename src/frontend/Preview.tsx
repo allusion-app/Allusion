@@ -6,7 +6,7 @@ import { useStore } from './contexts/StoreContext';
 import ErrorBoundary from './containers/ErrorBoundary';
 import ContentView from './containers/ContentView';
 import { IconSet, Toggle } from 'widgets';
-import { Toolbar, ToolbarButton } from 'widgets/menus';
+import { ContextMenuLayer, Toolbar, ToolbarButton } from 'widgets/menus';
 
 import { useWorkerListener } from './image/ThumbnailGeneration';
 import SplashScreen from './containers/SplashScreen';
@@ -77,7 +77,9 @@ const PreviewApp = observer(() => {
           />
         </Toolbar>
 
-        <ContentView />
+        <ContextMenuLayer>
+          <ContentView />
+        </ContextMenuLayer>
       </ErrorBoundary>
     </div>
   );
