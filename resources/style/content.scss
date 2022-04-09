@@ -154,8 +154,8 @@
 }
 
 .image-loading {
-  width: var(--thumbnail-size, 100px);
-  height: var(--thumbnail-size, 100px);
+  width: 2rem;
+  aspect-ratio: 1 / 1;
   margin: auto;
   border-radius: 50%;
   border: 0.25rem solid var(--background-color);
