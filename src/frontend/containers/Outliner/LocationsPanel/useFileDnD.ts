@@ -52,11 +52,11 @@ export const useFileDropHandling = (
           console.error(e);
           AppToaster.show({
             message: 'Something went wrong, could not import image :(',
-            timeout: 100,
+            timeout: 4000,
           });
         }
       } else {
-        AppToaster.show({ message: 'File type not supported :(', timeout: 100 });
+        AppToaster.show({ message: 'File type not supported :(', timeout: 4000 });
       }
     },
     [fullPath],
