@@ -551,7 +551,11 @@ export type FileStats = {
   ino: string;
 };
 
-async function pathToIFile(stats: FileStats, loc: ClientLocation, exifIO: ExifIO): Promise<IFile> {
+export async function pathToIFile(
+  stats: FileStats,
+  loc: ClientLocation,
+  exifIO: ExifIO,
+): Promise<IFile> {
   const now = new Date();
   return {
     absolutePath: stats.absolutePath,

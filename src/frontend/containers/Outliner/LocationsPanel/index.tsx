@@ -511,7 +511,7 @@ const LocationsPanel = observer((props: Partial<MultiSplitPaneProps>) => {
   const handleChooseWatchedDir = useCallback(async () => {
     let path: string;
     try {
-      const { filePaths } = await RendererMessenger.openDialog({
+      const { filePaths } = await RendererMessenger.showOpenDialog({
         properties: ['openDirectory'],
       });
       // multi-selection is disabled which means there can be at most 1 folder

@@ -223,7 +223,7 @@ const LocationRecoveryDialog = () => {
   };
 
   const handleLocate = async () => {
-    const { filePaths: dirs } = await RendererMessenger.openDialog({
+    const { filePaths: dirs } = await RendererMessenger.showOpenDialog({
       properties: ['openDirectory'],
       defaultPath: location.path, // TODO: Maybe pick the parent dir of the original location by default?
     });

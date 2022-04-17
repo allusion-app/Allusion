@@ -1,10 +1,8 @@
-import { ipcRenderer, ipcMain, WebContents } from 'electron';
+import { BrowserWindow, ipcMain, ipcRenderer, WebContents } from 'electron';
 import path from 'path';
-
+import { IImportItem } from './clipper/server';
 import { ID } from './entities/ID';
 import { ITag } from './entities/Tag';
-
-import { IImportItem } from './clipper/server';
 import { ViewMethod } from './frontend/stores/UiStore';
 
 /**
@@ -32,6 +30,8 @@ const CLEAR_DATABASE = 'CLEAR_DATABASE';
 const TOGGLE_DEV_TOOLS = 'TOGGLE_DEV_TOOLS';
 const RELOAD = 'RELOAD';
 const OPEN_DIALOG = 'OPEN_DIALOG';
+const MESSAGE_BOX = 'MESSAGE_BOX';
+const MESSAGE_BOX_SYNC = 'MESSAGE_BOX_SYNC';
 const GET_PATH = 'GET_PATH';
 const TRASH_FILE = 'TRASH_FILE';
 const SET_FULL_SCREEN = 'SET_FULL_SCREEN';
@@ -133,9 +133,16 @@ export class RendererMessenger {
 
   static reload = (frontEndOnly?: boolean) => ipcRenderer.send(RELOAD, frontEndOnly);
 
-  static openDialog = (
+  static showOpenDialog = (
     options: Electron.OpenDialogOptions,
   ): Promise<Electron.OpenDialogReturnValue> => ipcRenderer.invoke(OPEN_DIALOG, options);
+
+  static showMessageBox = (
+    options: Electron.MessageBoxOptions,
+  ): Promise<Electron.MessageBoxReturnValue> => ipcRenderer.invoke(MESSAGE_BOX, options);
+
+  static showMessageBoxSync = (options: Electron.MessageBoxSyncOptions): Promise<number> =>
+    ipcRenderer.invoke(MESSAGE_BOX_SYNC, options);
 
   static getPath = (name: SYSTEM_PATHS): Promise<string> => ipcRenderer.invoke(GET_PATH, name);
 
@@ -246,7 +253,22 @@ export class MainMessenger {
     ipcMain.on(RELOAD, (_, frontEndOnly) => cb(frontEndOnly));
 
   static onOpenDialog = (dialog: Electron.Dialog) =>
-    ipcMain.handle(OPEN_DIALOG, (_, options) => dialog.showOpenDialog(options));
+    ipcMain.handle(OPEN_DIALOG, (e, options) => {
+      const bw = BrowserWindow.fromWebContents(e.sender);
+      return bw ? dialog.showOpenDialog(bw, options) : dialog.showOpenDialog(options);
+    });
+
+  static onMessageBox = (dialog: Electron.Dialog) =>
+    ipcMain.handle(MESSAGE_BOX, (e, options) => {
+      const bw = BrowserWindow.fromWebContents(e.sender);
+      return bw ? dialog.showMessageBox(bw, options) : dialog.showMessageBox(options);
+    });
+
+  static onMessageBoxSync = (dialog: Electron.Dialog) =>
+    ipcMain.handle(MESSAGE_BOX_SYNC, (e, options) => {
+      const bw = BrowserWindow.fromWebContents(e.sender);
+      return bw ? dialog.showMessageBoxSync(bw, options) : dialog.showMessageBoxSync(options);
+    });
 
   static onGetPath = (cb: (name: SYSTEM_PATHS) => string) =>
     ipcMain.handle(GET_PATH, (_, name) => cb(name));

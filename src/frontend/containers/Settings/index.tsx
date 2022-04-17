@@ -168,7 +168,7 @@ const ImportExport = observer(() => {
   }, []);
 
   const handleChooseImportDir = async () => {
-    const { filePaths } = await RendererMessenger.openDialog({
+    const { filePaths } = await RendererMessenger.showOpenDialog({
       properties: ['openFile'],
       filters: [{ extensions: ['json'], name: 'JSON' }],
       defaultPath: backupDir,
@@ -449,7 +449,7 @@ const BackgroundProcesses = observer(() => {
 
   const importDirectory = uiStore.importDirectory;
   const browseImportDirectory = async () => {
-    const { filePaths: dirs } = await RendererMessenger.openDialog({
+    const { filePaths: dirs } = await RendererMessenger.showOpenDialog({
       properties: ['openDirectory'],
       defaultPath: importDirectory,
     });
@@ -617,7 +617,7 @@ const Advanced = observer(() => {
   };
 
   const browseThumbnailDirectory = async () => {
-    const { filePaths: dirs } = await RendererMessenger.openDialog({
+    const { filePaths: dirs } = await RendererMessenger.showOpenDialog({
       properties: ['openDirectory'],
       defaultPath: thumbnailDirectory,
     });

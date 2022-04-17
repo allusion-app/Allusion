@@ -235,6 +235,7 @@ export async function getMetaData(stats: FileStats, exifIO: ExifIO): Promise<IMe
 export function mergeMovedFile(oldFile: IFile, newFile: IFile): IFile {
   return {
     ...oldFile,
+    ino: newFile.ino,
     name: newFile.name,
     extension: newFile.extension,
     absolutePath: newFile.absolutePath,
