@@ -5,7 +5,7 @@
 use crate::util::UnwrapOrAbort;
 use alloc::{vec, vec::Vec};
 
-use crate::wide::{F32x4, U32x4};
+use crate::packed::{F32x4, U32x4};
 
 pub struct Layout {
     num_items: usize,
@@ -279,7 +279,7 @@ mod vertical_masonry {
 
     use crate::util::UnwrapOrAbort;
 
-    use crate::wide::U32x4;
+    use crate::packed::U32x4;
 
     type Mask = U32x4;
 

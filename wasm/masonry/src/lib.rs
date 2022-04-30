@@ -10,4 +10,4 @@ mod layout;
 mod masonry_worker;
 mod sync;
 mod util;
-mod wide;
+mod packed;
