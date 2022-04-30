@@ -15,8 +15,10 @@
     "build": "rimraf dist && yarn production && yarn logo",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "build:masonry": "cargo install wasm-bindgen-cli --version 0.2.78 && cd wasm/masonry && cargo build --release && wasm-bindgen --out-dir pkg --target web --omit-default-module-path --remove-name-section --remove-producers-section target/wasm32-unknown-unknown/release/masonry.wasm",
-    "build:exr": "cd wasm/exr-decoder && wasm-pack build --target web"
+    "wasm-build": "cd wasm/wasm-build && cargo run",
+    "build:masonry": "yarn wasm-build masonry",
+    "build:masonry-simd": "yarn wasm-build masonry masonry-simd",
+    "build:exr": "yarn wasm-build exr-decoder exr"
   },
   "build": {
     "appId": "com.allusion-app.allusion",
