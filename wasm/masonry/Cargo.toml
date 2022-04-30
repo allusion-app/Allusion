@@ -7,14 +7,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-wasm-bindgen = "0.2.78"
-js-sys = "0.3.55"
+wasm-bindgen = "0.2.80"
+js-sys = "0.3.57"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [profile.release]
-# Increases compile times for better inlining
 codegen-units = 1
-# Increases compile times for better inlining across crates
 lto = true
+panic = "abort"
