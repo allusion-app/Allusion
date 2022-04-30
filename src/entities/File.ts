@@ -155,7 +155,7 @@ export class ClientFile implements ISerializable<IFile> {
       this.tags.add(tag);
       tag.incrementFileCount();
 
-      if (this.tags.size === 0) {
+      if (this.tags.size === 1) {
         this.store.decrementNumUntaggedFiles();
       }
     }
