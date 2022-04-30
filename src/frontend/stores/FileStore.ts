@@ -276,6 +276,7 @@ class FileStore {
     }
   }
 
+  /** Removes a file from the internal state of this store and the DB. Does not remove from disk. */
   @action async deleteFiles(files: ClientFile[]): Promise<void> {
     if (files.length === 0) {
       return;
@@ -288,10 +289,12 @@ class FileStore {
 
       // Remove files from stores
       for (const file of files) {
+        file.dispose();
         this.rootStore.uiStore.deselectFile(file);
         this.removeThumbnail(file.absolutePath);
       }
-      this.refetch();
+      this.fileListLastModified = new Date();
+      return this.refetch();
     } catch (err) {
       console.error('Could not remove files', err);
     }
@@ -312,15 +315,15 @@ class FileStore {
     }
   }
 
-  @action.bound refetch() {
+  @action.bound async refetch() {
     if (this.showsAllContent) {
-      this.fetchAllFiles();
+      return this.fetchAllFiles();
     } else if (this.showsUntaggedContent) {
-      this.fetchUntaggedFiles();
+      return this.fetchUntaggedFiles();
     } else if (this.showsQueryContent) {
-      this.fetchFilesByQuery();
+      return this.fetchFilesByQuery();
     } else if (this.showsMissingContent) {
-      this.fetchMissingFiles();
+      return this.fetchMissingFiles();
     }
   }
 

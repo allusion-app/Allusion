@@ -7,6 +7,7 @@ import { timeoutPromise } from 'common/timeout';
 import { IStoreFileMessage, RendererMessenger } from 'src/Messaging';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import FileStore from 'src/frontend/stores/FileStore';
+import { action } from 'mobx';
 
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
 
@@ -14,18 +15,17 @@ export const isAcceptableType = (e: React.DragEvent) =>
   e.dataTransfer.types.some((type) => ALLOWED_DROP_TYPES.includes(type));
 
 /** Returns the IDs of the files that match those in Allusion given dropData. Returns false if one or files has no matches */
-export const findDroppedFileMatches = (
-  dropData: (File | string)[],
-  fs: FileStore,
-): ClientFile[] | false => {
-  const matches = dropData.map(
-    (file) =>
-      typeof file !== 'string' &&
-      file.path &&
-      fs.fileList.find((f) => f.absolutePath === file.path),
-  );
-  return matches.every((m): m is ClientFile => m instanceof ClientFile) ? matches : false;
-};
+export const findDroppedFileMatches = action(
+  (dropData: (File | string)[], fs: FileStore): ClientFile[] | false => {
+    const matches = dropData.map(
+      (file) =>
+        typeof file !== 'string' &&
+        file.path &&
+        fs.fileList.find((f) => f.absolutePath === file.path),
+    );
+    return matches.every((m): m is ClientFile => m instanceof ClientFile) ? matches : false;
+  },
+);
 
 /**
  * Executed callback function while dragging over a target.

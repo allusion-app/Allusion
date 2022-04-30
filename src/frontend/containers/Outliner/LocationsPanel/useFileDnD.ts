@@ -2,7 +2,7 @@ import { humanFileSize } from 'common/fmt';
 import fse from 'fs-extra';
 import path from 'path';
 import { useCallback, useState } from 'react';
-import { ClientFile, IFile } from 'src/entities/File';
+import { ClientFile } from 'src/entities/File';
 import { ClientLocation } from 'src/entities/Location';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -54,7 +54,9 @@ const handleMove = async (
           message: `"${file.name}" already exists in this folder. Replace or skip?`,
           detail: `From "${path.dirname(file.absolutePath)}" (${humanFileSize(
             srcStats.size,
-          )}) \nTo      "${dir}" (${humanFileSize(dstStats.size)})`,
+          )}) \nTo      "${dir}" (${humanFileSize(
+            dstStats.size,
+          )})\nNote: The tags on the replaced image will be lost.`,
           buttons: ['&Replace', '&Skip', '&Cancel'],
           normalizeAccessKeys: true,
           defaultId: 0,
@@ -71,31 +73,23 @@ const handleMove = async (
         }
       }
 
-      // When replacing an existing file, no change is detected: only the original file is removed
+      // When replacing an existing file, no change is detected when moving the file
+      // The target file needs to be removed from disk and the DB first
       if (alreadyExists) {
-        // const newData: IFile = {
-        //   ...file.serialize(),
-        //   absolutePath: dst,
-        //   relativePath: dst.replace(loc.path, ''),
-        // };
-
-        // console.log('Moving file on disk from', src, 'to', dst);
-        // // Move the file on disk. After a while the file watcher will detect it and mark this file as unlinked
-        // await fse.move(src, dst, { overwrite: true });
-
-        // console.log('Delete file in db', file.serialize());
-        // // Remove the original file from the database, so it doesn't linger around as an unlinked file
-        // await fileStore.deleteFiles([file]);
-
-        // console.log('Update file in db', newData);
-        // // Update the path of the moved file in the database
-        // fileStore.replaceMovedFile(file, newData);
-
+        // - Remove the target file from disk
         await fse.remove(dst);
+
+        // - Remove the target file from the store
+        // TODO: This removes the target file and its tags. Could merge them, but that's a bit more work
         const dstFile = fileStore.fileList.find((f) => f.absolutePath === dst);
         if (dstFile) {
           await fileStore.deleteFiles([dstFile]);
         }
+
+        // - Move the source file to the target path
+        // Now the DB and internal state have been prepared to be able to detect the moving of the file
+        // Will be done with the move operation below
+        // We need to wait a second for the UI to update, otherwise it will cause render issues for some reason (old and new are rendered simultaneously)
         await new Promise((res) => setTimeout(res, 1000));
       } else {
         // Else, the file watcher process will detect the changes and update the File entity accordingly
