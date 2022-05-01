@@ -91,7 +91,7 @@ fn main() {
         Command::new(format!("./wasm-opt/{}/wasm-opt", os))
             .current_dir("..")
             .arg(&output_path)
-            .arg("-O")
+            .arg("-O3")
             .args(["--output", &output_path]),
     )
 }
@@ -137,12 +137,9 @@ fn setup_toolchain(crate_path: &str) -> Option<String> {
     for line in lines {
         if let Ok(line) = line {
             if let Some((key, value)) = line.split_once("=") {
-                let (key, value) = (key.trim(), value.trim());
+                let (key, value) = (trim_value(key), trim_value(value));
                 match key {
-                    "channel" => {
-                        let value = trim_value(value);
-                        channel = value.to_string();
-                    }
+                    "channel" => channel = value.to_string(),
                     "components" => match value.as_bytes() {
                         [b'[', .., b']'] => {
                             let list = value[1..value.len() - 2].split(",");
@@ -153,9 +150,7 @@ fn setup_toolchain(crate_path: &str) -> Option<String> {
                         _ => {}
                     },
                     "profile" => match value {
-                        "minimal" | "default" | "complete" => {
-                            profile = trim_value(value).to_string()
-                        }
+                        "minimal" | "default" | "complete" => profile = value.to_string(),
                         _ => {}
                     },
                     _ => {}
@@ -175,19 +170,30 @@ fn setup_toolchain(crate_path: &str) -> Option<String> {
                 &mut command
             },
         );
-    } else {
-        if !components.is_empty() {
-            execute_command(
-                "Adding components",
-                Command::new("rustup")
-                    .args(["component", "add"])
-                    .args(&components),
-            )
-        };
     }
+
+    if !components.is_empty() {
+        let mut command = Command::new("rustup");
+        command.args(["component", "add"]).args(&components);
+        execute_command(
+            "Adding components",
+            if !channel.is_empty() {
+                command.args(["--toolchain", &channel])
+            } else {
+                &mut command
+            },
+        )
+    }
+
+    let mut command = Command::new("rustup");
+    command.args(["target", "add", "wasm32-unknown-unknown"]);
     execute_command(
         "Adding wasm32-unknown-unknown target",
-        Command::new("rustup").args(["target", "add", "wasm32-unknown-unknown"]),
+        if !channel.is_empty() {
+            command.args(["--toolchain", &channel])
+        } else {
+            &mut command
+        },
     );
 
     (!channel.is_empty()).then(|| channel)
