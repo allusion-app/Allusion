@@ -15,8 +15,7 @@
     "build": "rimraf dist && yarn production && yarn logo",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "build:masonry-scalar": "cd wasm/wasm-build && cargo run masonry masonry/masonry-scalar",
-    "build:masonry-simd": "cd wasm/wasm-build && cargo run masonry masonry/masonry-simd -- -C target-feature=+simd128",
+    "build:masonry": "cd wasm/wasm-build && cargo run masonry masonry/masonry-scalar && cargo run masonry masonry/masonry-simd -- -C target-feature=+simd128",
     "build:exr": "cd wasm/wasm-build && cargo run exr-decoder exr"
   },
   "build": {
