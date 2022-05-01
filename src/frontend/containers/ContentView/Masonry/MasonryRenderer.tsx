@@ -5,7 +5,7 @@ import { useStore } from 'src/frontend/contexts/StoreContext';
 import FocusManager from 'src/frontend/FocusManager';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
 import { debounce, throttle } from 'common/timeout';
-import { MasonryType } from 'wasm/masonry/pkg/masonry';
+import { MasonryType } from 'wasm/packages/masonry';
 import { GalleryProps, getThumbnailSize } from '../utils';
 import { MasonryWorkerAdapter } from './MasonryWorkerAdapter';
 import VirtualizedRenderer from './VirtualizedRenderer';

@@ -1,0 +1,4 @@
+[toolchain]
+channel = "stable-2022-02-24"
+targets = ["wasm32-unknown-unknown"]
+profile = "minimal"

@@ -8,6 +8,6 @@ extern crate core;
 mod data;
 mod layout;
 mod masonry_worker;
+mod packed;
 mod sync;
 mod util;
-mod wide;

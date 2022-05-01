@@ -1,5 +1,8 @@
-[target.wasm32-unknown-unknown]
+[target.'cfg(target_feature = "simd128")']
 rustflags = ["-C", "target-feature=+atomics,+bulk-memory,+mutable-globals,+simd128"]
+
+[target.'cfg(not(target_feature = "simd128"))']
+rustflags = ["-C", "target-feature=+atomics,+bulk-memory,+mutable-globals"]
 
 [unstable]
 build-std = ["panic_abort", "std"]
