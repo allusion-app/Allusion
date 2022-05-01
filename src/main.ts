@@ -683,6 +683,10 @@ MainMessenger.onReload((frontEndOnly) =>
 
 MainMessenger.onOpenDialog(dialog);
 
+MainMessenger.onMessageBox(dialog);
+
+MainMessenger.onMessageBoxSync(dialog);
+
 MainMessenger.onGetPath((path) => app.getPath(path));
 
 MainMessenger.onTrashFile((absolutePath) => shell.trashItem(absolutePath));
