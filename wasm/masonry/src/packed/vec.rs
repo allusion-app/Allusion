@@ -92,7 +92,7 @@ impl From<F32x4> for U32x4 {
 
 impl From<U32x4> for [u32; 4] {
     fn from(value: U32x4) -> Self {
-        unsafe { *(&value as *const U32x4 as *const [u32; 4]) }
+        value.0
     }
 }
 

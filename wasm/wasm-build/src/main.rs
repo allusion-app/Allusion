@@ -49,7 +49,7 @@ fn main() {
         // .arg("--verbose")
         .arg("--release");
 
-    if !args.is_empty() {
+    if !rustc_flags.is_empty() {
         cargo.arg("--").args(rustc_flags);
     }
 
@@ -79,7 +79,12 @@ fn main() {
 
     // Optimize generated Webassembly module
     let output_path = format!("{}/{}_bg.wasm", package_path, wasm_name);
+    #[cfg(target_os = "windows")]
     let os = "windows";
+    #[cfg(target_os = "macos")]
+    let os = "macos";
+    #[cfg(target_os = "linux")]
+    let os = "linux";
 
     execute_command(
         "Optimizing Webassembly module",

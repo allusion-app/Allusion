@@ -15,10 +15,9 @@
     "build": "rimraf dist && yarn production && yarn logo",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "wasm-build": "cd wasm/wasm-build && cargo run",
-    "build:masonry": "yarn wasm-build masonry",
-    "build:masonry-simd": "yarn wasm-build masonry masonry-simd",
-    "build:exr": "yarn wasm-build exr-decoder exr"
+    "build:masonry-scalar": "cd wasm/wasm-build && cargo run masonry masonry/masonry-scalar",
+    "build:masonry-simd": "cd wasm/wasm-build && cargo run masonry masonry/masonry-simd -- -C target-feature=+simd128",
+    "build:exr": "cd wasm/wasm-build && cargo run exr-decoder exr"
   },
   "build": {
     "appId": "com.allusion-app.allusion",
@@ -136,6 +135,7 @@
     "react-window": "^1.8.6",
     "sourcemapped-stacktrace": "^1.1.11",
     "utif": "^3.1.0",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "wasm-feature-detect": "^1.2.11"
   }
 }

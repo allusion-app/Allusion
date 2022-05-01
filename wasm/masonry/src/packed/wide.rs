@@ -18,32 +18,39 @@ pub struct F32x4(v128);
 impl U32x4 {
     pub const ZERO: U32x4 = U32x4::new(0, 0, 0, 0);
 
+    #[target_feature(enable = "simd128")]
     pub const fn new(a: u32, b: u32, c: u32, d: u32) -> U32x4 {
         U32x4(u32x4(a, b, c, d))
     }
 
+    #[target_feature(enable = "simd128")]
     pub fn min(self, other: U32x4) -> U32x4 {
         U32x4(u32x4_min(self.0, other.0))
     }
 
+    #[target_feature(enable = "simd128")]
     pub fn max(self, other: U32x4) -> U32x4 {
         U32x4(u32x4_max(self.0, other.0))
     }
 
+    #[target_feature(enable = "simd128")]
     pub fn blend(self, other: U32x4, mask: U32x4) -> U32x4 {
         U32x4(v128_bitselect(self.0, other.0, mask.0))
     }
 
+    #[target_feature(enable = "simd128")]
     pub fn get<const N: usize>(&self) -> u32 {
         u32x4_extract_lane::<N>(self.0)
     }
 
     #[must_use]
+    #[target_feature(enable = "simd128")]
     pub fn set<const N: usize>(self, value: u32) -> U32x4 {
         U32x4(u32x4_replace_lane::<N>(self.0, value))
     }
 
     /// Compares lanes with < operator.
+    #[target_feature(enable = "simd128")]
     pub fn less_than(self, other: U32x4) -> U32x4 {
         U32x4(u32x4_lt(self.0, other.0))
     }
@@ -60,12 +67,14 @@ impl Default for U32x4 {
 }
 
 impl From<u32> for U32x4 {
+    #[target_feature(enable = "simd128")]
     fn from(value: u32) -> Self {
         U32x4(u32x4_splat(value))
     }
 }
 
 impl From<F32x4> for U32x4 {
+    #[target_feature(enable = "simd128")]
     fn from(value: F32x4) -> Self {
         U32x4(u32x4_trunc_sat_f32x4(value.0))
     }
@@ -78,6 +87,7 @@ impl From<U32x4> for [u32; 4] {
 }
 
 impl AddAssign for U32x4 {
+    #[target_feature(enable = "simd128")]
     fn add_assign(&mut self, rhs: Self) {
         self.0 = u32x4_add(self.0, rhs.0);
     }
@@ -85,18 +95,21 @@ impl AddAssign for U32x4 {
 
 impl F32x4 {
     #[must_use]
+    #[target_feature(enable = "simd128")]
     pub fn set<const N: usize>(&mut self, value: f32) -> F32x4 {
         F32x4(f32x4_replace_lane::<N>(self.0, value))
     }
 }
 
 impl From<f32> for F32x4 {
+    #[target_feature(enable = "simd128")]
     fn from(value: f32) -> Self {
         F32x4(f32x4_splat(value))
     }
 }
 
 impl From<U32x4> for F32x4 {
+    #[target_feature(enable = "simd128")]
     fn from(value: U32x4) -> Self {
         F32x4(f32x4_convert_u32x4(value.0))
     }
@@ -105,6 +118,7 @@ impl From<U32x4> for F32x4 {
 impl Mul for F32x4 {
     type Output = F32x4;
 
+    #[target_feature(enable = "simd128")]
     fn mul(self, rhs: Self) -> Self::Output {
         F32x4(f32x4_mul(self.0, rhs.0))
     }
