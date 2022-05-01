@@ -348,12 +348,8 @@ mod vertical_masonry {
             // SAFETY: This only works because the layout of a U32x4 is [u32; 4].
             // If the index is out of bounds, chaos will fall upon us but this should
             // never happen because the passed index is the shortest column index.
-            let height_ptr = self
-                .heights
-                .as_mut_ptr()
-                .cast::<u32>()
-                .offset(index as isize);
-            ptr::write(height_ptr, value);
+            let height_ptr = self.heights.as_mut_ptr() as *mut u32;
+            ptr::write(height_ptr.offset(index as isize), value);
         }
 
         pub fn max_height(mut self) -> u32 {

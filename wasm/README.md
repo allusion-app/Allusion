@@ -32,7 +32,7 @@ The build artifacts are saved in the `wasm/packages` directory. For now they nee
 
 #### Feature detection
 
-Webassembly does not support detecting at runtime if SIMD instructions are supported. This means different versions of a Webassembly module with and without a feature must be compiled and then features must be detected in application code. We only got so far only one person where SIMD is not running, so this should be rarely the case.
+Webassembly does not support feature detection at runtime. This means different versions of a Webassembly module with and without a feature must be compiled and then features must be detected in application code.
 
 #### Updating wasm-bindgen
 

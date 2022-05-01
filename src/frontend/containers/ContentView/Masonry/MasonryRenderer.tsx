@@ -93,7 +93,6 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
     (async function onMount() {
       try {
         await worker.initialize(numImages);
-        const start = performance.now();
         const containerHeight = await worker.compute(
           fileStore.fileList,
           numImages,
@@ -103,7 +102,6 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
             type: ViewMethodLayoutDict[viewMethod],
           },
         );
-        console.log(performance.now() - start);
         setContainerHeight(containerHeight);
         setLayoutTimestamp(new Date());
         setForceRerenderObj(new Date());
@@ -150,12 +148,10 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
       ) {
         console.debug('Masonry: Environment changed. Recomputing layout!');
         try {
-          const start = performance.now();
           const containerHeight = await worker.recompute(containerWidth, {
             thumbSize: thumbnailSize,
             type: ViewMethodLayoutDict[viewMethod],
           });
-          console.log(performance.now() - start);
           setContainerHeight(containerHeight);
           setLayoutTimestamp(new Date());
           // no need for force rerender: causes flickering. Rerender already happening due to container height update anyways
