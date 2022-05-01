@@ -150,7 +150,7 @@ impl Layout {
             let (top, shortest_column_index) = columns.min_column();
             let left = shortest_column_index * column_width;
 
-            // Only safe if the passed index is a valid column index.
+            // SAFETY: ColumnHeights::min_column returns a valid column index.
             unsafe {
                 columns.set_min_column(shortest_column_index, top + height + padding);
             }
@@ -276,6 +276,7 @@ impl DivInt for u32 {
 /// http://0x80.pl/notesen/2018-10-03-simd-index-of-min.html
 mod vertical_masonry {
     use alloc::{boxed::Box, vec};
+    use core::ptr;
 
     use crate::util::UnwrapOrAbort;
 
@@ -340,15 +341,19 @@ mod vertical_masonry {
                 .unwrap_or_abort()
         }
 
+        /// # Safety
+        ///
+        /// The index must smaller than the total number of columns, otherwise this will result in undefined behaviour.
         pub unsafe fn set_min_column(&mut self, index: u32, value: u32) {
             // SAFETY: This only works because the layout of a U32x4 is [u32; 4].
             // If the index is out of bounds, chaos will fall upon us but this should
             // never happen because the passed index is the shortest column index.
-            let slice = core::slice::from_raw_parts_mut(
-                self.heights.as_mut_ptr().cast::<u32>(),
-                self.heights.len() * 4,
-            );
-            *slice.get_unchecked_mut(index as usize) = value;
+            let height_ptr = self
+                .heights
+                .as_mut_ptr()
+                .cast::<u32>()
+                .offset(index as isize);
+            ptr::write(height_ptr, value);
         }
 
         pub fn max_height(mut self) -> u32 {

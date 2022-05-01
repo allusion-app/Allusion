@@ -81,12 +81,7 @@ impl From<u32> for U32x4 {
 impl From<F32x4> for U32x4 {
     fn from(value: F32x4) -> Self {
         let [v0, v1, v2, v3] = value.0;
-        U32x4([
-            v0 as u32,
-            v1 as u32,
-            v2 as u32,
-            v3 as u32,
-        ])
+        U32x4([v0 as u32, v1 as u32, v2 as u32, v3 as u32])
     }
 }
 
@@ -126,12 +121,7 @@ impl From<f32> for F32x4 {
 impl From<U32x4> for F32x4 {
     fn from(value: U32x4) -> Self {
         let [v0, v1, v2, v3] = value.0;
-        F32x4([
-            v0 as f32,
-            v1 as f32,
-            v2 as f32,
-            v3 as f32,
-        ])
+        F32x4([v0 as f32, v1 as f32, v2 as f32, v3 as f32])
     }
 }
 
@@ -141,11 +131,6 @@ impl Mul for F32x4 {
     fn mul(self, rhs: Self) -> Self::Output {
         let [a0, a1, a2, a3] = self.0;
         let [b0, b1, b2, b3] = rhs.0;
-        F32x4([
-            a0 * b0,
-            a1 * b1,
-            a2 * b2,
-            a3 * b3,
-        ])
+        F32x4([a0 * b0, a1 * b1, a2 * b2, a3 * b3])
     }
 }

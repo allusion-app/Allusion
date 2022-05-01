@@ -5,6 +5,7 @@ use core::{
         u32x4_trunc_sat_f32x4, v128, v128_bitselect,
     },
     ops::{AddAssign, Mul},
+    ptr,
 };
 
 #[repr(transparent)]
@@ -82,7 +83,7 @@ impl From<F32x4> for U32x4 {
 
 impl From<U32x4> for [u32; 4] {
     fn from(value: U32x4) -> Self {
-        unsafe { *(&value as *const U32x4 as *const [u32; 4]) }
+        unsafe { ptr::read_unaligned(&value as *const U32x4 as *const [u32; 4]) }
     }
 }
 
