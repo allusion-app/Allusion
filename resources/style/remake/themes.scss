@@ -12,18 +12,6 @@
   --shade1: rgb(21, 23, 26);
   --shade2: rgb(18, 18, 24);
 
-  --input-color: var(--shade1);
-  --input-color-hover: var(--shade2);
-
-  --hover-color: var(--shade1);
-  --hover-color-alt: var(--shade2);
-
-  --scrollbar-track-color: var(--shade1);
-  --scrollbar-thumb-color: var(--text-color-muted);
-  --scrollbar-thumb-hover-color: var(--text-color);
-
-  --border-color: var(--shade2);
-
   --titlebar-background-color: #14181a;
   --titlebar-background-color-alt: #1f2224;
   --titlebar-color: #888;
@@ -43,6 +31,32 @@
   --shade1: rgb(232, 232, 232);
   --shade2: rgb(221, 221, 221);
 
+  --titlebar-background-color: rgb(221, 223, 226);
+  --titlebar-background-color-alt: rgb(201, 203, 206);
+  --titlebar-color: #888;
+}
+
+// All themes
+.dark,
+.light {
+  --accent-color-blue: #147df1;
+  --accent-color-red: rgb(250, 52, 37);
+  --accent-color-yellow: rgb(255, 193, 47);
+  --accent-color-green: #7af2a6;
+  --box-shadow: 0.125rem 0.25rem 1rem rgba(0, 0, 0, 0.125);
+  --accent-color: var(--accent-color-blue);
+
+  --input-color: var(--shade1);
+  --input-color-hover: var(--shade2);
+
+  --hover-color: var(--shade1);
+  --hover-color-alt: var(--shade2);
+
+  --scrollbar-track-color: var(--shade1);
+  --scrollbar-thumb-color: var(--text-color-muted);
+  --scrollbar-thumb-hover-color: var(--text-color);
+
+  --border-color: var(--shade2);
   --input-color: var(--shade1);
   --input-color-hover: var(--shade2);
 
@@ -55,20 +69,6 @@
 
   --border-color: var(--shade2);
 
-  --titlebar-background-color: rgb(221, 223, 226);
-  --titlebar-background-color-alt: rgb(201, 203, 206);
-  --titlebar-color: #888;
-}
-
-// All themes
-.dark,
-.light {
-  --accent-color-blue: #147df1; /* rgb(51, 153, 255); */
-  --accent-color-red: rgb(250, 52, 37);
-  --accent-color-yellow: rgb(255, 193, 47);
-  --accent-color-green: #7af2a6; /*rgb(104, 232, 188);*/
-  --box-shadow: 0.125rem 0.25rem 1rem rgba(0, 0, 0, 0.125);
-  --accent-color: var(--accent-color-blue);
   color: var(--text-color);
   background: var(--background-color);
 }

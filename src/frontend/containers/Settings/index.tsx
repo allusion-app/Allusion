@@ -1,13 +1,16 @@
+import { chromeExtensionUrl } from 'common/config';
+import { getFilenameFriendlyFormattedDateTime } from 'common/fmt';
+import { getThumbnailPath, isDirEmpty } from 'common/fs';
+import { WINDOW_STORAGE_KEY } from 'common/window';
 import { shell } from 'electron';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
-import { chromeExtensionUrl } from 'common/config';
 import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
+import useCustomTheme from 'src/frontend/hooks/useCustomTheme';
 import { RendererMessenger } from 'src/Messaging';
-import { WINDOW_STORAGE_KEY } from 'common/window';
 import {
   Button,
   ButtonGroup,
@@ -23,8 +26,6 @@ import { Alert, DialogButton } from 'widgets/popovers';
 import PopupWindow from '../../components/PopupWindow';
 import { useStore } from '../../contexts/StoreContext';
 import { moveThumbnailDir } from '../../image/ThumbnailGeneration';
-import { getFilenameFriendlyFormattedDateTime } from 'common/fmt';
-import { getThumbnailPath, isDirEmpty } from 'common/fs';
 import { ClearDbButton } from '../ErrorBoundary';
 import HotkeyMapper from './HotkeyMapper';
 import Tabs, { TabItem } from './Tabs';
@@ -73,13 +74,17 @@ const Appearance = observer(() => {
           <Toggle checked={uiStore.theme === 'dark'} onChange={uiStore.toggleTheme} />
         </fieldset>
 
+        <CustomThemePicker />
+      </div>
+
+      <div className="input-group">
+        <Zoom />
+
         <fieldset>
           <legend>Full screen</legend>
           <Toggle checked={uiStore.isFullScreen} onChange={toggleFullScreen} />
         </fieldset>
       </div>
-
-      <Zoom />
 
       <h3>Thumbnail</h3>
 
@@ -150,6 +155,41 @@ const Zoom = () => {
           text="Increase"
         />
       </span>
+    </fieldset>
+  );
+};
+
+const CustomThemePicker = () => {
+  const { theme, setTheme, refresh, options, themeDir } = useCustomTheme();
+
+  useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <fieldset>
+      <legend>Theme customization</legend>
+      <select onChange={(e) => setTheme(e.target.value)} defaultValue={theme}>
+        {<option value="">None (default)</option>}
+        {options.map((file) => (
+          <option key={file} value={file}>
+            {file.replace('.css', '')}
+          </option>
+        ))}
+      </select>{' '}
+      <IconButton
+        icon={IconSet.RELOAD}
+        text="Refresh"
+        onClick={refresh}
+        data-tooltip="Reload the list of themes and current theme"
+      />
+      <IconButton
+        icon={IconSet.FOLDER_CLOSE}
+        text="Open"
+        onClick={() => shell.showItemInFolder(themeDir)}
+        data-tooltip="Open the directory containing the theme files"
+      />
     </fieldset>
   );
 };

@@ -16,6 +16,7 @@ import WindowTitlebar from './containers/WindowTitlebar';
 import { DropContextProvider } from './contexts/DropContext';
 import Main from './containers/Main';
 import About from './containers/About';
+import { CustomThemeProvider } from './hooks/useCustomTheme';
 
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
@@ -52,30 +53,32 @@ const App = observer(() => {
   }
 
   return (
-    <DropContextProvider onDragEnter={openOutlinerOnDragEnter}>
-      <div
-        data-os={PLATFORM}
-        data-fullscreen={uiStore.isFullScreen}
-        id="layout-container"
-        className={uiStore.theme}
-      >
-        {!uiStore.isFullScreen && <WindowTitlebar />}
+    <CustomThemeProvider>
+      <DropContextProvider onDragEnter={openOutlinerOnDragEnter}>
+        <div
+          data-os={PLATFORM}
+          data-fullscreen={uiStore.isFullScreen}
+          id="layout-container"
+          className={uiStore.theme}
+        >
+          {!uiStore.isFullScreen && <WindowTitlebar />}
 
-        <ErrorBoundary>
-          <Main />
+          <ErrorBoundary>
+            <Main />
 
-          <Settings />
+            <Settings />
 
-          <HelpCenter />
+            <HelpCenter />
 
-          <About />
+            <About />
 
-          <AdvancedSearchDialog />
+            <AdvancedSearchDialog />
 
-          <CustomToaster />
-        </ErrorBoundary>
-      </div>
-    </DropContextProvider>
+            <CustomToaster />
+          </ErrorBoundary>
+        </div>
+      </DropContextProvider>
+    </CustomThemeProvider>
   );
 });
 

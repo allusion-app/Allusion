@@ -88,7 +88,7 @@
 
     &[aria-pressed='true'],
     &[aria-checked='true'] {
-      color: var(--accent-color-blue);
+      color: var(--accent-color);
     }
   }
 }
@@ -113,19 +113,19 @@
   margin-left: -2px;
 
   &[data-dnd-target='true'] {
-    color: var(--accent-color-blue);
+    color: var(--accent-color);
     border: 2px solid transparent;
 
     &.center {
-      border: 2px solid var(--accent-color-blue);
+      border: 2px solid var(--accent-color);
     }
 
     &.top {
-      border-top: 2px solid var(--accent-color-blue);
+      border-top: 2px solid var(--accent-color);
     }
 
     &.bottom {
-      border-bottom: 2px solid var(--accent-color-blue);
+      border-bottom: 2px solid var(--accent-color);
     }
   }
 
@@ -186,7 +186,7 @@
     &:hover,
     &[aria-pressed='true'],
     &[aria-checked='true'] {
-      color: var(--accent-color-blue);
+      color: var(--accent-color);
     }
   }
 
