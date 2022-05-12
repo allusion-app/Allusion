@@ -17,6 +17,7 @@ import { DropContextProvider } from './contexts/DropContext';
 import Main from './containers/Main';
 import About from './containers/About';
 import { CustomThemeProvider } from './hooks/useCustomTheme';
+import { useClipboardImporter } from './hooks/useClipboardImporter';
 
 const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
@@ -26,6 +27,7 @@ const App = observer(() => {
 
   // Listen to responses of Web Workers
   useWorkerListener();
+  useClipboardImporter(uiStore);
 
   // Show splash screen for some time or when app is not initialized
   const [showSplash, setShowSplash] = useState(true);
