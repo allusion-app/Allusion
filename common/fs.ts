@@ -67,6 +67,5 @@ function hashString(s: string) {
  */
 export function getExtraResourcePath(resourcePath: string): string {
   const relativeResourcesPath = (IS_DEV ? '../' : '../../') + 'resources';
-  console.log({ relativeResourcesPath, __dirname, resourcePath });
   return path.resolve(__dirname, relativeResourcesPath, resourcePath);
 }

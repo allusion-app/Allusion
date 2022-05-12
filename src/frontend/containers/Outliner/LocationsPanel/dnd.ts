@@ -85,17 +85,11 @@ export async function storeDroppedImage(dropData: (string | File)[], directory: 
       // Send base64 file to main process, get back filename where it is stored
       // So it can be tagged immediately
       // Filename will be incremented if file already exists, e.g. `image.jpg -> image 1.jpg`
-      const reply = await RendererMessenger.storeFile({ directory, filenameWithExt, imgBase64 });
-
-      let rejected = false;
-      const timeout = setTimeout(() => {
-        rejected = true;
-        console.error('Could not store dropped image in backend');
-      }, 5000);
-
-      if (!rejected) {
-        clearTimeout(timeout);
-        console.log('Imported file', reply.downloadPath);
+      try {
+        const reply = await RendererMessenger.storeFile({ directory, filenameWithExt, imgBase64 });
+        console.log('Imported dropped file', reply.downloadPath);
+      } catch (e) {
+        console.error('Could not import file', e);
       }
     }
   }
