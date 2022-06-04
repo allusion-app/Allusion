@@ -165,7 +165,7 @@ export default class Backend {
     });
     // Remove tag from files
     for (const file of filesWithTag) {
-      file.tags.splice(file.tags.indexOf(tag));
+      file.tags.splice(file.tags.indexOf(tag), 1);
     }
     // Update files in db
     await this.saveFiles(filesWithTag);
@@ -184,7 +184,7 @@ export default class Backend {
     const deletedTags = new Set(tags);
     // Remove tags from files
     for (const file of filesWithTags) {
-      file.tags = file.tags.filter((t) => deletedTags.has(t));
+      file.tags = file.tags.filter((t) => !deletedTags.has(t));
     }
     // Update files in db
     await this.saveFiles(filesWithTags);
