@@ -1,12 +1,20 @@
 // Mocks the DBRepository file with the one defined in the __mocks__ directory
 jest.mock('./DBRepository');
+jest.mock('./BackupScheduler');
+jest.mock('../Messaging', () => ({
+  RendererMessenger: {
+    getDefaultBackupDirectory() {
+      return Promise.resolve('/tmp');
+    },
+  },
+}));
 
 import Backend from './Backend';
 import { ITag, ROOT_TAG_ID } from '../entities/Tag';
 import { IFile } from '../entities/File';
 import { OrderDirection } from './DBRepository';
 
-const backend = new Backend();
+let backend = new Backend();
 
 const mockTag: ITag = {
   id: 'tag1',
@@ -36,11 +44,12 @@ const mockFile: IFile = {
 };
 
 describe('Backend', () => {
-  beforeAll(() => {
-    return backend.init(true);
-  });
-
   describe('Tag API', () => {
+    beforeEach(async () => {
+      backend = new Backend();
+      await backend.init(true);
+    });
+
     it('should be able to fetch a tag after adding it', async () => {
       await backend.createTag({ ...mockTag });
       const dbTags = await backend.fetchTags();
@@ -93,8 +102,8 @@ describe('Backend', () => {
       });
     });
 
-    describe('mergeTags', () => {
-      // TODO
-    });
+    // describe('mergeTags', () => {
+    // TODO
+    // });
   });
 });

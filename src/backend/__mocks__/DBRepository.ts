@@ -3,7 +3,7 @@ import { IResource, ID } from '../../entities/ID';
 export const dbInit = jest.fn();
 
 /**
- * A Database implementation for testing purposes
+ * An in-memory database implementation for testing purposes
  */
 export default class InMemoryDbRepository<T extends IResource> {
   /** A dictionairy containing all database entries in memory */
