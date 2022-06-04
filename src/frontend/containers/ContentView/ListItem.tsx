@@ -54,6 +54,7 @@ export const ListItem = observer((props: ListItemProps) => {
       onDragLeave={eventManager.dragLeave}
       onDrop={eventManager.drop}
       onDragEnd={eventManager.dragEnd}
+      draggable
     >
       {/* Filename */}
       <div role="gridcell" className="col-name">
