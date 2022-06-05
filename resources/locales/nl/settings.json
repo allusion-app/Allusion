@@ -1,10 +1,46 @@
 {
+  "label": "Instellingen",
   "appearance": {
-    "header": "appearance.header",
+    "header": "Weergave",
     "interface": {
-      "header": "appearance.interface.header",
-      "darkTheme": "appearance.interface.darkTheme",
-      "language": "appearance.interface.language"
+      "header": "Gebruikersomgeving",
+      "language": "Taal",
+      "darkTheme": "Donkere modus",
+      "theme": "Thema",
+      "themeDimmed": "Gedimd",
+      "themeMonochrome": "Monochrooom",
+      "uiScale": "Schaal",
+      "fullScreen": "Volledig scherm"
+    },
+    "thumbnail": {
+      "header": "Miniatuur",
+      "showAssignedTags": "Toegewezen labels weergeven",
+      "showFilename": "Bestandsnaam weergeven",
+      "shape.square": "Vierkant",
+      "shape.letterbox": "Letterbox",
+      "shape": {
+        "label": "Miniatuurvorm",
+        "square": "Vierkant",
+        "letterbox": "Letterbox"
+      }
     }
+  },
+  "shortcuts": {
+    "header": "Sneltoetsen"
+  },
+  "startupBehavior": {
+    "header": "Opstartgedrag"
+  },
+  "imageFormats": {
+    "header": "Afbeeldingsformaten"
+  },
+  "importExport": {
+    "header": "Importeren/exporteren"
+  },
+  "backgroundProcesses": {
+    "header": "Achtergrondprocessen"
+  },
+  "advanced": {
+    "header": "Geavanceerd"
   }
 }

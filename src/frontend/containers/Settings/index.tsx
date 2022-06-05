@@ -7,12 +7,12 @@ import { shell } from 'electron';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
-import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { ReactNode, useCallback, useEffect, useState } from 'react';
+import { TFunction, useTranslation } from 'react-i18next';
 import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import useCustomTheme from 'src/frontend/hooks/useCustomTheme';
-import { getSupportedLocales } from 'src/i18n';
+import { locales } from 'src/i18n';
 import { RendererMessenger } from 'src/Messaging';
 import {
   Button,
@@ -59,15 +59,13 @@ export default observer(Settings);
 const Appearance = observer(() => {
   const { uiStore } = useStore();
 
-  const { t, i18n } = useTranslation('settings');
+  const { t } = useTranslation('settings');
 
   const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
     const isFullScreen = e.currentTarget.checked;
     localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
     RendererMessenger.setFullScreen(isFullScreen);
   };
-
-  console.log(i18n.languages, i18n.resolvedLanguage);
 
   return (
     <>
@@ -92,23 +90,23 @@ const Appearance = observer(() => {
         <Zoom />
 
         <fieldset>
-          <legend>Full screen</legend>
+          <legend>{t('appearance.interface.fullScreen')}</legend>
           <Toggle checked={uiStore.isFullScreen} onChange={toggleFullScreen} />
         </fieldset>
       </div>
 
-      <h3>Thumbnail</h3>
+      <h3>{t('appearance.thumbnail.header')}</h3>
 
       <div className="input-group">
         <fieldset>
-          <legend>Show assigned tags</legend>
+          <legend>{t('appearance.thumbnail.showAssignedTags')}</legend>
           <Toggle
             checked={uiStore.isThumbnailTagOverlayEnabled}
             onChange={uiStore.toggleThumbnailTagOverlay}
           />
         </fieldset>
         <fieldset>
-          <legend>Show filename on thumbnail</legend>
+          <legend>{t('appearance.thumbnail.showFilename')}</legend>
           <Toggle
             checked={uiStore.isThumbnailFilenameOverlayEnabled}
             onChange={uiStore.toggleThumbnailFilenameOverlay}
@@ -119,20 +117,20 @@ const Appearance = observer(() => {
       <br />
 
       <div className="input-group">
-        <RadioGroup name="Shape">
+        <RadioGroup name={t('appearance.thumbnail.shape.label')}>
           {/* TODO: Tooltips don't work here, even with <Overlay /> in <Settings /> */}
           {/* <span data-tooltip="The layout method for images that do not fit exactly in their thumbnail container. Mainly affects the Grid layout.">
             {IconSet.INFO}
             Test test
           </span> */}
           <Radio
-            label="Square"
+            label={t('appearance.thumbnail.shape.square')}
             checked={uiStore.thumbnailShape === 'square'}
             value="square"
             onChange={uiStore.setThumbnailSquare}
           />
           <Radio
-            label="Letterbox"
+            label={t('appearance.thumbnail.shape.letterbox')}
             checked={uiStore.thumbnailShape === 'letterbox'}
             value="letterbox"
             onChange={uiStore.setThumbnailLetterbox}
@@ -146,13 +144,15 @@ const Appearance = observer(() => {
 const Zoom = () => {
   const [localZoomFactor, setLocalZoomFactor] = useState(RendererMessenger.getZoomFactor());
 
+  const { t } = useTranslation('settings');
+
   useEffect(() => {
     RendererMessenger.setZoomFactor(localZoomFactor);
   }, [localZoomFactor]);
 
   return (
     <fieldset>
-      <legend>UI Scale (zoom)</legend>
+      <legend>{t('appearance.interface.uiScale')}</legend>
       <span className="zoom-input">
         <IconButton
           icon={<span>-</span>}
@@ -173,17 +173,6 @@ const Zoom = () => {
 const LanguagePicker = () => {
   const { t, i18n } = useTranslation('settings');
 
-  const locales = useMemo(() => getSupportedLocales(), []);
-
-  console.log(
-    'Current language',
-    i18n.language,
-    'Resolved language',
-    i18n.resolvedLanguage,
-    'Languages',
-    i18n.languages,
-  );
-
   return (
     <fieldset>
       <legend>{t('appearance.interface.language')}</legend>
@@ -196,18 +185,27 @@ const LanguagePicker = () => {
         defaultValue={i18n.language}
       >
         {locales.map((lan) => (
-          <option key={lan} value={lan}>
-            {lan}
+          <option key={lan.value} value={lan.value}>
+            {lan.label}
           </option>
         ))}
+        {IS_DEV && <option value="cimode">DEBUG (dev-mode only)</option>}
         {/* <option value="nl">NL</option> */}
         {/* <option value="de">De</option> */}
-      </select>
+      </select>{' '}
       {IS_DEV && (
         <IconButton
           icon={IconSet.RELOAD}
           text="Reload"
-          onClick={() => i18n.reloadResources()}
+          onClick={async () => {
+            await i18n.reloadResources();
+
+            const currentLng = i18n.language;
+
+            // Swap languages to trigger re-render
+            await i18n.changeLanguage('cimode');
+            await i18n.changeLanguage(currentLng);
+          }}
           data-tooltip="Reload translation files (Dev mode only)"
         />
       )}
@@ -217,6 +215,7 @@ const LanguagePicker = () => {
 
 const CustomThemePicker = () => {
   const { theme, setTheme, refresh, options, themeDir } = useCustomTheme();
+  const { t } = useTranslation('settings');
 
   useEffect(() => {
     refresh();
@@ -225,7 +224,7 @@ const CustomThemePicker = () => {
 
   return (
     <fieldset>
-      <legend>Theme customization</legend>
+      <legend>{t('appearance.interface.theme')}</legend>
       <select onChange={(e) => setTheme(e.target.value)} defaultValue={theme}>
         {<option value="">None (default)</option>}
         {options.map((file) => (
@@ -449,6 +448,7 @@ const imageFormatInts: Partial<Record<IMG_EXTENSIONS_TYPE, ReactNode>> = {
 
 const ImageFormatPicker = observer(() => {
   const { locationStore, fileStore } = useStore();
+  const { t } = useTranslation('settings');
 
   const [removeDisabledImages, setRemoveDisabledImages] = useState(true);
   const toggleRemoveDisabledImages = useCallback(() => setRemoveDisabledImages((val) => !val), []);
@@ -488,9 +488,9 @@ const ImageFormatPicker = observer(() => {
   // TODO: group extensions by type: JPG+JPEG+JFIF, TIF+TIFF, etc
   return (
     <>
-      <h2>Image formats</h2>
+      <h2>{t('imageFormats.header')}</h2>
       <fieldset>
-        <legend>Image formats to be discovered by Allusion in your Locations</legend>
+        <legend>{t('imageFormats.description')}</legend>
         <div className="checkbox-set-container">
           {IMG_EXTENSIONS.map((ext) => (
             <div className="item" key={ext}>
@@ -776,33 +776,33 @@ const Advanced = observer(() => {
   );
 });
 
-const SETTINGS_TABS: () => TabItem[] = () => [
+const SETTINGS_TABS: (t: TFunction<'settings', undefined>) => TabItem[] = (t) => [
   {
-    label: 'Appearance',
+    label: t('appearance.header'),
     content: <Appearance />,
   },
   {
-    label: 'Shortcuts',
+    label: t('shortcuts.header'),
     content: <Shortcuts />,
   },
   {
-    label: 'Start-up behavior',
+    label: t('startupBehavior.header'),
     content: <StartUpBehavior />,
   },
   {
-    label: 'Image formats',
+    label: t('imageFormats.header'),
     content: <ImageFormatPicker />,
   },
   {
-    label: 'Import/Export',
+    label: t('importExport.header'),
     content: <ImportExport />,
   },
   {
-    label: 'Background Processes',
+    label: t('backgroundProcesses.header'),
     content: <BackgroundProcesses />,
   },
   {
-    label: 'Advanced',
+    label: t('advanced.header'),
     content: <Advanced />,
   },
 ];

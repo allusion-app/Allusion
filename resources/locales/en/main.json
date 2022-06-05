@@ -1,3 +1,8 @@
 {
-  "test": "This is a test"
+  "locations": "Locations",
+  "refreshDirectories": "Refresh directories",
+  "addLocation": "Add new Location",
+  "initializeLocation": "Click + to choose a Location.",
+  "tags": "Tags",
+  "savedSearches": "Saved Searches"
 }

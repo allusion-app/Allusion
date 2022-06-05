@@ -4,20 +4,43 @@
     "interface": {
       "header": "Interface",
       "language": "Language",
-      "darkTheme": "Dark Theme",
+      "darkTheme": "Dark theme",
       "theme": "Theme customization",
       "themeDimmed": "Dimmed",
       "themeMonochrome": "Monochrome",
-      "uiScale": "UI Scale",
+      "uiScale": "UI scale (zoom)",
       "fullScreen": "Full screen"
     },
     "thumbnail": {
       "header": "Thumbnail",
-      "thumbnail.showAssignedTags": "Show assigned tags",
-      "thumbnail.showFilename": "Show filename on thumbnail",
-      "thumbnail.shape": "Thumbnail shape",
-      "thumbnail.shape.square": "Square",
-      "thumbnail.shape.letterbox": "Letterbox"
+      "showAssignedTags": "Show assigned tags",
+      "showFilename": "Show filename on thumbnail",
+      "shape.square": "Square",
+      "shape.letterbox": "Letterbox",
+      "shape": {
+        "label": "Thumbnail shape",
+        "square": "Square",
+        "letterbox": "Letterbox"
+      }
     }
+  },
+  "shortcuts": {
+    "header": "Shortcuts"
+  },
+  "startupBehavior": {
+    "header": "Startup behavior"
+  },
+  "imageFormats": {
+    "header": "Image formats",
+    "description": "Image formats to be discovered by Allusion in your Locations"
+  },
+  "importExport": {
+    "header": "Import/export"
+  },
+  "backgroundProcesses": {
+    "header": "Background processes"
+  },
+  "advanced": {
+    "header": "Advanced"
   }
 }

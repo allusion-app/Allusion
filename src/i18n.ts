@@ -22,6 +22,39 @@ export const defaultNS: keyof typeof resources['en'] = 'main';
 
 const localesDir = join(__dirname, IS_DEV ? '../resources/' : '', 'locales');
 
+export const locales: { value: string; label: string }[] = [
+  { value: 'en', label: 'English' },
+  // { value: 'de', label: 'Deutsch' },
+  // { value: 'fr', label: 'Français' },
+  // { value: 'es', label: 'Español' },
+  // { value: 'it', label: 'Italiano' },
+  // { value: 'ja', label: '日本語' },
+  // { value: 'zh', label: '中文' },
+  // { value: 'ru', label: 'Русский' },
+  // { value: 'pl', label: 'Polski' },
+  // { value: 'pt', label: 'Português' },
+  // { value: 'ko', label: '한국어' },
+  // { value: 'ar', label: 'العربية' },
+  // { value: 'tr', label: 'Türkçe' },
+  // { value: 'uk', label: 'Українська' },
+  // { value: 'vi', label: 'Tiếng Việt' },
+  { value: 'nl', label: 'Nederlands' },
+  // { value: 'id', label: 'Bahasa Indonesia' },
+  // { value: 'ms', label: 'Bahasa Melayu' },
+  // { value: 'th', label: 'ภาษาไทย' },
+  // { value: 'hu', label: 'Magyar' },
+  // { value: 'ro', label: 'Română' },
+  // { value: 'sk', label: 'Slovenčina' },
+  // { value: 'da', label: 'Dansk' },
+  // { value: 'fi', label: 'Suomi' },
+  // { value: 'sv', label: 'Svenska' },
+  // { value: 'no', label: 'Norsk' },
+  // { value: 'cs', label: 'Čeština' },
+  // { value: 'sl', label: 'Slovenščina' },
+  // { value: 'el', label: 'Ελληνικά' },
+  // { value: 'bg', label: 'Български' },
+];
+
 export const getSupportedLocales = () =>
   readdirSync(localesDir).filter((fileName) => {
     const joinedPath = join(localesDir, fileName);
@@ -29,8 +62,27 @@ export const getSupportedLocales = () =>
     return isDirectory;
   });
 
-export const initI18n = () =>
-  i18n
+export const initI18n = async (lng = 'en') => {
+  const localesOnDisk = getSupportedLocales();
+  const enabledLocales = locales.map((l) => l.value);
+
+  // If there is a mismatch between the locales on disk and those enabled in the UI, print a warning
+  const diskLocalesNotEnabled = localesOnDisk.filter((l) => !enabledLocales.includes(l));
+  const enabledLocalesNotOnDisk = enabledLocales.filter((l) => !localesOnDisk.includes(l));
+  if (diskLocalesNotEnabled.length > 0 || enabledLocalesNotOnDisk.length > 0) {
+    console.warn(
+      `Warning: the following locales are enabled in the UI but not on disk: ${
+        diskLocalesNotEnabled.join(', ') || 'none'
+      }`,
+    );
+    console.warn(
+      `Warning: the following locales are on disk but not enabled in the UI: ${
+        enabledLocalesNotOnDisk.join(', ') || 'none'
+      }`,
+    );
+  }
+
+  await i18n
     // .use(detector)
     .use(backend)
     .use(initReactI18next) // passes i18n down to react-i18next
@@ -42,31 +94,30 @@ export const initI18n = () =>
       },
 
       // load the files synchronously
-      initImmediate: false,
+      // initImmediate: false,
       // preload: ['en', 'nl'],
-      preload: getSupportedLocales(),
-
-      // resources,
+      preload: localesOnDisk,
 
       backend: {
         // https://github.com/i18next/i18next-fs-backend
-        // path where resources get loaded from, or a function
-        // returning a path:
-        // function(lngs, namespaces) { return customPath; }
-        // the returned path will interpolate lng, ns if provided like giving a static path
         loadPath: join(localesDir, '/{{lng}}/{{ns}}.json'),
-
-        // path to post missing resources
-        addPath: join(localesDir, '/{{lng}}/{{ns}}.missing.json'),
+        addPath: join(localesDir, '/{{lng}}/{{ns}}.json'),
       },
       defaultNS,
-      fallbackLng: 'en', // use en if detected lng is not available
+      lng,
+      fallbackLng: IS_DEV ? undefined : 'en', // use en if detected lng is not available
       saveMissing: IS_DEV, // send not translated keys to endpoint
-      // saveMissingTo: 'current',
+      saveMissingTo: 'all',
+      // missingKeyHandler: (lng, ns, key) => console.log(`Missing key: ${key}: ${ns} ${lng}`),
 
       interpolation: {
         escapeValue: false, // react already safes from xss => https://www.i18next.com/translation-function/interpolation#unescape
       },
     });
+
+  // Not sure if this is needed. Couldn't get initialization right in my first attempt, tried a bunch of things
+  await i18n.loadLanguages(localesOnDisk);
+  await i18n.loadNamespaces(Object.keys(resources.en));
+};
 
 export default i18n;
