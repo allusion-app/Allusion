@@ -10,6 +10,7 @@ import main from '../resources/locales/en/main.json';
 import common from '../resources/locales/en/common.json';
 import settings from '../resources/locales/en/settings.json';
 import { lstatSync, readdirSync } from 'fs-extra';
+import { getExtraResourcePath } from 'common/fs';
 
 export const resources = {
   en: {
@@ -21,7 +22,7 @@ export const resources = {
 
 export const defaultNS: keyof typeof resources['en'] = 'main';
 
-const localesDir = join(__dirname, IS_DEV ? '../resources/' : '', 'locales');
+const localesDir = getExtraResourcePath('locales');
 
 // See the readme in resources/locales/README.md for instructions on how to add new languages
 

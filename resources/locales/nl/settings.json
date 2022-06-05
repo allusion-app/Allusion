@@ -26,7 +26,7 @@
   },
   "shortcuts": {
     "header": "Sneltoetsen",
-    "instructions": "Klik op een sneltoets om deze te wijzigen. Na het typen van uw nieuwe combinatie, druk op Enter om te bevestigen of Escape om te annuleren."
+    "instructions": "Klik op een sneltoets om deze te wijzigen. Na het typen van je nieuwe combinatie, druk op Enter om te bevestigen of Escape om te annuleren."
   },
   "startupBehavior": {
     "header": "Opstartgedrag",
@@ -45,7 +45,7 @@
   "importExport": {
     "header": "Importeren/exporteren",
     "metadata": "File metadata",
-    "metadataInfo": "Deze optie is handig voor het importeren/exporteren van tags van/naar andere software. Als je een service zoals Dropbox of Google gebruikt, kun je je tags op uw bestanden op één apparaat schrijven en deze op andere apparaten lezen.",
+    "metadataInfo": "Deze optie is handig voor het importeren/exporteren van tags van/naar andere software. Als je een service zoals Dropbox of Google gebruikt, kun je je tags op je bestanden op één apparaat schrijven en deze op andere apparaten lezen.",
     "hierarchicalSeparator": "Hierarchisch scheidingsteken, e.g.",
     "import": "Importeer tags van bestandsmetadata",
     "export": "Exporteer tags naar bestandsmetadata",
