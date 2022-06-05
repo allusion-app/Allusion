@@ -1,0 +1,23 @@
+{
+  "appearance": {
+    "header": "Appearance",
+    "interface": {
+      "header": "Interface",
+      "language": "Language",
+      "darkTheme": "Dark Theme",
+      "theme": "Theme customization",
+      "themeDimmed": "Dimmed",
+      "themeMonochrome": "Monochrome",
+      "uiScale": "UI Scale",
+      "fullScreen": "Full screen"
+    },
+    "thumbnail": {
+      "header": "Thumbnail",
+      "thumbnail.showAssignedTags": "Show assigned tags",
+      "thumbnail.showFilename": "Show filename on thumbnail",
+      "thumbnail.shape": "Thumbnail shape",
+      "thumbnail.shape.square": "Square",
+      "thumbnail.shape.letterbox": "Letterbox"
+    }
+  }
+}

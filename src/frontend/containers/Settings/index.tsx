@@ -1,15 +1,18 @@
 import { chromeExtensionUrl } from 'common/config';
 import { getFilenameFriendlyFormattedDateTime } from 'common/fmt';
 import { getThumbnailPath, isDirEmpty } from 'common/fs';
+import { IS_DEV } from 'common/process';
 import { WINDOW_STORAGE_KEY } from 'common/window';
 import { shell } from 'electron';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
-import React, { ReactNode, useCallback, useEffect, useState } from 'react';
+import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import useCustomTheme from 'src/frontend/hooks/useCustomTheme';
+import { getSupportedLocales } from 'src/i18n';
 import { RendererMessenger } from 'src/Messaging';
 import {
   Button,
@@ -56,21 +59,29 @@ export default observer(Settings);
 const Appearance = observer(() => {
   const { uiStore } = useStore();
 
+  const { t, i18n } = useTranslation('settings');
+
   const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
     const isFullScreen = e.currentTarget.checked;
     localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
     RendererMessenger.setFullScreen(isFullScreen);
   };
 
+  console.log(i18n.languages, i18n.resolvedLanguage);
+
   return (
     <>
-      <h2>Appearance</h2>
+      <h2>{t('appearance.header')}</h2>
 
-      <h3>Interface</h3>
+      <h3>{t('appearance.interface.header')}</h3>
+
+      <div className="input-group">
+        <LanguagePicker />
+      </div>
 
       <div className="input-group">
         <fieldset>
-          <legend>Dark theme</legend>
+          <legend>{t('appearance.interface.darkTheme')}</legend>
           <Toggle checked={uiStore.theme === 'dark'} onChange={uiStore.toggleTheme} />
         </fieldset>
 
@@ -155,6 +166,51 @@ const Zoom = () => {
           text="Increase"
         />
       </span>
+    </fieldset>
+  );
+};
+
+const LanguagePicker = () => {
+  const { t, i18n } = useTranslation('settings');
+
+  const locales = useMemo(() => getSupportedLocales(), []);
+
+  console.log(
+    'Current language',
+    i18n.language,
+    'Resolved language',
+    i18n.resolvedLanguage,
+    'Languages',
+    i18n.languages,
+  );
+
+  return (
+    <fieldset>
+      <legend>{t('appearance.interface.language')}</legend>
+      <select
+        onChange={async (e) => {
+          await i18n.loadLanguages(e.target.value);
+          await i18n.changeLanguage(e.target.value);
+          console.log(i18n.getDataByLanguage('nl'));
+        }}
+        defaultValue={i18n.language}
+      >
+        {locales.map((lan) => (
+          <option key={lan} value={lan}>
+            {lan}
+          </option>
+        ))}
+        {/* <option value="nl">NL</option> */}
+        {/* <option value="de">De</option> */}
+      </select>
+      {IS_DEV && (
+        <IconButton
+          icon={IconSet.RELOAD}
+          text="Reload"
+          onClick={() => i18n.reloadResources()}
+          data-tooltip="Reload translation files (Dev mode only)"
+        />
+      )}
     </fieldset>
   );
 };

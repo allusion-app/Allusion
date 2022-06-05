@@ -3,6 +3,8 @@ import { observer } from 'mobx-react-lite';
 
 import { useStore } from './contexts/StoreContext';
 
+import '../i18n';
+
 import ErrorBoundary from './containers/ErrorBoundary';
 import HelpCenter from './containers/HelpCenter';
 import SplashScreen from './containers/SplashScreen';

@@ -1,0 +1,10 @@
+{
+  "appearance": {
+    "header": "appearance.header",
+    "interface": {
+      "header": "appearance.interface.header",
+      "darkTheme": "appearance.interface.darkTheme",
+      "language": "appearance.interface.language"
+    }
+  }
+}

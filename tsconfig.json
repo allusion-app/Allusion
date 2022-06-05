@@ -18,6 +18,7 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": true,
     "useUnknownInCatchVariables": false,
+    "resolveJsonModule": true,
     "strict": true
   },
   "include": ["widgets/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts", "wasm/**/*", "common/**/*"],

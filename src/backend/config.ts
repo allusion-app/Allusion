@@ -4,7 +4,7 @@ import { IDBVersioningConfig } from './DBRepository';
 import fse from 'fs-extra';
 
 // The name of the IndexedDB
-export const DB_NAME = 'Allusion';
+export const DB_NAME = 'Allusion11';
 
 export const NUM_AUTO_BACKUPS = 6;
 
