@@ -189,25 +189,25 @@ const LanguagePicker = () => {
             {lan.label}
           </option>
         ))}
-        {IS_DEV && <option value="cimode">DEBUG (dev-mode only)</option>}
-        {/* <option value="nl">NL</option> */}
-        {/* <option value="de">De</option> */}
+        {IS_DEV && <option value="cimode">{t('appearance.interface.languageDebug')}</option>}
       </select>{' '}
       {IS_DEV && (
-        <IconButton
-          icon={IconSet.RELOAD}
-          text="Reload"
-          onClick={async () => {
-            await i18n.reloadResources();
+        <>
+          <IconButton
+            icon={IconSet.RELOAD}
+            text="Reload"
+            onClick={async () => {
+              await i18n.reloadResources();
 
-            const currentLng = i18n.language;
+              const currentLng = i18n.language;
 
-            // Swap languages to trigger re-render
-            await i18n.changeLanguage('cimode');
-            await i18n.changeLanguage(currentLng);
-          }}
-          data-tooltip="Reload translation files (Dev mode only)"
-        />
+              // Swap languages to trigger re-render
+              await i18n.changeLanguage('cimode');
+              await i18n.changeLanguage(currentLng);
+            }}
+            data-tooltip="Reload translation files (Dev mode only)"
+          />
+        </>
       )}
     </fieldset>
   );
@@ -226,7 +226,7 @@ const CustomThemePicker = () => {
     <fieldset>
       <legend>{t('appearance.interface.theme')}</legend>
       <select onChange={(e) => setTheme(e.target.value)} defaultValue={theme}>
-        {<option value="">None (default)</option>}
+        {<option value="">{t('appearance.interface.themeDefault')}</option>}
         {options.map((file) => (
           <option key={file} value={file}>
             {file.replace('.css', '')}
@@ -252,6 +252,8 @@ const CustomThemePicker = () => {
 const ImportExport = observer(() => {
   const rootStore = useStore();
   const { fileStore, tagStore, exifTool } = rootStore;
+  const { t } = useTranslation('settings');
+
   const [isConfirmingMetadataExport, setConfirmingMetadataExport] = useState(false);
   const [isConfirmingFileImport, setConfirmingFileImport] = useState<{
     path: string;
@@ -307,18 +309,14 @@ const ImportExport = observer(() => {
 
   return (
     <>
-      <h2>Import/Export</h2>
+      <h2>{t('importExport.header')}</h2>
 
-      <h3>File Metadata</h3>
+      <h3>{t('importExport.metadata')}</h3>
 
-      <Callout icon={IconSet.INFO}>
-        This option is useful for importing/exporting tags from/to other software. If you use a
-        service like Dropbox or Google, you can write your tags to your files on one device and read
-        them on other devices.
-      </Callout>
+      <Callout icon={IconSet.INFO}>{t('importExport.metadataInfo')}</Callout>
       <fieldset>
         <legend>
-          Hierarchical separator, e.g.{' '}
+          {t('importExport.hierarchicalSeparator')}{' '}
           <pre style={{ display: 'inline' }}>
             {['Food', 'Fruit', 'Apple'].join(exifTool.hierarchicalSeparator)}
           </pre>
@@ -337,18 +335,18 @@ const ImportExport = observer(() => {
 
       <ButtonGroup>
         <Button
-          text="Import tags from file metadata"
+          text={t('importExport.import')}
           onClick={fileStore.readTagsFromFiles}
           styling="outlined"
         />
         <Button
-          text="Export tags to file metadata"
+          text={t('importExport.export')}
           onClick={() => setConfirmingMetadataExport(true)}
           styling="outlined"
         />
         <Alert
           open={isConfirmingMetadataExport}
-          title="Are you sure you want to overwrite your files' tags?"
+          title={t('importExport.exportConfirmationTitle')}
           primaryButtonText="Export"
           onClick={(button) => {
             if (button === DialogButton.PrimaryButton) {
@@ -357,18 +355,15 @@ const ImportExport = observer(() => {
             setConfirmingMetadataExport(false);
           }}
         >
-          <p>
-            This will overwrite any existing tags (a.k.a. keywords) in those files with
-            Allusion&#39;s tags. It is recommended to import all tags before writing new tags.
-          </p>
+          <p>{t('importExport.exportConfirmationBody')}</p>
         </Alert>
       </ButtonGroup>
 
-      <h3>Backup Database as File</h3>
+      <h3>{t('importExport.backupDatabase')}</h3>
 
-      <Callout icon={IconSet.INFO}>Automatic back-ups are created every 10 minutes.</Callout>
+      <Callout icon={IconSet.INFO}>{t('importExport.autoBackupInfo')}</Callout>
       <fieldset>
-        <legend>Backup Directory</legend>
+        <legend>{t('importExport.backupDirectory')}</legend>
         <div className="input-file">
           <input readOnly className="input input-file-value" value={backupDir} />
           <Button
@@ -382,13 +377,13 @@ const ImportExport = observer(() => {
 
       <ButtonGroup>
         <Button
-          text="Restore database from file"
+          text={t('importExport.restoreBackup')}
           onClick={handleChooseImportDir}
           icon={IconSet.IMPORT}
           styling="outlined"
         />
         <Button
-          text="Backup database to file"
+          text={t('importExport.createBackup')}
           onClick={handleCreateExport}
           icon={IconSet.OPEN_EXTERNAL}
           styling="outlined"
@@ -396,7 +391,7 @@ const ImportExport = observer(() => {
 
         <Alert
           open={Boolean(isConfirmingFileImport)}
-          title="Are you sure you want to restore the database from a backup?"
+          title={t('importExport.restoreConfirmationTitle')}
           primaryButtonText="Import"
           onClick={async (button) => {
             if (isConfirmingFileImport && button === DialogButton.PrimaryButton) {
@@ -418,10 +413,7 @@ const ImportExport = observer(() => {
             setConfirmingFileImport(undefined);
           }}
         >
-          <p>
-            This will replace your current tag hierarchy and any tags assigned to images, so it is
-            recommended you create a backup first.
-          </p>
+          <p>{t('importExport.restoreConfirmationBody')}</p>
           <p>{isConfirmingFileImport?.info}</p>
         </Alert>
       </ButtonGroup>
@@ -448,7 +440,7 @@ const imageFormatInts: Partial<Record<IMG_EXTENSIONS_TYPE, ReactNode>> = {
 
 const ImageFormatPicker = observer(() => {
   const { locationStore, fileStore } = useStore();
-  const { t } = useTranslation('settings');
+  const { t } = useTranslation(['common', 'settings']);
 
   const [removeDisabledImages, setRemoveDisabledImages] = useState(true);
   const toggleRemoveDisabledImages = useCallback(() => setRemoveDisabledImages((val) => !val), []);
@@ -488,9 +480,9 @@ const ImageFormatPicker = observer(() => {
   // TODO: group extensions by type: JPG+JPEG+JFIF, TIF+TIFF, etc
   return (
     <>
-      <h2>{t('imageFormats.header')}</h2>
+      <h2>{t('settings:imageFormats.header')}</h2>
       <fieldset>
-        <legend>{t('imageFormats.description')}</legend>
+        <legend>{t('settings:imageFormats.description')}</legend>
         <div className="checkbox-set-container">
           {IMG_EXTENSIONS.map((ext) => (
             <div className="item" key={ext}>
@@ -506,25 +498,21 @@ const ImageFormatPicker = observer(() => {
       </fieldset>
 
       <fieldset>
-        <legend>
-          There may already be images discovered by Allusion with file extensions you have disabled.
-          <br />
-          Would you like to exclude these images from Allusion after saving, or keep them around?
-        </legend>
+        <legend>{t('settings:imageFormats.confirmationWarning')}</legend>
         <Toggle
           checked={removeDisabledImages}
           onChange={toggleRemoveDisabledImages}
-          onLabel="Exclude images"
-          offLabel="Keep images"
+          onLabel={t('settings:imageFormats.excludeDisabledImages')}
+          offLabel={t('settings:imageFormats.includeDisabledImages')}
         />
       </fieldset>
 
       <Button
-        text="Reset"
+        text={t('common:reset')}
         onClick={() => setNewEnabledFileExtensions(new Set(locationStore.enabledFileExtensions))}
       />
       <Button
-        text="Save"
+        text={t('common:save')}
         styling="filled"
         onClick={onSubmit}
         disabled={
@@ -542,6 +530,7 @@ const ImageFormatPicker = observer(() => {
 
 const BackgroundProcesses = observer(() => {
   const { uiStore, locationStore } = useStore();
+  const { t } = useTranslation('settings');
 
   const importDirectory = uiStore.importDirectory;
   const browseImportDirectory = async () => {
@@ -580,14 +569,14 @@ const BackgroundProcesses = observer(() => {
 
   return (
     <>
-      <h2>Options</h2>
+      <h2>{t('backgroundProcesses.header')}</h2>
       <fieldset>
-        <legend>Run in background</legend>
+        <legend>{t('backgroundProcesses.runInBackground')}</legend>
         <Toggle checked={isRunInBackground} onChange={toggleRunInBackground} />
       </fieldset>
 
       <fieldset>
-        <legend>Browser extension download directory (must be in a Location)</legend>
+        <legend>{t('backgroundProcesses.downloadDirectory')}</legend>
         <div className="input-file">
           <input
             readOnly
@@ -604,7 +593,7 @@ const BackgroundProcesses = observer(() => {
       </fieldset>
 
       <fieldset>
-        <legend>Browser extension support</legend>
+        <legend>{t('backgroundProcesses.browserExtensionSupport')}</legend>
         <Toggle
           checked={isClipEnabled}
           onChange={
@@ -613,38 +602,29 @@ const BackgroundProcesses = observer(() => {
               : (e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  alert(
-                    'Please choose a download directory first, where images downloaded through the browser extension will be stored.',
-                  );
+                  alert(t('backgroundProcesses.chooseDownloadDirectoryFirst'));
                 }
           }
         />
       </fieldset>
 
-      <Callout icon={IconSet.INFO}>
-        For the browser extension to work, first choose a download folder that is in one of your
-        locations already added to Allusion, then enable the browser extension support toggle.
-        Finally, if you want the browser extension to work even when Allusion is not open, enable
-        the run in background option.
-      </Callout>
+      <Callout icon={IconSet.INFO}>{t('backgroundProcesses.browserExtensionInfo')}</Callout>
       <Button
         onClick={() => shell.openExternal(chromeExtensionUrl)}
         styling="outlined"
         icon={IconSet.CHROME_DEVTOOLS}
-        text="Get the extension from the Chrome Web Store"
+        text={t('backgroundProcesses.browserExtensionCTA')}
       />
     </>
   );
 });
 
 const Shortcuts = observer(() => {
+  const { t } = useTranslation('settings');
   return (
     <>
-      <h2>Keyboard shortcuts</h2>
-      <p>
-        Click on a key combination to modify it. After typing your new combination, press Enter to
-        confirm or Escape to cancel.
-      </p>
+      <h2>{t('shortcuts.header')}</h2>
+      <p>{t('shortcuts.instructions')}</p>
       <HotkeyMapper />
     </>
   );
@@ -652,6 +632,7 @@ const Shortcuts = observer(() => {
 
 const StartUpBehavior = observer(() => {
   const { uiStore } = useStore();
+  const { t } = useTranslation('settings');
 
   const [isAutoUpdateEnabled, setAutoUpdateEnabled] = useState(
     RendererMessenger.isCheckUpdatesOnStartupEnabled(),
@@ -664,22 +645,19 @@ const StartUpBehavior = observer(() => {
 
   return (
     <>
-      <h2>Start-up behavior</h2>
-      <h3>Remember last search query</h3>
+      <h2>{t('shortcuts.header')}</h2>
+      <h3>{t('startupBehavior.rememberSearchQuery')}</h3>
       <fieldset>
-        <legend>
-          Will restore the search query you had open when you last quit Allusion, so the same images
-          will be shown in the gallery
-        </legend>
+        <legend>{t('startupBehavior.rememberSearchQueryDescription')}</legend>
         <Toggle
           checked={uiStore.isRememberSearchEnabled}
           onChange={uiStore.toggleRememberSearchQuery}
         />
       </fieldset>
 
-      <h3>Automatic updates</h3>
+      <h3>{t('startupBehavior.automaticUpdates')}</h3>
       <fieldset>
-        <legend>Check for updates when starting Allusion</legend>
+        <legend></legend>
         <Toggle checked={isAutoUpdateEnabled} onChange={toggleAutoUpdate} />
       </fieldset>
     </>
@@ -689,6 +667,7 @@ const StartUpBehavior = observer(() => {
 const Advanced = observer(() => {
   const { uiStore, fileStore } = useStore();
   const thumbnailDirectory = uiStore.thumbnailDirectory;
+  const { t } = useTranslation('settings');
 
   const [defaultThumbnailDir, setDefaultThumbnailDir] = useState('');
   useEffect(() => {
@@ -738,12 +717,12 @@ const Advanced = observer(() => {
 
   return (
     <>
-      <h2>Storage</h2>
+      <h2>{t('advanced.storage')}</h2>
 
       {/* Todo: Add support to toggle this */}
       {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
       <fieldset>
-        <legend>Thumbnail Directory</legend>
+        <legend>{t('advanced.thumbnailDirectory')}</legend>
         <div className="input-file">
           <input readOnly className="input input-file-value" value={thumbnailDirectory} />
           <Button
@@ -762,14 +741,14 @@ const Advanced = observer(() => {
         </div>
       </fieldset>
 
-      <h2>Development</h2>
+      <h2>{t('advanced.development')}</h2>
       <ButtonGroup>
         <ClearDbButton />
         <Button
           onClick={RendererMessenger.toggleDevTools}
           styling="outlined"
           icon={IconSet.CHROME_DEVTOOLS}
-          text="Toggle DevTools"
+          text={t('advanced.devTools')}
         />
       </ButtonGroup>
     </>

@@ -1,6 +1,5 @@
 import { IS_DEV } from 'common/process';
 import i18n from 'i18next';
-// import detector from 'i18next-browser-languagedetector';
 import backend from 'i18next-fs-backend';
 import { initReactI18next } from 'react-i18next';
 import { join } from 'path';
@@ -8,6 +7,7 @@ import { join } from 'path';
 // TypeScript setup: https://react.i18next.com/latest/typescript
 //! Important: import all namespaces (for the default language, only)
 import main from '../resources/locales/en/main.json';
+import common from '../resources/locales/en/common.json';
 import settings from '../resources/locales/en/settings.json';
 import { lstatSync, readdirSync } from 'fs-extra';
 
@@ -15,12 +15,15 @@ export const resources = {
   en: {
     main,
     settings,
+    common,
   },
 } as const;
 
 export const defaultNS: keyof typeof resources['en'] = 'main';
 
 const localesDir = join(__dirname, IS_DEV ? '../resources/' : '', 'locales');
+
+// See the readme in resources/locales/README.md for instructions on how to add new languages
 
 export const locales: { value: string; label: string }[] = [
   { value: 'en', label: 'English' },
@@ -61,6 +64,8 @@ export const getSupportedLocales = () =>
     const isDirectory = lstatSync(joinedPath).isDirectory();
     return isDirectory;
   });
+
+// TODO: look further into utils for better usability
 
 export const initI18n = async (lng = 'en') => {
   const localesOnDisk = getSupportedLocales();

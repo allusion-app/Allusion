@@ -411,9 +411,7 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
           onDuplicate={searchStore.duplicate}
           onReplace={searchStore.replaceWithActiveSearch}
         />
-        {isEmpty && (
-          <Callout icon={IconSet.INFO}>Click + to save your current search criteria.</Callout>
-        )}
+        {isEmpty && <Callout icon={IconSet.INFO}>{t('saveSearch')}</Callout>}
 
         {editableSearch && (
           <SearchItemDialog

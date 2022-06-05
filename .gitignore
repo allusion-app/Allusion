@@ -16,3 +16,4 @@ dist/
 ._*
 
 target/
+tmp/

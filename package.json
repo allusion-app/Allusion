@@ -16,7 +16,9 @@
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "build:masonry": "cd wasm/wasm-build && cargo run masonry masonry/masonry-scalar && cargo run masonry masonry/masonry-simd -- -C target-feature=+simd128",
-    "build:exr": "cd wasm/wasm-build && cargo run exr-decoder exr"
+    "build:exr": "cd wasm/wasm-build && cargo run exr-decoder exr",
+    "i18n:sync": "npx i18next-locales-sync -p en -s en nl -l resources/locales",
+    "i18n:scan": "rimraf ./tmp && npx tsc --project tsconfig.json --skipLibCheck --jsx preserve --noEmit false --outDir ./tmp && npx i18next-scanner"
   },
   "build": {
     "appId": "com.allusion-app.allusion",
@@ -99,10 +101,13 @@
     "electron-builder": "^22.14.13",
     "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-i18next": "^6.0.0-2",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.28.0",
     "eslint-plugin-react-hooks": "^4.3.0",
     "html-webpack-plugin": "^5.5.0",
+    "i18next-locales-sync": "^1.1.2",
+    "i18next-scanner": "^3.1.0",
     "jest": "^27.4.7",
     "mini-css-extract-plugin": "^2.4.6",
     "ncp": "^2.0.0",

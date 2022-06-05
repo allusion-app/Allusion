@@ -4,10 +4,10 @@
     "interface": {
       "header": "Interface",
       "language": "Language",
+      "languageDebug": "DEBUG (dev-mode only)",
       "darkTheme": "Dark theme",
       "theme": "Theme customization",
-      "themeDimmed": "Dimmed",
-      "themeMonochrome": "Monochrome",
+      "themeDefault": "None (default)",
       "uiScale": "UI scale (zoom)",
       "fullScreen": "Full screen"
     },
@@ -25,22 +25,54 @@
     }
   },
   "shortcuts": {
-    "header": "Shortcuts"
+    "header": "Shortcuts",
+    "instructions": "Click on a key combination to modify it. After typing your new combination, press Enter to confirm or Escape to cancel."
   },
   "startupBehavior": {
-    "header": "Startup behavior"
+    "header": "Startup behavior",
+    "rememberSearchQuery": "Remember last search query",
+    "rememberSearchQueryDescription": "Will restore the search query you had open when you last quit Allusion, so the same images will be shown in the gallery",
+    "automaticUpdates": "Automatic updates",
+    "automaticUpdatesDescription": "Check for updates when starting up Allusion"
   },
   "imageFormats": {
     "header": "Image formats",
-    "description": "Image formats to be discovered by Allusion in your Locations"
+    "description": "Image formats to be discovered by Allusion in your Locations",
+    "confirmationWarning": "There may already be images discovered by Allusion with file extensions you have disabled. \nWould you like to exclude these images from Allusion after saving, or keep them around?",
+    "excludeDisabledImages": "Exclude images",
+    "includeDisabledImages": "Keep images"
   },
   "importExport": {
-    "header": "Import/export"
+    "header": "Import/export",
+    "metadata": "File metadata",
+    "metadataInfo": "This option is useful for importing/exporting tags from/to other software. If you use a service like Dropbox or Google, you can write your tags to your files on one device and read them on other devices.",
+    "hierarchicalSeparator": "Hierarchical separator, e.g.",
+    "import": "Import tags from file metadata",
+    "export": "Export tags to file metadata",
+    "exportConfirmationTitle": "Are you sure you want to overwrite your files' tags?",
+    "exportConfirmationBody": "This will overwrite any existing tags (a.k.a. keywords) in those files with Allusion's tags. It is recommended to import all tags before writing new tags.",
+    "backupDatabase": "Backup database as a file",
+    "autoBackupInfo": "Automatic back-ups are created every 10 minutes.",
+    "backupDirectory": "Backup directory",
+    "restoreBackup": "Restore database from file",
+    "createBackup": "Backup database to file",
+    "restoreConfirmationTitle": "Are you sure you want to restore the database from a backup?",
+    "restoreConfirmationBody": "This will replace your current tag hierarchy and any tags assigned to images, so it is recommended you create a backup first."
   },
   "backgroundProcesses": {
-    "header": "Background processes"
+    "header": "Background processes",
+    "runInBackground": "Run in background",
+    "downloadDirectory": "Browser extension download directory (must be in a Location)",
+    "browserExtensionSupport": "Browser extension support",
+    "chooseDownloadDirectoryFirst": "Please choose a download directory first, where images downloaded through the browser extension will be stored.",
+    "browserExtensionInfo": "For the browser extension to work, first choose a download folder that is in one of your locations already added to Allusion, then enable the browser extension support toggle. Finally, if you want the browser extension to work even when Allusion is not open, enable the run in background option.",
+    "browserExtensionCTA": "Get the extension from the Chrome Web Store"
   },
   "advanced": {
-    "header": "Advanced"
+    "header": "Advanced",
+    "storage": "Storage",
+    "thumbnailDirectory": "Thumbnail directory",
+    "development": "Development",
+    "devTools": "Toggle DevTools"
   }
 }
