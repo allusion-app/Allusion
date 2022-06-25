@@ -127,7 +127,7 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
           .getImageSrc(nextFile)
           .then((src) => isEffectRunning && src && (nextImg.src = encodeFilePath(src)));
       }
-      if (!isFirst.get() && fileStore.fileList.length > 0) {
+      if (!isFirst.get() && !fileStore.fileIndex.isEmpty) {
         const prevImg = new Image();
         const prevFile = fileStore.fileList[uiStore.firstItem - 1];
         imageLoader

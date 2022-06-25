@@ -235,7 +235,7 @@ class UiStore {
   }
 
   @action updateWindowTitle() {
-    if (this.isSlideMode && this.rootStore.fileStore.fileList.length > 0) {
+    if (this.isSlideMode && !this.rootStore.fileStore.fileIndex.isEmpty) {
       const activeFile = this.rootStore.fileStore.fileList[this.firstItem];
       this.windowTitle = `${activeFile.filename}.${activeFile.extension} - Allusion`;
     } else {
