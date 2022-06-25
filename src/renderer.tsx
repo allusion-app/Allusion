@@ -61,7 +61,7 @@ if (IS_PREVIEW_WINDOW) {
         await rootStore.locationStore.init();
       }
 
-      await rootStore.fileStore.updateFromBackend(files);
+      rootStore.fileStore.updateFromBackend(files);
       rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
     },
   );

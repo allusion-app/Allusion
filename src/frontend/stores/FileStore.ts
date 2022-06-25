@@ -36,7 +36,7 @@ class FileStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
 
-  readonly fileIndex = new IndexMap<ID, ClientFile>();
+  public readonly fileIndex = new IndexMap<ID, ClientFile>();
   /**
    * The timestamp when the fileList was last modified.
    * Useful for in react component dependencies that need to trigger logic when the fileList changes
@@ -296,7 +296,6 @@ class FileStore {
         this.rootStore.uiStore.deselectFile(file);
         this.removeThumbnail(file.absolutePath);
       }
-      this.fileListLastModified = new Date();
       return this.refetch();
     } catch (err) {
       console.error('Could not remove files', err);
@@ -330,18 +329,20 @@ class FileStore {
     }
   }
 
-  @action.bound async fetchAllFiles() {
+  @action.bound
+  public async fetchAllFiles(): Promise<void> {
     try {
       this.rootStore.uiStore.clearSearchCriteriaList();
       const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.orderDirection);
       this.setContentAll();
-      return this.updateFromBackend(fetchedFiles);
+      this.updateFromBackend(fetchedFiles);
     } catch (err) {
       console.error('Could not load all files', err);
     }
   }
 
-  @action.bound async fetchUntaggedFiles() {
+  @action.bound
+  public async fetchUntaggedFiles(): Promise<void> {
     try {
       const { uiStore } = this.rootStore;
       uiStore.clearSearchCriteriaList();
@@ -354,7 +355,7 @@ class FileStore {
         uiStore.searchMatchAny,
       );
       this.setContentUntagged();
-      return this.updateFromBackend(fetchedFiles);
+      this.updateFromBackend(fetchedFiles);
     } catch (err) {
       console.error('Could not load all files', err);
     }
@@ -416,7 +417,8 @@ class FileStore {
     }
   }
 
-  @action.bound async fetchFilesByQuery() {
+  @action.bound
+  public async fetchFilesByQuery(): Promise<void> {
     const { uiStore } = this.rootStore;
     const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) =>
       c.serialize(this.rootStore),
@@ -432,16 +434,17 @@ class FileStore {
         uiStore.searchMatchAny,
       );
       this.setContentQuery();
-      return this.updateFromBackend(fetchedFiles);
+      this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on criteria', e);
     }
   }
 
-  @action.bound async fetchFilesByIDs(files: ID[]) {
+  @action.bound
+  public async fetchFilesByIDs(files: ID[]): Promise<void> {
     try {
       const fetchedFiles = await this.backend.fetchFilesByID(files);
-      return this.updateFromBackend(fetchedFiles);
+      this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on IDs', e);
     }
@@ -612,11 +615,15 @@ class FileStore {
   }
 
   /**
+   * Merges client files with the backend files.
    *
-   * @param backendFiles
-   * @returns A list of Client files, and a set of keys that was reused from the existing fileList
+   * If a client file exists with a corresponding backend file id, it will be updated with the backend file data.
+   * Otherwise, a new client file be created. Every client file with a non-matching backend file will be removed.
+   * @param backendFiles The query results from the backend.
+   * @returns A list of client files that were not reused from the existing fileList.
    */
-  @action private mergeFilesFromBackend(backendFiles: IFile[]): ClientFile[] {
+  @action
+  private mergeFilesFromBackend(backendFiles: IFile[]): ClientFile[] {
     const removedFiles = this.fileIndex.insertSort(
       backendFiles.map((backendFile) => [
         backendFile.id,

@@ -114,6 +114,40 @@ export class IndexMap<K, V> implements Iterable<V> {
     return this.splitOff(currentIndex);
   }
 
+  public remove(key: K): V | undefined {
+    const index = this.index.get(key);
+    if (index !== undefined) {
+      this.index.delete(key);
+      this.invertedIndex.splice(index, 1);
+
+      for (let i = index; i < this.length; i++) {
+        const key = this.invertedIndex[i];
+        this.index.set(key, i);
+      }
+
+      return this.items.splice(index, 1)[0];
+    } else {
+      return undefined;
+    }
+  }
+
+  public splice(start: number = 0, deleteCount: number = 0, ...entries: Array<[K, V]>): V[] {
+    for (const key of this.invertedIndex.splice(
+      start,
+      deleteCount,
+      ...entries.map(([key]) => key),
+    )) {
+      this.index.delete(key);
+    }
+
+    for (let i = start; i < this.length; i++) {
+      const key = this.invertedIndex[i];
+      this.index.set(key, i);
+    }
+
+    return this.items.splice(start, deleteCount, ...entries.map(([, value]) => value));
+  }
+
   public retain(predicate: (value: V) => boolean): V[] | undefined {
     let deleteCount = 0;
     let i = 0;
@@ -135,9 +169,8 @@ export class IndexMap<K, V> implements Iterable<V> {
         // Move retained element to the beginning of the hole (deleted elements). Doing so will
         // shift the hole to the end of the array.
         const holeSlot = i - deleteCount;
-        // TODO: Swap?
-        this.items.copyWithin(holeSlot, i, i + 1);
-        this.invertedIndex.copyWithin(holeSlot, i, i + 1);
+        swap(this.items, holeSlot, i);
+        swap(this.invertedIndex, holeSlot, i);
       }
       i += 1;
     }
