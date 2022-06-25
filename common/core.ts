@@ -56,3 +56,7 @@ export function retainArray<T>(array: T[], predicate: (element: T, index: number
 export function notEmpty<TValue>(value: TValue): value is NonNullable<TValue> {
   return value !== null && value !== undefined;
 }
+
+export function swap<T>(array: Array<T>, x: number, y: number): void {
+  [array[x], array[y]] = [array[y], array[x]];
+}
