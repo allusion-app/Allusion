@@ -108,6 +108,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'isThumbnailFilenameOverlayEnabled',
   'outlinerWidth',
   'inspectorWidth',
+  'isFullScreen',
   'isRememberSearchEnabled',
   // the following are only restored when isRememberSearchEnabled is enabled
   'isSlideMode',
@@ -125,8 +126,6 @@ class UiStore {
 
   // Theme
   @observable theme: 'light' | 'dark' = 'dark';
-
-  @observable windowTitle = 'Allusion';
 
   // UI
   @observable isOutlinerOpen: boolean = true;
@@ -235,19 +234,9 @@ class UiStore {
     this.setThumbnailShape('letterbox');
   }
 
-  @action updateWindowTitle() {
-    if (this.isSlideMode && !this.rootStore.fileStore.fileIndex.isEmpty) {
-      const activeFile = this.rootStore.fileStore.fileList[this.firstItem];
-      this.windowTitle = `${activeFile.filename}.${activeFile.extension} - Allusion`;
-    } else {
-      this.windowTitle = 'Allusion';
-    }
-  }
-
   @action.bound setFirstItem(index: number = 0) {
     if (isFinite(index) && index < this.rootStore.fileStore.fileList.length) {
       this.firstItem = index;
-      this.updateWindowTitle();
     }
   }
 
@@ -273,22 +262,21 @@ class UiStore {
 
   @action.bound enableSlideMode() {
     this.isSlideMode = true;
-    this.updateWindowTitle();
   }
 
   @action.bound disableSlideMode() {
     this.isSlideMode = false;
-    this.updateWindowTitle();
   }
 
   @action.bound toggleSlideMode() {
     this.isSlideMode = !this.isSlideMode;
-    this.updateWindowTitle();
   }
 
-  /** This does not actually set the window to full-screen, just for bookkeeping! Use RendererMessenger instead */
-  @action.bound setFullScreen(val: boolean) {
-    this.isFullScreen = val;
+  public setFullScreen(isFullScreen: boolean) {
+    if (this.isFullScreen !== isFullScreen) {
+      this.isFullScreen = isFullScreen;
+      RendererMessenger.setFullScreen(this.isFullScreen);
+    }
   }
 
   @action.bound enableThumbnailTagOverlay() {
@@ -784,6 +772,10 @@ class UiStore {
         Object.entries<string>(prefs.hotkeyMap).forEach(
           ([k, v]) => k in defaultHotkeyMap && (this.hotkeyMap[k as keyof IHotkeyMap] = v),
         );
+
+        if (prefs.isFullScreen === true) {
+          this.setFullScreen(true);
+        }
 
         this.isRememberSearchEnabled = Boolean(prefs.isRememberSearchEnabled);
         if (this.isRememberSearchEnabled) {

@@ -4,47 +4,69 @@ import { RendererMessenger, WindowSystemButtonPress } from 'src/Messaging';
 import { IconSet } from 'widgets/Icons';
 import { useStore } from '../contexts/StoreContext';
 import { IS_MAC } from 'common/process';
+import { useAutorun, useComputed } from '../hooks/mobx';
 
-const WindowsTitlebar = () => {
+const WindowTitlebar = () => {
   const [isFocused, setIsFocused] = useState(true);
+
   useEffect(() => {
-    RendererMessenger.onFocus(() => setIsFocused(true));
-    RendererMessenger.onBlur(() => setIsFocused(false));
+    const disposeFocusListener = RendererMessenger.onFocus(() => setIsFocused(true));
+    const disposeBlurListener = RendererMessenger.onBlur(() => setIsFocused(false));
+
+    return () => {
+      disposeFocusListener();
+      disposeBlurListener();
+    };
   }, []);
 
   return (
     <div id="window-titlebar" className={isFocused ? undefined : 'inactive'}>
       <div id="window-resize-area" />
 
-      <WindowTitlebar />
+      <WindowTitle />
 
       {!IS_MAC && <WindowSystemButtons />}
     </div>
   );
 };
 
-const WindowTitlebar = observer(() => {
-  // This is its own component to avoid rerendering the whole WindowsTitlebar
+const WindowTitle = observer(() => {
+  const { fileStore, uiStore } = useStore();
 
-  const { uiStore } = useStore();
+  const windowTitle = useComputed(() => {
+    const activeFile = fileStore.fileIndex.at(uiStore.firstItem);
+    if (uiStore.isSlideMode && activeFile !== undefined) {
+      return `${activeFile.filename}.${activeFile.extension} - Allusion`;
+    } else {
+      return 'Allusion';
+    }
+  });
+
+  useAutorun(() => {
+    document.title = windowTitle.get();
+  });
 
   /* Extra span needed for ellipsis; isn't compatible with display: flex */
   return (
     <span>
-      <span>{uiStore.windowTitle}</span>
+      <span>{windowTitle.get()}</span>
     </span>
   );
 });
 
-export default WindowsTitlebar;
+export default WindowTitlebar;
 
 const WindowSystemButtons = () => {
-  const [isMaximized, setMaximized] = useState(RendererMessenger.isMaximized());
+  const [isMaximized, setMaximized] = useState(() => RendererMessenger.isMaximized());
+
   useEffect(() => {
-    const onMaximize = () => setMaximized(true);
-    const onUnmaximize = () => setMaximized(false);
-    RendererMessenger.onUnmaximize(onUnmaximize);
-    RendererMessenger.onMaximize(onMaximize);
+    const disposeUnmaxizeListener = RendererMessenger.onUnmaximize(() => setMaximized(false));
+    const disposeMaximizeListener = RendererMessenger.onMaximize(() => setMaximized(true));
+
+    return () => {
+      disposeUnmaxizeListener();
+      disposeMaximizeListener();
+    };
   }, []);
 
   return (

@@ -1,7 +1,6 @@
 import { chromeExtensionUrl } from 'common/config';
 import { getFilenameFriendlyFormattedDateTime } from 'common/fmt';
 import { getThumbnailPath, isDirEmpty } from 'common/fs';
-import { WINDOW_STORAGE_KEY } from 'common/window';
 import { shell } from 'electron';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
@@ -9,6 +8,7 @@ import SysPath from 'path';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
 import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
+import { useAction } from 'src/frontend/hooks/mobx';
 import useCustomTheme from 'src/frontend/hooks/useCustomTheme';
 import { RendererMessenger } from 'src/Messaging';
 import {
@@ -56,11 +56,10 @@ export default observer(Settings);
 const Appearance = observer(() => {
   const { uiStore } = useStore();
 
-  const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
+  const handleToggleFullScreen = useAction((e: React.FormEvent<HTMLInputElement>) => {
     const isFullScreen = e.currentTarget.checked;
-    localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
-    RendererMessenger.setFullScreen(isFullScreen);
-  };
+    uiStore.setFullScreen(isFullScreen);
+  });
 
   return (
     <>
@@ -82,7 +81,7 @@ const Appearance = observer(() => {
 
         <fieldset>
           <legend>Full screen</legend>
-          <Toggle checked={uiStore.isFullScreen} onChange={toggleFullScreen} />
+          <Toggle checked={uiStore.isFullScreen} onChange={handleToggleFullScreen} />
         </fieldset>
       </div>
 
@@ -133,7 +132,7 @@ const Appearance = observer(() => {
 });
 
 const Zoom = () => {
-  const [localZoomFactor, setLocalZoomFactor] = useState(RendererMessenger.getZoomFactor());
+  const [localZoomFactor, setLocalZoomFactor] = useState(() => RendererMessenger.getZoomFactor());
 
   useEffect(() => {
     RendererMessenger.setZoomFactor(localZoomFactor);
@@ -508,7 +507,7 @@ const BackgroundProcesses = observer(() => {
     }
   };
 
-  const [isRunInBackground, setRunInBackground] = useState(
+  const [isRunInBackground, setRunInBackground] = useState(() =>
     RendererMessenger.isRunningInBackground(),
   );
   const toggleRunInBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -516,7 +515,9 @@ const BackgroundProcesses = observer(() => {
     RendererMessenger.setRunInBackground({ isRunInBackground: e.target.checked });
   };
 
-  const [isClipEnabled, setClipServerEnabled] = useState(RendererMessenger.isClipServerEnabled());
+  const [isClipEnabled, setClipServerEnabled] = useState(() =>
+    RendererMessenger.isClipServerEnabled(),
+  );
   const toggleClipServer = (e: React.ChangeEvent<HTMLInputElement>) => {
     setClipServerEnabled(e.target.checked);
     RendererMessenger.setClipServerEnabled({ isClipServerRunning: e.target.checked });
@@ -597,7 +598,7 @@ const Shortcuts = observer(() => {
 const StartUpBehavior = observer(() => {
   const { uiStore } = useStore();
 
-  const [isAutoUpdateEnabled, setAutoUpdateEnabled] = useState(
+  const [isAutoUpdateEnabled, setAutoUpdateEnabled] = useState(() =>
     RendererMessenger.isCheckUpdatesOnStartupEnabled(),
   );
 

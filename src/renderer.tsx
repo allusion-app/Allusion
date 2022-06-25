@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { action, observe, runInAction } from 'mobx';
+import { action, runInAction } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -20,10 +20,8 @@ import RootStore from './frontend/stores/RootStore';
 import App from './frontend/App';
 import PreviewApp from './frontend/Preview';
 import Overlay from './frontend/Overlay';
-import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
+import { IS_PREVIEW_WINDOW } from 'common/window';
 import { promiseRetry } from '../common/timeout';
-
-const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
 
 // Initialize the backend for the App, that serves as an API to the front-end
 const backend = new Backend();
@@ -84,46 +82,9 @@ if (IS_PREVIEW_WINDOW) {
       }
     }),
   );
-
-  // Change window title to filename on load
-  observe(rootStore.fileStore.fileList, ({ object: list }) => {
-    if (list.length > 0) {
-      const file = list[0];
-      document.title = `${file.absolutePath} • ${PREVIEW_WINDOW_BASENAME}`;
-    }
-  });
-
-  // Change window title to filename when changing the selected file
-  observe(rootStore.uiStore, 'firstItem', ({ object }) => {
-    const index = object.get();
-    if (!isNaN(index) && index >= 0 && index < rootStore.fileStore.fileList.length) {
-      const file = rootStore.fileStore.fileList[index];
-      document.title = `${file.absolutePath || '?'} • ${PREVIEW_WINDOW_BASENAME}`;
-    }
-  });
 } else {
   RendererMessenger.onClosedPreviewWindow(() => {
     rootStore.uiStore.closePreviewWindow();
-  });
-  // Recover global preferences
-  try {
-    const window_preferences = localStorage.getItem(WINDOW_STORAGE_KEY);
-    if (window_preferences === null) {
-      localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: false }));
-    } else {
-      const prefs = JSON.parse(window_preferences);
-      if (prefs.isFullScreen === true) {
-        RendererMessenger.setFullScreen(true);
-        rootStore.uiStore.setFullScreen(true);
-      }
-    }
-  } catch (e) {
-    console.error('Cannot load window preferences', e);
-  }
-
-  // Change window title to filename when changing the selected file
-  observe(rootStore.uiStore, 'windowTitle', ({ object }) => {
-    document.title = object.get();
   });
 }
 
@@ -189,4 +150,8 @@ RendererMessenger.onAddTagsToFile(async ({ item }) => {
 
 RendererMessenger.onGetTags(async () => ({ tags: await backend.fetchTags() }));
 
-RendererMessenger.onFullScreenChanged((val) => rootStore.uiStore.setFullScreen(val));
+RendererMessenger.onFullScreenChanged(
+  action((isFullScreen) => {
+    rootStore.uiStore.setFullScreen(isFullScreen);
+  }),
+);

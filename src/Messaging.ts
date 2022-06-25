@@ -35,7 +35,6 @@ const MESSAGE_BOX_SYNC = 'MESSAGE_BOX_SYNC';
 const GET_PATH = 'GET_PATH';
 const TRASH_FILE = 'TRASH_FILE';
 const SET_FULL_SCREEN = 'SET_FULL_SCREEN';
-const IS_FULL_SCREEN = 'IS_FULL_SCREEN';
 const FULL_SCREEN_CHANGED = 'FULL_SCREEN_CHANGED';
 const SET_ZOOM_FACTOR = 'SET_ZOOM_FACTOR';
 const GET_ZOOM_FACTOR = 'GET_ZOOM_FACTOR';
@@ -123,6 +122,8 @@ export const CHECK_FOR_UPDATES = 'CHECK_FOR_UPDATES';
 export const TOGGLE_CHECK_UPDATES_ON_STARTUP = 'TOGGLE_CHECK_UPDATES_ON_STARTUP';
 export const IS_CHECK_UPDATES_ON_STARTUP_ENABLED = 'IS_CHECK_UPDATES_ON_STARTUP_ENABLED';
 
+type EventListenerDisposer = () => void;
+
 // Static methods for type safe IPC messages between renderer and main process
 export class RendererMessenger {
   static initialized = () => ipcRenderer.send(INITIALIZED);
@@ -151,8 +152,6 @@ export class RendererMessenger {
 
   static setFullScreen = (isFullScreen: boolean) =>
     ipcRenderer.invoke(SET_FULL_SCREEN, isFullScreen);
-
-  static isFullScreen = (): boolean => ipcRenderer.sendSync(IS_FULL_SCREEN);
 
   static onFullScreenChanged = (cb: (val: boolean) => void) =>
     ipcRenderer.on(FULL_SCREEN_CHANGED, (_, val: boolean) => cb(val));
@@ -206,13 +205,25 @@ export class RendererMessenger {
 
   static onClosedPreviewWindow = (cb: () => void) => ipcRenderer.on(CLOSED_PREVIEW_WINDOW, cb);
 
-  static onMaximize = (cb: () => void) => ipcRenderer.on(WINDOW_MAXIMIZE, () => cb());
+  static onMaximize = (cb: () => void): EventListenerDisposer => {
+    ipcRenderer.on(WINDOW_MAXIMIZE, cb);
+    return () => ipcRenderer.removeListener(WINDOW_MAXIMIZE, cb);
+  };
 
-  static onUnmaximize = (cb: () => void) => ipcRenderer.on(WINDOW_UNMAXIMIZE, () => cb());
+  static onUnmaximize = (cb: () => void): EventListenerDisposer => {
+    ipcRenderer.on(WINDOW_UNMAXIMIZE, cb);
+    return () => ipcRenderer.removeListener(WINDOW_UNMAXIMIZE, cb);
+  };
 
-  static onFocus = (cb: () => void) => ipcRenderer.on(WINDOW_FOCUS, () => cb());
+  static onFocus = (cb: () => void): EventListenerDisposer => {
+    ipcRenderer.on(WINDOW_FOCUS, cb);
+    return () => ipcRenderer.removeListener(WINDOW_FOCUS, cb);
+  };
 
-  static onBlur = (cb: () => void) => ipcRenderer.on(WINDOW_BLUR, () => cb());
+  static onBlur = (cb: () => void): EventListenerDisposer => {
+    ipcRenderer.on(WINDOW_BLUR, cb);
+    return () => ipcRenderer.removeListener(WINDOW_BLUR, cb);
+  };
 
   static pressWindowSystemButton = (button: WindowSystemButtonPress) =>
     ipcRenderer.send(WINDOW_SYSTEM_BUTTON_PRESS, button);
@@ -289,9 +300,6 @@ export class MainMessenger {
 
   static onSetFullScreen = (cb: (isFullScreen: boolean) => void) =>
     ipcMain.handle(SET_FULL_SCREEN, (_, isFullScreen) => cb(isFullScreen));
-
-  static onIsFullScreen = (cb: () => boolean) =>
-    ipcMain.on(IS_FULL_SCREEN, (e) => (e.returnValue = cb()));
 
   static fullscreenChanged = (wc: WebContents, isFullScreen: boolean) =>
     wc.send(FULL_SCREEN_CHANGED, isFullScreen);
