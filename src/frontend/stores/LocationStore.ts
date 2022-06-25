@@ -437,7 +437,7 @@ class LocationStore {
       // Remove deleted files from selection
       for (const file of this.rootStore.uiStore.fileSelection) {
         if (file.locationId === location.id) {
-          this.rootStore.uiStore.deselectFile(file);
+          this.rootStore.uiStore.fileSelection.deselect(file);
         }
       }
       // Remove location locally

@@ -80,14 +80,14 @@ const Content = observer(() => {
   const clearFileSelection = useAction((e: React.MouseEvent | React.KeyboardEvent) => {
     const isLayout = e.currentTarget.firstElementChild?.contains(e.target as Node);
     if (!uiStore.isSlideMode && isLayout) {
-      uiStore.clearFileSelection();
+      uiStore.fileSelection.clear();
     }
   });
 
   const handleKeyDown = useAction((e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       if (!uiStore.isSlideMode) {
-        uiStore.clearFileSelection();
+        uiStore.fileSelection.clear();
         e.stopPropagation();
       }
     }

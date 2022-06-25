@@ -246,7 +246,7 @@ class FileStore {
    */
   @action.bound hideFile(file: ClientFile) {
     file.setBroken(true);
-    this.rootStore.uiStore.deselectFile(file);
+    this.rootStore.uiStore.fileSelection.deselect(file);
     this.incrementNumMissingFiles();
     if (file.tags.size === 0) {
       this.decrementNumUntaggedFiles();
@@ -256,7 +256,7 @@ class FileStore {
   /** Replaces a file's data when it is moved or renamed */
   @action.bound
   public replaceMovedFile(file: ClientFile, newData: IFile): void {
-    if (this.fileIndex.containsKey(file.id)) {
+    if (this.fileIndex.has(file.id)) {
       file.dispose();
 
       const newIFile = mergeMovedFile(file.serialize(), newData);
@@ -289,7 +289,7 @@ class FileStore {
       // Remove files from stores
       for (const file of files) {
         file.dispose();
-        this.rootStore.uiStore.deselectFile(file);
+        this.rootStore.uiStore.fileSelection.deselect(file);
         this.removeThumbnail(file.absolutePath);
       }
       return this.refetch();
@@ -457,12 +457,6 @@ class FileStore {
     this.numUntaggedFiles--;
   }
 
-  // Removes all items from fileList
-  @action
-  public clearFileList(): void {
-    this.fileIndex.clear();
-  }
-
   public getIndex(id: ID): number | undefined {
     return this.fileIndex.getIndex(id);
   }
@@ -544,7 +538,7 @@ class FileStore {
   public updateFromBackend(backendFiles: IFile[]): void {
     if (backendFiles.length === 0) {
       this.fileIndex.clear();
-      this.rootStore.uiStore.clearFileSelection();
+      this.rootStore.uiStore.fileSelection.clear();
       this.fileListLastModified = new Date();
       return;
     }
@@ -600,8 +594,8 @@ class FileStore {
   private cleanFileSelection(): void {
     const { fileSelection } = this.rootStore.uiStore;
     for (const file of fileSelection) {
-      if (!this.fileIndex.containsKey(file.id)) {
-        fileSelection.delete(file);
+      if (!this.fileIndex.has(file.id)) {
+        fileSelection.deselect(file);
       }
     }
   }

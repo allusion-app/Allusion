@@ -70,7 +70,7 @@ export const OutlinerActionBar = observer(() => {
 });
 
 const TagsPanel = (props: Partial<MultiSplitPaneProps>) => {
-  const { uiStore } = useStore();
+  const { tagStore, uiStore } = useStore();
 
   const handleShortcuts = useAction((e: React.KeyboardEvent) => {
     if ((e.target as HTMLElement).matches('input')) {
@@ -82,9 +82,9 @@ const TagsPanel = (props: Partial<MultiSplitPaneProps>) => {
     };
     const { hotkeyMap } = uiStore;
     if (matches(hotkeyMap.selectAll)) {
-      uiStore.selectAllTags();
+      uiStore.tagSelection.select(...tagStore.tagList);
     } else if (matches(hotkeyMap.deselectAll)) {
-      uiStore.clearTagSelection();
+      uiStore.tagSelection.clear();
     }
   });
 

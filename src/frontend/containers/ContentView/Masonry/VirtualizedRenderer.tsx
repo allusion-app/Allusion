@@ -19,8 +19,6 @@ interface IRendererProps {
   overscan?: number;
   layoutUpdateDate: Date;
   padding?: number;
-  /** The index of the currently selected image, or the "last selected" image when a range is selected */
-  lastSelectionIndex: React.MutableRefObject<number | undefined>;
 }
 
 /**
@@ -35,7 +33,6 @@ const VirtualizedRenderer = observer(
     layout,
     className,
     overscan = 0,
-    lastSelectionIndex,
     layoutUpdateDate,
     padding,
   }: IRendererProps) => {
@@ -125,8 +122,8 @@ const VirtualizedRenderer = observer(
     );
 
     // The index currently selected image, or the "last selected" image when a range is selected,
-    const lastSelIndex = lastSelectionIndex.current
-      ? Math.min(lastSelectionIndex.current, numImages - 1)
+    const lastSelIndex = uiStore.fileSelection.lastSelection
+      ? Math.min(uiStore.fileSelection.lastSelection, numImages - 1)
       : undefined;
 
     // When layout updates, scroll to firstImage (e.g. resize or thumbnail size changed)

@@ -12,7 +12,7 @@ import { useAction } from '../hooks/mobx';
 import { ContextMenuLayer } from 'widgets/menus';
 
 const Main = () => {
-  const { uiStore } = useStore();
+  const { fileStore, uiStore } = useStore();
   const data = useRef(observable({ source: undefined, target: undefined }));
 
   useEffect(() => {
@@ -50,9 +50,9 @@ const Main = () => {
 
     const { hotkeyMap } = uiStore;
     if (matches(hotkeyMap.selectAll)) {
-      uiStore.selectAllFiles();
+      uiStore.fileSelection.select(...fileStore.fileList);
     } else if (matches(hotkeyMap.deselectAll)) {
-      uiStore.clearFileSelection();
+      uiStore.fileSelection.clear();
     } else if (matches(hotkeyMap.openTagEditor)) {
       e.preventDefault();
       uiStore.openToolbarTagPopover();

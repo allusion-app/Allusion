@@ -8,6 +8,7 @@ import { FileRemoval } from 'src/frontend/components/RemovalAlert';
 import FileTagEditor from 'src/frontend/containers/AppToolbar/FileTagEditor';
 import Searchbar from './Searchbar';
 import { SortCommand, ViewCommand } from './Menus';
+import { useAction } from 'src/frontend/hooks/mobx';
 
 const OutlinerToggle = observer(() => {
   const { uiStore } = useStore();
@@ -83,13 +84,17 @@ export const SlideModeCommand = observer(() => {
 const FileSelectionCommand = observer(() => {
   const { uiStore, fileStore } = useStore();
   const selectionCount = uiStore.fileSelection.size;
-  const fileCount = fileStore.fileList.length;
 
-  const allFilesSelected = fileCount > 0 && selectionCount === fileCount;
+  const allFilesSelected =
+    !fileStore.fileIndex.isEmpty && selectionCount === fileStore.fileList.length;
   // If everything is selected, deselect all. Else, select all
-  const handleToggleSelect = () => {
-    selectionCount === fileCount ? uiStore.clearFileSelection() : uiStore.selectAllFiles();
-  };
+  const handleToggleSelect = useAction(() => {
+    if (uiStore.fileSelection.size === fileStore.fileList.length) {
+      uiStore.fileSelection.clear();
+    } else {
+      uiStore.fileSelection.select(...fileStore.fileList);
+    }
+  });
 
   return (
     <ToolbarButton
@@ -99,7 +104,7 @@ const FileSelectionCommand = observer(() => {
       pressed={allFilesSelected}
       text={selectionCount}
       tooltip="Selects or deselects all images"
-      disabled={fileCount === 0}
+      disabled={fileStore.fileIndex.isEmpty}
     />
   );
 });

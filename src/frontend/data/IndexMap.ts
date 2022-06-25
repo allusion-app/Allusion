@@ -29,7 +29,7 @@ export class IndexMap<K, V> implements Iterable<V> {
     return this.items[Symbol.iterator]();
   }
 
-  public get length(): number {
+  public get size(): number {
     return this.items.length;
   }
 
@@ -38,7 +38,7 @@ export class IndexMap<K, V> implements Iterable<V> {
     return this.items.length === 0;
   }
 
-  public containsKey(key: K): boolean {
+  public has(key: K): boolean {
     return this.index.has(key);
   }
 
@@ -76,7 +76,7 @@ export class IndexMap<K, V> implements Iterable<V> {
     if (index !== undefined) {
       return this.items.splice(index, 1, value)[0];
     } else {
-      this.index.set(key, this.length);
+      this.index.set(key, this.size);
       this.invertedIndex.push(key);
       this.items.push(value);
       return undefined;
@@ -94,7 +94,7 @@ export class IndexMap<K, V> implements Iterable<V> {
       if (index !== undefined) {
         merge(this.items[index]);
       } else {
-        index = this.length;
+        index = this.size;
         this.index.set(key, index);
         this.invertedIndex.push(key);
         this.items.push(merge(undefined));
@@ -115,13 +115,13 @@ export class IndexMap<K, V> implements Iterable<V> {
     return this.splitOff(currentIndex);
   }
 
-  public remove(key: K): V | undefined {
+  public delete(key: K): V | undefined {
     const index = this.index.get(key);
     if (index !== undefined) {
       this.index.delete(key);
       this.invertedIndex.splice(index, 1);
 
-      for (let i = index; i < this.length; i++) {
+      for (let i = index; i < this.size; i++) {
         const key = this.invertedIndex[i];
         this.index.set(key, i);
       }
@@ -132,7 +132,15 @@ export class IndexMap<K, V> implements Iterable<V> {
     }
   }
 
-  public splice(start: number = 0, deleteCount: number = 0, ...entries: Array<[K, V]>): V[] {
+  public splice(
+    start: number = 0,
+    deleteCount: number = 0,
+    ...entries: Array<[K, V]>
+  ): V[] | undefined {
+    if (start >= this.size) {
+      return undefined;
+    }
+
     for (const key of this.invertedIndex.splice(
       start,
       deleteCount,
@@ -141,7 +149,7 @@ export class IndexMap<K, V> implements Iterable<V> {
       this.index.delete(key);
     }
 
-    for (let i = start; i < this.length; i++) {
+    for (let i = start; i < this.size; i++) {
       const key = this.invertedIndex[i];
       this.index.set(key, i);
     }
@@ -152,7 +160,7 @@ export class IndexMap<K, V> implements Iterable<V> {
   public retain(predicate: (value: V) => boolean): V[] | undefined {
     let deleteCount = 0;
     let i = 0;
-    const len = this.length;
+    const len = this.size;
     while (i !== len) {
       const result = predicate(this.items[i]);
       i += 1;
@@ -180,14 +188,14 @@ export class IndexMap<K, V> implements Iterable<V> {
   }
 
   public splitOff(at: number): V[] | undefined {
-    if (at < this.length) {
-      for (const key of this.invertedIndex.splice(at)) {
-        this.index.delete(key);
-      }
-      return this.items.splice(at);
-    } else {
+    if (at >= this.size) {
       return undefined;
     }
+
+    for (const key of this.invertedIndex.splice(at)) {
+      this.index.delete(key);
+    }
+    return this.items.splice(at);
   }
 
   public clear(): void {

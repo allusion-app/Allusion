@@ -1,3 +1,4 @@
 import { IndexMap } from './IndexMap';
+import { Selection } from './Selection';
 
-export { IndexMap };
+export { IndexMap, Selection };

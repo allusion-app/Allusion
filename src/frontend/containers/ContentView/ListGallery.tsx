@@ -23,7 +23,7 @@ const getItemKey = action((index: number, data: ClientFile[]): string => {
   return data[index].id;
 });
 
-const ListGallery = observer(({ contentRect, select, lastSelectionIndex }: GalleryProps) => {
+const ListGallery = observer(({ contentRect, select }: GalleryProps) => {
   const { fileStore, uiStore } = useStore();
   const [cellSize, setCellSize] = useState(24);
   const ref = useRef<FixedSizeList>(null);
@@ -57,7 +57,7 @@ const ListGallery = observer(({ contentRect, select, lastSelectionIndex }: Galle
     [cellSize],
   );
 
-  const index = lastSelectionIndex.current;
+  const index = uiStore.fileSelection.lastSelection;
   const fileSelectionSize = uiStore.fileSelection.size;
   useLayoutEffect(() => {
     if (index !== undefined && ref.current !== null && fileSelectionSize > 0) {
@@ -76,7 +76,7 @@ const ListGallery = observer(({ contentRect, select, lastSelectionIndex }: Galle
 
   useEffect(() => {
     const onKeyDown = action((e: KeyboardEvent) => {
-      let index = lastSelectionIndex.current;
+      let index = uiStore.fileSelection.lastSelection;
       if (index === undefined) {
         return;
       }
@@ -93,8 +93,7 @@ const ListGallery = observer(({ contentRect, select, lastSelectionIndex }: Galle
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fileStore, select]);
+  }, [fileStore, select, uiStore]);
 
   // TODO: resizing columns is broken
 

@@ -111,7 +111,7 @@ class TagStore {
     for (const t of tag.getSubTree()) {
       t.dispose();
       tagGraph.delete(t.id);
-      uiStore.deselectTag(t);
+      uiStore.tagSelection.deselect(t);
       ids.push(t.id);
     }
     await this.backend.removeTags(ids);
@@ -129,7 +129,7 @@ class TagStore {
       for (const t of tag.getSubTree()) {
         t.dispose();
         tagGraph.delete(t.id);
-        uiStore.deselectTag(t);
+        uiStore.tagSelection.deselect(t);
         ids.push(t.id);
       }
       return ids.splice(0, ids.length);
@@ -145,7 +145,7 @@ class TagStore {
     if (tagToBeRemoved.subTags.length > 0) {
       throw new Error('Merging a tag with sub-tags is currently not supported.');
     }
-    this.rootStore.uiStore.deselectTag(tagToBeRemoved);
+    this.rootStore.uiStore.tagSelection.deselect(tagToBeRemoved);
     this.tagGraph.delete(tagToBeRemoved.id);
     tagToBeRemoved.parent.subTags.remove(tagToBeRemoved);
     await this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id);

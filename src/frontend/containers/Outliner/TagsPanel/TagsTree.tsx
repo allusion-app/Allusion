@@ -360,8 +360,9 @@ const isExpanded = (nodeData: ClientTag, treeData: ITreeData): boolean =>
 const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
   treeData.dispatch(Factory.toggleNode(nodeData.id));
 
-const toggleSelection = (uiStore: UiStore, nodeData: ClientTag) =>
-  uiStore.toggleTagSelection(nodeData);
+const toggleSelection = action((uiStore: UiStore, nodeData: ClientTag) => {
+  uiStore.tagSelection.toggleAdditive(nodeData);
+});
 
 const triggerContextMenuEvent = (event: React.KeyboardEvent<HTMLLIElement>) => {
   const element = event.currentTarget.querySelector('.tree-content-label');
@@ -450,12 +451,9 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
     target.setSelectionRange(0, 0);
   });
 
-  /** The first item that is selected in a multi-selection */
-  const initialSelectionIndex = useRef<number>();
-  /** The last item that is selected in a multi-selection */
-  const lastSelectionIndex = useRef<number>();
   // Handles selection via click event
   const select = useAction((e: React.MouseEvent, selectedTag: ClientTag) => {
+    const tagSelection = uiStore.tagSelection;
     // Note: selection logic is copied from Gallery.tsx
     const rangeSelection = e.shiftKey;
     const expandSelection = e.ctrlKey || e.metaKey;
@@ -464,36 +462,36 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
     const i = tagStore.findFlatTagListIndex(selectedTag);
 
     // If nothing is selected, initialize the selection range and select that single item
-    if (lastSelectionIndex.current === undefined) {
-      initialSelectionIndex.current = i;
-      lastSelectionIndex.current = i;
-      uiStore.toggleTagSelection(selectedTag);
+    if (tagSelection.lastSelection === undefined) {
+      tagSelection.initialSelection = i;
+      tagSelection.lastSelection = i;
+      uiStore.tagSelection.toggleAdditive(selectedTag);
       return;
     }
 
     // Mark this index as the last item that was selected
-    lastSelectionIndex.current = i;
+    tagSelection.lastSelection = i;
 
-    if (rangeSelection && initialSelectionIndex.current !== undefined) {
+    if (rangeSelection && tagSelection.initialSelection !== undefined) {
       if (i === undefined) {
         return;
       }
-      if (i < initialSelectionIndex.current) {
-        uiStore.selectTagRange(i, initialSelectionIndex.current, expandSelection);
+      if (i < tagSelection.initialSelection) {
+        uiStore.selectTagRange(i, tagSelection.initialSelection, expandSelection);
       } else {
-        uiStore.selectTagRange(initialSelectionIndex.current, i, expandSelection);
+        uiStore.selectTagRange(tagSelection.initialSelection, i, expandSelection);
       }
     } else if (expandSelection) {
-      uiStore.toggleTagSelection(selectedTag);
-      initialSelectionIndex.current = i;
+      uiStore.tagSelection.toggleAdditive(selectedTag);
+      tagSelection.initialSelection = i;
     } else {
       if (selectedTag.isSelected && uiStore.tagSelection.size === 1) {
-        uiStore.clearTagSelection();
+        uiStore.tagSelection.clear();
         (document.activeElement as HTMLElement | null)?.blur();
       } else {
-        uiStore.selectTag(selectedTag, true);
+        uiStore.tagSelection.select(selectedTag);
       }
-      initialSelectionIndex.current = i;
+      tagSelection.initialSelection = i;
     }
   });
 
@@ -549,13 +547,15 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
 
   const handleKeyDown = useAction((e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Escape') {
-      uiStore.clearTagSelection();
+      uiStore.tagSelection.clear();
       (document.activeElement as HTMLElement | null)?.blur();
       e.stopPropagation();
     } else {
       props.onKeyDown?.(e);
     }
   });
+
+  const clearSelection = useAction(() => uiStore.tagSelection.clear);
 
   return (
     <MultiSplitPane
@@ -573,7 +573,7 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
             <ToolbarButton
               icon={IconSet.CLOSE}
               text="Clear"
-              onClick={uiStore.clearTagSelection}
+              onClick={clearSelection}
               tooltip="Clear Selection"
             />
           ) : (
@@ -610,7 +610,7 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
       {/* Used for dragging collection to root of hierarchy and for deselecting tag selection */}
       <div
         id="tree-footer"
-        onClick={uiStore.clearTagSelection}
+        onClick={clearSelection}
         onDragOver={handleDragOverAndLeave}
         onDragLeave={handleDragOverAndLeave}
         onDrop={handleDrop}

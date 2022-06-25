@@ -1,6 +1,6 @@
-import { action } from 'mobx';
+import { action, reaction } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import FocusManager from 'src/frontend/FocusManager';
 import { ClientFile } from '../../../entities/File';
@@ -11,6 +11,7 @@ import ListGallery from './ListGallery';
 import MasonryRenderer from './Masonry/MasonryRenderer';
 import SlideMode from './SlideMode';
 import { ContentRect } from './utils';
+import { useAction } from 'src/frontend/hooks/mobx';
 
 interface LayoutProps {
   contentRect: ContentRect;
@@ -23,55 +24,55 @@ const Layout = ({ contentRect }: LayoutProps) => {
   // Could maybe be accomplished with https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
   // Also take into account scrolling when dragging while selecting
 
-  /** The first item that is selected in a multi-selection */
-  const initialSelectionIndex = useRef<number>();
-  /** The last item that is selected in a multi-selection */
-  const lastSelectionIndex = useRef<number>();
-
-  const handleFileSelect = useCallback(
+  const handleFileSelect = useAction(
     (selectedFile: ClientFile, toggleSelection: boolean, rangeSelection: boolean) => {
       /** The index of the actived item */
       const i = fileStore.getIndex(selectedFile.id);
 
       // If nothing is selected, initialize the selection range and select that single item
-      if (lastSelectionIndex.current === undefined) {
-        initialSelectionIndex.current = i;
-        lastSelectionIndex.current = i;
-        uiStore.toggleFileSelection(selectedFile, true);
+      if (uiStore.fileSelection.lastSelection === undefined) {
+        uiStore.fileSelection.initialSelection = i;
+        uiStore.fileSelection.lastSelection = i;
+        uiStore.fileSelection.toggle(selectedFile);
         return;
       }
       // Mark this index as the last item that was selected
-      lastSelectionIndex.current = i;
+      uiStore.fileSelection.lastSelection = i;
 
-      if (rangeSelection && initialSelectionIndex.current !== undefined) {
+      if (rangeSelection && uiStore.fileSelection.initialSelection !== undefined) {
         if (i === undefined) {
           return;
         }
-        if (i < initialSelectionIndex.current) {
-          uiStore.selectFileRange(i, initialSelectionIndex.current, toggleSelection);
+        if (i < uiStore.fileSelection.initialSelection) {
+          uiStore.selectFileRange(i, uiStore.fileSelection.initialSelection, toggleSelection);
         } else {
-          uiStore.selectFileRange(initialSelectionIndex.current, i, toggleSelection);
+          uiStore.selectFileRange(uiStore.fileSelection.initialSelection, i, toggleSelection);
         }
       } else if (toggleSelection) {
-        uiStore.toggleFileSelection(selectedFile);
-        initialSelectionIndex.current = fileStore.getIndex(selectedFile.id);
+        uiStore.fileSelection.toggleAdditive(selectedFile);
+        uiStore.fileSelection.initialSelection = i;
       } else {
         uiStore.selectFile(selectedFile, true);
-        initialSelectionIndex.current = fileStore.getIndex(selectedFile.id);
+        uiStore.fileSelection.initialSelection = i;
       }
     },
-    [fileStore, uiStore],
   );
 
   // Reset selection range when number of items changes: Else you can get phantom files when continuing your selection
   useEffect(() => {
-    initialSelectionIndex.current = undefined;
-    lastSelectionIndex.current = undefined;
-  }, [fileStore.fileList.length]);
+    return reaction(
+      () => fileStore.fileList.length,
+      () => {
+        uiStore.fileSelection.initialSelection = undefined;
+        uiStore.fileSelection.lastSelection = undefined;
+      },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const onKeyDown = action((e: KeyboardEvent) => {
-      let index = lastSelectionIndex.current;
+      let index = uiStore.fileSelection.lastSelection;
       if (index === undefined) {
         return;
       }
@@ -101,8 +102,7 @@ const Layout = ({ contentRect }: LayoutProps) => {
 
     window.addEventListener('keydown', throttledKeyDown);
     return () => window.removeEventListener('keydown', throttledKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fileStore, handleFileSelect]);
+  }, [fileStore, handleFileSelect, uiStore]);
 
   // delay unmount of slide view so end-transition can take place.
   // The `transitionEnd` prop is passed when slide mode is disabled,
@@ -131,22 +131,10 @@ const Layout = ({ contentRect }: LayoutProps) => {
     case ViewMethod.Grid:
     case ViewMethod.MasonryVertical:
     case ViewMethod.MasonryHorizontal:
-      overviewElem = (
-        <MasonryRenderer
-          contentRect={contentRect}
-          lastSelectionIndex={lastSelectionIndex}
-          select={handleFileSelect}
-        />
-      );
+      overviewElem = <MasonryRenderer contentRect={contentRect} select={handleFileSelect} />;
       break;
     case ViewMethod.List:
-      overviewElem = (
-        <ListGallery
-          contentRect={contentRect}
-          select={handleFileSelect}
-          lastSelectionIndex={lastSelectionIndex}
-        />
-      );
+      overviewElem = <ListGallery contentRect={contentRect} select={handleFileSelect} />;
       break;
     default:
       overviewElem = 'unknown view method';

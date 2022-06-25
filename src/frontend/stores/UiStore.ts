@@ -15,6 +15,7 @@ import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, notEmpty } from 'common/core';
 import { debounce } from 'common/timeout';
 import RootStore from './RootStore';
+import { Selection } from '../data';
 
 export const enum ViewMethod {
   List,
@@ -162,8 +163,8 @@ class UiStore {
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
   // However, sets are more suitable because they have quicker lookup performance.
-  readonly fileSelection = observable(new Set<ClientFile>());
-  readonly tagSelection = observable(new Set<ClientTag>());
+  public readonly fileSelection = new Selection<ClientFile>();
+  public readonly tagSelection = new Selection<ClientTag>();
 
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
@@ -450,83 +451,31 @@ class UiStore {
   }
 
   /////////////////// Selection actions ///////////////////
-  @action.bound selectFile(file: ClientFile, clear?: boolean) {
+  public selectFile(file: ClientFile, clear?: boolean): void {
     if (clear === true) {
-      this.clearFileSelection();
+      this.fileSelection.clear();
     }
-    this.fileSelection.add(file);
+    this.fileSelection.selectAdditive(file);
     this.setFirstItem(this.rootStore.fileStore.getIndex(file.id));
   }
 
-  @action.bound deselectFile(file: ClientFile) {
-    this.fileSelection.delete(file);
-  }
-
-  @action.bound toggleFileSelection(file: ClientFile, clear?: boolean) {
-    if (this.fileSelection.has(file)) {
-      this.fileSelection.delete(file);
-    } else {
-      if (clear) {
-        this.fileSelection.clear();
-      }
-      this.fileSelection.add(file);
-    }
-  }
-
-  @action.bound selectFileRange(start: number, end: number, additive?: boolean) {
+  public selectFileRange(start: number, end: number, additive: boolean): void {
+    const fileList = this.rootStore.fileStore.fileList.slice(start, end + 1);
     if (!additive) {
-      this.fileSelection.clear();
-    }
-    for (let i = start; i <= end; i++) {
-      this.fileSelection.add(this.rootStore.fileStore.fileList[i]);
-    }
-  }
-
-  @action.bound selectAllFiles() {
-    this.fileSelection.replace(this.rootStore.fileStore.fileList);
-  }
-
-  @action.bound clearFileSelection() {
-    this.fileSelection.clear();
-  }
-
-  @action.bound selectTag(tag: ClientTag, clear?: boolean) {
-    if (clear === true) {
-      this.clearTagSelection();
-    }
-    this.tagSelection.add(tag);
-  }
-
-  @action.bound deselectTag(tag: ClientTag) {
-    this.tagSelection.delete(tag);
-  }
-
-  @action.bound toggleTagSelection(tag: ClientTag) {
-    if (this.tagSelection.has(tag)) {
-      this.tagSelection.delete(tag);
+      this.fileSelection.select(...fileList);
     } else {
-      this.tagSelection.add(tag);
+      this.fileSelection.selectAdditive(...fileList);
     }
   }
 
   /** Selects a range of tags, where indices correspond to the flattened tag list. */
-  @action.bound selectTagRange(start: number, end: number, additive?: boolean) {
-    const tagTreeList = this.rootStore.tagStore.tagList;
+  public selectTagRange(start: number, end: number, additive: boolean): void {
+    const tagTreeList = this.rootStore.tagStore.tagList.slice(start, end + 1);
     if (!additive) {
-      this.tagSelection.replace(tagTreeList.slice(start, end + 1));
-      return;
+      this.tagSelection.select(...tagTreeList);
+    } else {
+      this.tagSelection.selectAdditive(...tagTreeList);
     }
-    for (let i = start; i <= end; i++) {
-      this.tagSelection.add(tagTreeList[i]);
-    }
-  }
-
-  @action.bound selectAllTags() {
-    this.tagSelection.replace(this.rootStore.tagStore.tagList);
-  }
-
-  @action.bound clearTagSelection() {
-    this.tagSelection.clear();
   }
 
   @action.bound async removeSelectedTags() {
@@ -691,14 +640,14 @@ class UiStore {
     );
     newCrits.forEach((crit) => crit.observe(this.debouncedStorePersistentPreferences));
     this.addSearchCriterias(newCrits);
-    this.clearTagSelection();
+    this.tagSelection.clear();
   }
 
   @action.bound replaceCriteriaWithTagSelection() {
     this.replaceSearchCriterias(
       Array.from(this.tagSelection, (tag) => new ClientTagSearchCriteria('tags', tag.id)),
     );
-    this.clearTagSelection();
+    this.tagSelection.clear();
   }
 
   @action.bound replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {

@@ -26,7 +26,7 @@ const MASONRY_PADDING = 8; // Note: keep in sync with .masonry class padding
 
 const worker = new MasonryWorkerAdapter();
 
-const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: GalleryProps) => {
+const MasonryRenderer = observer(({ contentRect, select }: GalleryProps) => {
   const { fileStore, uiStore } = useStore();
   const [containerHeight, setContainerHeight] = useState<number>();
   // The timestamp from when the layout was last updated
@@ -44,7 +44,7 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
   // note: horizontal keyboard navigation is handled elsewhere: LayoutSwitcher
   useEffect(() => {
     const onKeyDown = action((e: KeyboardEvent) => {
-      let index = lastSelectionIndex.current;
+      let index = uiStore.fileSelection.lastSelection;
       if (index === undefined) {
         return;
       }
@@ -85,8 +85,7 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
     const throttledKeyDown = throttle(onKeyDown, 50);
     window.addEventListener('keydown', throttledKeyDown);
     return () => window.removeEventListener('keydown', throttledKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fileStore, select, uiStore]);
 
   // Initialize on mount
   useEffect(() => {
@@ -186,7 +185,6 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
       images={fileStore.fileList}
       layout={worker}
       overscan={thumbnailSize * 3}
-      lastSelectionIndex={lastSelectionIndex}
       layoutUpdateDate={layoutTimestamp}
       padding={MASONRY_PADDING}
     />

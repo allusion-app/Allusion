@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { observe, runInAction } from 'mobx';
+import { action, observe, runInAction } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -67,20 +67,23 @@ if (IS_PREVIEW_WINDOW) {
   );
 
   // Close preview with space
-  window.addEventListener('keydown', (e: KeyboardEvent) => {
-    if (e.key === ' ' || e.key === 'Escape') {
-      rootStore.uiStore.clearFileSelection();
-      rootStore.fileStore.clearFileList();
-      rootStore.uiStore.enableSlideMode();
+  window.addEventListener(
+    'keydown',
+    action((e: KeyboardEvent) => {
+      if (e.key === ' ' || e.key === 'Escape') {
+        rootStore.uiStore.fileSelection.clear();
+        rootStore.fileStore.fileIndex.clear();
+        rootStore.uiStore.enableSlideMode();
 
-      // remove focus from element so closing preview with spacebar does not trigger any ui elements
-      if (document.activeElement && document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
+        // remove focus from element so closing preview with spacebar does not trigger any ui elements
+        if (document.activeElement && document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
+
+        window.close();
       }
-
-      window.close();
-    }
-  });
+    }),
+  );
 
   // Change window title to filename on load
   observe(rootStore.fileStore.fileList, ({ object: list }) => {
