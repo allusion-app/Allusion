@@ -41,7 +41,7 @@ class FileStore {
    * The timestamp when the fileList was last modified.
    * Useful for in react component dependencies that need to trigger logic when the fileList changes
    */
-  fileListLastModified = observable<Date>(new Date());
+  public fileListLastModified = observable<Date>(new Date());
 
   private filesToSave: Map<ID, IFile> = new Map();
 
@@ -140,17 +140,13 @@ class FileStore {
 
   @action.bound async writeTagsToFiles() {
     const toastKey = 'write-tags-to-file';
+    const numFiles = this.fileList.length;
+    const tagFilePairs = this.fileList.map((f) => ({
+      absolutePath: f.absolutePath,
+      tagHierarchy: Array.from(f.tags, (t) => t.path),
+    }));
+
     try {
-      const numFiles = this.fileList.length;
-      const tagFilePairs = runInAction(() =>
-        this.fileList.map((f) => ({
-          absolutePath: f.absolutePath,
-          tagHierarchy: Array.from(
-            f.tags,
-            action((t) => t.path),
-          ),
-        })),
-      );
       let lastToastVal = '0';
       for (let i = 0; i < tagFilePairs.length; i++) {
         const newToastVal = ((100 * i) / numFiles).toFixed(0);
@@ -462,16 +458,12 @@ class FileStore {
   }
 
   // Removes all items from fileList
-  @action.bound
+  @action
   public clearFileList(): void {
     this.fileIndex.clear();
   }
 
-  @action get(id: ID): ClientFile | undefined {
-    return this.fileIndex.get(id);
-  }
-
-  getIndex(id: ID): number | undefined {
+  public getIndex(id: ID): number | undefined {
     return this.fileIndex.getIndex(id);
   }
 
@@ -582,16 +574,16 @@ class FileStore {
     // we can simply check whether they exist after they start rendering
     // TODO: We can already get this from chokidar (folder watching), pretty much for free
     const existenceCheckPromises = this.fileList.map((clientFile) => async () => {
-      const isBroken = runInAction(() => clientFile.isBroken === true);
       const pathExists = await fse.pathExists(clientFile.absolutePath);
+      const isBroken = runInAction(() => clientFile.isBroken === true);
+
+      clientFile.setBroken(!pathExists);
 
       if (isBroken && pathExists) {
         this.decrementNumMissingFiles();
       } else if (!isBroken && !pathExists) {
         this.incrementNumMissingFiles();
       }
-
-      clientFile.setBroken(!pathExists);
     });
 
     // Run the existence check with at most N checks in parallel
