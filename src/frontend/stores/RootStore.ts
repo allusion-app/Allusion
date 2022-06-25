@@ -81,15 +81,14 @@ class RootStore {
       const numCriterias = runInAction(() => this.uiStore.searchCriteriaList.length);
 
       // There may already be a search already present, recovered from a previous session
-      const fileStoreInit =
-        numCriterias === 0
-          ? this.fileStore.fetchAllFiles
-          : () => {
-              // When searching by criteria, the file counts won't be set (only when fetching all files),
-              // so fetch them manually
-              this.fileStore.refetchFileCounts().catch(console.error);
-              return this.fileStore.fetchFilesByQuery();
-            };
+      const fileStoreInit = () => {
+        this.fileStore.refetchFileCounts().catch(console.error);
+        if (numCriterias === 0) {
+          return this.fileStore.fetchAllFiles();
+        } else {
+          return this.fileStore.fetchFilesByQuery();
+        }
+      };
 
       // Load the files already in the database so user instantly sees their images
       fileStoreInit().then(() => {

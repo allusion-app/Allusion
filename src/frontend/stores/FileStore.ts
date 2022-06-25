@@ -582,7 +582,7 @@ class FileStore {
     // we can simply check whether they exist after they start rendering
     // TODO: We can already get this from chokidar (folder watching), pretty much for free
     const existenceCheckPromises = this.fileList.map((clientFile) => async () => {
-      const isBroken = clientFile.isBroken === true;
+      const isBroken = runInAction(() => clientFile.isBroken === true);
       const pathExists = await fse.pathExists(clientFile.absolutePath);
 
       if (isBroken && pathExists) {
@@ -591,7 +591,7 @@ class FileStore {
         this.incrementNumMissingFiles();
       }
 
-      clientFile.setBroken(pathExists);
+      clientFile.setBroken(!pathExists);
     });
 
     // Run the existence check with at most N checks in parallel
