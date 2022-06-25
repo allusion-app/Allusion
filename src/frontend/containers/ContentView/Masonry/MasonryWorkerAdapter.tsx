@@ -41,7 +41,7 @@ export class MasonryWorkerAdapter implements Layouter {
   }
 
   async compute(
-    imgs: ClientFile[],
+    imgs: readonly ClientFile[],
     numImgs: number,
     containerWidth: number,
     opts: Partial<MasonryOptions>,

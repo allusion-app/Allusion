@@ -35,7 +35,7 @@ class TagStore {
     }
   }
 
-  @action.bound initializeFileCounts(files: ClientFile[]): void {
+  @action.bound initializeFileCounts(files: readonly ClientFile[]): void {
     for (const file of files) {
       for (const fileTag of file.tags) {
         fileTag.incrementFileCount();

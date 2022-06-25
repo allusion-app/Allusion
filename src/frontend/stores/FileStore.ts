@@ -16,6 +16,7 @@ import { debounce } from 'common/timeout';
 import { getThumbnailPath } from 'common/fs';
 import { promiseAllLimit } from 'common/promise';
 import RootStore from './RootStore';
+import { IndexMap } from '../data';
 
 const FILE_STORAGE_KEY = 'Allusion_File';
 
@@ -35,14 +36,12 @@ class FileStore {
   private readonly backend: Backend;
   private readonly rootStore: RootStore;
 
-  readonly fileList = observable<ClientFile>([]);
+  readonly fileIndex = new IndexMap<ID, ClientFile>();
   /**
    * The timestamp when the fileList was last modified.
    * Useful for in react component dependencies that need to trigger logic when the fileList changes
    */
   fileListLastModified = observable<Date>(new Date());
-  /** A map of file ID to its index in the file list, for quick lookups by ID */
-  private readonly index = new Map<ID, number>();
 
   private filesToSave: Map<ID, IFile> = new Map();
 
@@ -67,6 +66,10 @@ class FileStore {
     this.debouncedRefetch = debounce(this.refetch, 200).bind(this);
     this.debouncedSaveFilesToSave = debounce(this.saveFilesToSave, 100).bind(this);
     PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
+  }
+
+  public get fileList(): readonly ClientFile[] {
+    return this.fileIndex.values();
   }
 
   @action.bound async readTagsFromFiles() {
@@ -255,9 +258,9 @@ class FileStore {
   }
 
   /** Replaces a file's data when it is moved or renamed */
-  @action.bound replaceMovedFile(file: ClientFile, newData: IFile) {
-    const index = this.index.get(file.id);
-    if (index !== undefined) {
+  @action.bound
+  public replaceMovedFile(file: ClientFile, newData: IFile): void {
+    if (this.fileIndex.containsKey(file.id)) {
       file.dispose();
 
       const newIFile = mergeMovedFile(file.serialize(), newData);
@@ -271,7 +274,7 @@ class FileStore {
 
       const newClientFile = new ClientFile(this, newIFile);
       newClientFile.thumbnailPath = newThumbPath;
-      this.fileList[index] = newClientFile;
+      this.fileIndex.insert(file.id, newClientFile);
       this.save(newClientFile.serialize());
     }
   }
@@ -357,7 +360,8 @@ class FileStore {
     }
   }
 
-  @action.bound async fetchMissingFiles() {
+  @action.bound
+  public async fetchMissingFiles(): Promise<void> {
     try {
       const {
         orderBy,
@@ -374,16 +378,14 @@ class FileStore {
 
       // For every new file coming in, either re-use the existing client file if it exists,
       // or construct a new client file
-      const [newClientFiles, reusedStatus] = this.filesFromBackend(backendFiles);
+      const removedFiles = this.mergeFilesFromBackend(backendFiles);
 
       // Dispose of unused files
-      runInAction(() => {
-        for (const oldFile of this.fileList) {
-          if (!reusedStatus.has(oldFile.id)) {
-            oldFile.dispose();
-          }
-        }
-      });
+      for (const file of removedFiles) {
+        file.dispose();
+      }
+
+      const newClientFiles = this.fileIndex.slice();
 
       // We don't store whether files are missing (since they might change at any time)
       // So we have to check all files and check their existence them here
@@ -395,17 +397,11 @@ class FileStore {
       await promiseAllLimit(existenceCheckPromises, N);
 
       runInAction(() => {
-        const missingClientFiles = newClientFiles.filter((file) => file.isBroken);
-        this.fileList.replace(missingClientFiles);
-        this.numMissingFiles = missingClientFiles.length;
-        this.index.clear();
-        for (let index = 0; index < this.fileList.length; index++) {
-          const file = this.fileList[index];
-          this.index.set(file.id, index);
-        }
+        this.fileIndex.retain((file) => file.isBroken === true);
+        this.numMissingFiles = this.fileList.length;
         this.fileListLastModified = new Date();
+        this.cleanFileSelection();
       });
-      this.cleanFileSelection();
 
       AppToaster.show(
         {
@@ -463,18 +459,17 @@ class FileStore {
   }
 
   // Removes all items from fileList
-  @action.bound clearFileList() {
-    this.fileList.clear();
-    this.index.clear();
+  @action.bound
+  public clearFileList(): void {
+    this.fileIndex.clear();
   }
 
   @action get(id: ID): ClientFile | undefined {
-    const fileIndex = this.index.get(id);
-    return fileIndex !== undefined ? this.fileList[fileIndex] : undefined;
+    return this.fileIndex.get(id);
   }
 
   getIndex(id: ID): number | undefined {
-    return this.index.get(id);
+    return this.fileIndex.getIndex(id);
   }
 
   getTags(ids: ID[]): Set<ClientTag> {
@@ -550,11 +545,13 @@ class FileStore {
     }
   }
 
-  @action async updateFromBackend(backendFiles: IFile[]): Promise<void> {
+  @action
+  public updateFromBackend(backendFiles: IFile[]): void {
     if (backendFiles.length === 0) {
+      this.fileIndex.clear();
       this.rootStore.uiStore.clearFileSelection();
       this.fileListLastModified = new Date();
-      return this.clearFileList();
+      return;
     }
 
     // Filter out images with hidden tags
@@ -566,48 +563,49 @@ class FileStore {
 
     // For every new file coming in, either re-use the existing client file if it exists,
     // or construct a new client file
-    const [newClientFiles, reusedStatus] = this.filesFromBackend(backendFiles);
+    const removedFiles = this.mergeFilesFromBackend(backendFiles);
 
     // Dispose of Client files that are not re-used (to get rid of MobX observers)
-    for (const file of this.fileList) {
-      if (!reusedStatus.has(file.id)) {
-        file.dispose();
+    for (const file of removedFiles) {
+      file.dispose();
+      if (file.isBroken === true) {
+        this.decrementNumMissingFiles();
       }
     }
+
+    this.fileListLastModified = new Date();
 
     // Check existence of new files asynchronously, no need to wait until they can be shown
     // we can simply check whether they exist after they start rendering
     // TODO: We can already get this from chokidar (folder watching), pretty much for free
-    const existenceCheckPromises = newClientFiles.map((clientFile) => async () => {
-      clientFile.setBroken(!(await fse.pathExists(clientFile.absolutePath)));
+    const existenceCheckPromises = this.fileList.map((clientFile) => async () => {
+      const isBroken = clientFile.isBroken === true;
+      const pathExists = await fse.pathExists(clientFile.absolutePath);
+
+      if (isBroken && pathExists) {
+        this.decrementNumMissingFiles();
+      } else if (!isBroken && !pathExists) {
+        this.incrementNumMissingFiles();
+      }
+
+      clientFile.setBroken(pathExists);
     });
 
     // Run the existence check with at most N checks in parallel
     // TODO: Should make N configurable, or determine based on the system/disk performance
     // NOTE: This is _not_ await intentionally, since we want to show the files to the user as soon as possible
-    runInAction(() => {
-      // TODO: restores this line later, currently broken for large lists, see https://github.com/mobxjs/mobx/pull/3189 (look ma, I'm contributing to open source!)
-      // this.fileList.replace(newClientFiles);
-      this.fileList.clear();
-      this.fileList.push(...newClientFiles);
-
-      this.cleanFileSelection();
-      this.updateFileListState(); // update index & untagged image counter
-      this.fileListLastModified = new Date();
-    });
     const N = 50;
-    return promiseAllLimit(existenceCheckPromises, N)
-      .then(() => {
-        this.updateFileListState(); // update missing image counter
-      })
-      .catch((e) => console.error('An error occured during existence checking!', e));
+    promiseAllLimit(existenceCheckPromises, N).catch((e) =>
+      console.error('An error occured during existence checking!', e),
+    );
   }
 
   /** Remove files from selection that are not in the file list anymore */
-  @action private cleanFileSelection() {
+  @action
+  private cleanFileSelection(): void {
     const { fileSelection } = this.rootStore.uiStore;
     for (const file of fileSelection) {
-      if (!this.index.has(file.id)) {
+      if (!this.fileIndex.containsKey(file.id)) {
         fileSelection.delete(file);
       }
     }
@@ -618,69 +616,46 @@ class FileStore {
    * @param backendFiles
    * @returns A list of Client files, and a set of keys that was reused from the existing fileList
    */
-  @action private filesFromBackend(backendFiles: IFile[]): [ClientFile[], Set<ID>] {
-    const reusedStatus = new Set<ID>();
+  @action private mergeFilesFromBackend(backendFiles: IFile[]): ClientFile[] {
+    const removedFiles = this.fileIndex.insertSort(
+      backendFiles.map((backendFile) => [
+        backendFile.id,
+        (existingFile) => {
+          // Might already exist!
+          if (existingFile !== undefined) {
+            // Update tags (might have changes, e.g. removed/merged)
+            const newTags = backendFile.tags
+              .map((tag) => this.rootStore.tagStore.get(tag))
+              .filter((tag) => tag !== undefined) as ClientTag[];
+            if (
+              existingFile.tags.size !== newTags.length ||
+              Array.from(existingFile.tags).some((t, i) => t.id !== newTags[i].id)
+            ) {
+              existingFile.updateTagsFromBackend(newTags);
+            }
+            return existingFile;
+          } else {
+            // Otherwise, create new one.
+            // TODO: Maybe better performance by always keeping the same pool of client files,
+            // and just replacing their properties instead of creating new objects
+            // But that's micro optimization...
 
-    const clientFiles = backendFiles.map((f) => {
-      // Might already exist!
-      const existingFile = this.get(f.id);
-      if (existingFile !== undefined) {
-        reusedStatus.add(existingFile.id);
-        // Update tags (might have changes, e.g. removed/merged)
-        const newTags = f.tags
-          .map((t) => this.rootStore.tagStore.get(t))
-          .filter((t) => t !== undefined) as ClientTag[];
-        if (
-          existingFile.tags.size !== newTags.length ||
-          Array.from(existingFile.tags).some((t, i) => t.id !== newTags[i].id)
-        ) {
-          existingFile.updateTagsFromBackend(newTags);
-        }
-        return existingFile;
-      }
+            const file = new ClientFile(this, backendFile);
+            // Initialize the thumbnail path so the image can be loaded immediately when it mounts.
+            // To ensure the thumbnail actually exists, the `ensureThumbnail` function should be called
+            file.thumbnailPath = this.rootStore.imageLoader.needsThumbnail(backendFile)
+              ? getThumbnailPath(
+                  backendFile.absolutePath,
+                  this.rootStore.uiStore.thumbnailDirectory,
+                )
+              : backendFile.absolutePath;
+            return file;
+          }
+        },
+      ]),
+    );
 
-      // Otherwise, create new one.
-      // TODO: Maybe better performance by always keeping the same pool of client files,
-      // and just replacing their properties instead of creating new objects
-      // But that's micro optimization...
-
-      const file = new ClientFile(this, f);
-      // Initialize the thumbnail path so the image can be loaded immediately when it mounts.
-      // To ensure the thumbnail actually exists, the `ensureThumbnail` function should be called
-      file.thumbnailPath = this.rootStore.imageLoader.needsThumbnail(f)
-        ? getThumbnailPath(f.absolutePath, this.rootStore.uiStore.thumbnailDirectory)
-        : f.absolutePath;
-      return file;
-    });
-
-    return [clientFiles, reusedStatus];
-  }
-
-  /** Derive fields from `fileList`
-   * - `index`
-   * - `numUntaggedFiles`
-   * - `numMissingFiles`
-   */
-  @action private updateFileListState() {
-    let missingFiles = 0;
-    let untaggedFiles = 0;
-    this.index.clear();
-    for (let index = 0; index < this.fileList.length; index++) {
-      const file = this.fileList[index];
-      if (file.isBroken) {
-        missingFiles += 1;
-      } else if (file.tags.size === 0) {
-        untaggedFiles += 1;
-      }
-      this.index.set(file.id, index);
-    }
-    this.numMissingFiles = missingFiles;
-    if (this.showsAllContent) {
-      this.numTotalFiles = this.fileList.length;
-      this.numUntaggedFiles = untaggedFiles;
-    } else if (this.showsUntaggedContent) {
-      this.numUntaggedFiles = this.fileList.length;
-    }
+    return removedFiles ?? [];
   }
 
   /** Initializes the total and untagged file counters by querying the database with count operations */
@@ -704,6 +679,10 @@ class FileStore {
 
   @action private setContentMissing() {
     this.content = Content.Missing;
+  }
+
+  @action private decrementNumMissingFiles() {
+    this.numMissingFiles--;
   }
 
   @action private incrementNumMissingFiles() {
