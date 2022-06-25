@@ -1,6 +1,7 @@
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { generateId } from 'src/entities/ID';
 import { CustomKeyDict, FileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
@@ -364,6 +365,7 @@ const SavedSearchesList = ({ onDelete, onEdit, onDuplicate, onReplace }: ISearch
 const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
   const rootStore = useStore();
   const { searchStore, uiStore } = rootStore;
+  const { t } = useTranslation();
 
   const isEmpty = searchStore.searchList.length === 0;
 
@@ -390,7 +392,7 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
     <SearchDnDProvider value={data.current}>
       <MultiSplitPane
         id="saved-searches"
-        title="Saved Searches"
+        title={t('savedSearches')}
         headerToolbar={
           <Toolbar controls="saved-searches-list" isCompact>
             <ToolbarButton
@@ -409,9 +411,7 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
           onDuplicate={searchStore.duplicate}
           onReplace={searchStore.replaceWithActiveSearch}
         />
-        {isEmpty && (
-          <Callout icon={IconSet.INFO}>Click + to save your current search criteria.</Callout>
-        )}
+        {isEmpty && <Callout icon={IconSet.INFO}>{t('saveSearch')}</Callout>}
 
         {editableSearch && (
           <SearchItemDialog

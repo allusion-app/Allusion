@@ -16,7 +16,9 @@
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
     "build:masonry": "cd wasm/wasm-build && cargo run masonry masonry/masonry-scalar && cargo run masonry masonry/masonry-simd -- -C target-feature=+simd128",
-    "build:exr": "cd wasm/wasm-build && cargo run exr-decoder exr"
+    "build:exr": "cd wasm/wasm-build && cargo run exr-decoder exr",
+    "i18n:sync": "npx i18next-locales-sync -p en -s en nl -l resources/locales",
+    "i18n:scan": "rimraf ./tmp && npx tsc --project tsconfig.json --skipLibCheck --jsx preserve --noEmit false --outDir ./tmp && npx i18next-scanner"
   },
   "build": {
     "appId": "com.allusion-app.allusion",
@@ -54,7 +56,8 @@
       ]
     },
     "extraResources": [
-      "resources/themes"
+      "resources/themes",
+      "resources/locales"
     ],
     "nsis": {
       "oneClick": false,
@@ -98,10 +101,13 @@
     "electron-builder": "^22.14.13",
     "eslint": "^8.6.0",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-i18next": "^6.0.0-2",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.28.0",
     "eslint-plugin-react-hooks": "^4.3.0",
     "html-webpack-plugin": "^5.5.0",
+    "i18next-locales-sync": "^1.1.2",
+    "i18next-scanner": "^3.1.0",
     "jest": "^27.4.7",
     "mini-css-extract-plugin": "^2.4.6",
     "ncp": "^2.0.0",
@@ -121,12 +127,15 @@
   "dependencies": {
     "@floating-ui/core": "^0.6.1",
     "@floating-ui/react-dom": "^0.6.0",
+    "@types/i18next-fs-backend": "^1.1.2",
     "chokidar": "^3.5.2",
     "comlink": "^4.3.1",
     "dexie": "^3.2.0",
     "dexie-export-import": "^1.0.3",
     "electron-updater": "^5.0.0",
     "fs-extra": "^10.0.0",
+    "i18next": "^21.8.8",
+    "i18next-fs-backend": "^1.1.4",
     "mobx": "^6.3.12",
     "mobx-react-lite": "^3.2.3",
     "node-exiftool": "^2.3.0",
@@ -134,6 +143,7 @@
     "react": "^17.0.2",
     "react-colorful": "^5.5.1",
     "react-dom": "^17.0.2",
+    "react-i18next": "^11.17.0",
     "react-window": "^1.8.6",
     "sourcemapped-stacktrace": "^1.1.11",
     "utif": "^3.1.0",

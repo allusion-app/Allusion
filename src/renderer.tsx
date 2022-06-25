@@ -22,20 +22,36 @@ import PreviewApp from './frontend/Preview';
 import Overlay from './frontend/Overlay';
 import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
 import { promiseRetry } from '../common/timeout';
+import i18n, { initI18n } from './i18n';
 
 const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
+const I18N_LNG_KEY = 'i18nLng';
 
 // Initialize the backend for the App, that serves as an API to the front-end
 const backend = new Backend();
 const rootStore = new RootStore(backend);
-backend
-  .init(!IS_PREVIEW_WINDOW)
-  .then(async () => {
-    console.log('Backend has been initialized!');
-    await rootStore.init(IS_PREVIEW_WINDOW);
-    RendererMessenger.initialized();
+
+const lng = window.localStorage.getItem(I18N_LNG_KEY) || undefined;
+
+Promise.allSettled([backend.init(!IS_PREVIEW_WINDOW), initI18n(lng)])
+  .then(async ([backendRes, i18nRes]) => {
+    if (i18nRes.status === 'rejected') {
+      console.error('Could not intialize localization', i18nRes.reason);
+    }
+    if (backendRes.status === 'fulfilled') {
+      console.log('Backend has been initialized!');
+      await rootStore.init(IS_PREVIEW_WINDOW);
+      RendererMessenger.initialized();
+    } else {
+      throw backendRes.reason;
+    }
   })
   .catch((err) => console.error('Could not initialize backend!', err));
+
+i18n.on('languageChanged', (lng) => {
+  // TODO: change date formatters etc.
+  window.localStorage.setItem(I18N_LNG_KEY, lng);
+});
 
 if (IS_PREVIEW_WINDOW) {
   RendererMessenger.onReceivePreviewFiles(

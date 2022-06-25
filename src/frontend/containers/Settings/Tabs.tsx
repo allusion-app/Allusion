@@ -1,4 +1,5 @@
-import React, { ReactNode, useRef, useState } from 'react';
+import React, { ReactNode, useMemo, useState } from 'react';
+import { TFunction, useTranslation } from 'react-i18next';
 
 export type TabItem = {
   label: string;
@@ -6,12 +7,13 @@ export type TabItem = {
 };
 
 interface ITabs {
-  initTabItems: () => TabItem[];
+  initTabItems: (t: TFunction<'settings'>) => TabItem[];
 }
 
 const Tabs = ({ initTabItems }: ITabs) => {
   const [selection, setSelection] = useState(0);
-  const items = useRef(initTabItems()).current;
+  const { t } = useTranslation('settings');
+  const items = useMemo(() => initTabItems(t), [initTabItems, t]);
 
   return (
     <div className="tabs">

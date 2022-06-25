@@ -2,6 +2,7 @@ import { formatTagCountText } from 'common/fmt';
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { TagRemoval } from 'src/frontend/components/RemovalAlert';
@@ -427,6 +428,7 @@ const mapTag = (tag: ClientTag): ITreeItem => ({
 
 const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
   const { tagStore, uiStore } = useStore();
+  const { t } = useTranslation('main');
   const root = tagStore.root;
   const [state, dispatch] = useReducer(reducer, {
     expansion: {},
@@ -560,7 +562,7 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
   return (
     <MultiSplitPane
       id="tags"
-      title="Tags"
+      title={t('tags')}
       onKeyDown={handleKeyDown}
       headerProps={{
         onDragOver: handleDragOverAndLeave,

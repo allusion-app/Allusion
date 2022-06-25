@@ -1,5 +1,6 @@
 import './checkbox.scss';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface IToggle {
   checked?: boolean;
@@ -9,7 +10,8 @@ interface IToggle {
 }
 
 const Toggle = (props: IToggle) => {
-  const { checked, onChange, onLabel = 'On', offLabel = 'Off' } = props;
+  const { t } = useTranslation('common');
+  const { checked, onChange, onLabel = t('on'), offLabel = t('off') } = props;
   return (
     <label className="toggle">
       <input data-toggle type="checkbox" checked={checked} onChange={onChange} />

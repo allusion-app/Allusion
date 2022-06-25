@@ -1,0 +1,78 @@
+{
+  "appearance": {
+    "header": "Weergave",
+    "interface": {
+      "header": "Gebruikersomgeving",
+      "language": "Taal",
+      "languageDebug": "DEBUG (alleen in ontwikkelaarsmodus)",
+      "darkTheme": "Donkere modus",
+      "theme": "Thema",
+      "themeDefault": "Geen (standaard)",
+      "uiScale": "Schaal",
+      "fullScreen": "Volledig scherm"
+    },
+    "thumbnail": {
+      "header": "Miniatuur",
+      "showAssignedTags": "Toegewezen tags weergeven",
+      "showFilename": "Bestandsnaam weergeven",
+      "shape.square": "Vierkant",
+      "shape.letterbox": "Letterbox",
+      "shape": {
+        "label": "Miniatuurvorm",
+        "square": "Vierkant",
+        "letterbox": "Letterbox"
+      }
+    }
+  },
+  "shortcuts": {
+    "header": "Sneltoetsen",
+    "instructions": "Klik op een sneltoets om deze te wijzigen. Na het typen van je nieuwe combinatie, druk op Enter om te bevestigen of Escape om te annuleren."
+  },
+  "startupBehavior": {
+    "header": "Opstartgedrag",
+    "rememberSearchQuery": "Onthoudt laatste zoekopdracht",
+    "rememberSearchQueryDescription": "Zal bij het opstarten de zoekopdracht herstellen die ingesteld stond bij het afsluiten, zodat dezelfde afbeeldingen worden getoond in de galerij",
+    "automaticUpdates": "Automatische updates",
+    "automaticUpdatesDescription": "Bekijk of er updates beschikbaar zijn bij het opstarten van Allusion"
+  },
+  "imageFormats": {
+    "header": "Afbeeldingsformaten",
+    "description": "Afbeeldingsformaten die herkend worden door Allusion in jouw Locaties",
+    "confirmationWarning": "Er zijn mogelijk al afbeeldingen ontdekt met de uitgevinkte afbeeldingsformaten. Wil je deze afbeeldingen na het opslaan verbergen of behouden?",
+    "excludeDisabledImages": "Verbergen",
+    "includeDisabledImages": "Behouden"
+  },
+  "importExport": {
+    "header": "Importeren/exporteren",
+    "metadata": "File metadata",
+    "metadataInfo": "Deze optie is handig voor het importeren/exporteren van tags van/naar andere software. Als je een service zoals Dropbox of Google gebruikt, kun je je tags op je bestanden op één apparaat schrijven en deze op andere apparaten lezen.",
+    "hierarchicalSeparator": "Hierarchisch scheidingsteken, e.g.",
+    "import": "Importeer tags van bestandsmetadata",
+    "export": "Exporteer tags naar bestandsmetadata",
+    "exportConfirmationTitle": "Weet je zeker dat je de tags van je bestanden wilt overschrijven?",
+    "exportConfirmationBody": "Dit zal alle bestaande tags (ook bekend als keywords) overschrijven in die bestanden met de tags van Allusions. Het wordt aanbevolen om alle tags te importeren voordat je nieuwe tags schrijft.",
+    "backupDatabase": "Back-up database naar een bestand",
+    "autoBackupInfo": "Automatische back-ups worden elke 10 minuten gemaakt.",
+    "backupDirectory": "Back-upmap",
+    "restoreBackup": "Herstel database van bestand",
+    "createBackup": "Back-up database naar bestand",
+    "restoreConfirmationTitle": "Weet je zeker dat je de database wilt herstellen met een back-up?",
+    "restoreConfirmationBody": "Dit vervangt de huidige taghiërarchie en alle tags die zijn toegewezen aan afbeeldingen, dus het wordt aanbevolen om eerst een back-up te maken. "
+  },
+  "backgroundProcesses": {
+    "header": "Achtergrondprocessen",
+    "runInBackground": "Uitvoeren in de achtergrond",
+    "downloadDirectory": "Browser-extensie downloadmap (moet in een Locatie zijn)",
+    "browserExtensionSupport": "Browser-extensie ondersteuning",
+    "chooseDownloadDirectoryFirst": "Kies eerst een downloaddirectory, waar afbeeldingen die via de browserverlenging worden gedownload, worden opgeslagen.",
+    "browserExtensionInfo": "Voordat de browser-extensie kan werken moet je eerst een downloadmap kiezen die zich in een van de locaties bevindt, die al aan Allusions is toegevoegd. Als je ook de browser-extensie wilt gebruiken als Allusion gesloten is, schakel dan $t(backgroundProcesses.runInBackground) in. ",
+    "browserExtensionCTA": "Haal de extensie van de Chrome Web Store"
+  },
+  "advanced": {
+    "header": "Geavanceerd",
+    "storage": "Opslag",
+    "thumbnailDirectory": "Miniatuurmap",
+    "development": "Development",
+    "devTools": "Toggle DevTools"
+  }
+}

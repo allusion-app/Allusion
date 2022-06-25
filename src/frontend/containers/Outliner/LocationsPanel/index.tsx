@@ -27,6 +27,7 @@ import LocationRecoveryDialog from './LocationRecoveryDialog';
 import { createDragReorderHelper } from '../TreeItemDnD';
 import { useFileDropHandling } from './useFileDnD';
 import { onDragOver as onDragOverFileDnD } from './dnd';
+import { useTranslation } from 'react-i18next';
 
 export class LocationTreeItemRevealer extends TreeItemRevealer {
   private locationStore?: LocationStore;
@@ -69,12 +70,6 @@ export class LocationTreeItemRevealer extends TreeItemRevealer {
     // Location's dataId is its ID, subLocation's dataId's are their paths
     this.revealTreeItem([location.id, ...subLocationsToExpand.map((l) => l.path)]);
   }
-}
-
-// Tooltip info
-const enum Tooltip {
-  Location = 'Add new Location',
-  Refresh = 'Refresh directories',
 }
 
 interface ITreeData {
@@ -502,6 +497,7 @@ const LocationsTree = ({ onDelete, onExclude }: ILocationTreeProps) => {
 
 const LocationsPanel = observer((props: Partial<MultiSplitPaneProps>) => {
   const { locationStore } = useStore();
+  const { t } = useTranslation('main');
 
   const [creatableLocation, setCreatableLocation] = useState<ClientLocation>();
   const [deletableLocation, setDeletableLocation] = useState<ClientLocation>();
@@ -573,7 +569,7 @@ const LocationsPanel = observer((props: Partial<MultiSplitPaneProps>) => {
   return (
     <MultiSplitPane
       id="locations"
-      title="Locations"
+      title={t('locations')}
       className={`${isEmpty ? 'attention' : ''} ${isDropping ? 'info' : ''}`}
       headerToolbar={
         <Toolbar controls="location-list" isCompact>
@@ -586,21 +582,21 @@ const LocationsPanel = observer((props: Partial<MultiSplitPaneProps>) => {
                   loc.refreshSublocations().catch(console.error),
                 ),
               )}
-              tooltip={Tooltip.Refresh}
+              tooltip={t('refreshDirectories')}
             />
           )}
           <ToolbarButton
             icon={IconSet.PLUS}
             text="New Location"
             onClick={handleChooseWatchedDir}
-            tooltip={Tooltip.Location}
+            tooltip={t('addLocation')}
           />
         </Toolbar>
       }
       {...props}
     >
       <LocationsTree onDelete={setDeletableLocation} onExclude={setExcludableSubLocation} />
-      {isEmpty && <Callout icon={IconSet.INFO}>Click + to choose a location.</Callout>}
+      {isEmpty && <Callout icon={IconSet.INFO}>{t('initializeLocation')}</Callout>}
 
       <LocationRecoveryDialog />
 
