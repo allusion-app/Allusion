@@ -115,7 +115,7 @@ const RemoveFilesPopover = observer(() => {
     <>
       <ToolbarButton
         icon={IconSet.DELETE}
-        disabled={uiStore.fileSelection.size === 0}
+        disabled={uiStore.fileSelection.isEmpty}
         onClick={uiStore.openToolbarFileRemover}
         text="Delete"
         tooltip="Delete selected missing images from library"

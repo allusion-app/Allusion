@@ -569,7 +569,7 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
       }}
       headerToolbar={
         <Toolbar controls="tag-hierarchy" isCompact>
-          {uiStore.tagSelection.size > 0 ? (
+          {!uiStore.tagSelection.isEmpty ? (
             <ToolbarButton
               icon={IconSet.CLOSE}
               text="Clear"
@@ -598,7 +598,7 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
         <Tree
           multiSelect
           id="tag-hierarchy"
-          className={uiStore.tagSelection.size > 0 ? 'selected' : undefined}
+          className={!uiStore.tagSelection.isEmpty ? 'selected' : undefined}
           children={root.subTags.map(mapTag)}
           treeData={treeData}
           toggleExpansion={toggleExpansion}

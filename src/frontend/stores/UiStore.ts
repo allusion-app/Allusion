@@ -321,7 +321,7 @@ class UiStore {
 
   @action.bound openPreviewWindow() {
     // Don't open when no files have been selected
-    if (this.fileSelection.size === 0) {
+    if (this.fileSelection.isEmpty) {
       return;
     }
 
@@ -394,7 +394,7 @@ class UiStore {
   }
 
   @action.bound closeMoveFilesToTrash() {
-    if (this.fileSelection.size > 0) {
+    if (!this.fileSelection.isEmpty) {
       this.isMoveFilesToTrashOpen = false;
     }
   }
@@ -404,7 +404,7 @@ class UiStore {
   }
 
   @action.bound openToolbarTagPopover() {
-    if (this.fileSelection.size > 0) {
+    if (!this.fileSelection.isEmpty) {
       this.isToolbarTagPopoverOpen = true;
     }
   }

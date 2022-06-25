@@ -29,7 +29,7 @@ const FileTagEditor = observer(() => {
     <>
       <ToolbarButton
         icon={IconSet.TAG_LINE}
-        disabled={uiStore.fileSelection.size === 0 && !uiStore.isToolbarTagPopoverOpen}
+        disabled={uiStore.fileSelection.isEmpty && !uiStore.isToolbarTagPopoverOpen}
         onClick={uiStore.toggleToolbarTagPopover}
         text="Tag selected files"
         tooltip="Add or remove tags from selected images"
