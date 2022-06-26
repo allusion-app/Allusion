@@ -436,16 +436,6 @@ class FileStore {
     }
   }
 
-  @action.bound
-  public async fetchFilesByIDs(files: ID[]): Promise<void> {
-    try {
-      const fetchedFiles = await this.backend.fetchFilesByID(files);
-      this.updateFromBackend(fetchedFiles);
-    } catch (e) {
-      console.log('Could not find files based on IDs', e);
-    }
-  }
-
   @action.bound incrementNumUntaggedFiles() {
     this.numUntaggedFiles++;
   }
@@ -557,9 +547,6 @@ class FileStore {
     // Dispose of Client files that are not re-used (to get rid of MobX observers)
     for (const file of removedFiles) {
       file.dispose();
-      if (file.isBroken === true) {
-        this.decrementNumMissingFiles();
-      }
     }
 
     this.fileListLastModified = new Date();
@@ -567,17 +554,9 @@ class FileStore {
     // Check existence of new files asynchronously, no need to wait until they can be shown
     // we can simply check whether they exist after they start rendering
     // TODO: We can already get this from chokidar (folder watching), pretty much for free
+    // TODO: How to deal with missing files?
     const existenceCheckPromises = this.fileList.map((clientFile) => async () => {
-      const pathExists = await fse.pathExists(clientFile.absolutePath);
-      const isBroken = runInAction(() => clientFile.isBroken === true);
-
-      clientFile.setBroken(!pathExists);
-
-      if (isBroken && pathExists) {
-        this.decrementNumMissingFiles();
-      } else if (!isBroken && !pathExists) {
-        this.incrementNumMissingFiles();
-      }
+      clientFile.setBroken(!(await fse.pathExists(clientFile.absolutePath)));
     });
 
     // Run the existence check with at most N checks in parallel

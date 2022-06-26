@@ -555,7 +555,7 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
     }
   });
 
-  const clearSelection = useAction(() => uiStore.tagSelection.clear);
+  const clearTagSelection = useAction(() => uiStore.tagSelection.clear());
 
   return (
     <MultiSplitPane
@@ -573,7 +573,7 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
             <ToolbarButton
               icon={IconSet.CLOSE}
               text="Clear"
-              onClick={clearSelection}
+              onClick={clearTagSelection}
               tooltip="Clear Selection"
             />
           ) : (
@@ -610,7 +610,7 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
       {/* Used for dragging collection to root of hierarchy and for deselecting tag selection */}
       <div
         id="tree-footer"
-        onClick={clearSelection}
+        onClick={clearTagSelection}
         onDragOver={handleDragOverAndLeave}
         onDragLeave={handleDragOverAndLeave}
         onDrop={handleDrop}

@@ -44,6 +44,7 @@ export class IndexMap<K, V> implements Iterable<V> {
 
   public get(key: K): V | undefined {
     const index = this.index.get(key);
+
     if (index !== undefined) {
       return this.items[index];
     } else {
@@ -73,6 +74,7 @@ export class IndexMap<K, V> implements Iterable<V> {
 
   public insert(key: K, value: V): V | undefined {
     const index = this.index.get(key);
+
     if (index !== undefined) {
       return this.items.splice(index, 1, value)[0];
     } else {
@@ -117,6 +119,7 @@ export class IndexMap<K, V> implements Iterable<V> {
 
   public delete(key: K): V | undefined {
     const index = this.index.get(key);
+
     if (index !== undefined) {
       this.index.delete(key);
       this.invertedIndex.splice(index, 1);
@@ -161,6 +164,7 @@ export class IndexMap<K, V> implements Iterable<V> {
     let deleteCount = 0;
     let i = 0;
     const len = this.size;
+
     while (i !== len) {
       const result = predicate(this.items[i]);
       i += 1;
@@ -195,6 +199,7 @@ export class IndexMap<K, V> implements Iterable<V> {
     for (const key of this.invertedIndex.splice(at)) {
       this.index.delete(key);
     }
+
     return this.items.splice(at);
   }
 
