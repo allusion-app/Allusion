@@ -152,6 +152,8 @@ RendererMessenger.onGetTags(async () => ({ tags: await backend.fetchTags() }));
 
 RendererMessenger.onFullScreenChanged(
   action((isFullScreen) => {
-    rootStore.uiStore.setFullScreen(isFullScreen);
+    if (rootStore.uiStore.isFullScreen !== isFullScreen) {
+      rootStore.uiStore.toggleFullScreen();
+    }
   }),
 );

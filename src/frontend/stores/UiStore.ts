@@ -272,11 +272,9 @@ class UiStore {
     this.isSlideMode = !this.isSlideMode;
   }
 
-  public setFullScreen(isFullScreen: boolean) {
-    if (this.isFullScreen !== isFullScreen) {
-      this.isFullScreen = isFullScreen;
-      RendererMessenger.setFullScreen(this.isFullScreen);
-    }
+  public toggleFullScreen() {
+    this.isFullScreen = !this.isFullScreen;
+    RendererMessenger.setFullScreen(this.isFullScreen);
   }
 
   @action.bound enableThumbnailTagOverlay() {
@@ -773,8 +771,8 @@ class UiStore {
           ([k, v]) => k in defaultHotkeyMap && (this.hotkeyMap[k as keyof IHotkeyMap] = v),
         );
 
-        if (prefs.isFullScreen === true) {
-          this.setFullScreen(true);
+        if (prefs.isFullScreen !== this.isFullScreen) {
+          this.toggleFullScreen();
         }
 
         this.isRememberSearchEnabled = Boolean(prefs.isRememberSearchEnabled);

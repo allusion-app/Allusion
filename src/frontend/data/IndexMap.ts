@@ -25,7 +25,7 @@ export class IndexMap<K, V> implements Iterable<V> {
     return indexMap;
   }
 
-  [Symbol.iterator](): Iterator<V, any, undefined> {
+  [Symbol.iterator](): Iterator<V> {
     return this.items[Symbol.iterator]();
   }
 
@@ -35,7 +35,7 @@ export class IndexMap<K, V> implements Iterable<V> {
 
   @computed
   public get isEmpty(): boolean {
-    return this.items.length === 0;
+    return this.items.length <= 0;
   }
 
   public has(key: K): boolean {

@@ -56,10 +56,7 @@ export default observer(Settings);
 const Appearance = observer(() => {
   const { uiStore } = useStore();
 
-  const handleToggleFullScreen = useAction((e: React.FormEvent<HTMLInputElement>) => {
-    const isFullScreen = e.currentTarget.checked;
-    uiStore.setFullScreen(isFullScreen);
-  });
+  const handleToggleFullScreen = useAction(() => uiStore.toggleFullScreen());
 
   return (
     <>

@@ -375,12 +375,7 @@ class FileStore {
 
       // For every new file coming in, either re-use the existing client file if it exists,
       // or construct a new client file
-      const removedFiles = this.mergeFilesFromBackend(backendFiles);
-
-      // Dispose of unused files
-      for (const file of removedFiles) {
-        file.dispose();
-      }
+      this.mergeFilesFromBackend(backendFiles);
 
       const newClientFiles = this.fileIndex.slice();
 
@@ -542,13 +537,9 @@ class FileStore {
 
     // For every new file coming in, either re-use the existing client file if it exists,
     // or construct a new client file
-    const removedFiles = this.mergeFilesFromBackend(backendFiles);
+    this.mergeFilesFromBackend(backendFiles);
 
-    // Dispose of Client files that are not re-used (to get rid of MobX observers)
-    for (const file of removedFiles) {
-      file.dispose();
-    }
-
+    this.cleanFileSelection();
     this.fileListLastModified = new Date();
 
     // Check existence of new files asynchronously, no need to wait until they can be shown
@@ -569,7 +560,6 @@ class FileStore {
   }
 
   /** Remove files from selection that are not in the file list anymore */
-  @action
   private cleanFileSelection(): void {
     const { fileSelection } = this.rootStore.uiStore;
     for (const file of fileSelection) {
@@ -588,8 +578,8 @@ class FileStore {
    * @returns A list of client files that were not reused from the existing fileList.
    */
   @action
-  private mergeFilesFromBackend(backendFiles: IFile[]): ClientFile[] {
-    const removedFiles = this.fileIndex.insertSort(
+  private mergeFilesFromBackend(backendFiles: IFile[]): void {
+    const disposedFiles = this.fileIndex.insertSort(
       backendFiles.map((backendFile) => [
         backendFile.id,
         (existingFile) => {
@@ -627,7 +617,12 @@ class FileStore {
       ]),
     );
 
-    return removedFiles ?? [];
+    // Dispose of Client files that are not re-used (to get rid of MobX observers)
+    if (disposedFiles !== undefined) {
+      for (const file of disposedFiles) {
+        file.dispose();
+      }
+    }
   }
 
   /** Initializes the total and untagged file counters by querying the database with count operations */

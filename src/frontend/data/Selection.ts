@@ -11,7 +11,7 @@ export class Selection<T> implements Iterable<T> {
     makeObservable(this);
   }
 
-  [Symbol.iterator](): Iterator<T, any, undefined> {
+  [Symbol.iterator](): Iterator<T> {
     return this.items[Symbol.iterator]();
   }
 
@@ -25,7 +25,7 @@ export class Selection<T> implements Iterable<T> {
 
   @computed
   public get isEmpty(): boolean {
-    return this.items.size === 0;
+    return this.items.size <= 0;
   }
 
   public select(...items: T[]): void {
@@ -63,5 +63,11 @@ export class Selection<T> implements Iterable<T> {
 
   public clear() {
     this.items.clear();
+  }
+
+  public forEach(task: (item: T) => void): void {
+    for (const item of this.items) {
+      task(item);
+    }
   }
 }
