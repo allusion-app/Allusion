@@ -46,7 +46,7 @@ export function retainArray<T>(array: T[], predicate: (element: T, index: number
       // Move retained element to the beginning of the hole (deleted elements). Doing so will
       // shift the hole to the end of the array.
       const holeSlot = i - deleteCount;
-      array.copyWithin(holeSlot, i, i + 1);
+      swap(array, holeSlot, i);
     }
     i += 1;
   }

@@ -16,7 +16,7 @@ import { debounce } from 'common/timeout';
 import { getThumbnailPath } from 'common/fs';
 import { promiseAllLimit } from 'common/promise';
 import RootStore from './RootStore';
-import { IndexMap } from '../data';
+import { IndexMap } from '../data/IndexMap';
 
 const FILE_STORAGE_KEY = 'Allusion_File';
 

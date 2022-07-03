@@ -15,10 +15,6 @@ export class Selection<T> implements Iterable<T> {
     return this.items[Symbol.iterator]();
   }
 
-  public has(item: T): boolean {
-    return this.items.has(item);
-  }
-
   public get size(): number {
     return this.items.size;
   }
@@ -26,6 +22,10 @@ export class Selection<T> implements Iterable<T> {
   @computed
   public get isEmpty(): boolean {
     return this.items.size <= 0;
+  }
+
+  public has(item: T): boolean {
+    return this.items.has(item);
   }
 
   public select(...items: T[]): void {

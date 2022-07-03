@@ -15,7 +15,7 @@ import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, notEmpty } from 'common/core';
 import { debounce } from 'common/timeout';
 import RootStore from './RootStore';
-import { Selection } from '../data';
+import { Selection } from '../data/Selection';
 
 export const enum ViewMethod {
   List,
