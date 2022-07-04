@@ -12,7 +12,7 @@
     "module": "ESNext",
     "sourceMap": true,
     "outDir": "dist",
-    "target": "ES2020",
+    "target": "ES2022",
     "lib": ["dom", "esnext", "webworker"],
     "moduleResolution": "node",
     "experimentalDecorators": true,

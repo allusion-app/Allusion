@@ -4,13 +4,14 @@ import { observer } from 'mobx-react-lite';
 import { comboMatches, getKeyComboString, parseKeyCombo } from '../../hotkeyParser';
 
 import { useStore } from '../../contexts/StoreContext';
-import { defaultHotkeyMap, IHotkeyMap } from '../../stores/UiStore';
+import { DEFAULT_HOTKEY_MAP } from 'src/frontend/data/UserPreferences';
+import { HotkeyMap } from 'src/frontend/data/View';
 import { camelCaseToSpaced } from 'common/fmt';
 import { Button, IconSet, keyComboToString } from 'widgets';
 
 export const HotkeyMapper = observer(() => {
   const { uiStore } = useStore();
-  const [changed, onChange] = useState<keyof IHotkeyMap | null>(null);
+  const [changed, onChange] = useState<keyof HotkeyMap | null>(null);
   const textDispatch = useState('');
 
   const handleKeyDown = useRef((e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -27,7 +28,7 @@ export const HotkeyMapper = observer(() => {
   return (
     <div id="hotkey-mapper">
       {Object.entries(uiStore.hotkeyMap).map(([key, combo]) => {
-        const actionKey = key as keyof IHotkeyMap;
+        const actionKey = key as keyof HotkeyMap;
         const isChanging = changed === actionKey;
 
         return (
@@ -53,12 +54,12 @@ export const HotkeyMapper = observer(() => {
 export default HotkeyMapper;
 
 interface IKeyComboEditor {
-  actionKey: keyof IHotkeyMap;
+  actionKey: keyof HotkeyMap;
   isChanging: boolean;
   textDispatch: [string, React.Dispatch<React.SetStateAction<string>>];
   combo: string;
   onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  setEditableKey: React.Dispatch<React.SetStateAction<keyof IHotkeyMap | null>>;
+  setEditableKey: React.Dispatch<React.SetStateAction<keyof HotkeyMap | null>>;
 }
 
 const KeyComboEditor = observer(
@@ -68,7 +69,7 @@ const KeyComboEditor = observer(
     const [text, setText] = textDispatch;
     const isEditable = useRef(true);
     const inputRef = useRef<HTMLInputElement>(null);
-    const defaultCombo = defaultHotkeyMap[actionKey];
+    const defaultCombo = DEFAULT_HOTKEY_MAP[actionKey];
 
     const handleOnBlur = useRef((e: React.ChangeEvent<HTMLInputElement>) => {
       // The input is controlled which is why e.currentTarget.value equals 'combo'.
@@ -122,7 +123,7 @@ const KeyComboEditor = observer(
   },
 );
 
-const isInvalidCombo = action((input: string, action: keyof IHotkeyMap, hotkeyMap: IHotkeyMap) => {
+const isInvalidCombo = action((input: string, action: keyof HotkeyMap, hotkeyMap: HotkeyMap) => {
   if (input.length === 0) {
     return true;
   }

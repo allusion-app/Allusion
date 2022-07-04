@@ -48,6 +48,7 @@ import { action, makeObservable, observable, runInAction } from 'mobx';
 import exiftool from 'node-exiftool';
 import { IS_WIN } from './process';
 import { getExtraResourcePath } from './fs';
+import { HierarchicalSeparator } from 'src/frontend/data/View';
 
 // The exif binary is placed using ElectronBuilder's extraResources:
 const exiftoolRunnable = IS_WIN ? 'exiftool.exe' : 'exiftool.pl';
@@ -64,7 +65,8 @@ const defaultWriteArgs = [
 ];
 
 class ExifIO {
-  @observable hierarchicalSeparator: string;
+  @observable
+  public hierarchicalSeparator: HierarchicalSeparator;
 
   private isOpening = false;
 
@@ -72,7 +74,7 @@ class ExifIO {
   // https://www.npmjs.com/package/node-exiftool#reading-utf8-encoded-filename-on-windows
   extraArgs = IS_WIN ? ['charset filename=utf8'] : [];
 
-  constructor(hierarchicalSeparator: string = '|') {
+  constructor(hierarchicalSeparator: HierarchicalSeparator = '|') {
     this.hierarchicalSeparator = hierarchicalSeparator;
 
     makeObservable(this);
@@ -110,9 +112,9 @@ class ExifIO {
     }
   }
 
-  @action.bound setHierarchicalSeparator(val: string): void {
+  @action.bound
+  public setHierarchicalSeparator(val: HierarchicalSeparator): void {
     this.hierarchicalSeparator = val;
-    localStorage.setItem('hierarchical-separator', val);
   }
 
   // ------------------

@@ -1,5 +1,5 @@
 import { ClientFile } from 'src/entities/File';
-import { ThumbnailSize } from '../../stores/UiStore';
+import { ThumbnailSize } from 'src/frontend/data/View';
 
 export type ContentRect = { width: number; height: number };
 

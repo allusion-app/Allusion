@@ -59,6 +59,7 @@ let rendererConfig = {
   },
   experiments: {
     asyncWebAssembly: true,
+    topLevelAwait: true,
   },
   resolve: {
     extensions: ['.js', '.json', '.ts', '.tsx', '.svg', '.wasm'],

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import FocusManager from 'src/frontend/FocusManager';
 import { ClientFile } from '../../../entities/File';
-import { ViewMethod } from '../../stores/UiStore';
+import { ViewMethod } from 'src/frontend/data/View';
 import { throttle } from 'common/timeout';
 import { useCommandHandler } from './Commands';
 import ListGallery from './ListGallery';

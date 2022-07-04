@@ -8,7 +8,7 @@ import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
 import { getThumbnailSize } from '../ContentView/utils';
 import { MenuDivider, MenuSliderItem } from 'widgets/menus/menu-items';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { FileOrder } from 'src/frontend/stores/FileStore';
+import { FileOrder } from 'src/backend/Backend';
 
 // Tooltip info
 const enum Tooltip {

@@ -1,79 +1,19 @@
-import fse from 'fs-extra';
-import { action, computed, makeObservable, observable, observe } from 'mobx';
-import { ClientFile, IFile } from 'src/entities/File';
+import { action, computed, makeAutoObservable, makeObservable, observable } from 'mobx';
+import { ClientFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import {
   ClientBaseCriteria,
   ClientTagSearchCriteria,
   FileSearchCriteria,
-  SearchCriteria,
 } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
-import { IS_PREVIEW_WINDOW } from 'common/window';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, notEmpty } from 'common/core';
-import { debounce } from 'common/timeout';
 import RootStore from './RootStore';
 import { Selection } from '../data/Selection';
-
-export const enum ViewMethod {
-  List,
-  Grid,
-  MasonryVertical,
-  MasonryHorizontal,
-}
-export type ThumbnailSize = 'small' | 'medium' | 'large' | number;
-type ThumbnailShape = 'square' | 'letterbox';
-const PREFERENCES_STORAGE_KEY = 'preferences';
-
-export interface IHotkeyMap {
-  // Outerliner actions
-  toggleOutliner: string;
-  replaceQuery: string;
-
-  // Inspector actions
-  toggleInspector: string;
-  toggleSettings: string;
-  toggleHelpCenter: string;
-
-  // Toolbar actions (these should only be active when the content area is focused)
-  deleteSelection: string;
-  openTagEditor: string;
-  selectAll: string;
-  deselectAll: string;
-  viewList: string;
-  viewGrid: string;
-  viewMasonryVertical: string;
-  viewMasonryHorizontal: string;
-  viewSlide: string;
-  search: string;
-  advancedSearch: string;
-
-  // Other
-  openPreviewWindow: string;
-}
-
-// https://blueprintjs.com/docs/#core/components/hotkeys.dialog
-export const defaultHotkeyMap: IHotkeyMap = {
-  toggleOutliner: '1',
-  toggleInspector: '2',
-  replaceQuery: 'r',
-  toggleSettings: 's',
-  toggleHelpCenter: 'h',
-  deleteSelection: 'del',
-  openTagEditor: 't',
-  selectAll: 'mod + a',
-  deselectAll: 'mod + d',
-  viewSlide: 'enter', // TODO: backspace and escape are hardcoded hotkeys to exist slide mode
-  viewList: 'alt + 1',
-  viewGrid: 'alt + 2',
-  viewMasonryVertical: 'alt + 3',
-  viewMasonryHorizontal: 'alt + 4',
-  search: 'mod + f',
-  advancedSearch: 'mod + shift + f',
-  openPreviewWindow: 'space',
-};
+import { UserPreferences } from '../data/UserPreferences';
+import { HotkeyMap, ThumbnailShape, ThumbnailSize, ViewMethod } from '../data/View';
 
 /**
  * From: https://mobx.js.org/best/store.html
@@ -93,29 +33,6 @@ export const defaultHotkeyMap: IHotkeyMap = {
  *  - State of a global overlay
  */
 
-/** These fields are stored and recovered when the application opens up */
-const PersistentPreferenceFields: Array<keyof UiStore> = [
-  'theme',
-  'isOutlinerOpen',
-  'isInspectorOpen',
-  'thumbnailDirectory',
-  'importDirectory',
-  'method',
-  'thumbnailSize',
-  'thumbnailShape',
-  'hotkeyMap',
-  'isThumbnailTagOverlayEnabled',
-  'isThumbnailFilenameOverlayEnabled',
-  'outlinerWidth',
-  'inspectorWidth',
-  'isFullScreen',
-  'isRememberSearchEnabled',
-  // the following are only restored when isRememberSearchEnabled is enabled
-  'isSlideMode',
-  'firstItem',
-  'searchMatchAny',
-];
-
 class UiStore {
   static MIN_OUTLINER_WIDTH = 192; // default of 12 rem
   static MIN_INSPECTOR_WIDTH = 288; // default of 18 rem
@@ -125,11 +42,11 @@ class UiStore {
   @observable isInitialized = false;
 
   // Theme
-  @observable theme: 'light' | 'dark' = 'dark';
+  @observable theme: 'light' | 'dark';
 
   // UI
-  @observable isOutlinerOpen: boolean = true;
-  @observable isInspectorOpen: boolean = true;
+  @observable isOutlinerOpen: boolean;
+  @observable isInspectorOpen: boolean;
   @observable isSettingsOpen: boolean = false;
   @observable isHelpCenterOpen: boolean = false;
   @observable isAboutOpen: boolean = false;
@@ -137,21 +54,21 @@ class UiStore {
   @observable isPreviewOpen: boolean = false;
   @observable isAdvancedSearchOpen: boolean = false;
   @observable searchMatchAny = false;
-  @observable method: ViewMethod = ViewMethod.Grid;
+  @observable method: ViewMethod;
   @observable isSlideMode: boolean = false;
-  @observable isFullScreen: boolean = false;
-  @observable outlinerWidth: number = UiStore.MIN_OUTLINER_WIDTH;
-  @observable inspectorWidth: number = UiStore.MIN_INSPECTOR_WIDTH;
+  @observable isFullScreen: boolean;
+  @observable outlinerWidth: number;
+  @observable inspectorWidth: number;
   /** Whether to show the tags on images in the content view */
-  @observable isThumbnailTagOverlayEnabled: boolean = true;
-  @observable isThumbnailFilenameOverlayEnabled: boolean = false;
+  @observable isThumbnailTagOverlayEnabled: boolean;
+  @observable isThumbnailFilenameOverlayEnabled: boolean;
   /** Whether to restore the last search query on start-up */
-  @observable isRememberSearchEnabled: boolean = true;
+  @observable isRememberSearchEnabled: boolean;
   /** Index of the first item in the viewport. Also acts as the current item shown in slide mode */
   // TODO: Might be better to store the ID to the file. I believe we were storing the index for performance, but we have instant conversion between index/ID now
   @observable firstItem: number = 0;
-  @observable thumbnailSize: ThumbnailSize | number = 'medium';
-  @observable thumbnailShape: ThumbnailShape = 'square';
+  @observable thumbnailSize: ThumbnailSize | number;
+  @observable thumbnailShape: ThumbnailShape;
 
   @observable isToolbarTagPopoverOpen: boolean = false;
   /** Dialog for removing unlinked files from Allusion's database */
@@ -167,26 +84,43 @@ class UiStore {
 
   readonly searchCriteriaList = observable<FileSearchCriteria>([]);
 
-  @observable thumbnailDirectory: string = '';
-  @observable importDirectory: string = ''; // for browser extension. Must be a (sub-folder of a) Location
+  @observable thumbnailDirectory: string;
+  @observable importDirectory: string; // for browser extension. Must be a (sub-folder of a) Location
 
-  @observable readonly hotkeyMap: IHotkeyMap = observable(defaultHotkeyMap);
+  @observable readonly hotkeyMap: HotkeyMap;
 
-  private debouncedStorePersistentPreferences: () => void;
-
-  constructor(rootStore: RootStore) {
+  constructor(rootStore: RootStore, preferences: Readonly<UserPreferences>) {
     this.rootStore = rootStore;
-    makeObservable(this);
 
-    // Store preferences immediately when anything is changed
-    this.debouncedStorePersistentPreferences = debounce(this.storePersistentPreferences, 200).bind(
-      this,
-    );
-    if (!IS_PREVIEW_WINDOW) {
-      PersistentPreferenceFields.forEach((f) =>
-        observe(this, f, this.debouncedStorePersistentPreferences),
-      );
+    this.theme = preferences.theme;
+    this.isOutlinerOpen = preferences.isOutlinerOpen;
+    this.isInspectorOpen = preferences.isInspectorOpen;
+    this.thumbnailDirectory = preferences.thumbnailDirectory;
+    this.importDirectory = preferences.importDirectory;
+    this.method = preferences.method;
+    this.thumbnailSize = preferences.thumbnailSize;
+    this.thumbnailShape = preferences.thumbnailShape;
+    this.isThumbnailTagOverlayEnabled = preferences.isThumbnailTagOverlayEnabled;
+    this.isThumbnailFilenameOverlayEnabled = preferences.isThumbnailFilenameOverlayEnabled;
+    this.outlinerWidth = Math.max(preferences.outlinerWidth, UiStore.MIN_OUTLINER_WIDTH);
+    this.inspectorWidth = Math.max(preferences.inspectorWidth, UiStore.MIN_INSPECTOR_WIDTH);
+    this.isFullScreen = preferences.isFullScreen;
+    this.hotkeyMap = makeAutoObservable(preferences.hotkeyMap);
+
+    this.isRememberSearchEnabled = preferences.searchCriteriaList !== undefined;
+
+    if (preferences.searchCriteriaList !== undefined) {
+      // If remember search criteria, restore the search criteria list...
+      const newCrits = preferences.searchCriteriaList.map((c) => ClientBaseCriteria.deserialize(c));
+      this.searchCriteriaList.push(...newCrits);
+
+      // and other content-related options. So it's just like you never closed Allusion!
+      this.firstItem = preferences.firstItem;
+      this.searchMatchAny = preferences.searchMatchAny;
+      this.isSlideMode = preferences.isSlideMode;
     }
+
+    makeObservable(this);
   }
 
   @action.bound init() {
@@ -226,12 +160,14 @@ class UiStore {
     this.setThumbnailSize('large');
   }
 
-  @action.bound setThumbnailSquare() {
-    this.setThumbnailShape('square');
+  @action.bound
+  public setThumbnailSquare() {
+    this.thumbnailShape = 'square';
   }
 
-  @action.bound setThumbnailLetterbox() {
-    this.setThumbnailShape('letterbox');
+  @action.bound
+  public setThumbnailLetterbox() {
+    this.thumbnailShape = 'letterbox';
   }
 
   @action.bound setFirstItem(index: number = 0) {
@@ -297,12 +233,14 @@ class UiStore {
     this.isRememberSearchEnabled = !this.isRememberSearchEnabled;
   }
 
-  @action.bound openOutliner() {
-    this.setIsOutlinerOpen(true);
+  @action.bound
+  public openOutliner() {
+    this.isOutlinerOpen = true;
   }
 
-  @action.bound toggleOutliner() {
-    this.setIsOutlinerOpen(!this.isOutlinerOpen);
+  @action.bound
+  public toggleOutliner() {
+    this.isOutlinerOpen = !this.isOutlinerOpen;
   }
 
   @action.bound openPreviewWindow() {
@@ -419,8 +357,9 @@ class UiStore {
     this.importDirectory = dir;
   }
 
-  @action.bound toggleTheme() {
-    this.setTheme(this.theme === 'dark' ? 'light' : 'dark');
+  @action.bound
+  public toggleTheme() {
+    this.theme = this.theme === 'dark' ? 'light' : 'dark';
     RendererMessenger.setTheme({ theme: this.theme === 'dark' ? 'dark' : 'light' });
   }
 
@@ -532,27 +471,28 @@ class UiStore {
   }
 
   /////////////////// Search Actions ///////////////////
-  @action.bound clearSearchCriteriaList() {
+  @action.bound
+  public clearSearchCriteriaList() {
     if (this.searchCriteriaList.length > 0) {
-      this.searchCriteriaList.forEach((c) => c.dispose());
       this.searchCriteriaList.clear();
       this.viewAllContent();
     }
   }
 
-  @action.bound addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
+  @action.bound
+  public addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
     this.searchCriteriaList.push(query);
     this.viewQueryContent();
-    query.observe(this.debouncedStorePersistentPreferences);
   }
 
-  @action.bound addSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+  @action.bound
+  public addSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
     this.searchCriteriaList.push(...queries);
-    queries.forEach((query) => query.observe(this.debouncedStorePersistentPreferences));
     this.viewQueryContent();
   }
 
-  @action.bound toggleSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+  @action.bound
+  public toggleSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
     // TODO: can be improved
     const deepEqual = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -566,7 +506,6 @@ class UiStore {
       // If they're already in there, remove them
       existingMatchingCriterias.forEach((query) => {
         this.searchCriteriaList.remove(query);
-        query.dispose();
       });
       if (this.searchCriteriaList.length > 0) {
         this.viewQueryContent();
@@ -579,8 +518,8 @@ class UiStore {
     }
   }
 
-  @action.bound removeSearchCriteria(query: FileSearchCriteria) {
-    query.dispose();
+  @action.bound
+  public removeSearchCriteria(query: FileSearchCriteria) {
     this.searchCriteriaList.remove(query);
     if (this.searchCriteriaList.length > 0) {
       this.viewQueryContent();
@@ -593,12 +532,20 @@ class UiStore {
     this.replaceSearchCriterias([query]);
   }
 
-  @action.bound replaceSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
-    this.searchCriteriaList.forEach((c) => c.dispose());
-
+  @action.bound
+  public replaceSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
     this.searchCriteriaList.replace(queries);
 
-    queries.forEach((query) => query.observe(this.debouncedStorePersistentPreferences));
+    if (this.searchCriteriaList.length > 0) {
+      this.viewQueryContent();
+    } else {
+      this.viewAllContent();
+    }
+  }
+
+  @action.bound
+  public removeSearchCriteriaByIndex(i: number) {
+    this.searchCriteriaList.splice(i, 1);
 
     if (this.searchCriteriaList.length > 0) {
       this.viewQueryContent();
@@ -607,24 +554,12 @@ class UiStore {
     }
   }
 
-  @action.bound removeSearchCriteriaByIndex(i: number) {
-    const removedCrits = this.searchCriteriaList.splice(i, 1);
-
-    removedCrits.forEach((c) => c.dispose());
-
-    if (this.searchCriteriaList.length > 0) {
-      this.viewQueryContent();
-    } else {
-      this.viewAllContent();
-    }
-  }
-
-  @action.bound addTagSelectionToCriteria() {
+  @action.bound
+  public addTagSelectionToCriteria() {
     const newCrits = Array.from(
       this.tagSelection,
       (tag) => new ClientTagSearchCriteria('tags', tag.id),
     );
-    newCrits.forEach((crit) => crit.observe(this.debouncedStorePersistentPreferences));
     this.addSearchCriterias(newCrits);
     this.tagSelection.clear();
   }
@@ -636,12 +571,11 @@ class UiStore {
     this.tagSelection.clear();
   }
 
-  @action.bound replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
+  @action.bound
+  public replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
     const index = this.searchCriteriaList.indexOf(oldCrit);
     if (index !== -1) {
-      this.searchCriteriaList[index].dispose();
       this.searchCriteriaList[index] = crit;
-      crit.observe(this.debouncedStorePersistentPreferences);
       this.viewQueryContent();
     }
   }
@@ -652,11 +586,9 @@ class UiStore {
     );
   }
 
-  @action.bound remapHotkey(action: keyof IHotkeyMap, combo: string) {
+  @action.bound
+  public remapHotkey(action: keyof HotkeyMap, combo: string) {
     this.hotkeyMap[action] = combo;
-    // can't rely on the observer PersistentPreferenceFields, since it's an object
-    // Would be neater with a deepObserve, but this works as well:
-    this.storePersistentPreferences();
   }
 
   @action.bound processGlobalShortCuts(e: KeyboardEvent) {
@@ -737,100 +669,7 @@ class UiStore {
     }
   }
 
-  // Storing preferences
-  @action recoverPersistentPreferences() {
-    const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
-    if (prefsString) {
-      try {
-        const prefs = JSON.parse(prefsString);
-        if (prefs.theme) {
-          this.setTheme(prefs.theme);
-        }
-        this.setIsOutlinerOpen(prefs.isOutlinerOpen);
-        this.isInspectorOpen = Boolean(prefs.isInspectorOpen);
-        if (prefs.thumbnailDirectory) {
-          this.setThumbnailDirectory(prefs.thumbnailDirectory);
-        }
-        if (prefs.importDirectory) {
-          this.setImportDirectory(prefs.importDirectory);
-        }
-        this.setMethod(Number(prefs.method));
-        if (prefs.thumbnailSize) {
-          this.setThumbnailSize(prefs.thumbnailSize);
-        }
-        if (prefs.thumbnailShape) {
-          this.setThumbnailShape(prefs.thumbnailShape);
-        }
-        this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
-        this.isThumbnailFilenameOverlayEnabled = Boolean(
-          prefs.isThumbnailFilenameOverlayEnabled ?? false,
-        );
-        this.outlinerWidth = Math.max(Number(prefs.outlinerWidth), UiStore.MIN_OUTLINER_WIDTH);
-        this.inspectorWidth = Math.max(Number(prefs.inspectorWidth), UiStore.MIN_INSPECTOR_WIDTH);
-        Object.entries<string>(prefs.hotkeyMap).forEach(
-          ([k, v]) => k in defaultHotkeyMap && (this.hotkeyMap[k as keyof IHotkeyMap] = v),
-        );
-
-        if (prefs.isFullScreen !== this.isFullScreen) {
-          this.toggleFullScreen();
-        }
-
-        this.isRememberSearchEnabled = Boolean(prefs.isRememberSearchEnabled);
-        if (this.isRememberSearchEnabled) {
-          // If remember search criteria, restore the search criteria list...
-          const serializedCriteriaList: SearchCriteria<IFile>[] = JSON.parse(
-            prefs.searchCriteriaList || '[]',
-          );
-          const newCrits = serializedCriteriaList.map((c) => ClientBaseCriteria.deserialize(c));
-          this.searchCriteriaList.push(...newCrits);
-          newCrits.forEach((crit) => crit.observe(this.debouncedStorePersistentPreferences));
-
-          // and other content-related options. So it's just like you never closed Allusion!
-          this.firstItem = prefs.firstItem;
-          this.searchMatchAny = prefs.searchMatchAny;
-          this.isSlideMode = prefs.isSlideMode;
-        }
-        console.info('recovered', prefs);
-      } catch (e) {
-        console.error('Cannot parse persistent preferences', e);
-      }
-      // Set the native window theme based on the application theme
-      RendererMessenger.setTheme({ theme: this.theme === 'dark' ? 'dark' : 'light' });
-    }
-
-    // Set default thumbnail directory in case none was specified
-    if (this.thumbnailDirectory.length === 0) {
-      RendererMessenger.getDefaultThumbnailDirectory().then((defaultThumbDir) => {
-        this.setThumbnailDirectory(defaultThumbDir);
-        fse.ensureDirSync(this.thumbnailDirectory);
-      });
-    }
-  }
-
-  @action storePersistentPreferences() {
-    const prefs: any = {};
-    for (const field of PersistentPreferenceFields) {
-      prefs[field] = this[field];
-    }
-
-    // searchCriteriaList can't be observed; do it manually
-    prefs['searchCriteriaList'] = JSON.stringify(
-      this.searchCriteriaList.map((c) => c.serialize(this.rootStore)),
-    );
-
-    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
-  }
-
-  clearPersistentPreferences() {
-    localStorage.removeItem(PREFERENCES_STORAGE_KEY);
-  }
-
   /////////////////// Helper methods ///////////////////
-  @action.bound clearSelection() {
-    this.tagSelection.clear();
-    this.fileSelection.clear();
-  }
-
   getFirstSelectedFileId(): ID | undefined {
     return this.firstSelectedFile?.id;
   }
@@ -849,24 +688,12 @@ class UiStore {
       : undefined;
   }
 
-  @action private viewAllContent() {
+  private viewAllContent() {
     this.rootStore.fileStore.fetchAllFiles();
   }
 
-  @action private viewQueryContent() {
+  private viewQueryContent() {
     this.rootStore.fileStore.fetchFilesByQuery();
-  }
-
-  @action private setTheme(theme: 'light' | 'dark' = 'dark') {
-    this.theme = theme;
-  }
-
-  @action private setIsOutlinerOpen(value: boolean = true) {
-    this.isOutlinerOpen = value;
-  }
-
-  @action private setThumbnailShape(shape: ThumbnailShape) {
-    this.thumbnailShape = shape;
   }
 }
 

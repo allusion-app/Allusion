@@ -3,7 +3,7 @@ import path from 'path';
 import { IImportItem } from './clipper/server';
 import { ID } from './entities/ID';
 import { ITag } from './entities/Tag';
-import { ViewMethod } from './frontend/stores/UiStore';
+import { ViewMethod } from './frontend/data/View';
 
 /**
  * All types of messages between the main and renderer process in one place, with type safety.

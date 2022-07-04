@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { action, runInAction } from 'mobx';
+import { action, reaction, runInAction } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -22,10 +22,16 @@ import PreviewApp from './frontend/Preview';
 import Overlay from './frontend/Overlay';
 import { IS_PREVIEW_WINDOW } from 'common/window';
 import { promiseRetry } from '../common/timeout';
+import { loadUserPreferences, storeUserPreferences } from './frontend/data/UserPreferences';
+
+const preferences = await loadUserPreferences();
+// Restore window preferences
+RendererMessenger.setTheme({ theme: preferences.theme === 'dark' ? 'dark' : 'light' });
+RendererMessenger.setFullScreen(preferences.isFullScreen);
 
 // Initialize the backend for the App, that serves as an API to the front-end
 const backend = new Backend();
-const rootStore = new RootStore(backend);
+const rootStore = new RootStore(backend, preferences);
 backend
   .init(!IS_PREVIEW_WINDOW)
   .then(async () => {
@@ -83,9 +89,41 @@ if (IS_PREVIEW_WINDOW) {
     }),
   );
 } else {
+  const { fileStore, exifTool, uiStore } = rootStore;
+
   RendererMessenger.onClosedPreviewWindow(() => {
-    rootStore.uiStore.closePreviewWindow();
+    uiStore.closePreviewWindow();
   });
+
+  reaction(
+    () => ({
+      theme: uiStore.theme,
+      isOutlinerOpen: uiStore.isOutlinerOpen,
+      isInspectorOpen: uiStore.isInspectorOpen,
+      thumbnailDirectory: uiStore.thumbnailDirectory,
+      importDirectory: uiStore.importDirectory,
+      method: uiStore.method,
+      thumbnailSize: uiStore.thumbnailSize,
+      thumbnailShape: uiStore.thumbnailShape,
+      hotkeyMap: { ...uiStore.hotkeyMap },
+      isThumbnailTagOverlayEnabled: uiStore.isThumbnailTagOverlayEnabled,
+      isThumbnailFilenameOverlayEnabled: uiStore.isThumbnailFilenameOverlayEnabled,
+      outlinerWidth: uiStore.outlinerWidth,
+      inspectorWidth: uiStore.inspectorWidth,
+      isFullScreen: uiStore.isFullScreen,
+      isSlideMode: uiStore.isSlideMode,
+      firstItem: uiStore.firstItem,
+      searchMatchAny: uiStore.searchMatchAny,
+      searchCriteriaList: uiStore.isRememberSearchEnabled
+        ? uiStore.searchCriteriaList.map((criteria) => criteria.serialize(rootStore))
+        : undefined,
+      orderDirection: fileStore.orderDirection,
+      orderBy: fileStore.orderBy,
+      hierarchicalSeparator: exifTool.hierarchicalSeparator,
+    }),
+    storeUserPreferences,
+    { delay: 500, fireImmediately: true },
+  );
 }
 
 window.addEventListener('beforeunload', () => {

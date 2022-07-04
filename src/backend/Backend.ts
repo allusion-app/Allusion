@@ -3,7 +3,6 @@ import Dexie, { IndexableType } from 'dexie';
 import fse from 'fs-extra';
 import { RendererMessenger } from 'src/Messaging';
 import { IFileSearchItem } from 'src/entities/SearchItem';
-import { FileOrder } from 'src/frontend/stores/FileStore';
 import { IFile } from '../entities/File';
 import { ID } from '../entities/ID';
 import { ILocation } from '../entities/Location';
@@ -11,7 +10,9 @@ import { IStringSearchCriteria, SearchCriteria } from '../entities/SearchCriteri
 import { ITag, ROOT_TAG_ID } from '../entities/Tag';
 import BackupScheduler from './BackupScheduler';
 import { dbConfig, DB_NAME } from './config';
-import DBRepository, { dbDelete, dbInit, OrderDirection } from './DBRepository';
+import DBRepository, { dbDelete, dbInit, OrderDirection, SearchOrder } from './DBRepository';
+
+export type FileOrder = SearchOrder<IFile>;
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.

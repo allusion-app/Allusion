@@ -8,6 +8,7 @@ import SysPath from 'path';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
 import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
+import { HierarchicalSeparator } from 'src/frontend/data/View';
 import { useAction } from 'src/frontend/hooks/mobx';
 import useCustomTheme from 'src/frontend/hooks/useCustomTheme';
 import { RendererMessenger } from 'src/Messaging';
@@ -266,7 +267,9 @@ const ImportExport = observer(() => {
         </legend>
         <select
           value={exifTool.hierarchicalSeparator}
-          onChange={(e) => exifTool.setHierarchicalSeparator(e.target.value)}
+          onChange={(e) => {
+            exifTool.setHierarchicalSeparator(e.target.value as HierarchicalSeparator);
+          }}
         >
           <option value="|">|</option>
           <option value="/">/</option>

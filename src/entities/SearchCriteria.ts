@@ -1,4 +1,4 @@
-import { action, Lambda, makeObservable, observable, observe } from 'mobx';
+import { action, makeObservable, observable } from 'mobx';
 import RootStore from 'src/frontend/stores/RootStore';
 import { camelCaseToSpaced } from 'common/fmt';
 import { IFile } from './File';
@@ -114,8 +114,6 @@ export abstract class ClientBaseCriteria<T>
   @observable public valueType: 'number' | 'date' | 'string' | 'array';
   @observable public operator: OperatorType;
 
-  private disposers: Lambda[] = [];
-
   constructor(
     key: keyof T,
     valueType: 'number' | 'date' | 'string' | 'array',
@@ -160,21 +158,6 @@ export abstract class ClientBaseCriteria<T>
         throw new Error(`Unknown value type ${valueType}`);
     }
   }
-
-  observe(callback: (criteria: ClientBaseCriteria<T>) => void): void {
-    this.disposers.push(
-      observe(this, 'key', () => callback(this)),
-      observe(this, 'valueType', () => callback(this)),
-      observe(this, 'operator', () => callback(this)),
-      observe(this as typeof this & { value: unknown }, 'value', () => callback(this)),
-    );
-  }
-
-  dispose(): void {
-    for (const disposer of this.disposers) {
-      disposer();
-    }
-  }
 }
 
 export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
@@ -206,7 +189,6 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
     )} ${!this.value ? 'no tags' : rootStore.tagStore.get(this.value)?.name}`;
   };
 
-  @action.bound
   serialize = (rootStore: RootStore): ITagSearchCriteria<T> => {
     // for the *recursive options, convert it to the corresponding non-recursive option,
     // by putting all child IDs in the value in the serialization step
@@ -254,7 +236,7 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
       StringOperatorLabels[this.operator as StringOperatorType] || camelCaseToSpaced(this.operator)
     } "${this.value}"`;
 
-  @action.bound serialize = (): IStringSearchCriteria<T> => {
+  serialize = (): IStringSearchCriteria<T> => {
     return {
       key: this.key,
       valueType: this.valueType,
@@ -289,7 +271,7 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
       NumberOperatorSymbols[this.operator as NumberOperatorType] || camelCaseToSpaced(this.operator)
     } ${this.value}`;
 
-  @action.bound serialize = (): INumberSearchCriteria<T> => {
+  serialize = (): INumberSearchCriteria<T> => {
     return {
       key: this.key,
       valueType: this.valueType,
@@ -322,7 +304,7 @@ export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
       NumberOperatorSymbols[this.operator as NumberOperatorType] || camelCaseToSpaced(this.operator)
     } ${this.value.toLocaleDateString()}`;
 
-  @action.bound serialize = (): IDateSearchCriteria<T> => {
+  serialize = (): IDateSearchCriteria<T> => {
     return {
       key: this.key,
       valueType: this.valueType,

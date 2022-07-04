@@ -1,7 +1,7 @@
 import fse from 'fs-extra';
-import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
-import Backend from 'src/backend/Backend';
-import { SearchOrder, OrderDirection } from 'src/backend/DBRepository';
+import { action, computed, makeObservable, observable, runInAction } from 'mobx';
+import Backend, { FileOrder } from 'src/backend/Backend';
+import { OrderDirection } from 'src/backend/DBRepository';
 import { ClientFile, IFile, IMG_EXTENSIONS_TYPE, mergeMovedFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
@@ -17,13 +17,7 @@ import { getThumbnailPath } from 'common/fs';
 import { promiseAllLimit } from 'common/promise';
 import RootStore from './RootStore';
 import { IndexMap } from '../data/IndexMap';
-
-const FILE_STORAGE_KEY = 'Allusion_File';
-
-/** These fields are stored and recovered when the application opens up */
-const PersistentPreferenceFields: Array<keyof FileStore> = ['orderDirection', 'orderBy'];
-
-export type FileOrder = SearchOrder<IFile>;
+import { UserPreferences } from '../data/UserPreferences';
 
 const enum Content {
   All,
@@ -47,8 +41,8 @@ class FileStore {
 
   /** The origin of the current files that are shown */
   @observable private content: Content = Content.All;
-  @observable orderDirection: OrderDirection = OrderDirection.Desc;
-  @observable orderBy: FileOrder = 'dateAdded';
+  @observable orderDirection: OrderDirection;
+  @observable orderBy: FileOrder;
   @observable numTotalFiles = 0;
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
@@ -56,16 +50,17 @@ class FileStore {
   debouncedRefetch: () => void;
   debouncedSaveFilesToSave: () => Promise<void>;
 
-  constructor(backend: Backend, rootStore: RootStore) {
+  constructor(backend: Backend, rootStore: RootStore, preferences: Readonly<UserPreferences>) {
     this.backend = backend;
     this.rootStore = rootStore;
+
+    this.orderDirection = preferences.orderDirection;
+    this.orderBy = preferences.orderBy;
+
     makeObservable(this);
 
-    // Store preferences immediately when anything is changed
-    const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
     this.debouncedRefetch = debounce(this.refetch, 200).bind(this);
     this.debouncedSaveFilesToSave = debounce(this.saveFilesToSave, 100).bind(this);
-    PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
   }
 
   public get fileList(): readonly ClientFile[] {
@@ -480,31 +475,6 @@ class FileStore {
   private async saveFilesToSave() {
     await this.backend.saveFiles(Array.from(this.filesToSave.values()));
     this.filesToSave.clear();
-  }
-
-  @action recoverPersistentPreferences() {
-    const prefsString = localStorage.getItem(FILE_STORAGE_KEY);
-    if (prefsString) {
-      try {
-        const prefs = JSON.parse(prefsString);
-        this.setOrderDirection(prefs.orderDirection || prefs.fileOrder); // orderDirection used to be called fileOrder, needed for backwards compatibility
-        this.setOrderBy(prefs.orderBy);
-      } catch (e) {
-        console.error('Cannot parse persistent preferences:', FILE_STORAGE_KEY, e);
-      }
-    }
-  }
-
-  @action storePersistentPreferences() {
-    const prefs: any = {};
-    for (const field of PersistentPreferenceFields) {
-      prefs[field] = this[field];
-    }
-    localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(prefs));
-  }
-
-  clearPersistentPreferences() {
-    localStorage.removeItem(FILE_STORAGE_KEY);
   }
 
   @action private async removeThumbnail(path: string) {

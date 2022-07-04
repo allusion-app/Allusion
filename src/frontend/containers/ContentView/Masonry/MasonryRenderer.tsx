@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import FocusManager from 'src/frontend/FocusManager';
-import { ViewMethod } from 'src/frontend/stores/UiStore';
+import { ViewMethod } from 'src/frontend/data/View';
 import { debounce, throttle } from 'common/timeout';
 import { MasonryType } from 'wasm/packages/masonry';
 import { GalleryProps, getThumbnailSize } from '../utils';

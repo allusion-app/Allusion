@@ -11,6 +11,7 @@ import ImageLoader from '../image/ImageLoader';
 
 import { RendererMessenger } from 'src/Messaging';
 import SearchStore from './SearchStore';
+import { clearUserPreferences, UserPreferences } from '../data/UserPreferences';
 
 // This will throw exceptions whenver we try to modify the state directly without an action
 // Actions will batch state modifications -> better for performance
@@ -28,6 +29,7 @@ configure({ observableRequiresReaction: true, reactionRequiresObservable: true }
  * 3. Makes complex unit tests easy as you just have to instantiate a root store.
  */
 class RootStore {
+  private readonly backend: Backend;
   readonly tagStore: TagStore;
   readonly fileStore: FileStore;
   readonly locationStore: LocationStore;
@@ -35,24 +37,16 @@ class RootStore {
   readonly searchStore: SearchStore;
   readonly exifTool: ExifIO;
   readonly imageLoader: ImageLoader;
-  readonly clearDatabase: () => Promise<void>;
 
-  constructor(private backend: Backend) {
+  constructor(backend: Backend, preferences: Readonly<UserPreferences>) {
+    this.backend = backend;
     this.tagStore = new TagStore(backend, this);
-    this.fileStore = new FileStore(backend, this);
+    this.fileStore = new FileStore(backend, this, preferences);
     this.locationStore = new LocationStore(backend, this);
-    this.uiStore = new UiStore(this);
+    this.uiStore = new UiStore(this, preferences);
     this.searchStore = new SearchStore(backend, this);
-    this.exifTool = new ExifIO(localStorage.getItem('hierarchical-separator') || undefined);
+    this.exifTool = new ExifIO(preferences.hierarchicalSeparator);
     this.imageLoader = new ImageLoader(this.exifTool);
-
-    // SAFETY: The backend instance has the same lifetime as the RootStore.
-    this.clearDatabase = async () => {
-      await backend.clearDatabase();
-      RendererMessenger.clearDatabase();
-      this.uiStore.clearPersistentPreferences();
-      this.fileStore.clearPersistentPreferences();
-    };
   }
 
   async init(isPreviewWindow: boolean) {
@@ -72,10 +66,6 @@ class RootStore {
     // The preview window is opened while the locations are already watched. The
     // files are fetched based on the file selection.
     if (!isPreviewWindow) {
-      // Then, restore preferences, which affects how the file store initializes
-      // It depends on tag store being intialized for reconstructing search criteria
-      this.uiStore.recoverPersistentPreferences();
-      this.fileStore.recoverPersistentPreferences();
       const isSlideMode = runInAction(() => this.uiStore.isSlideMode);
 
       const numCriterias = runInAction(() => this.uiStore.searchCriteriaList.length);
@@ -123,6 +113,12 @@ class RootStore {
 
   async peekDatabaseFile(path: string) {
     return this.backend.peekDatabaseFile(path);
+  }
+
+  async clearDatabase() {
+    await this.backend.clearDatabase();
+    RendererMessenger.clearDatabase();
+    clearUserPreferences();
   }
 }
 
