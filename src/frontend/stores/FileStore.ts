@@ -198,15 +198,16 @@ class FileStore {
     return this.content === Content.Query;
   }
 
-  @action.bound switchOrderDirection() {
-    this.setOrderDirection(
-      this.orderDirection === OrderDirection.Desc ? OrderDirection.Asc : OrderDirection.Desc,
-    );
+  @action.bound
+  public switchOrderDirection() {
+    this.orderDirection =
+      this.orderDirection === OrderDirection.Desc ? OrderDirection.Asc : OrderDirection.Desc;
     this.refetch();
   }
 
-  @action.bound orderFilesBy(prop: FileOrder = 'dateAdded') {
-    this.setOrderBy(prop);
+  @action.bound
+  public orderFilesBy(prop: FileOrder = 'dateAdded') {
+    this.orderBy = prop;
     this.refetch();
   }
 
@@ -354,16 +355,16 @@ class FileStore {
 
   @action.bound
   public async fetchMissingFiles(): Promise<void> {
+    const {
+      orderBy,
+      orderDirection,
+      rootStore: { uiStore },
+    } = this;
+
+    uiStore.searchCriteriaList.clear();
+    this.content = Content.Missing;
+
     try {
-      const {
-        orderBy,
-        orderDirection,
-        rootStore: { uiStore },
-      } = this;
-
-      uiStore.searchCriteriaList.clear();
-      this.setContentMissing();
-
       // Fetch all files, then check their existence and only show the missing ones
       // Similar to {@link updateFromBackend}, but the existence check needs to be awaited before we can show the images
       const backendFiles = await this.backend.fetchFiles(orderBy, orderDirection);
@@ -596,7 +597,8 @@ class FileStore {
   }
 
   /** Initializes the total and untagged file counters by querying the database with count operations */
-  async refetchFileCounts() {
+  @action
+  public async refetchFileCounts() {
     const noTagsCriteria = new ClientTagSearchCriteria('tags').serialize(this.rootStore);
     const numUntaggedFiles = await this.backend.countFiles(noTagsCriteria);
     const numTotalFiles = await this.backend.countFiles();
@@ -606,18 +608,7 @@ class FileStore {
     });
   }
 
-  @action private setOrderDirection(order: OrderDirection) {
-    this.orderDirection = order;
-  }
-
-  @action private setOrderBy(prop: FileOrder = 'dateAdded') {
-    this.orderBy = prop;
-  }
-
-  @action private setContentMissing() {
-    this.content = Content.Missing;
-  }
-
+  // FIXME: Right now the counter is not properly updated.
   @action private decrementNumMissingFiles() {
     this.numMissingFiles--;
   }

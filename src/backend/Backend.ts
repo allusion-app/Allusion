@@ -39,27 +39,28 @@ export default class Backend {
     this.backupScheduler = new BackupScheduler(this);
   }
 
-  async init(isMainWindow: boolean): Promise<void> {
-    if (isMainWindow) {
-      // Create a root tag if it does not exist
-      const tagCount = await this.tagRepository.count();
-      if (tagCount === 0) {
-        await this.createTag({
-          id: ROOT_TAG_ID,
-          name: 'Root',
-          dateAdded: new Date(),
-          subTags: [],
-          color: '',
-          isHidden: false,
-        });
-      }
-
-      try {
-        await this.backupScheduler.initialize(await RendererMessenger.getDefaultBackupDirectory());
-      } catch (e) {
-        console.error('Could not initialize backup scheduler', e);
-      }
+  public static async connect(): Promise<Backend> {
+    const backend = new Backend();
+    // Create a root tag if it does not exist
+    const tagCount = await backend.tagRepository.count();
+    if (tagCount === 0) {
+      await backend.createTag({
+        id: ROOT_TAG_ID,
+        name: 'Root',
+        dateAdded: new Date(),
+        subTags: [],
+        color: '',
+        isHidden: false,
+      });
     }
+
+    try {
+      await backend.backupScheduler.initialize(await RendererMessenger.getDefaultBackupDirectory());
+    } catch (e) {
+      console.error('Could not initialize backup scheduler', e);
+    }
+
+    return backend;
   }
 
   async fetchTags(): Promise<ITag[]> {
@@ -272,7 +273,6 @@ export default class Backend {
   }
 
   async clearDatabase(): Promise<void> {
-    console.info('Clearing database...');
     return dbDelete(DB_NAME);
   }
 

@@ -19,7 +19,7 @@ const PreviewApp = observer(() => {
 
   useAutorun(() => {
     const file = fileStore.fileIndex.at(uiStore.firstItem) ?? fileStore.fileIndex.at(0);
-    if (file !== undefined) {
+    if (uiStore.isSlideMode && file !== undefined) {
       document.title = `${file.absolutePath} • ${PREVIEW_WINDOW_BASENAME}`;
     } else {
       document.title = PREVIEW_WINDOW_BASENAME;

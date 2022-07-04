@@ -46,8 +46,7 @@ const mockFile: IFile = {
 describe('Backend', () => {
   describe('Tag API', () => {
     beforeEach(async () => {
-      backend = new Backend();
-      await backend.init(true);
+      backend = await Backend.connect();
     });
 
     it('should be able to fetch a tag after adding it', async () => {
