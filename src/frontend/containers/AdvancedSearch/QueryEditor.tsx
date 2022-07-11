@@ -1,24 +1,20 @@
 import React, { memo } from 'react';
-import { ID } from 'src/entities/ID';
 import { IconSet } from 'widgets/Icons';
 import { Callout, InfoButton } from 'widgets/notifications';
 import { RadioGroup, Radio } from 'widgets/Radio';
-import { Criteria } from './data';
+import { IFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { KeySelector, OperatorSelector, ValueInput } from './Inputs';
 
-export type Query = Map<string, Criteria>;
-export type QueryDispatch = React.Dispatch<React.SetStateAction<Query>>;
-
-export interface QueryEditorProps {
-  query: Query;
-  setQuery: QueryDispatch;
-  submissionButtonText?: string;
-}
+type QueryEditorProps = {
+  query: Map<number, IFileSearchCriteria>;
+  setQuery: React.Dispatch<React.SetStateAction<Map<number, IFileSearchCriteria>>>;
+  submissionButtonText: string;
+};
 
 export const QueryEditor = memo(function QueryEditor({
   query,
   setQuery,
-  submissionButtonText = 'Search',
+  submissionButtonText,
 }: QueryEditorProps) {
   return (
     <fieldset aria-labelledby="query-editor-container-label">
@@ -74,56 +70,50 @@ export const QueryEditor = memo(function QueryEditor({
   );
 });
 
-export interface EditableCriteriaProps {
+type EditableCriteriaProps = {
   index: number;
-  id: ID;
-  criteria: Criteria;
-  dispatch: QueryDispatch;
-}
+  id: number;
+  criteria: IFileSearchCriteria;
+  dispatch: React.Dispatch<React.SetStateAction<Map<number, IFileSearchCriteria>>>;
+};
 
 // The main Criteria component, finds whatever input fields for the key should be rendered
 export const EditableCriteria = ({ index, id, criteria, dispatch }: EditableCriteriaProps) => {
-  const setCriteria = (fn: (criteria: Criteria) => Criteria) => {
-    const c = fn(criteria);
+  const updateCriteria = (update: (criteria: IFileSearchCriteria) => IFileSearchCriteria) => {
+    const c = update(criteria);
     dispatch((query) => new Map(query.set(id, c)));
   };
 
+  const removeCriteria = () => {
+    dispatch((form) => {
+      form.delete(id);
+      return new Map(form);
+    });
+  };
+
+  const rowId = `__criteria-${id}`;
+
   return (
     <tr>
-      <th scope="row" id={id}>
+      <th scope="row" id={rowId}>
         {index + 1}
       </th>
       <td>
-        <KeySelector labelledby={`${id} col-key`} keyValue={criteria.key} dispatch={setCriteria} />
+        <KeySelector labelledby={rowId} criteria={criteria} updateCriteria={updateCriteria} />
       </td>
       <td>
-        <OperatorSelector
-          labelledby={`${id} col-operator`}
-          keyValue={criteria.key}
-          value={criteria.operator}
-          dispatch={setCriteria}
-        />
+        <OperatorSelector labelledby={`${rowId} col-operator`} criteria={criteria} />
       </td>
       <td>
-        <ValueInput
-          labelledby={`${id} col-value`}
-          keyValue={criteria.key}
-          value={criteria.value}
-          dispatch={setCriteria}
-        />
+        <ValueInput labelledby={`${rowId} col-value`} criteria={criteria} />
       </td>
       <td>
         <button
           className="btn-icon"
           data-tooltip={`Remove Criteria ${index + 1}`}
-          aria-labelledby={`col-remove ${id}`}
+          aria-labelledby={`col-remove ${rowId}`}
           type="button"
-          onClick={() =>
-            dispatch((form) => {
-              form.delete(id);
-              return new Map(form);
-            })
-          }
+          onClick={removeCriteria}
         >
           <span aria-hidden="true">{IconSet.DELETE}</span>
           <span className="visually-hidden">Remove Criteria</span>
@@ -133,15 +123,15 @@ export const EditableCriteria = ({ index, id, criteria, dispatch }: EditableCrit
   );
 };
 
-interface IQueryMatchProps {
+type QueryMatchProps = {
   searchMatchAny: boolean;
   toggle: () => void;
-}
+};
 
-export const QueryMatch: React.FC<IQueryMatchProps> = ({
+export const QueryMatch: React.FC<QueryMatchProps> = ({
   searchMatchAny,
   toggle,
-}: IQueryMatchProps) => {
+}: QueryMatchProps) => {
   return (
     <RadioGroup name="Match" orientation="horizontal">
       <Radio label="Any" value="any" checked={searchMatchAny} onChange={toggle} />

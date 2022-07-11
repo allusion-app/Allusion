@@ -1,327 +1,309 @@
-import { action } from 'mobx';
-import React, { ForwardedRef, forwardRef, useState } from 'react';
-import { IMG_EXTENSIONS } from 'src/entities/File';
+import { action, computed } from 'mobx';
+import React, { ForwardedRef, useMemo } from 'react';
+import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
 import {
   BinaryOperators,
-  NumberOperators,
-  NumberOperatorSymbols,
-  StringOperatorLabels,
-  StringOperatorType,
-  TagOperators,
+  ClientFileSearchCriteria,
+  ExtensionSearchCriteria,
+  IFileSearchCriteria,
+  Operators,
+  PathSearchCriteria,
+  SearchableFileData,
+  TagSearchCriteria,
+  TreeOperators,
 } from 'src/entities/SearchCriteria';
+import {
+  NumberOperators,
+  StringOperatorType,
+  DateSearchCriteria,
+  NumberSearchCriteria,
+} from 'src/backend/DBSearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { camelCaseToSpaced } from 'common/fmt';
-import { Criteria, defaultQuery, Key, Operator, TagValue, Value } from './data';
+import { observer } from 'mobx-react-lite';
+import { useAction, useComputed } from 'src/frontend/hooks/mobx';
+import { getNumberOperatorSymbol, getStringOperatorLabel } from 'src/frontend/stores/SearchStore';
 
-type SetCriteria = (fn: (criteria: Criteria) => Criteria) => void;
-
-interface IKeySelector {
+type KeySelectorProps = {
   labelledby: string;
-  dispatch: SetCriteria;
-  keyValue: Key;
-}
+  updateCriteria: (update: (criteria: IFileSearchCriteria) => IFileSearchCriteria) => void;
+  criteria: IFileSearchCriteria;
+};
 
-export const KeySelector = forwardRef(function KeySelector(
-  { labelledby, keyValue, dispatch }: IKeySelector,
-  ref: ForwardedRef<HTMLSelectElement>,
-) {
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const key = e.target.value as Key;
-    dispatch((criteria) => {
-      // Keep the text value and operator when switching between name and path
-      if ([criteria.key, key].every((k) => ['name', 'absolutePath'].includes(k))) {
-        criteria.key = key;
-        return { ...criteria };
-      } else {
-        return defaultQuery(key);
-      }
-    });
-  };
+export const KeySelector = observer(
+  function KeySelector(
+    { labelledby, criteria, updateCriteria }: KeySelectorProps,
+    ref: ForwardedRef<HTMLSelectElement>,
+  ) {
+    const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const key = e.target.value as IFileSearchCriteria['key'];
+      const update = action(changeCriteriaKey);
+      updateCriteria((criteria) => update(key, criteria));
+    };
+
+    return (
+      <select
+        className="criteria-input"
+        ref={ref}
+        aria-labelledby={labelledby}
+        onChange={handleChange}
+        value={criteria.key}
+      >
+        <option key="tags" value="tags">
+          Tags
+        </option>
+        <option key="name" value="name">
+          File Name
+        </option>
+        <option key="absolutePath" value="absolutePath">
+          File Path
+        </option>
+        <option key="extension" value="extension">
+          File Extension
+        </option>
+        <option key="size" value="size">
+          File Size (MB)
+        </option>
+        <option key="dateAdded" value="dateAdded">
+          Date Added
+        </option>
+      </select>
+    );
+  },
+  { forwardRef: true },
+);
+
+type Input<V> = { labelledby: string; criteria: V };
+
+export const OperatorSelector = observer(({ labelledby, criteria }: Input<IFileSearchCriteria>) => {
+  const handleChange = useMemo(
+    () =>
+      action((e: React.ChangeEvent<HTMLSelectElement>) => {
+        criteria.operator = e.target.value as Operators;
+      }),
+    [criteria],
+  );
+
+  const [values, formatter] = useMemo(
+    () => computed(() => getOperatorOptions(criteria.key)),
+    [criteria],
+  ).get();
 
   return (
     <select
       className="criteria-input"
-      ref={ref}
       aria-labelledby={labelledby}
       onChange={handleChange}
-      value={keyValue}
+      value={criteria.operator}
     >
-      <option key="tags" value="tags">
-        Tags
-      </option>
-      <option key="name" value="name">
-        File Name
-      </option>
-      <option key="absolutePath" value="absolutePath">
-        File Path
-      </option>
-      <option key="extension" value="extension">
-        File Extension
-      </option>
-      <option key="size" value="size">
-        File Size (MB)
-      </option>
-      <option key="dateAdded" value="dateAdded">
-        Date Added
-      </option>
+      {values.map((value) => (
+        <option key={value} value={value}>
+          {formatter(value)}
+        </option>
+      ))}
     </select>
   );
 });
 
-type FieldInput<V> = IKeySelector & { value: V };
+export const ValueInput = observer(({ labelledby, criteria }: Input<IFileSearchCriteria>) => {
+  switch (criteria.key) {
+    case 'tags':
+      return <TagInput labelledby={labelledby} criteria={criteria} />;
 
-export const OperatorSelector = ({
-  labelledby,
-  keyValue,
-  value,
-  dispatch,
-}: FieldInput<Operator>) => {
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const operator = e.target.value as Operator;
-    dispatch((criteria) => {
-      criteria.operator = operator;
-      return { ...criteria };
-    });
-  };
+    case 'extension':
+      return <ExtensionInput labelledby={labelledby} criteria={criteria} />;
 
-  return (
-    <select
-      className="criteria-input"
-      aria-labelledby={labelledby}
-      onChange={handleChange}
-      value={value}
-    >
-      {getOperatorOptions(keyValue)}
-    </select>
-  );
-};
+    case 'absolutePath':
+    case 'name':
+      return <PathInput labelledby={labelledby} criteria={criteria} />;
 
-export const ValueInput = ({ labelledby, keyValue, value, dispatch }: FieldInput<Value>) => {
-  if (keyValue === 'name' || keyValue === 'absolutePath') {
-    return <PathInput labelledby={labelledby} value={value as string} dispatch={dispatch} />;
-  } else if (keyValue === 'tags') {
-    return <TagInput labelledby={labelledby} value={value as TagValue} dispatch={dispatch} />;
-  } else if (keyValue === 'extension') {
-    return <ExtensionInput labelledby={labelledby} value={value as string} dispatch={dispatch} />;
-  } else if (keyValue === 'size') {
-    return <SizeInput labelledby={labelledby} value={value as number} dispatch={dispatch} />;
-  } else if (keyValue === 'dateAdded') {
-    return <DateAddedInput labelledby={labelledby} value={value as Date} dispatch={dispatch} />;
+    case 'size':
+      return <SizeInput labelledby={labelledby} criteria={criteria} />;
+
+    case 'dateAdded':
+      return <DateAddedInput labelledby={labelledby} criteria={criteria} />;
+
+    default:
+      const _exhaustiveCheck: never = criteria;
+      return _exhaustiveCheck;
   }
-  return <p>This should never happen.</p>;
-};
+});
 
-type ValueInput<V> = Omit<FieldInput<V>, 'keyValue'>;
+const PathInput = observer(({ labelledby, criteria }: Input<PathSearchCriteria>) => {
+  const handleChange = useAction((e: React.ChangeEvent<HTMLInputElement>) => {
+    criteria.value = e.target.value;
+  });
 
-const PathInput = ({ labelledby, value, dispatch }: ValueInput<string>) => {
   return (
     <input
       aria-labelledby={labelledby}
       className="input criteria-input"
       type="text"
-      defaultValue={value}
-      onBlur={(e) => dispatch(setValue(e.target.value))}
+      value={criteria.value}
+      onChange={handleChange}
     />
   );
-};
+});
 
-const TagInput = ({ value, dispatch }: ValueInput<TagValue>) => {
+const TagInput = observer(({ criteria }: Input<TagSearchCriteria>) => {
   const { tagStore } = useStore();
-  const [selection, setSelection] = useState(value !== undefined ? tagStore.get(value) : undefined);
 
-  const handleSelect = action((t: ClientTag) => {
-    dispatch(setValue(t.id));
-    setSelection(t);
+  const selection = useComputed(() => {
+    const tagID = criteria.value.at(0);
+    if (tagID !== undefined) {
+      const tag = tagStore.get(tagID);
+      if (tag !== undefined) {
+        return [tag];
+      }
+    }
+    return [];
   });
 
-  const handleDeselect = () => {
-    dispatch(setValue(undefined));
-    setSelection(undefined);
-  };
+  const handleSelect = useAction((tag: ClientTag) => {
+    criteria.value = [tag.id];
+  });
+
+  const handleDeselect = useAction(() => {
+    criteria.value = [];
+  });
 
   // TODO: tooltips don't work; they're behind the dialog, arghghgh
   return (
     <TagSelector
-      selection={selection ? [selection] : []}
+      selection={selection.get()}
       onSelect={handleSelect}
       onDeselect={handleDeselect}
       onClear={handleDeselect}
     />
   );
-};
+});
 
-// TODO: needs some more work:
-//  - default value of Untagged is unintuitive (you need to manually clear the text field first in order to pick a tag)
-//  - and doesn't support large nested tag names well (width of popout is too wide). Maybe already fixed this when reverting to old TagSelector?
+const ExtensionInput = observer(({ labelledby, criteria }: Input<ExtensionSearchCriteria>) => {
+  const handleChange = useAction((e: React.ChangeEvent<HTMLSelectElement>) => {
+    criteria.value = e.target.value as IMG_EXTENSIONS_TYPE;
+  });
 
-// const TagInput = observer(({ labelledby, value, dispatch }: ValueInput<TagValue>) => {
-//   const { tagStore } = useStore();
-//   const data: TagOptions[] = [
-//     { label: 'System Tags', options: [{ id: undefined, name: 'Untagged' }] },
-//     { label: 'My Tags', options: tagStore.tagList },
-//   ];
+  return (
+    <select
+      className="criteria-input"
+      aria-labelledby={labelledby}
+      onChange={handleChange}
+      value={criteria.value}
+    >
+      {IMG_EXTENSIONS.map((ext) => (
+        <option key={ext} value={ext}>
+          {ext.toUpperCase()}
+        </option>
+      ))}
+    </select>
+  );
+});
 
-//   const handleChange = (v: TagOption) => {
-//     const id = v.id;
-//     dispatch((criteria) => {
-//       criteria.value = id;
-//       return { ...criteria };
-//     });
-//   };
+type SizeSearchCriteria = NumberSearchCriteria<SearchableFileData>;
 
-//   return (
-//     <GridCombobox
-//       value={value}
-//       isSelected={(option: TagOption, selection: TagValue) => option.id === selection}
-//       onChange={handleChange}
-//       data={data}
-//       colcount={2}
-//       labelFromOption={labelFromOption}
-//       renderOption={renderOption}
-//       textboxLabelledby={labelledby}
-//     />
-//   );
-// });
+const BYTES_IN_MB = 1024 * 1024;
 
-// interface TagOptions {
-//   label: string;
-//   options: readonly TagOption[];
-// }
+const SizeInput = observer(({ labelledby, criteria }: Input<SizeSearchCriteria>) => {
+  const handleChange = useAction((e: React.ChangeEvent<HTMLInputElement>) => {
+    criteria.value = e.target.valueAsNumber * BYTES_IN_MB;
+  });
 
-// interface TagOption {
-//   id: TagValue;
-//   name: string;
-// }
-
-// const labelFromOption = action((t: ClientTag) => t.name);
-
-// const renderOption = (tag: TagOption | ClientTag, index: number, selection: boolean) => {
-//   if (tag instanceof ClientTag) {
-//     return renderTagOption(tag, index, selection);
-//   } else {
-//     return renderSystemTag(tag, index, selection);
-//   }
-// };
-
-// const renderSystemTag = (tag: TagOption, index: number, selection: boolean) => {
-//   const id = tag.id ?? '';
-//   return (
-//     <GridOption key={id} rowIndex={index} selected={selection || undefined}>
-//       <GridOptionCell id={id} colIndex={1} colspan={2}>
-//         {tag.name}
-//       </GridOptionCell>
-//     </GridOption>
-//   );
-// };
-
-// const renderTagOption = action((tag: ClientTag, index: number, selection: boolean) => {
-//   const id = tag.id;
-//   const path = tag.treePath.map((t: ClientTag) => t.name).join(' › ') ?? [];
-//   const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
-
-//   return (
-//     <GridOption key={id} rowIndex={index} selected={selection || undefined} data-tooltip={path}>
-//       <GridOptionCell id={id} colIndex={1}>
-//         <span
-//           className="combobox-popup-option-icon"
-//           style={{ color: tag.viewColor }}
-//           aria-hidden={true}
-//         >
-//           {IconSet.TAG}
-//         </span>
-//         {tag.name}
-//       </GridOptionCell>
-//       <GridOptionCell className="tag-option-hint" id={id + '-hint'} colIndex={2}>
-//         {hint}
-//       </GridOptionCell>
-//     </GridOption>
-//   );
-// });
-
-const ExtensionInput = ({ labelledby, value, dispatch }: ValueInput<string>) => (
-  <select
-    className="criteria-input"
-    aria-labelledby={labelledby}
-    onChange={(e) => dispatch(setValue(e.target.value))}
-    value={value}
-  >
-    {IMG_EXTENSIONS.map((ext) => (
-      <option key={ext} value={ext}>
-        {ext.toUpperCase()}
-      </option>
-    ))}
-  </select>
-);
-
-const SizeInput = ({ value, labelledby, dispatch }: ValueInput<number>) => {
   return (
     <input
       aria-labelledby={labelledby}
       className="input criteria-input"
       type="number"
-      defaultValue={value}
+      value={criteria.value / BYTES_IN_MB}
       min={0}
-      onChange={(e) => {
-        const value = e.target.valueAsNumber;
-        if (value) {
-          dispatch(setValue(value));
-        }
-      }}
+      onChange={handleChange}
     />
   );
-};
+});
 
-const DateAddedInput = ({ value, labelledby, dispatch }: ValueInput<Date>) => {
+type DateAddedSearchCriteria = DateSearchCriteria<SearchableFileData>;
+
+const DateAddedInput = observer(({ labelledby, criteria }: Input<DateAddedSearchCriteria>) => {
+  const handleChange = useAction((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.valueAsDate !== null) {
+      criteria.value = e.target.valueAsDate;
+    }
+  });
+
   return (
     <input
       aria-labelledby={labelledby}
       className="input criteria-input"
       type="date"
       max={new Date().toISOString().slice(0, 10)}
-      defaultValue={value.toISOString().slice(0, 10)}
-      onChange={(e) => {
-        if (e.target.valueAsDate) {
-          dispatch(setValue(e.target.valueAsDate));
-        }
-      }}
+      value={criteria.value.toISOString().slice(0, 10)}
+      onChange={handleChange}
     />
   );
-};
+});
 
-function getOperatorOptions(key: Key) {
-  if (key === 'dateAdded' || key === 'size') {
-    return NumberOperators.map((op) => toOperatorOption(op, NumberOperatorSymbols));
-  } else if (key === 'extension') {
-    return BinaryOperators.map((op) => toOperatorOption(op));
-  } else if (key === 'name' || key === 'absolutePath') {
-    // For performance reasons, we added some extra non-ignoreCase options,
-    // but these aren't really needed by the user, so hide them to avoid clutter:
-    const shownStringOperators: StringOperatorType[] = [
-      'equalsIgnoreCase',
-      'notEqual',
-      'contains',
-      'notContains',
-      'startsWithIgnoreCase',
-      'notStartsWith',
-    ];
-    return shownStringOperators.map((op) => toOperatorOption(op, StringOperatorLabels));
-  } else if (key === 'tags') {
-    return TagOperators.map((op) => toOperatorOption(op));
+function changeCriteriaKey(key: IFileSearchCriteria['key'], criteria: IFileSearchCriteria) {
+  switch (key) {
+    case 'tags':
+      return ClientFileSearchCriteria.tags('contains', []);
+
+    case 'extension':
+      return ClientFileSearchCriteria.extension('equals', IMG_EXTENSIONS[0]);
+
+    // Keep the text value and operator when switching between name and path
+    case 'absolutePath':
+    case 'name':
+      if (criteria.key === 'name' || criteria.key === 'absolutePath') {
+        return ClientFileSearchCriteria.string(key, criteria.operator, criteria.value);
+      } else {
+        return ClientFileSearchCriteria.string(key, 'contains', '');
+      }
+
+    case 'size':
+      return ClientFileSearchCriteria.number('size', 'greaterThanOrEquals', 0);
+
+    case 'dateAdded':
+      return ClientFileSearchCriteria.date('dateAdded', 'equals', new Date());
+
+    default:
+      const _exhaustiveCheck: never = key;
+      return _exhaustiveCheck;
   }
-  return [];
 }
 
-const toOperatorOption = <T extends string>(o: T, labels?: Record<T, string>) => (
-  <option key={o} value={o}>
-    {labels && o in labels ? labels[o] : camelCaseToSpaced(o)}
-  </option>
-);
+function getOperatorOptions(
+  key: IFileSearchCriteria['key'],
+): [readonly string[], (value: string) => string] {
+  switch (key) {
+    case 'tags':
+      return [TreeOperators, camelCaseToSpaced];
 
-function setValue(value: Value): (criteria: Criteria) => Criteria {
-  return (criteria: Criteria): Criteria => {
-    criteria.value = value;
-    return { ...criteria };
-  };
+    case 'extension':
+      return [BinaryOperators, camelCaseToSpaced];
+
+    // Keep the text value and operator when switching between name and path
+    case 'absolutePath':
+    case 'name':
+      return [PathOperators, getStringOperatorLabel as (value: string) => string];
+
+    case 'size':
+    case 'dateAdded':
+      return [NumberOperators, getNumberOperatorSymbol as (value: string) => string];
+
+    default:
+      const _exhaustiveCheck: never = key;
+      return _exhaustiveCheck;
+  }
 }
+
+// For performance reasons, we added some extra non-ignoreCase options,
+// but these aren't really needed by the user, so hide them to avoid clutter:
+const PathOperators: StringOperatorType[] = [
+  'equalsIgnoreCase',
+  'notEqual',
+  'contains',
+  'notContains',
+  'startsWithIgnoreCase',
+  'notStartsWith',
+];

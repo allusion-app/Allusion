@@ -1,60 +1,60 @@
 import { observer } from 'mobx-react-lite';
 import React, { useState, useRef, useCallback } from 'react';
-import { ID } from 'src/entities/ID';
-import { ClientFileSearchItem } from 'src/entities/SearchItem';
+import { ClientFileSearch } from 'src/entities/SearchItem';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { useAutorun } from 'src/frontend/hooks/mobx';
+import { action, runInAction } from 'mobx';
 import { Button } from 'widgets/Button';
 import { IconSet } from 'widgets/Icons';
 import { Dialog } from 'widgets/popovers';
 import CriteriaBuilder from './CriteriaBuilder';
-import { Criteria, fromCriteria, intoCriteria } from './data';
+import { ClientFileSearchCriteria, IFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { QueryEditor, QueryMatch } from './QueryEditor';
 
-interface ISearchItemDialogProps {
-  searchItem: ClientFileSearchItem;
+type FileSearchEditorProps = {
+  searchItem: ClientFileSearch;
   onClose: () => void;
-}
+};
 
 /** Similar to the AdvancedSearchDialog */
-const SearchItemDialog = observer<ISearchItemDialogProps>(({ searchItem, onClose }) => {
-  const rootStore = useStore();
-  const { tagStore, searchStore } = rootStore;
+const SearchItemDialog = observer<FileSearchEditorProps>(({ searchItem, onClose }) => {
+  const { searchStore } = useStore();
+  const idCounter = useRef(0);
 
   // Copy state of search item: only update the ClientSearchItem on submit.
   const [name, setName] = useState(searchItem.name);
   const [searchMatchAny, setSearchMatchAny] = useState(searchItem.matchAny);
-  const toggle = useCallback(() => setSearchMatchAny((v) => !v), []);
+  const toggle = useRef(() => setSearchMatchAny((v) => !v)).current;
 
-  const [query, setQuery] = useState(new Map<ID, Criteria>());
+  const criterias = searchItem.criterias;
+  const [query, setQuery] = useState(
+    action(() => {
+      const map = new Map();
+      for (const criteria of criterias) {
+        const id = idCounter.current;
+        idCounter.current += 1;
+        map.set(id, ClientFileSearchCriteria.clone(criteria));
+      }
+      return map;
+    }),
+  );
+
   const keySelector = useRef<HTMLSelectElement>(null);
-  const nameInput = useRef<HTMLInputElement>(null);
 
-  // Initialize form with current queries. When the form is closed, all inputs
-  // are unmounted to save memory.
-  useAutorun(() => {
-    const map = new Map();
-    for (const criteria of searchItem.criteria) {
-      const [id, query] = fromCriteria(criteria);
-      map.set(id, query);
-    }
-    // Focus and select the input text so the user can rename immediately after creating a new search item
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => {
-        nameInput.current?.focus();
-        nameInput.current?.select();
-      }),
-    );
-    setQuery(map);
-  });
+  const add = useRef((criteria: IFileSearchCriteria) => {
+    const id = idCounter.current;
+    idCounter.current += 1;
+    setQuery((map) => new Map(map.set(id, criteria)));
+  }).current;
 
-  const handleSubmit = useCallback(async () => {
-    searchItem.setName(name);
-    searchItem.setMatchAny(searchMatchAny);
-    searchItem.setCriteria(Array.from(query.values(), (vals) => intoCriteria(vals, tagStore)));
-    searchStore.save(searchItem);
-    onClose();
-  }, [name, onClose, query, searchItem, searchMatchAny, searchStore, tagStore]);
+  const handleSubmit = useCallback(() => {
+    runInAction(() => {
+      searchItem.setName(name);
+      searchItem.setMatchAny(searchMatchAny);
+      searchItem.setCriterias(...Array.from(query.values()));
+      searchStore.save(searchItem);
+      onClose();
+    });
+  }, [name, onClose, query, searchItem, searchMatchAny, searchStore]);
 
   return (
     <Dialog
@@ -74,17 +74,16 @@ const SearchItemDialog = observer<ISearchItemDialogProps>(({ searchItem, onClose
       >
         <label id="name">Name</label>
         <input
+          autoFocus
           className="input"
           defaultValue={searchItem.name}
           onBlur={(e) => setName(e.target.value)}
           aria-labelledby="name"
-          autoFocus
-          ref={nameInput}
         />
 
         <br />
 
-        <CriteriaBuilder keySelector={keySelector} dispatch={setQuery} />
+        <CriteriaBuilder keySelector={keySelector} addCriteria={add} />
 
         <QueryEditor query={query} setQuery={setQuery} submissionButtonText="Save" />
 

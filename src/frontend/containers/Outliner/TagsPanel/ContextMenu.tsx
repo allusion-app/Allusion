@@ -2,7 +2,7 @@ import React from 'react';
 import { observer } from 'mobx-react-lite';
 import { HexColorPicker } from 'react-colorful';
 
-import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet } from 'widgets';
@@ -127,7 +127,9 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         onClick={() =>
           tag.isSelected
             ? uiStore.addTagSelectionToCriteria()
-            : uiStore.addSearchCriteria(new ClientTagSearchCriteria('tags', tag.id))
+            : uiStore.addSearchCriteria(
+                ClientFileSearchCriteria.tags('containsRecursively', [tag.id]),
+              )
         }
         text="Add to Search"
         icon={IconSet.SEARCH}
@@ -136,7 +138,9 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         onClick={() =>
           tag.isSelected
             ? uiStore.replaceCriteriaWithTagSelection()
-            : uiStore.replaceSearchCriteria(new ClientTagSearchCriteria('tags', tag.id))
+            : uiStore.replaceSearchCriteria(
+                ClientFileSearchCriteria.tags('containsRecursively', [tag.id]),
+              )
         }
         text="Replace Search"
         icon={IconSet.REPLACE}

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../../../hotkeyParser';
 import { observer } from 'mobx-react-lite';
 
@@ -9,7 +9,7 @@ import { Toolbar, ToolbarButton } from 'widgets/menus';
 
 import TagsTree from './TagsTree';
 import { useAction } from 'src/frontend/hooks/mobx';
-import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
 
 // Tooltip info
@@ -22,23 +22,22 @@ const enum TooltipInfo {
 export const OutlinerActionBar = observer(() => {
   const { fileStore, uiStore } = useStore();
 
-  const handleUntaggedClick = useCallback((e: React.MouseEvent) => {
+  const handleUntaggedClick = useAction((e: React.MouseEvent) => {
     if (!e.ctrlKey) {
       fileStore.fetchUntaggedFiles();
       return;
     }
     // With ctrl key pressed, either add/remove a Untagged criteria based on whether it's already there
     const maybeUntaggedCrit = uiStore.searchCriteriaList.find(
-      (crit) => crit instanceof ClientTagSearchCriteria && !crit.value,
+      (crit) => crit.key === 'tags' && crit.value.length === 0,
     );
 
     if (maybeUntaggedCrit) {
       uiStore.removeSearchCriteria(maybeUntaggedCrit);
     } else {
-      uiStore.addSearchCriteria(new ClientTagSearchCriteria('tags'));
+      uiStore.addSearchCriteria(ClientFileSearchCriteria.tags('contains', []));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  });
 
   return (
     <Toolbar id="actionbar" label="Action Bar" controls="content-view">

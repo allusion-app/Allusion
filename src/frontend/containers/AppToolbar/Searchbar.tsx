@@ -1,7 +1,12 @@
 import React, { useRef } from 'react';
 import { observer } from 'mobx-react-lite';
-
 import { useStore } from 'src/frontend/contexts/StoreContext';
+import { ClientTag } from 'src/entities/Tag';
+import { IconButton, IconSet, Tag, Row } from 'widgets';
+import { TagSelector } from 'src/frontend/components/TagSelector';
+import { useAction, useComputed } from 'src/frontend/hooks/mobx';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { getLabel, isUntaggedCriteria } from 'src/frontend/stores/SearchStore';
 
 const Searchbar = observer(() => {
   const { uiStore } = useStore();
@@ -15,9 +20,7 @@ const Searchbar = observer(() => {
     searchCriteriaList.length === 0 ||
     searchCriteriaList.every(
       (crit) =>
-        crit.key === 'tags' &&
-        crit.operator === 'containsRecursively' &&
-        (crit as ClientTagSearchCriteria<any>).value,
+        crit.key === 'tags' && crit.operator === 'containsRecursively' && crit.value.length > 0,
     );
 
   return <div className="searchbar">{isQuickSearch ? <QuickSearchList /> : <CriteriaList />}</div>;
@@ -25,26 +28,14 @@ const Searchbar = observer(() => {
 
 export default Searchbar;
 
-import {
-  CustomKeyDict,
-  ClientStringSearchCriteria,
-  ClientTagSearchCriteria,
-} from 'src/entities/SearchCriteria';
-import { ClientTag } from 'src/entities/Tag';
-
-import { IconButton, IconSet, Tag, Row } from 'widgets';
-
-import { TagSelector } from 'src/frontend/components/TagSelector';
-import { useAction, useComputed } from 'src/frontend/hooks/mobx';
-
 const QuickSearchList = observer(() => {
   const { uiStore, tagStore } = useStore();
 
   const selection = useComputed(() => {
     const selectedItems: ClientTag[] = [];
     uiStore.searchCriteriaList.forEach((c) => {
-      if (c instanceof ClientTagSearchCriteria && c.value) {
-        const item = tagStore.get(c.value);
+      if (c.key === 'tags' && c.value.length !== 0) {
+        const item = tagStore.get(c.value[0]);
         if (item) {
           selectedItems.push(item);
         }
@@ -54,12 +45,12 @@ const QuickSearchList = observer(() => {
   });
 
   const handleSelect = useAction((item: Readonly<ClientTag>) =>
-    uiStore.addSearchCriteria(new ClientTagSearchCriteria('tags', item.id, 'containsRecursively')),
+    uiStore.addSearchCriteria(ClientFileSearchCriteria.tags('containsRecursively', [item.id])),
   );
 
   const handleDeselect = useAction((item: Readonly<ClientTag>) => {
     const crit = uiStore.searchCriteriaList.find(
-      (c) => c instanceof ClientTagSearchCriteria && c.value === item.id,
+      (c) => c.key === 'tags' && c.value.at(0) === item.id,
     );
     if (crit) {
       uiStore.removeSearchCriteria(crit);
@@ -74,7 +65,9 @@ const QuickSearchList = observer(() => {
         value={`Search in file paths for "${query}"`}
         onClick={() => {
           resetTextBox();
-          uiStore.addSearchCriteria(new ClientStringSearchCriteria('absolutePath', query));
+          uiStore.addSearchCriteria(
+            ClientFileSearchCriteria.string('absolutePath', 'contains', query),
+          );
         }}
       />,
       <Row
@@ -127,17 +120,18 @@ const CriteriaList = observer(() => {
     <div className="input" onClick={uiStore.toggleAdvancedSearch}>
       <div className="multiautocomplete-input">
         <div className="input-wrapper">
-          {uiStore.searchCriteriaList.map((c, i) => (
-            <Tag
-              key={`${i}-${c.getLabel(CustomKeyDict, rootStore)}`}
-              text={c.getLabel(CustomKeyDict, rootStore)}
-              onRemove={() => uiStore.removeSearchCriteriaByIndex(i)}
-              // Italicize system tags (for now only "Untagged images")
-              className={
-                c instanceof ClientTagSearchCriteria && c.isSystemTag() ? 'italic' : undefined
-              }
-            />
-          ))}
+          {uiStore.searchCriteriaList.map((c, i) => {
+            const label = getLabel(rootStore, c);
+            return (
+              <Tag
+                key={i}
+                text={label}
+                onRemove={() => uiStore.removeSearchCriteriaByIndex(i)}
+                // Italicize system tags (for now only "Untagged images")
+                className={c.key === 'tags' && isUntaggedCriteria(c) ? 'italic' : undefined}
+              />
+            );
+          })}
         </div>
 
         {uiStore.searchCriteriaList.length > 1 ? (

@@ -1,9 +1,9 @@
-import { observable, runInAction } from 'mobx';
+import { computed, observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { generateId } from 'src/entities/ID';
-import { CustomKeyDict, FileSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientFileSearchItem } from 'src/entities/SearchItem';
+import { ClientFileSearch } from 'src/entities/SearchItem';
+import { ClientFileSearchCriteria, IFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { SavedSearchRemoval } from 'src/frontend/components/RemovalAlert';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import {
@@ -11,7 +11,7 @@ import {
   SearchDnDProvider,
   useSearchDnD,
 } from 'src/frontend/contexts/TagDnDContext';
-import { useAutorun } from 'src/frontend/hooks/mobx';
+import { useAction, useAutorun } from 'src/frontend/hooks/mobx';
 import { IconSet } from 'widgets/Icons';
 import { Menu, MenuItem, useContextMenu } from 'widgets/menus';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
@@ -22,6 +22,7 @@ import SearchItemDialog from '../../AdvancedSearch/SearchItemDialog';
 import { IExpansionState } from '../../types';
 import { createDragReorderHelper } from '../TreeItemDnD';
 import { emptyFunction, triggerContextMenuEvent } from '../utils';
+import { getLabel } from 'src/frontend/stores/SearchStore';
 
 // Tooltip info
 const enum Tooltip {
@@ -31,25 +32,25 @@ const enum Tooltip {
 interface ITreeData {
   expansion: IExpansionState;
   setExpansion: React.Dispatch<IExpansionState>;
-  delete: (location: ClientFileSearchItem) => void;
-  edit: (location: ClientFileSearchItem) => void;
-  duplicate: (location: ClientFileSearchItem) => void;
-  replace: (location: ClientFileSearchItem) => void;
+  delete: (location: ClientFileSearch) => void;
+  edit: (location: ClientFileSearch) => void;
+  duplicate: (location: ClientFileSearch) => void;
+  replace: (location: ClientFileSearch) => void;
 }
 
-const toggleExpansion = (nodeData: ClientFileSearchItem, treeData: ITreeData) => {
+const toggleExpansion = (nodeData: ClientFileSearch, treeData: ITreeData) => {
   const { expansion, setExpansion } = treeData;
   const id = nodeData.id;
   setExpansion({ ...expansion, [id]: !expansion[id] });
 };
 
-const isExpanded = (nodeData: ClientFileSearchItem, treeData: ITreeData) =>
+const isExpanded = (nodeData: ClientFileSearch, treeData: ITreeData) =>
   treeData.expansion[nodeData.id];
 
 const customKeys = (
-  search: (crits: FileSearchCriteria[], searchMatchAny: boolean) => void,
+  search: (crits: IFileSearchCriteria[], searchMatchAny: boolean) => void,
   event: React.KeyboardEvent<HTMLLIElement>,
-  nodeData: ClientFileSearchItem | FileSearchCriteria,
+  nodeData: ClientFileSearch | IFileSearchCriteria,
   treeData: ITreeData,
 ) => {
   switch (event.key) {
@@ -61,8 +62,8 @@ const customKeys = (
 
     case 'Enter':
       event.stopPropagation();
-      if (nodeData instanceof ClientFileSearchItem) {
-        search(nodeData.criteria, nodeData.matchAny);
+      if (nodeData instanceof ClientFileSearch) {
+        search(nodeData.criterias, nodeData.matchAny);
       } else {
         // TODO: ctrl/shift adds onto search
         search([nodeData], false);
@@ -70,7 +71,7 @@ const customKeys = (
       break;
 
     case 'Delete':
-      if (nodeData instanceof ClientFileSearchItem) {
+      if (nodeData instanceof ClientFileSearch) {
         event.stopPropagation();
         treeData.delete(nodeData);
       }
@@ -85,19 +86,19 @@ const customKeys = (
   }
 };
 
-const SearchCriteriaLabel = ({ nodeData, treeData }: { nodeData: any; treeData: any }) => (
-  <SearchItemCriteria nodeData={nodeData} treeData={treeData} />
+const SearchCriteriaLabel = ({ nodeData }: { nodeData: any; treeData: any }) => (
+  <SearchItemCriteria nodeData={nodeData} />
 );
 
 const SearchItemLabel = ({ nodeData, treeData }: { nodeData: any; treeData: any }) => (
   <SearchItem nodeData={nodeData} treeData={treeData} />
 );
 
-const mapItem = (item: ClientFileSearchItem): ITreeItem => ({
+const mapItem = (item: ClientFileSearch): ITreeItem => ({
   id: item.id,
   label: SearchItemLabel,
   nodeData: item,
-  children: item.criteria.map((c, i) => ({
+  children: item.criterias.map((c, i) => ({
     id: `${item.id}-${i}`,
     nodeData: c,
     label: SearchCriteriaLabel,
@@ -108,11 +109,11 @@ const mapItem = (item: ClientFileSearchItem): ITreeItem => ({
 });
 
 interface IContextMenuProps {
-  searchItem: ClientFileSearchItem;
-  onEdit: (searchItem: ClientFileSearchItem) => void;
-  onDuplicate: (searchItem: ClientFileSearchItem) => void;
-  onReplace: (searchItem: ClientFileSearchItem) => void;
-  onDelete: (searchItem: ClientFileSearchItem) => void;
+  searchItem: ClientFileSearch;
+  onEdit: (searchItem: ClientFileSearch) => void;
+  onDuplicate: (searchItem: ClientFileSearch) => void;
+  onReplace: (searchItem: ClientFileSearch) => void;
+  onDelete: (searchItem: ClientFileSearch) => void;
 }
 
 const SearchItemContextMenu = observer(
@@ -135,7 +136,7 @@ const SearchItemContextMenu = observer(
 const DnDHelper = createDragReorderHelper('saved-searches-dnd-preview', DnDSearchType);
 
 const SearchItem = observer(
-  ({ nodeData, treeData }: { nodeData: ClientFileSearchItem; treeData: ITreeData }) => {
+  ({ nodeData, treeData }: { nodeData: ClientFileSearch; treeData: ITreeData }) => {
     const rootStore = useStore();
     const { uiStore, searchStore } = rootStore;
     const { edit: onEdit, duplicate: onDuplicate, delete: onDelete, replace: onReplace } = treeData;
@@ -161,16 +162,16 @@ const SearchItem = observer(
       (e: React.MouseEvent) => {
         runInAction(() => {
           if (!e.ctrlKey) {
-            uiStore.replaceSearchCriterias(nodeData.criteria.toJSON());
+            uiStore.replaceSearchCriteria(...nodeData.criterias.toJSON());
             if (uiStore.searchMatchAny !== nodeData.matchAny) {
               uiStore.toggleSearchMatchAny();
             }
           } else {
-            uiStore.toggleSearchCriterias(nodeData.criteria.toJSON());
+            uiStore.toggleSearchCriterias(nodeData.criterias.toJSON());
           }
         });
       },
-      [nodeData.criteria, nodeData.matchAny, uiStore],
+      [nodeData.criterias, nodeData.matchAny, uiStore],
     );
 
     const handleEdit = useCallback(
@@ -249,54 +250,75 @@ const SearchItem = observer(
   },
 );
 
-const SearchItemCriteria = observer(
-  ({ nodeData }: { nodeData: FileSearchCriteria; treeData: ITreeData }) => {
-    const rootStore = useStore();
-    const { uiStore } = rootStore;
+const SearchItemCriteria = observer(({ nodeData }: { nodeData: IFileSearchCriteria }) => {
+  const rootStore = useStore();
+  const { uiStore } = rootStore;
 
-    // TODO: context menu for individual criteria of search items?
+  // TODO: context menu for individual criteria of search items?
 
-    const handleClick = useCallback(
-      (e: React.MouseEvent) => {
-        runInAction(() => {
-          if (!e.ctrlKey) {
-            uiStore.replaceSearchCriterias([nodeData]);
-          } else {
-            uiStore.toggleSearchCriterias([nodeData]);
-          }
-        });
-      },
-      [nodeData, uiStore],
-    );
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      runInAction(() => {
+        if (!e.ctrlKey) {
+          uiStore.replaceSearchCriteria(...[nodeData]);
+        } else {
+          uiStore.toggleSearchCriterias([nodeData]);
+        }
+      });
+    },
+    [nodeData, uiStore],
+  );
 
-    const label = nodeData.getLabel(CustomKeyDict, rootStore);
+  const label = useMemo(
+    () => computed(() => getLabel(rootStore, nodeData)),
+    [nodeData, rootStore],
+  ).get();
 
-    return (
-      <div
-        className="tree-content-label"
-        onClick={handleClick}
-        // onContextMenu={handleContextMenu}
-      >
-        {nodeData.valueType === 'array'
-          ? IconSet.TAG
-          : nodeData.valueType === 'string'
-          ? IconSet.FILTER_NAME_DOWN
-          : nodeData.valueType === 'number'
-          ? IconSet.FILTER_FILTER_DOWN
-          : IconSet.FILTER_DATE}
-        <div className="label-text" data-tooltip={label}>
-          {label}
-        </div>
+  const icon = useMemo(
+    () =>
+      computed(() => {
+        switch (nodeData.key) {
+          case 'tags':
+            return IconSet.TAG;
+
+          case 'absolutePath':
+          case 'extension':
+          case 'name':
+            return IconSet.FILTER_NAME_DOWN;
+
+          case 'size':
+            return IconSet.FILTER_FILTER_DOWN;
+
+          case 'dateAdded':
+            return IconSet.FILTER_DATE;
+
+          default:
+            const _exhaustiveCheck: never = nodeData;
+            return _exhaustiveCheck;
+        }
+      }),
+    [nodeData],
+  ).get();
+
+  return (
+    <div
+      className="tree-content-label"
+      onClick={handleClick}
+      // onContextMenu={handleContextMenu}
+    >
+      {icon}
+      <div className="label-text" data-tooltip={label}>
+        {label}
       </div>
-    );
-  },
-);
+    </div>
+  );
+});
 
 interface ISearchTreeProps {
-  onEdit: (search: ClientFileSearchItem) => void;
-  onDelete: (search: ClientFileSearchItem) => void;
-  onDuplicate: (search: ClientFileSearchItem) => void;
-  onReplace: (search: ClientFileSearchItem) => void;
+  onEdit: (search: ClientFileSearch) => void;
+  onDelete: (search: ClientFileSearch) => void;
+  onDuplicate: (search: ClientFileSearch) => void;
+  onReplace: (search: ClientFileSearch) => void;
 }
 
 const SavedSearchesList = ({ onDelete, onEdit, onDuplicate, onReplace }: ISearchTreeProps) => {
@@ -319,7 +341,7 @@ const SavedSearchesList = ({ onDelete, onEdit, onDuplicate, onReplace }: ISearch
   const handleBranchKeyDown = useCallback(
     (
       event: React.KeyboardEvent<HTMLLIElement>,
-      nodeData: ClientFileSearchItem | FileSearchCriteria,
+      nodeData: ClientFileSearch | IFileSearchCriteria,
       treeData: ITreeData,
     ) =>
       createBranchOnKeyDown(
@@ -329,8 +351,8 @@ const SavedSearchesList = ({ onDelete, onEdit, onDuplicate, onReplace }: ISearch
         isExpanded,
         emptyFunction,
         toggleExpansion,
-        customKeys.bind(null, (crits: FileSearchCriteria[], searchMatchAny: boolean) => {
-          uiStore.replaceSearchCriterias(crits);
+        customKeys.bind(null, (crits: IFileSearchCriteria[], searchMatchAny: boolean) => {
+          uiStore.replaceSearchCriteria(...crits);
           if (uiStore.searchMatchAny !== searchMatchAny) {
             uiStore.toggleSearchMatchAny();
           }
@@ -367,24 +389,27 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
 
   const isEmpty = searchStore.searchList.length === 0;
 
-  const [editableSearch, setEditableSearch] = useState<ClientFileSearchItem>();
-  const [deletableSearch, setDeletableSearch] = useState<ClientFileSearchItem>();
+  const [editableSearch, setEditableSearch] = useState<ClientFileSearch>();
+  const [deletableSearch, setDeletableSearch] = useState<ClientFileSearch>();
 
-  const saveCurrentSearch = async () => {
+  const saveCurrentSearch = useAction(async () => {
     const savedSearch = await searchStore.create(
-      new ClientFileSearchItem(
+      new ClientFileSearch(
         generateId(),
-        uiStore.searchCriteriaList.map((c) => c.getLabel(CustomKeyDict, rootStore)).join(', ') ||
-          'New search',
-        uiStore.searchCriteriaList.map((c) => c.serialize(rootStore)),
+        uiStore.searchCriteriaList.map((c) => getLabel(rootStore, c)).join(', ') || 'New search',
+        uiStore.searchCriteriaList.map(ClientFileSearchCriteria.clone),
         uiStore.searchMatchAny,
-        searchStore.searchList.length,
       ),
     );
     setEditableSearch(savedSearch);
-  };
+  });
 
   const data = useRef(observable({ source: undefined }));
+
+  const replaceWithActiveSearch = useAction((search: ClientFileSearch) => {
+    search.setMatchAny(uiStore.searchMatchAny);
+    search.setCriterias(...uiStore.searchCriteriaList.map(ClientFileSearchCriteria.clone));
+  });
 
   return (
     <SearchDnDProvider value={data.current}>
@@ -407,7 +432,7 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
           onEdit={setEditableSearch}
           onDelete={setDeletableSearch}
           onDuplicate={searchStore.duplicate}
-          onReplace={searchStore.replaceWithActiveSearch}
+          onReplace={replaceWithActiveSearch}
         />
         {isEmpty && (
           <Callout icon={IconSet.INFO}>Click + to save your current search criteria.</Callout>

@@ -12,7 +12,7 @@ import {
 } from 'src/entities/File';
 import { generateId, ID } from 'src/entities/ID';
 import { ClientLocation, ClientSubLocation, ILocation } from 'src/entities/Location';
-import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
+import { DBSearchCriteria } from 'src/backend/DBSearchCriteria';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
 import { getThumbnailPath } from 'common/fs';
@@ -505,17 +505,23 @@ class LocationStore {
    * Fetches the files belonging to a location
    */
   @action async findLocationFiles(locationId: ID): Promise<IFile[]> {
-    const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').serialize();
-    return this.backend.searchFiles(crit, 'id', OrderDirection.Asc);
+    const crit: DBSearchCriteria<IFile, ID> = {
+      key: 'locationId',
+      operator: 'equals',
+      value: locationId,
+      valueType: 'string',
+    };
+    return this.backend.searchFiles([crit], 'id', OrderDirection.Asc);
   }
 
   @action async removeSublocationFiles(subLoc: ClientSubLocation): Promise<void> {
-    const crit = new ClientStringSearchCriteria(
-      'absolutePath',
-      subLoc.path,
-      'startsWith',
-    ).serialize();
-    const files = await this.backend.searchFiles(crit, 'id', OrderDirection.Asc);
+    const crit: DBSearchCriteria<IFile, ID> = {
+      key: 'absolutePath',
+      operator: 'startsWith',
+      value: subLoc.path,
+      valueType: 'string',
+    };
+    const files = await this.backend.searchFiles([crit], 'id', OrderDirection.Asc);
     await this.backend.removeFiles(files.map((f) => f.id));
     this.rootStore.fileStore.refetch();
   }

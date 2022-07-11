@@ -1,11 +1,7 @@
 import { action, computed, makeAutoObservable, makeObservable, observable } from 'mobx';
 import { ClientFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
-import {
-  ClientBaseCriteria,
-  ClientTagSearchCriteria,
-  FileSearchCriteria,
-} from 'src/entities/SearchCriteria';
+import { ClientFileSearchCriteria, IFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
@@ -82,7 +78,7 @@ class UiStore {
   public readonly fileSelection = new Selection<ClientFile>();
   public readonly tagSelection = new Selection<ClientTag>();
 
-  readonly searchCriteriaList = observable<FileSearchCriteria>([]);
+  public readonly searchCriteriaList = observable<IFileSearchCriteria>([]);
 
   @observable thumbnailDirectory: string;
   @observable importDirectory: string; // for browser extension. Must be a (sub-folder of a) Location
@@ -111,8 +107,8 @@ class UiStore {
 
     if (preferences.searchCriteriaList !== undefined) {
       // If remember search criteria, restore the search criteria list...
-      const newCrits = preferences.searchCriteriaList.map((c) => ClientBaseCriteria.deserialize(c));
-      this.searchCriteriaList.push(...newCrits);
+      const newCrits = preferences.searchCriteriaList.map(ClientFileSearchCriteria.clone);
+      this.searchCriteriaList.replace(newCrits);
 
       // and other content-related options. So it's just like you never closed Allusion!
       this.firstItem = preferences.firstItem;
@@ -480,27 +476,19 @@ class UiStore {
   }
 
   @action.bound
-  public addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
-    this.searchCriteriaList.push(query);
-    this.viewQueryContent();
-  }
-
-  @action.bound
-  public addSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+  public addSearchCriteria(...queries: IFileSearchCriteria[]) {
     this.searchCriteriaList.push(...queries);
     this.viewQueryContent();
   }
 
   @action.bound
-  public toggleSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+  public toggleSearchCriterias(queries: IFileSearchCriteria[]) {
     // TODO: can be improved
     const deepEqual = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
 
     // With control, add or remove the criteria based on whether they're already being searched with
     const existingMatchingCriterias = queries.map((crit) =>
-      this.searchCriteriaList.find((other) =>
-        deepEqual(other.serialize(this.rootStore), crit.serialize(this.rootStore)),
-      ),
+      this.searchCriteriaList.find((other) => deepEqual(other, crit)),
     );
     if (existingMatchingCriterias.every(notEmpty)) {
       // If they're already in there, remove them
@@ -514,12 +502,12 @@ class UiStore {
       }
     } else {
       // If they're not already in there, add them
-      this.addSearchCriterias(queries);
+      this.addSearchCriteria(...queries);
     }
   }
 
   @action.bound
-  public removeSearchCriteria(query: FileSearchCriteria) {
+  public removeSearchCriteria(query: IFileSearchCriteria) {
     this.searchCriteriaList.remove(query);
     if (this.searchCriteriaList.length > 0) {
       this.viewQueryContent();
@@ -528,12 +516,8 @@ class UiStore {
     }
   }
 
-  @action.bound replaceSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
-    this.replaceSearchCriterias([query]);
-  }
-
   @action.bound
-  public replaceSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+  public replaceSearchCriteria(...queries: IFileSearchCriteria[]) {
     this.searchCriteriaList.replace(queries);
 
     if (this.searchCriteriaList.length > 0) {
@@ -556,28 +540,21 @@ class UiStore {
 
   @action.bound
   public addTagSelectionToCriteria() {
-    const newCrits = Array.from(
-      this.tagSelection,
-      (tag) => new ClientTagSearchCriteria('tags', tag.id),
+    const newCrits = Array.from(this.tagSelection, (tag) =>
+      ClientFileSearchCriteria.tags('containsRecursively', [tag.id]),
     );
-    this.addSearchCriterias(newCrits);
-    this.tagSelection.clear();
-  }
-
-  @action.bound replaceCriteriaWithTagSelection() {
-    this.replaceSearchCriterias(
-      Array.from(this.tagSelection, (tag) => new ClientTagSearchCriteria('tags', tag.id)),
-    );
+    this.addSearchCriteria(...newCrits);
     this.tagSelection.clear();
   }
 
   @action.bound
-  public replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
-    const index = this.searchCriteriaList.indexOf(oldCrit);
-    if (index !== -1) {
-      this.searchCriteriaList[index] = crit;
-      this.viewQueryContent();
-    }
+  public replaceCriteriaWithTagSelection() {
+    this.replaceSearchCriteria(
+      ...Array.from(this.tagSelection, (tag) =>
+        ClientFileSearchCriteria.tags('containsRecursively', [tag.id]),
+      ),
+    );
+    this.tagSelection.clear();
   }
 
   @action.bound getCriteriaByValue(value: any) {

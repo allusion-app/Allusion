@@ -6,10 +6,11 @@ import { ClientFile, IFile, IMG_EXTENSIONS_TYPE, mergeMovedFile } from 'src/enti
 import { ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
 import {
-  ClientStringSearchCriteria,
-  ClientTagSearchCriteria,
-  SearchCriteria,
+  ClientFileSearchCriteria,
+  IFileSearchCriteria,
+  SearchableFileData,
 } from 'src/entities/SearchCriteria';
+import { DBSearchCriteria } from 'src/backend/DBSearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
 import { debounce } from 'common/timeout';
@@ -296,8 +297,13 @@ class FileStore {
 
   @action async deleteFilesByExtension(ext: IMG_EXTENSIONS_TYPE): Promise<void> {
     try {
-      const crit = new ClientStringSearchCriteria('extension', ext, 'equals');
-      const files = await this.backend.searchFiles(crit.serialize(), 'id', OrderDirection.Asc);
+      const crit: DBSearchCriteria<IFile, ID> = {
+        key: 'extension',
+        operator: 'equals',
+        value: ext,
+        valueType: 'string',
+      };
+      const files = await this.backend.searchFiles([crit], 'id', OrderDirection.Asc);
       console.log('Files to delete', ext, files);
       await this.backend.removeFiles(files.map((f) => f.id));
 
@@ -338,10 +344,10 @@ class FileStore {
     try {
       const { uiStore } = this.rootStore;
       uiStore.clearSearchCriteriaList();
-      const criteria = new ClientTagSearchCriteria('tags');
+      const criteria = ClientFileSearchCriteria.tags('contains', []);
       uiStore.searchCriteriaList.push(criteria);
       const fetchedFiles = await this.backend.searchFiles(
-        criteria.serialize(this.rootStore),
+        toDBFileSearchCriteria(this.rootStore, [criteria]),
         this.orderBy,
         this.orderDirection,
         uiStore.searchMatchAny,
@@ -407,15 +413,18 @@ class FileStore {
   @action.bound
   public async fetchFilesByQuery(): Promise<void> {
     const { uiStore } = this.rootStore;
-    const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) =>
-      c.serialize(this.rootStore),
-    );
-    if (criteria.length === 0) {
+    if (this.rootStore.uiStore.searchCriteriaList.length === 0) {
       return this.fetchAllFiles();
     }
+
+    const criteria = toDBFileSearchCriteria(
+      this.rootStore,
+      this.rootStore.uiStore.searchCriteriaList as any,
+    );
+
     try {
       const fetchedFiles = await this.backend.searchFiles(
-        criteria as [SearchCriteria<IFile>],
+        criteria,
         this.orderBy,
         this.orderDirection,
         uiStore.searchMatchAny,
@@ -599,9 +608,7 @@ class FileStore {
   /** Initializes the total and untagged file counters by querying the database with count operations */
   @action
   public async refetchFileCounts() {
-    const noTagsCriteria = new ClientTagSearchCriteria('tags').serialize(this.rootStore);
-    const numUntaggedFiles = await this.backend.countFiles(noTagsCriteria);
-    const numTotalFiles = await this.backend.countFiles();
+    const [numTotalFiles, numUntaggedFiles] = await this.backend.countFiles();
     runInAction(() => {
       this.numUntaggedFiles = numUntaggedFiles;
       this.numTotalFiles = numTotalFiles;
@@ -619,3 +626,58 @@ class FileStore {
 }
 
 export default FileStore;
+
+type DBFileSearchCriterias = [
+  DBSearchCriteria<SearchableFileData, ID>,
+  ...DBSearchCriteria<SearchableFileData, ID>[]
+];
+
+function toDBFileSearchCriteria(
+  rootStore: RootStore,
+  criterias: [IFileSearchCriteria, ...IFileSearchCriteria[]],
+): DBFileSearchCriterias {
+  const dbFIleSearchCriterias: DBSearchCriteria<SearchableFileData, ID>[] = criterias.map<
+    DBSearchCriteria<SearchableFileData, ID>
+  >((criteria) => {
+    const { key, operator, value } = criteria;
+
+    switch (key) {
+      case 'tags': {
+        let op = operator;
+        let val = value.slice();
+
+        if (value.length !== 0) {
+          const tag = rootStore.tagStore.get(value[0]);
+          if (tag !== undefined) {
+            val = Array.from(tag.getSubTree(), (tag) => tag.id);
+          }
+        }
+
+        if (operator === 'containsNotRecursively') {
+          op = 'notContains';
+        } else if (op === 'containsRecursively') {
+          op = 'contains';
+        }
+
+        return { key, operator: op, value: val, valueType: 'array' };
+      }
+
+      case 'extension':
+      case 'absolutePath':
+      case 'name':
+        return { key, operator, value, valueType: 'string' };
+
+      case 'size':
+        return { key, operator, value, valueType: 'number' };
+
+      case 'dateAdded':
+        return { key, operator, value, valueType: 'date' };
+
+      default:
+        const _exhaustiveCheck: never = criteria;
+        return _exhaustiveCheck;
+    }
+  });
+
+  return dbFIleSearchCriterias as DBFileSearchCriterias;
+}

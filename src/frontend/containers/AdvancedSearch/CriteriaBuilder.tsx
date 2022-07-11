@@ -1,22 +1,26 @@
 import React, { RefObject, memo, useState } from 'react';
+import { ClientFileSearchCriteria, IFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { IconButton } from 'widgets/Button';
 import { IconSet } from 'widgets/Icons';
 import { InfoButton } from 'widgets/notifications';
-import { defaultQuery, generateCriteriaId } from './data';
 import { KeySelector, OperatorSelector, ValueInput } from './Inputs';
-import { QueryDispatch } from './QueryEditor';
 
-export interface QueryBuilderProps {
+type QueryBuilderProps = {
   keySelector: RefObject<HTMLSelectElement>;
-  dispatch: QueryDispatch;
-}
+  addCriteria: (criteria: IFileSearchCriteria) => void;
+};
 
-const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: QueryBuilderProps) {
-  const [criteria, setCriteria] = useState(defaultQuery('tags'));
+const CriteriaBuilder = memo(function CriteriaBuilder({
+  keySelector,
+  addCriteria,
+}: QueryBuilderProps) {
+  const [criteria, setCriteria] = useState<IFileSearchCriteria>(() =>
+    ClientFileSearchCriteria.tags('contains', []),
+  );
 
   const add = () => {
-    dispatch((query) => new Map(query.set(generateCriteriaId(), criteria)));
-    setCriteria(defaultQuery('tags'));
+    addCriteria(criteria);
+    setCriteria(ClientFileSearchCriteria.tags('contains', []));
     keySelector.current?.focus();
   };
 
@@ -57,21 +61,11 @@ const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: Qu
         <KeySelector
           labelledby="builder-key"
           ref={keySelector}
-          keyValue={criteria.key}
-          dispatch={setCriteria}
+          criteria={criteria}
+          updateCriteria={setCriteria}
         />
-        <OperatorSelector
-          labelledby="builder-operator"
-          keyValue={criteria.key}
-          value={criteria.operator}
-          dispatch={setCriteria}
-        />
-        <ValueInput
-          labelledby="builder-value"
-          keyValue={criteria.key}
-          value={criteria.value}
-          dispatch={setCriteria}
-        />
+        <OperatorSelector labelledby="builder-operator" criteria={criteria} />
+        <ValueInput labelledby="builder-value" criteria={criteria} />
         <IconButton text="Add Criteria" icon={IconSet.ADD} onClick={add} />
       </div>
     </fieldset>

@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { ClientLocation } from 'src/entities/Location';
-import { ClientFileSearchItem } from 'src/entities/SearchItem';
+import { ClientFileSearch } from 'src/entities/SearchItem';
 import { ClientTag } from 'src/entities/Tag';
 
 // Common
@@ -32,7 +32,7 @@ export function useTagDnD(): ITagDnDData {
 export const TagDnDProvider = TagDnDContext.Provider;
 
 // ----------- Search ---------------
-export type ISearchItemCriteriaDnDData = IDnDData<ClientFileSearchItem>;
+export type ISearchItemCriteriaDnDData = IDnDData<ClientFileSearch>;
 
 export const DnDSearchType = 'search';
 

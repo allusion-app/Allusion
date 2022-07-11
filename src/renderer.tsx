@@ -70,7 +70,7 @@ async function launchMainApp() {
       firstItem: uiStore.firstItem,
       searchMatchAny: uiStore.searchMatchAny,
       searchCriteriaList: uiStore.isRememberSearchEnabled
-        ? uiStore.searchCriteriaList.map((criteria) => criteria.serialize(rootStore))
+        ? uiStore.searchCriteriaList.map((criteria) => ({ ...criteria }))
         : undefined,
       orderDirection: fileStore.orderDirection,
       orderBy: fileStore.orderBy,

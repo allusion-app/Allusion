@@ -1,8 +1,7 @@
 import fse from 'fs-extra';
 import { FileOrder } from 'src/backend/Backend';
 import { OrderDirection } from 'src/backend/DBRepository';
-import { IFile } from 'src/entities/File';
-import { SearchCriteria } from 'src/entities/SearchCriteria';
+import { IFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { RendererMessenger } from 'src/Messaging';
 import {
   HierarchicalSeparator,
@@ -30,7 +29,7 @@ export interface UserPreferences {
   isSlideMode: boolean;
   firstItem: number;
   searchMatchAny: boolean;
-  searchCriteriaList: SearchCriteria<IFile>[] | undefined;
+  searchCriteriaList: IFileSearchCriteria[] | undefined;
   orderDirection: OrderDirection;
   orderBy: FileOrder;
   hierarchicalSeparator: HierarchicalSeparator;
@@ -106,33 +105,35 @@ export async function loadUserPreferences(): Promise<Readonly<UserPreferences>> 
       hierarchicalSeparator: hierarchicalSeparatorPreference,
     };
 
-    let thumbnailDirectory = check(storedPreferences, 'thumbnailDirectory');
-
-    if (thumbnailDirectory.length === 0) {
-      thumbnailDirectory = await getDefaultThumbnailDirectory();
-    }
+    const thumbnailDirectory = check(storedPreferences, 'thumbnailDirectory', isString);
 
     return {
       theme: check(storedPreferences, 'theme', isTheme),
-      isOutlinerOpen: check(storedPreferences, 'isOutlinerOpen'),
-      isInspectorOpen: check(storedPreferences, 'isInspectorOpen'),
-      thumbnailDirectory,
-      importDirectory: check(storedPreferences, 'importDirectory'),
+      isOutlinerOpen: check(storedPreferences, 'isOutlinerOpen', isBool),
+      isInspectorOpen: check(storedPreferences, 'isInspectorOpen', isBool),
+      thumbnailDirectory:
+        thumbnailDirectory.length === 0 ? await getDefaultThumbnailDirectory() : thumbnailDirectory,
+      importDirectory: check(storedPreferences, 'importDirectory', isString),
       method: check(storedPreferences, 'method', isMethod),
       thumbnailSize: check(storedPreferences, 'thumbnailSize', isThumbnailSize),
       thumbnailShape: check(storedPreferences, 'thumbnailShape', isThumbnailShape),
       hotkeyMap: check(storedPreferences, 'hotkeyMap', isHotkeyMap),
-      isThumbnailTagOverlayEnabled: check(storedPreferences, 'isThumbnailTagOverlayEnabled'),
+      isThumbnailTagOverlayEnabled: check(
+        storedPreferences,
+        'isThumbnailTagOverlayEnabled',
+        isBool,
+      ),
       isThumbnailFilenameOverlayEnabled: check(
         storedPreferences,
         'isThumbnailFilenameOverlayEnabled',
+        isBool,
       ),
       outlinerWidth: check(storedPreferences, 'outlinerWidth', isValidLength),
       inspectorWidth: check(storedPreferences, 'inspectorWidth', isValidLength),
-      isFullScreen: check(storedPreferences, 'isFullScreen'),
-      isSlideMode: check(storedPreferences, 'isSlideMode'),
+      isFullScreen: check(storedPreferences, 'isFullScreen', isBool),
+      isSlideMode: check(storedPreferences, 'isSlideMode', isBool),
       firstItem: check(storedPreferences, 'firstItem', isValidLength),
-      searchMatchAny: check(storedPreferences, 'searchMatchAny'),
+      searchMatchAny: check(storedPreferences, 'searchMatchAny', isBool),
       searchCriteriaList: check(storedPreferences, 'searchCriteriaList', isSearchCriteriaList),
       orderDirection:
         storedPreferences.fileOrder !== undefined && isOrderDirection(storedPreferences.fileOrder)
@@ -164,13 +165,21 @@ export function clearUserPreferences(): void {
 function check<K extends keyof UserPreferences>(
   storedPreferences: any,
   key: K,
-  validate: (value: UserPreferences[K]) => boolean = () => true,
+  validate: (value: UserPreferences[K]) => boolean,
 ): UserPreferences[K] {
   if (key in storedPreferences && validate(storedPreferences[key])) {
     return storedPreferences[key];
   } else {
     return structuredClone(DEFAULT_USER_PREFERENCES[key]);
   }
+}
+
+function isBool(value: boolean): value is boolean {
+  return typeof value === 'boolean';
+}
+
+function isString(value: string): value is string {
+  return typeof value === 'string';
 }
 
 function isTheme(value: 'dark' | 'light'): value is 'dark' | 'light' {
@@ -181,7 +190,7 @@ function isTheme(value: 'dark' | 'light'): value is 'dark' | 'light' {
 
     default:
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _exhaustive_check: never = value;
+      const _exhaustiveCheck: never = value;
       return false;
   }
 }
@@ -196,7 +205,7 @@ function isMethod(value: ViewMethod): value is ViewMethod {
 
     default:
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _exhaustive_check: never = value;
+      const _exhaustiveCheck: never = value;
       return false;
   }
 }
@@ -221,7 +230,7 @@ function isThumbnailShape(value: ThumbnailShape): value is ThumbnailShape {
 
     default:
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _exhaustive_check: never = value;
+      const _exhaustiveCheck: never = value;
       return false;
   }
 }
@@ -240,14 +249,14 @@ function isOrderDirection(value: OrderDirection): value is OrderDirection {
 
     default:
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _exhaustive_check: never = value;
+      const _exhaustiveCheck: never = value;
       return false;
   }
 }
 
 function isSearchCriteriaList(
-  value: SearchCriteria<IFile>[] | undefined,
-): value is SearchCriteria<IFile>[] | undefined {
+  value: IFileSearchCriteria[] | undefined,
+): value is IFileSearchCriteria[] | undefined {
   // TODO: More sophiscated parsing...
   return value === undefined || Array.isArray(value);
 }
@@ -274,7 +283,7 @@ function isFileOrder(value: FileOrder): value is FileOrder {
 
     default:
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _exhaustive_check: never = value;
+      const _exhaustiveCheck: never = value;
       return false;
   }
 }
@@ -289,7 +298,7 @@ function isHierarchicalSeparator(value: HierarchicalSeparator): value is Hierarc
 
     default:
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _exhaustive_check: never = value;
+      const _exhaustiveCheck: never = value;
       return false;
   }
 }

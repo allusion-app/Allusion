@@ -44,7 +44,7 @@ class RootStore {
     this.fileStore = new FileStore(backend, this, preferences);
     this.locationStore = new LocationStore(backend, this);
     this.uiStore = new UiStore(this, preferences);
-    this.searchStore = new SearchStore(backend, this);
+    this.searchStore = new SearchStore(backend);
     this.exifTool = new ExifIO(preferences.hierarchicalSeparator);
     this.imageLoader = new ImageLoader(this.exifTool);
   }

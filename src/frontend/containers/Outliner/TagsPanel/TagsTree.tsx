@@ -2,7 +2,7 @@ import { formatTagCountText } from 'common/fmt';
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
 import { TagRemoval } from 'src/frontend/components/RemovalAlert';
 import { TagMerge } from 'src/frontend/containers/Outliner/TagsPanel/TagMerge';
@@ -105,16 +105,16 @@ interface ITagItemProps {
 const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
   if (nodeData.isSearched) {
     // if it already exists, then remove it
-    const alreadySearchedCrit = uiStore.searchCriteriaList.find((c) =>
-      (c as ClientTagSearchCriteria<any>).value?.includes(nodeData.id),
+    const alreadySearchedCrit = uiStore.searchCriteriaList.find(
+      (c) => c.key === 'tags' && c.value.at(0) === nodeData.id,
     );
     if (alreadySearchedCrit) {
-      uiStore.replaceSearchCriterias(
-        uiStore.searchCriteriaList.filter((c) => c !== alreadySearchedCrit),
+      uiStore.replaceSearchCriteria(
+        ...uiStore.searchCriteriaList.filter((c) => c !== alreadySearchedCrit),
       );
     }
   } else {
-    uiStore.addSearchCriteria(new ClientTagSearchCriteria('tags', nodeData.id));
+    uiStore.addSearchCriteria(ClientFileSearchCriteria.tags('containsRecursively', [nodeData.id]));
   }
 };
 
@@ -265,14 +265,14 @@ const TagItem = observer((props: ITagItemProps) => {
         if (nodeData.isSearched) {
           // if already searched, un-search
           const crit = uiStore.searchCriteriaList.find(
-            (c) => c instanceof ClientTagSearchCriteria && c.value === nodeData.id,
+            (c) => c.key === 'tags' && c.value.at(0) === nodeData.id,
           );
           if (crit) {
             uiStore.removeSearchCriteria(crit);
           }
         } else {
           // otherwise, search it
-          const query = new ClientTagSearchCriteria('tags', nodeData.id, 'containsRecursively');
+          const query = ClientFileSearchCriteria.tags('containsRecursively', [nodeData.id]);
           if (event.ctrlKey || event.metaKey) {
             uiStore.addSearchCriteria(query);
           } else {

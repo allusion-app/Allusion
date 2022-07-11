@@ -1,71 +1,51 @@
-import { action, IObservableArray, makeObservable, observable } from 'mobx';
-import RootStore from 'src/frontend/stores/RootStore';
-import { IFile } from './File';
+import { IObservableArray, makeObservable, observable } from 'mobx';
 import { ID } from './ID';
-import { ClientBaseCriteria, SearchCriteria } from './SearchCriteria';
+import { IFileSearchCriteria } from './SearchCriteria';
 
-export interface ISearchItem<T> {
+export type IFileSearch = {
   id: ID;
   name: string;
-  criteria: SearchCriteria<T>[];
-  matchAny?: boolean;
+  criterias: IFileSearchCriteria[];
+  matchAny: boolean;
   index: number;
-}
+};
 
-export class ClientSearchItem<T> {
-  id: ID;
-  @observable name: string = '';
-  @observable matchAny: boolean = false;
-  readonly criteria: IObservableArray<ClientBaseCriteria<T>>;
+export class ClientFileSearch {
+  public readonly id: ID;
+  @observable
+  public name: string;
+  @observable
+  public matchAny: boolean;
+  public readonly criterias: IObservableArray<IFileSearchCriteria>;
 
-  /** A custom index defined by the user for ordering the search items */
-  index: number = 0;
-
-  // TODO: also store sort mode? (filename, descending, etc)
-  // Then it wouldn't be a "Saved Search", but a "Saved view" maybe?
-
-  constructor(
-    id: ID,
-    name: string,
-    criteria: SearchCriteria<T>[],
-    matchAny: boolean,
-    index: number,
-  ) {
+  constructor(id: ID, name: string, criterias: Array<IFileSearchCriteria>, matchAny: boolean) {
     this.id = id;
     this.name = name;
-    this.criteria = observable(criteria.map((c) => ClientBaseCriteria.deserialize(c)));
+    this.criterias = observable.array(criterias);
     this.matchAny = matchAny;
-    this.index = index;
 
     makeObservable(this);
   }
 
-  @action.bound setName(value: string): void {
-    this.name = value;
+  public setName(name: string): void {
+    this.name = name;
   }
 
-  @action.bound setMatchAny(value: boolean): void {
-    this.matchAny = value;
+  public setMatchAny(matchAny: boolean): void {
+    this.matchAny = matchAny;
   }
 
-  @action.bound setCriteria(newCriteria: ClientBaseCriteria<T>[]): void {
-    this.criteria.replace(newCriteria);
+  public setCriterias(...newCriterias: IFileSearchCriteria[]): void {
+    this.criterias.replace(newCriterias);
   }
 
-  @action.bound setIndex(newIndex: number): void {
-    this.index = newIndex;
-  }
-
-  @action.bound serialize(rootStore: RootStore): ISearchItem<T> {
+  public serialize(index: number): IFileSearch {
     return {
       id: this.id,
       name: this.name,
-      criteria: this.criteria.map((c) => c.serialize(rootStore)),
+      criterias: this.criterias.map((criteria) => ({ ...criteria })),
       matchAny: this.matchAny,
-      index: this.index,
+      index,
     };
   }
 }
-
-export type IFileSearchItem = ISearchItem<IFile>;
-export class ClientFileSearchItem extends ClientSearchItem<IFile> {}

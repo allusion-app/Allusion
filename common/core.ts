@@ -1,5 +1,3 @@
-export type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
-
 export function clamp(value: number, min: number, max: number): number {
   if (value > max) {
     return max;

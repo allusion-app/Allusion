@@ -3,9 +3,8 @@ import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { IFile } from 'src/entities/File';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
-import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { LocationRemoval, SubLocationExclusion } from 'src/frontend/components/RemovalAlert';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import DropContext from 'src/frontend/contexts/DropContext';
@@ -97,7 +96,7 @@ const isExpanded = (nodeData: ClientLocation | ClientSubLocation, treeData: ITre
 const pathAsSearchPath = (path: string) => `${path}${SysPath.sep}`;
 
 const pathCriteria = (path: string) =>
-  new ClientStringSearchCriteria<IFile>('absolutePath', pathAsSearchPath(path), 'startsWith');
+  ClientFileSearchCriteria.string('absolutePath', 'startsWith', pathAsSearchPath(path));
 
 const customKeys = (
   search: (path: string) => void,

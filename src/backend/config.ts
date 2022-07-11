@@ -96,4 +96,53 @@ export const dbConfig: IDBVersioningConfig[] = [
         });
     },
   },
+  {
+    // Version 9, 10-7-22: Updated search schema for correctness and compactness
+    version: 9,
+    collections: [],
+    upgrade: (tx: Transaction): void => {
+      tx.table('searches')
+        .toCollection()
+        .modify((search: SearchItem) => {
+          // Make matchAny non-optional
+          search.matchAny = search.matchAny === true;
+
+          // Store tag operators to avoid data loss on serialization and deserialization
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          for (const criteria of search.criteria!) {
+            if (criteria.key === 'tags') {
+              const tags = criteria.value as string[];
+
+              if (tags.length > 1) {
+                if (criteria.operator === 'contains') {
+                  criteria.operator = 'containsRecursively';
+                } else if (criteria.operator === 'notContains') {
+                  criteria.operator = 'containsNotRecursively';
+                }
+
+                criteria.value = [tags[0]];
+              }
+            }
+
+            // This can be derived at runtime based on either property key or value type.
+            delete criteria.valueType;
+          }
+
+          // Purely naming improvement due to a search being made up of N criterias.
+          search.criterias = structuredClone(search.criteria);
+          delete search.criteria;
+        });
+    },
+  },
 ];
+
+// Version 8 partial schema of search items.
+interface SearchItem extends Record<string, any> {
+  criteria?: {
+    key: string;
+    valueType?: 'number' | 'date' | 'string' | 'array';
+    operator: string;
+    value: any;
+  }[];
+  matchAny?: boolean;
+}
