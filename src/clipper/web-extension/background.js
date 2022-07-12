@@ -1,7 +1,5 @@
 const apiUrl = 'http://localhost:5454';
 
-let lastSubmittedItem = undefined;
-
 let errCount = 0;
 
 ///////////////////////////////////
@@ -17,6 +15,7 @@ async function importImage(filename, url, pageUrl) {
   // We could just send the URL, but in some cases you need permission to view an image (e.g. pixiv)
   // Therefore we send it base64 encoded
 
+  let lastSubmittedItem = {};
   try {
     // Note: Google extensions don't work with promises, so we'll have to put up with callbacks here and there
     // Todo: url might already be base64
@@ -28,22 +27,23 @@ async function importImage(filename, url, pageUrl) {
       filenameWithExtension = `${filename}.${extension}`;
     }
 
-    const item = {
+    lastSubmittedItem = {
       filename: filenameWithExtension,
       url,
       imgBase64: base64,
       tagNames: [],
       pageUrl,
+      error: false,
     };
 
-    lastSubmittedItem = item;
+    chrome.storage.local.set({ lastSubmittedItem });
 
     await fetch(`${apiUrl}/import-image`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(item),
+      body: JSON.stringify(lastSubmittedItem),
     });
 
     // no notification when it works as intended
@@ -57,14 +57,17 @@ async function importImage(filename, url, pageUrl) {
       type: 'basic',
       iconUrl: 'favicon_32x32.png',
       title: 'Allusion Clipper',
-      message: 'Could not import image. Is Allusion running?',
-      buttons: [{ title: 'Retry' }],
+      message: 'Could not import image, is Allusion running? Click to retry',
+      isClickable: true,
+      // Buttons are not supported in Firefox https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/Notifications/NotificationOptions
+      // buttons: [{ title: 'Retry' }],
     });
 
     chrome.browserAction.setBadgeBackgroundColor({ color: 'rgb(250, 52, 37)' });
     chrome.browserAction.setBadgeText({ text: '1' });
 
     lastSubmittedItem.error = true;
+    chrome.storage.local.set({ lastSubmittedItem });
   }
 }
 
@@ -116,51 +119,56 @@ chrome.runtime.onInstalled.addListener(() => {
   setupContextMenus();
 });
 
-// Communication with popup and content script
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  console.debug('Received message', msg);
+const handleMessage = async (msg) => {
+  const { lastSubmittedItem } = await new Promise((res) =>
+    chrome.storage.local.get('lastSubmittedItem', res),
+  );
 
   if (msg.type === 'setTags' && lastSubmittedItem !== undefined) {
     const tagNames = msg.tagNames;
-
     lastSubmittedItem.tagNames = tagNames;
+    chrome.storage.local.set({ lastSubmittedItem });
 
-    fetch(`${apiUrl}/set-tags`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        tagNames,
-        filename: lastSubmittedItem.filename,
-      }),
-    })
-      .then(() => sendResponse(true))
-      .catch(() => sendResponse(false));
-    return true;
-  } else if (msg.type === 'getLastSubmittedItem') {
-    sendResponse(lastSubmittedItem);
-
-    // reset badge text (that showed an image was imported)
-    chrome.browserAction.setBadgeText({ text: undefined });
-    return true;
-  } else if (msg.type === 'getTags') {
-    fetch(`${apiUrl}/tags`)
-      .then((res) => {
-        res
-          .json()
-          .then((tags) => sendResponse(tags.map((t) => t.name) || []))
-          .catch(() => sendResponse([]));
-      })
-      .catch(() => sendResponse([]));
-    return true;
-  } else if (msg.type === 'picked-image') {
-    if (msg) {
-      const { src, alt, pageTitle, pageUrl } = msg;
-      const filename = filenameFromUrl(src, alt || pageTitle);
-      importImage(filename, src, pageUrl);
+    try {
+      await fetch(`${apiUrl}/set-tags`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tagNames,
+          filename: lastSubmittedItem.filename,
+        }),
+      });
+      return true;
+    } catch (e) {
+      return false;
     }
+  } else if (msg.type === 'getLastSubmittedItem') {
+    return lastSubmittedItem;
+  } else if (msg.type === 'getTags') {
+    try {
+      const tagData = await fetch(`${apiUrl}/tags`);
+      const tags = await tagData.json();
+      return tags.map((t) => t.name) || [];
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  } else if (msg.type === 'picked-image') {
+    const { src, alt, pageTitle, pageUrl } = msg;
+    const filename = filenameFromUrl(src, alt || pageTitle);
+    importImage(filename, src, pageUrl);
+    return true;
   }
+};
+
+// Communication with popup and content script
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  console.debug('Received message', msg);
+  handleMessage(msg).then(sendResponse);
+
+  return true; // indicate the sendResponse is called asynchronously
 });
 
 chrome.contextMenus.onClicked.addListener(async (props, tab) => {
@@ -173,7 +181,11 @@ chrome.contextMenus.onClicked.addListener(async (props, tab) => {
   // Otherwise: https://stackoverflow.com/questions/7703697/how-to-retrieve-the-element-where-a-contextmenu-has-been-executed
 });
 
-chrome.notifications.onButtonClicked.addListener((id, buttonIndex) => {
+chrome.notifications.onClicked.addListener(async (id, buttonIndex) => {
+  const { lastSubmittedItem } = await new Promise((res) =>
+    chrome.storage.local.get('lastSubmittedItem', res),
+  );
+
   // retry importing image
   console.log('Clicked notification button', id, buttonIndex, lastSubmittedItem);
   if (id.startsWith('import-error') && buttonIndex === 0 && lastSubmittedItem) {

@@ -1,4 +1,4 @@
-import { chromeExtensionUrl } from 'common/config';
+import { chromeExtensionUrl, firefoxExtensionUrl } from 'common/config';
 import { getFilenameFriendlyFormattedDateTime } from 'common/fmt';
 import { getThumbnailPath, isDirEmpty } from 'common/fs';
 import { WINDOW_STORAGE_KEY } from 'common/window';
@@ -529,7 +529,6 @@ const BackgroundProcesses = observer(() => {
         <legend>Run in background</legend>
         <Toggle checked={isRunInBackground} onChange={toggleRunInBackground} />
       </fieldset>
-
       <fieldset>
         <legend>Browser extension download directory (must be in a Location)</legend>
         <div className="input-file">
@@ -546,7 +545,6 @@ const BackgroundProcesses = observer(() => {
           />
         </div>
       </fieldset>
-
       <fieldset>
         <legend>Browser extension support</legend>
         <Toggle
@@ -564,7 +562,6 @@ const BackgroundProcesses = observer(() => {
           }
         />
       </fieldset>
-
       <Callout icon={IconSet.INFO}>
         For the browser extension to work, first choose a download folder that is in one of your
         locations already added to Allusion, then enable the browser extension support toggle.
@@ -574,8 +571,12 @@ const BackgroundProcesses = observer(() => {
       <Button
         onClick={() => shell.openExternal(chromeExtensionUrl)}
         styling="outlined"
-        icon={IconSet.CHROME_DEVTOOLS}
-        text="Get the extension from the Chrome Web Store"
+        text="Chrome Web Store"
+      />{' '}
+      <Button
+        onClick={() => shell.openExternal(firefoxExtensionUrl)}
+        styling="outlined"
+        text="FireFox add-on"
       />
     </>
   );

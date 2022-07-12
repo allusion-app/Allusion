@@ -33,6 +33,7 @@ tagsInput.addEventListener('keydown', (e) => {
 window.onload = function () {
   // When the popup is opened, fill in previously entered info
   chrome.runtime.sendMessage({ type: 'getLastSubmittedItem' }, (lastSubmittedItem) => {
+    console.log('Last submitted item', lastSubmittedItem);
     if (lastSubmittedItem) {
       // Todo: Fill in custom filename
       tagsInput.value = lastSubmittedItem.tagNames.join(', ');
@@ -41,7 +42,7 @@ window.onload = function () {
         formInfo.innerHTML = `Imported <i>${lastSubmittedItem.filename}</i> !`;
       } else {
         formInfo.innerHTML =
-          'Could not import this image, please try again. <br /> Is Allusion running?';
+          'Could not import this image, please try again. <br /> Is Allusion running with Browser Extension support enabled?';
       }
       previewImg.src = lastSubmittedItem.url;
 
@@ -64,10 +65,22 @@ window.onload = function () {
         );
       });
     } else {
-      tagsInput.disabled = true;
-      tagFormSubmit.disabled = true;
-      formInfo.innerHTML =
-        'Use the "Add to Allusion" option in the context menu of any image to import it into <a target="_blank" href="https://allusion-app.github.io/">Allusion</a>.';
+      chrome.commands.getAll((commands) => {
+        const pickCommand = commands.find((c) => c.name === 'pick-image');
+        const browserActionCommand = commands.find((c) => c.name === '_execute_browser_action');
+        const placeholderText = `To import an image into <a target="_blank" href="https://allusion-app.github.io/">Allusion</a>:
+          <br />Use the "Add to Allusion" option in the context menu of any image</li>${
+            pickCommand?.shortcut
+              ? `, <br />or press <code>${pickCommand.shortcut}</code> to pick an image.`
+              : ''
+          }<br/> Then click the Allusion badge or press <code>${
+          browserActionCommand?.shortcut || '[UNBOUND]'
+        }</code> to open this panel for assigning tags.`;
+
+        tagsInput.disabled = true;
+        tagFormSubmit.disabled = true;
+        formInfo.innerHTML = placeholderText;
+      });
     }
   });
 };

@@ -13,7 +13,8 @@
   
   "browser_action": {
     "default_title": "Allusion",
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "browser_style": false
   },
 
   "commands": {
@@ -34,7 +35,7 @@
 
   "manifest_version": 2,
   "name": "Allusion Web Clipper",
-  "version": "1.1.0",
+  "version": "1.2.1",
 
   "description": "Web Clipper for Allusion - for organizing your Visual Library",
   "icons": {
@@ -45,6 +46,7 @@
     "contextMenus",
     "notifications",
     "activeTab",
+    "storage",
     "http://localhost:5454/*",
     "<all_urls>"
   ]

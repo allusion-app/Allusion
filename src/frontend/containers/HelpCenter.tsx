@@ -7,7 +7,7 @@ import { clamp } from 'common/core';
 import { useStore } from '../contexts/StoreContext';
 import PopupWindow from '../components/PopupWindow';
 import { shell } from 'electron';
-import { chromeExtensionUrl } from 'common/config';
+import { chromeExtensionUrl, firefoxExtensionUrl } from 'common/config';
 import { ToolbarButton } from 'widgets/Toolbar';
 
 const HelpCenter = observer(() => {
@@ -302,10 +302,10 @@ const PAGE_DATA: () => IPageData[] = () => [
         content: (
           <>
             <p>
-              A browser extension for Chromium-based browsers such as Google Chrome and Edge is
-              available. It allows you to import images into Allusion directly from your web browser
-              and immediately tag them as well. Take a look in the "Background Processes" section in
-              the settings window for more information. Get the extension here from{' '}
+              A browser extension for FireFox and Chromium-based browsers such as Google Chrome and
+              Edge is available. It allows you to import images into Allusion directly from your web
+              browser and immediately tag them as well. Take a look in the "Background Processes"
+              section in the settings window for more information. Get the extension here from{' '}
               <a
                 href={chromeExtensionUrl}
                 onClick={(e) => {
@@ -313,7 +313,17 @@ const PAGE_DATA: () => IPageData[] = () => [
                   shell.openExternal(chromeExtensionUrl);
                 }}
               >
-                Chrome Webstore.
+                Chrome Webstore
+              </a>{' '}
+              or for{' '}
+              <a
+                href={firefoxExtensionUrl}
+                onClick={(e) => {
+                  e.preventDefault();
+                  shell.openExternal(firefoxExtensionUrl);
+                }}
+              >
+                FireFox.
               </a>
             </p>
           </>
