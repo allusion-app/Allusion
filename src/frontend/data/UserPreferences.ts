@@ -87,12 +87,16 @@ const DEFAULT_USER_PREFERENCES: Readonly<UserPreferences> = {
 
 const PREFERENCES_STORAGE_KEY = 'preferences';
 /** @deprecated Merged into preferences. Remove on stable version 1 release. */
+const WINDOW_STORAGE_KEY = 'Allusion_Window';
+/** @deprecated Merged into preferences. Remove on stable version 1 release. */
 const FILE_STORAGE_KEY = 'Allusion_File';
 /** @deprecated Merged into preferences. Remove on stable version 1 release. */
 const HIERARCHICAL_SEPARATOR_KEY = 'hierarchical-separator';
 
 export async function loadUserPreferences(): Promise<Readonly<UserPreferences>> {
   try {
+    const windowPreferences = JSON.parse(localStorage.getItem(WINDOW_STORAGE_KEY) ?? '{}');
+
     const fileStorePreferences = JSON.parse(localStorage.getItem(FILE_STORAGE_KEY) ?? '{}');
 
     const hierarchicalSeparatorPreference = localStorage.getItem(HIERARCHICAL_SEPARATOR_KEY);
@@ -101,6 +105,7 @@ export async function loadUserPreferences(): Promise<Readonly<UserPreferences>> 
 
     const storedPreferences: Partial<UserPreferences & DeprecatedUserPreferences> = {
       ...uiStorePreferences,
+      ...windowPreferences,
       ...fileStorePreferences,
       hierarchicalSeparator: hierarchicalSeparatorPreference,
     };
@@ -158,6 +163,7 @@ export function storeUserPreferences(preferences: Readonly<UserPreferences>): vo
 
 export function clearUserPreferences(): void {
   localStorage.removeItem(PREFERENCES_STORAGE_KEY);
+  localStorage.removeItem(WINDOW_STORAGE_KEY);
   localStorage.removeItem(FILE_STORAGE_KEY);
   localStorage.removeItem(HIERARCHICAL_SEPARATOR_KEY);
 }
