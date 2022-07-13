@@ -1,10 +1,10 @@
-import { action, makeObservable, observable, runInAction } from 'mobx';
+import { action, makeObservable, observable, ObservableSet, runInAction } from 'mobx';
 import SysPath from 'path';
 import Backend from 'src/backend/Backend';
 import { OrderDirection } from 'src/api/FileSearchDTO';
 import ExifIO from 'common/ExifIO';
 import { getMetaData, mergeMovedFile } from 'src/entities/File';
-import { FileDTO, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
 import { generateId, ID } from 'src/api/ID';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { LocationDTO } from 'src/api/LocationDTO';
@@ -15,9 +15,6 @@ import { getThumbnailPath } from 'common/fs';
 import { promiseAllLimit } from 'common/promise';
 import RootStore from './RootStore';
 import fse from 'fs-extra';
-
-const PREFERENCES_STORAGE_KEY = 'location-store-preferences';
-type Preferences = { extensions: IMG_EXTENSIONS_TYPE[] };
 
 /**
  * Compares metadata of two files to determine whether the files are (likely to be) identical
@@ -41,27 +38,19 @@ class LocationStore {
 
   // Allow users to disable certain file types. Global option for now, needs restart
   // TODO: Maybe per location/sub-location?
-  readonly enabledFileExtensions = observable(new Set<IMG_EXTENSIONS_TYPE>());
+  readonly enabledFileExtensions: ObservableSet<IMG_EXTENSIONS_TYPE>;
 
-  constructor(backend: Backend, rootStore: RootStore) {
+  constructor(backend: Backend, rootStore: RootStore, extensions: Array<IMG_EXTENSIONS_TYPE>) {
     this.backend = backend;
     this.rootStore = rootStore;
+    this.enabledFileExtensions = observable.set(extensions);
+    // By default, disable EXR for now (experimental)
+    this.enabledFileExtensions.delete('exr');
 
     makeObservable(this);
   }
 
   @action async init() {
-    // Restore preferences
-    try {
-      const prefs = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) || '') as Preferences;
-      (prefs.extensions || IMG_EXTENSIONS).forEach((ext) => this.enabledFileExtensions.add(ext));
-    } catch (e) {
-      // If no preferences found, use defaults
-      IMG_EXTENSIONS.forEach((ext) => this.enabledFileExtensions.add(ext));
-      // By default, disable EXR for now (experimental)
-      this.enabledFileExtensions.delete('exr');
-    }
-
     // Get dirs from backend
     const dirs = await this.backend.fetchLocations('dateAdded', OrderDirection.Asc);
 
@@ -445,14 +434,6 @@ class LocationStore {
 
   @action.bound setSupportedImageExtensions(extensions: Set<IMG_EXTENSIONS_TYPE>) {
     this.enabledFileExtensions.replace(extensions);
-    localStorage.setItem(
-      PREFERENCES_STORAGE_KEY,
-      JSON.stringify(
-        { extensions: Array.from(this.enabledFileExtensions) } as Preferences,
-        null,
-        2,
-      ),
-    );
   }
 
   @action async addFile(fileStats: FileStats, location: ClientLocation) {

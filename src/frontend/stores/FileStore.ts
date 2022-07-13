@@ -20,7 +20,6 @@ import { getThumbnailPath } from 'common/fs';
 import { promiseAllLimit } from 'common/promise';
 import RootStore from './RootStore';
 import { IndexMap } from '../data/IndexMap';
-import { UserPreferences } from '../data/UserPreferences';
 
 const enum Content {
   All,
@@ -53,12 +52,17 @@ class FileStore {
   debouncedRefetch: () => void;
   debouncedSaveFilesToSave: () => Promise<void>;
 
-  constructor(backend: Backend, rootStore: RootStore, preferences: Readonly<UserPreferences>) {
+  constructor(
+    backend: Backend,
+    rootStore: RootStore,
+    orderDirection: OrderDirection,
+    orderBy: FileOrder,
+  ) {
     this.backend = backend;
     this.rootStore = rootStore;
 
-    this.orderDirection = preferences.orderDirection;
-    this.orderBy = preferences.orderBy;
+    this.orderDirection = orderDirection;
+    this.orderBy = orderBy;
 
     makeObservable(this);
 

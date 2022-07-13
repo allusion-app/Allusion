@@ -41,8 +41,8 @@ class RootStore {
   constructor(backend: Backend, preferences: Readonly<UserPreferences>) {
     this.backend = backend;
     this.tagStore = new TagStore(backend, this);
-    this.fileStore = new FileStore(backend, this, preferences);
-    this.locationStore = new LocationStore(backend, this);
+    this.fileStore = new FileStore(backend, this, preferences.orderDirection, preferences.orderBy);
+    this.locationStore = new LocationStore(backend, this, preferences.extensions);
     this.uiStore = new UiStore(this, preferences);
     this.searchStore = new SearchStore(backend);
     this.exifTool = new ExifIO(preferences.hierarchicalSeparator);

@@ -1,4 +1,5 @@
 import fse from 'fs-extra';
+import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
 import { FileOrder, FileSearchCriteriaDTO, OrderDirection } from 'src/api/FileSearchDTO';
 import { RendererMessenger } from 'src/Messaging';
 import {
@@ -31,6 +32,7 @@ export interface UserPreferences {
   orderDirection: OrderDirection;
   orderBy: FileOrder;
   hierarchicalSeparator: HierarchicalSeparator;
+  extensions: IMG_EXTENSIONS_TYPE[];
 }
 
 interface DeprecatedUserPreferences {
@@ -81,6 +83,7 @@ const DEFAULT_USER_PREFERENCES: Readonly<UserPreferences> = {
   orderDirection: OrderDirection.Desc,
   orderBy: 'dateAdded',
   hierarchicalSeparator: '|',
+  extensions: IMG_EXTENSIONS.slice(),
 };
 
 const PREFERENCES_STORAGE_KEY = 'preferences';
@@ -90,6 +93,8 @@ const WINDOW_STORAGE_KEY = 'Allusion_Window';
 const FILE_STORAGE_KEY = 'Allusion_File';
 /** @deprecated Merged into preferences. Remove on stable version 1 release. */
 const HIERARCHICAL_SEPARATOR_KEY = 'hierarchical-separator';
+/** @deprecated Merged into preferences. Remove on stable version 1 release. */
+const LOCATION_STORAGE_KEY = 'location-store-preferences';
 
 export async function loadUserPreferences(): Promise<Readonly<UserPreferences>> {
   try {
@@ -99,55 +104,51 @@ export async function loadUserPreferences(): Promise<Readonly<UserPreferences>> 
 
     const hierarchicalSeparatorPreference = localStorage.getItem(HIERARCHICAL_SEPARATOR_KEY);
 
-    const uiStorePreferences = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) ?? '{}');
+    const locationStorePreferences = JSON.parse(localStorage.getItem(LOCATION_STORAGE_KEY) ?? '{}');
 
-    const storedPreferences: Partial<UserPreferences & DeprecatedUserPreferences> = {
-      ...uiStorePreferences,
+    const storedPreferences = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) ?? '{}');
+
+    const preferences: Partial<UserPreferences & DeprecatedUserPreferences> = {
       ...windowPreferences,
       ...fileStorePreferences,
+      ...locationStorePreferences,
       hierarchicalSeparator: hierarchicalSeparatorPreference,
+      ...storedPreferences,
     };
 
-    const thumbnailDirectory = check(storedPreferences, 'thumbnailDirectory', isString);
+    const thumbnailDirectory = check(preferences, 'thumbnailDirectory', isString);
 
     return {
-      theme: check(storedPreferences, 'theme', isTheme),
-      isOutlinerOpen: check(storedPreferences, 'isOutlinerOpen', isBool),
-      isInspectorOpen: check(storedPreferences, 'isInspectorOpen', isBool),
+      theme: check(preferences, 'theme', isTheme),
+      isOutlinerOpen: check(preferences, 'isOutlinerOpen', isBool),
+      isInspectorOpen: check(preferences, 'isInspectorOpen', isBool),
       thumbnailDirectory:
         thumbnailDirectory.length === 0 ? await getDefaultThumbnailDirectory() : thumbnailDirectory,
-      importDirectory: check(storedPreferences, 'importDirectory', isString),
-      method: check(storedPreferences, 'method', isMethod),
-      thumbnailSize: check(storedPreferences, 'thumbnailSize', isThumbnailSize),
-      thumbnailShape: check(storedPreferences, 'thumbnailShape', isThumbnailShape),
-      hotkeyMap: check(storedPreferences, 'hotkeyMap', isHotkeyMap),
-      isThumbnailTagOverlayEnabled: check(
-        storedPreferences,
-        'isThumbnailTagOverlayEnabled',
-        isBool,
-      ),
+      importDirectory: check(preferences, 'importDirectory', isString),
+      method: check(preferences, 'method', isMethod),
+      thumbnailSize: check(preferences, 'thumbnailSize', isThumbnailSize),
+      thumbnailShape: check(preferences, 'thumbnailShape', isThumbnailShape),
+      hotkeyMap: check(preferences, 'hotkeyMap', isHotkeyMap),
+      isThumbnailTagOverlayEnabled: check(preferences, 'isThumbnailTagOverlayEnabled', isBool),
       isThumbnailFilenameOverlayEnabled: check(
-        storedPreferences,
+        preferences,
         'isThumbnailFilenameOverlayEnabled',
         isBool,
       ),
-      outlinerWidth: check(storedPreferences, 'outlinerWidth', isValidLength),
-      inspectorWidth: check(storedPreferences, 'inspectorWidth', isValidLength),
-      isFullScreen: check(storedPreferences, 'isFullScreen', isBool),
-      isSlideMode: check(storedPreferences, 'isSlideMode', isBool),
-      firstItem: check(storedPreferences, 'firstItem', isValidLength),
-      searchMatchAny: check(storedPreferences, 'searchMatchAny', isBool),
-      searchCriteriaList: check(storedPreferences, 'searchCriteriaList', isSearchCriteriaList),
+      outlinerWidth: check(preferences, 'outlinerWidth', isValidLength),
+      inspectorWidth: check(preferences, 'inspectorWidth', isValidLength),
+      isFullScreen: check(preferences, 'isFullScreen', isBool),
+      isSlideMode: check(preferences, 'isSlideMode', isBool),
+      firstItem: check(preferences, 'firstItem', isValidLength),
+      searchMatchAny: check(preferences, 'searchMatchAny', isBool),
+      searchCriteriaList: check(preferences, 'searchCriteriaList', isSearchCriteriaList),
       orderDirection:
-        storedPreferences.fileOrder !== undefined && isOrderDirection(storedPreferences.fileOrder)
-          ? storedPreferences.fileOrder
-          : check(storedPreferences, 'orderDirection', isOrderDirection),
-      orderBy: check(storedPreferences, 'orderBy', isFileOrder),
-      hierarchicalSeparator: check(
-        storedPreferences,
-        'hierarchicalSeparator',
-        isHierarchicalSeparator,
-      ),
+        preferences.fileOrder !== undefined && isOrderDirection(preferences.fileOrder)
+          ? preferences.fileOrder
+          : check(preferences, 'orderDirection', isOrderDirection),
+      orderBy: check(preferences, 'orderBy', isFileOrder),
+      hierarchicalSeparator: check(preferences, 'hierarchicalSeparator', isHierarchicalSeparator),
+      extensions: check(preferences, 'extensions', isEnabledExtensions),
     };
   } catch (error) {
     console.error('Cannot parse persistent preferences', error);
@@ -164,6 +165,7 @@ export function clearUserPreferences(): void {
   localStorage.removeItem(WINDOW_STORAGE_KEY);
   localStorage.removeItem(FILE_STORAGE_KEY);
   localStorage.removeItem(HIERARCHICAL_SEPARATOR_KEY);
+  localStorage.removeItem(LOCATION_STORAGE_KEY);
 }
 
 function check<K extends keyof UserPreferences>(
@@ -305,6 +307,13 @@ function isHierarchicalSeparator(value: HierarchicalSeparator): value is Hierarc
       const _exhaustiveCheck: never = value;
       return false;
   }
+}
+
+function isEnabledExtensions(
+  value: IMG_EXTENSIONS_TYPE[] | undefined,
+): value is IMG_EXTENSIONS_TYPE[] | undefined {
+  // TODO: More sophiscated parsing...
+  return value === undefined || Array.isArray(value);
 }
 
 function isValidLength(value: number): boolean {
