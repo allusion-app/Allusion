@@ -1,5 +1,6 @@
 import React, { RefObject, memo, useState } from 'react';
-import { ClientFileSearchCriteria, IFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { FileSearchCriteriaDTO } from 'src/api/FileSearchDTO';
 import { IconButton } from 'widgets/Button';
 import { IconSet } from 'widgets/Icons';
 import { InfoButton } from 'widgets/notifications';
@@ -7,14 +8,14 @@ import { KeySelector, OperatorSelector, ValueInput } from './Inputs';
 
 type QueryBuilderProps = {
   keySelector: RefObject<HTMLSelectElement>;
-  addCriteria: (criteria: IFileSearchCriteria) => void;
+  addCriteria: (criteria: FileSearchCriteriaDTO) => void;
 };
 
 const CriteriaBuilder = memo(function CriteriaBuilder({
   keySelector,
   addCriteria,
 }: QueryBuilderProps) {
-  const [criteria, setCriteria] = useState<IFileSearchCriteria>(() =>
+  const [criteria, setCriteria] = useState<FileSearchCriteriaDTO>(() =>
     ClientFileSearchCriteria.tags('contains', []),
   );
 

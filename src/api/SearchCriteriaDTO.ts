@@ -1,28 +1,28 @@
-export type DBSearchCriteria<T, K> =
-  | DBArraySearchCriteria<T, K>
-  | DBStringSearchCriteria<T>
-  | DBNumberSearchCriteria<T>
-  | DBDateSearchCriteria<T>;
+export type SearchCriteriaDTO<T, K> =
+  | ArraySearchCriteriaDTO<T, K>
+  | StringSearchCriteriaDTO<T>
+  | NumberSearchCriteriaDTO<T>
+  | DateSearchCriteriaDTO<T>;
 
-export type DBArraySearchCriteria<T, A> = Readonly<
+export type ArraySearchCriteriaDTO<T, A> = Readonly<
   BaseSearchCriteria<T, ArrayOperatorType, Array<A>>
 > & {
   valueType: 'array';
 };
 
-export type DBStringSearchCriteria<T> = Readonly<
+export type StringSearchCriteriaDTO<T> = Readonly<
   BaseSearchCriteria<T, StringOperatorType, string>
 > & {
   valueType: 'string';
 };
 
-export type DBNumberSearchCriteria<T> = Readonly<
+export type NumberSearchCriteriaDTO<T> = Readonly<
   BaseSearchCriteria<T, NumberOperatorType, number>
 > & {
   valueType: 'number';
 };
 
-export type DBDateSearchCriteria<T> = Readonly<BaseSearchCriteria<T, NumberOperatorType, Date>> & {
+export type DateSearchCriteriaDTO<T> = Readonly<BaseSearchCriteria<T, NumberOperatorType, Date>> & {
   valueType: 'date';
 };
 

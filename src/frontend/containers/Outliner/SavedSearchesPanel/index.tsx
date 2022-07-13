@@ -1,9 +1,10 @@
 import { computed, observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { generateId } from 'src/entities/ID';
+import { generateId } from 'src/api/ID';
 import { ClientFileSearch } from 'src/entities/SearchItem';
-import { ClientFileSearchCriteria, IFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { FileSearchCriteriaDTO } from 'src/api/FileSearchDTO';
 import { SavedSearchRemoval } from 'src/frontend/components/RemovalAlert';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import {
@@ -48,9 +49,9 @@ const isExpanded = (nodeData: ClientFileSearch, treeData: ITreeData) =>
   treeData.expansion[nodeData.id];
 
 const customKeys = (
-  search: (crits: IFileSearchCriteria[], searchMatchAny: boolean) => void,
+  search: (crits: FileSearchCriteriaDTO[], searchMatchAny: boolean) => void,
   event: React.KeyboardEvent<HTMLLIElement>,
-  nodeData: ClientFileSearch | IFileSearchCriteria,
+  nodeData: ClientFileSearch | FileSearchCriteriaDTO,
   treeData: ITreeData,
 ) => {
   switch (event.key) {
@@ -250,7 +251,7 @@ const SearchItem = observer(
   },
 );
 
-const SearchItemCriteria = observer(({ nodeData }: { nodeData: IFileSearchCriteria }) => {
+const SearchItemCriteria = observer(({ nodeData }: { nodeData: FileSearchCriteriaDTO }) => {
   const rootStore = useStore();
   const { uiStore } = rootStore;
 
@@ -341,7 +342,7 @@ const SavedSearchesList = ({ onDelete, onEdit, onDuplicate, onReplace }: ISearch
   const handleBranchKeyDown = useCallback(
     (
       event: React.KeyboardEvent<HTMLLIElement>,
-      nodeData: ClientFileSearch | IFileSearchCriteria,
+      nodeData: ClientFileSearch | FileSearchCriteriaDTO,
       treeData: ITreeData,
     ) =>
       createBranchOnKeyDown(
@@ -351,7 +352,7 @@ const SavedSearchesList = ({ onDelete, onEdit, onDuplicate, onReplace }: ISearch
         isExpanded,
         emptyFunction,
         toggleExpansion,
-        customKeys.bind(null, (crits: IFileSearchCriteria[], searchMatchAny: boolean) => {
+        customKeys.bind(null, (crits: FileSearchCriteriaDTO[], searchMatchAny: boolean) => {
           uiStore.replaceSearchCriteria(...crits);
           if (uiStore.searchMatchAny !== searchMatchAny) {
             uiStore.toggleSearchMatchAny();

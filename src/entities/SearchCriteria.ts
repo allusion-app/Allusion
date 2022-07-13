@@ -6,16 +6,17 @@ import {
   NumberSearchCriteria,
   StringOperatorType,
   StringSearchCriteria,
-} from 'src/backend/DBSearchCriteria';
-import { IFile, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
-import { ID } from 'src/entities/ID';
-
-export type IFileSearchCriteria =
-  | TagSearchCriteria
-  | PathSearchCriteria
-  | ExtensionSearchCriteria
-  | NumberSearchCriteria<SearchableFileData>
-  | DateSearchCriteria<SearchableFileData>;
+} from 'src/api/SearchCriteriaDTO';
+import { IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
+import { ID } from 'src/api/ID';
+import {
+  BinaryOperatorType,
+  ExtensionSearchCriteria,
+  FileSearchCriteriaDTO,
+  SearchableFileData,
+  TagSearchCriteria,
+  TreeOperatorType,
+} from 'src/api/FileSearchDTO';
 
 export class ClientFileSearchCriteria<K, O, V> {
   @observable
@@ -67,49 +68,11 @@ export class ClientFileSearchCriteria<K, O, V> {
     return new ClientFileSearchCriteria(key, operator, value);
   }
 
-  public static clone(criteria: IFileSearchCriteria): IFileSearchCriteria {
+  public static clone(criteria: FileSearchCriteriaDTO): FileSearchCriteriaDTO {
     return new ClientFileSearchCriteria(
       criteria.key,
       criteria.operator,
       structuredClone(criteria.value),
-    ) as IFileSearchCriteria;
+    ) as FileSearchCriteriaDTO;
   }
 }
-
-export type SearchableFileData = Pick<
-  IFile,
-  'tags' | 'name' | 'absolutePath' | 'extension' | 'size' | 'dateAdded'
->;
-
-export type Operators =
-  | TreeOperatorType
-  | BinaryOperatorType
-  | StringOperatorType
-  | NumberOperatorType;
-
-export const TreeOperators = [
-  'contains',
-  'notContains',
-  'containsRecursively',
-  'containsNotRecursively',
-] as const;
-export type TreeOperatorType = typeof TreeOperators[number];
-
-export type Values = [ID] | [] | string | number | Date;
-
-export type TagSearchCriteria = {
-  key: 'tags';
-  operator: TreeOperatorType;
-  value: [] | [ID];
-};
-
-export type ExtensionSearchCriteria = {
-  key: 'extension';
-  operator: StringOperatorType;
-  value: IMG_EXTENSIONS_TYPE;
-};
-
-export type PathSearchCriteria = StringSearchCriteria<Omit<SearchableFileData, 'extension'>>;
-
-export const BinaryOperators = ['equals', 'notEqual'] as const;
-export type BinaryOperatorType = typeof BinaryOperators[number];

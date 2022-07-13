@@ -1,23 +1,23 @@
 import { action, computed } from 'mobx';
 import React, { ForwardedRef, useMemo } from 'react';
-import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
+import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
 import {
   BinaryOperators,
-  ClientFileSearchCriteria,
   ExtensionSearchCriteria,
-  IFileSearchCriteria,
   Operators,
   PathSearchCriteria,
   SearchableFileData,
   TagSearchCriteria,
   TreeOperators,
-} from 'src/entities/SearchCriteria';
+} from 'src/api/FileSearchDTO';
 import {
   NumberOperators,
   StringOperatorType,
   DateSearchCriteria,
   NumberSearchCriteria,
-} from 'src/backend/DBSearchCriteria';
+} from 'src/api/SearchCriteriaDTO';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { FileSearchCriteriaDTO } from 'src/api/FileSearchDTO';
 import { ClientTag } from 'src/entities/Tag';
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -28,8 +28,8 @@ import { getNumberOperatorSymbol, getStringOperatorLabel } from 'src/frontend/st
 
 type KeySelectorProps = {
   labelledby: string;
-  updateCriteria: (update: (criteria: IFileSearchCriteria) => IFileSearchCriteria) => void;
-  criteria: IFileSearchCriteria;
+  updateCriteria: (update: (criteria: FileSearchCriteriaDTO) => FileSearchCriteriaDTO) => void;
+  criteria: FileSearchCriteriaDTO;
 };
 
 export const KeySelector = observer(
@@ -38,7 +38,7 @@ export const KeySelector = observer(
     ref: ForwardedRef<HTMLSelectElement>,
   ) {
     const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const key = e.target.value as IFileSearchCriteria['key'];
+      const key = e.target.value as FileSearchCriteriaDTO['key'];
       const update = action(changeCriteriaKey);
       updateCriteria((criteria) => update(key, criteria));
     };
@@ -77,37 +77,39 @@ export const KeySelector = observer(
 
 type Input<V> = { labelledby: string; criteria: V };
 
-export const OperatorSelector = observer(({ labelledby, criteria }: Input<IFileSearchCriteria>) => {
-  const handleChange = useMemo(
-    () =>
-      action((e: React.ChangeEvent<HTMLSelectElement>) => {
-        criteria.operator = e.target.value as Operators;
-      }),
-    [criteria],
-  );
+export const OperatorSelector = observer(
+  ({ labelledby, criteria }: Input<FileSearchCriteriaDTO>) => {
+    const handleChange = useMemo(
+      () =>
+        action((e: React.ChangeEvent<HTMLSelectElement>) => {
+          criteria.operator = e.target.value as Operators;
+        }),
+      [criteria],
+    );
 
-  const [values, formatter] = useMemo(
-    () => computed(() => getOperatorOptions(criteria.key)),
-    [criteria],
-  ).get();
+    const [values, formatter] = useMemo(
+      () => computed(() => getOperatorOptions(criteria.key)),
+      [criteria],
+    ).get();
 
-  return (
-    <select
-      className="criteria-input"
-      aria-labelledby={labelledby}
-      onChange={handleChange}
-      value={criteria.operator}
-    >
-      {values.map((value) => (
-        <option key={value} value={value}>
-          {formatter(value)}
-        </option>
-      ))}
-    </select>
-  );
-});
+    return (
+      <select
+        className="criteria-input"
+        aria-labelledby={labelledby}
+        onChange={handleChange}
+        value={criteria.operator}
+      >
+        {values.map((value) => (
+          <option key={value} value={value}>
+            {formatter(value)}
+          </option>
+        ))}
+      </select>
+    );
+  },
+);
 
-export const ValueInput = observer(({ labelledby, criteria }: Input<IFileSearchCriteria>) => {
+export const ValueInput = observer(({ labelledby, criteria }: Input<FileSearchCriteriaDTO>) => {
   switch (criteria.key) {
     case 'tags':
       return <TagInput labelledby={labelledby} criteria={criteria} />;
@@ -243,7 +245,7 @@ const DateAddedInput = observer(({ labelledby, criteria }: Input<DateAddedSearch
   );
 });
 
-function changeCriteriaKey(key: IFileSearchCriteria['key'], criteria: IFileSearchCriteria) {
+function changeCriteriaKey(key: FileSearchCriteriaDTO['key'], criteria: FileSearchCriteriaDTO) {
   switch (key) {
     case 'tags':
       return ClientFileSearchCriteria.tags('contains', []);
@@ -273,7 +275,7 @@ function changeCriteriaKey(key: IFileSearchCriteria['key'], criteria: IFileSearc
 }
 
 function getOperatorOptions(
-  key: IFileSearchCriteria['key'],
+  key: FileSearchCriteriaDTO['key'],
 ): [readonly string[], (value: string) => string] {
   switch (key) {
     case 'tags':

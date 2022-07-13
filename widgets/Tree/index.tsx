@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useLayoutEffect, CSSProperties, useState } fr
 
 import './tree.scss';
 
-import { ID } from 'src/entities/ID';
+import { ID } from 'src/api/ID';
 
 // --- Helper function for tree items ---
 

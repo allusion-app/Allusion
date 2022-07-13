@@ -10,13 +10,13 @@ jest.mock('../Messaging', () => ({
 }));
 
 import Backend from './Backend';
-import { ITag, ROOT_TAG_ID } from '../entities/Tag';
-import { IFile } from '../entities/File';
-import { OrderDirection } from './DBRepository';
+import { TagDTO, ROOT_TAG_ID } from 'src/api/TagDTO';
+import { FileDTO } from 'src/api/FileDTO';
+import { OrderDirection } from 'src/api/FileSearchDTO';
 
 let backend = new Backend();
 
-const mockTag: ITag = {
+const mockTag: TagDTO = {
   id: 'tag1',
   name: 'tag1 name',
   dateAdded: new Date(),
@@ -25,7 +25,7 @@ const mockTag: ITag = {
   isHidden: false,
 };
 
-const mockFile: IFile = {
+const mockFile: FileDTO = {
   absolutePath: 'c:/test file.jpg',
   relativePath: 'test file.jpg',
   locationId: 'Default location',

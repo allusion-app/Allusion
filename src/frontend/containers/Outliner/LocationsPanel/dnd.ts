@@ -1,6 +1,7 @@
 import fse from 'fs-extra';
 import path from 'path';
-import { ClientFile, IMG_EXTENSIONS } from 'src/entities/File';
+import { ClientFile } from 'src/entities/File';
+import { IMG_EXTENSIONS } from 'src/api/FileDTO';
 import { ALLOWED_DROP_TYPES } from 'src/frontend/contexts/DropContext';
 import { retainArray } from 'common/core';
 import { timeoutPromise } from 'common/timeout';

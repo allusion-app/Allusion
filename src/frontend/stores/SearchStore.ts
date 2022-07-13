@@ -1,14 +1,11 @@
 import { retainArray } from 'common/core';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import Backend from 'src/backend/Backend';
-import { generateId } from 'src/entities/ID';
-import {
-  ClientFileSearchCriteria,
-  IFileSearchCriteria,
-  TagSearchCriteria,
-} from 'src/entities/SearchCriteria';
+import { generateId } from 'src/api/ID';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { FileSearchCriteriaDTO, TagSearchCriteria } from 'src/api/FileSearchDTO';
 import { ClientFileSearch } from 'src/entities/SearchItem';
-import { NumberOperatorType, StringOperatorType } from 'src/backend/DBSearchCriteria';
+import { NumberOperatorType, StringOperatorType } from 'src/api/SearchCriteriaDTO';
 import RootStore from './RootStore';
 import { camelCaseToSpaced } from 'common/fmt';
 
@@ -112,7 +109,7 @@ class SearchStore {
 
 export default SearchStore;
 
-export function getLabel(rootStore: RootStore, criteria: IFileSearchCriteria) {
+export function getLabel(rootStore: RootStore, criteria: FileSearchCriteriaDTO) {
   switch (criteria.key) {
     case 'tags':
       if (isUntaggedCriteria(criteria)) {

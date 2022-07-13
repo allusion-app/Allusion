@@ -2,12 +2,13 @@ import Dexie, { IndexableType, Transaction, WhereClause } from 'dexie';
 import { shuffleArray } from 'common/core';
 
 import {
-  DBSearchCriteria,
-  DBArraySearchCriteria,
-  DBStringSearchCriteria,
-  DBNumberSearchCriteria,
-  DBDateSearchCriteria,
-} from './DBSearchCriteria';
+  SearchCriteriaDTO,
+  ArraySearchCriteriaDTO,
+  StringSearchCriteriaDTO,
+  NumberSearchCriteriaDTO,
+  DateSearchCriteriaDTO,
+} from 'src/api/SearchCriteriaDTO';
+import { OrderDirection } from 'src/api/FileSearchDTO';
 
 export interface IDBCollectionConfig {
   name: string;
@@ -45,18 +46,13 @@ export const dbDelete = (dbName: string): void => {
   Dexie.delete(dbName);
 };
 
-export const enum OrderDirection {
-  Asc,
-  Desc,
-}
-
 type Key<T> = keyof T extends string ? keyof T : never;
 
-export type SearchOrder<T> = Key<T> | 'random';
+type SearchOrder<T> = Key<T> | 'random';
 
-export type SearchConjunction = 'and' | 'or';
+type SearchConjunction = 'and' | 'or';
 
-export type SearchCriterias<T> = [DBSearchCriteria<T, any>, ...DBSearchCriteria<T, any>[]];
+type SearchCriterias<T> = [SearchCriteriaDTO<T, any>, ...SearchCriteriaDTO<T, any>[]];
 
 /**
  * A class that manages data retrieval and updating with a database.
@@ -115,11 +111,11 @@ export default class Repository<K extends string, V> {
     // return order ? table.sortBy(order as string) : table.toArray();
   }
 
-  public async count(criteria?: SearchCriterias<V>): Promise<number> {
+  public async count(criteria?: SearchCriterias<V>, matchAny = false): Promise<number> {
     if (criteria === undefined) {
       return this.collection.count();
     }
-    const table = await this._find(criteria);
+    const table = await this._find(criteria, matchAny ? 'or' : 'and');
     return table.count();
   }
 
@@ -149,7 +145,7 @@ export default class Repository<K extends string, V> {
 
   private async _find(
     criteria: SearchCriterias<V>,
-    conjunction: SearchConjunction = 'and',
+    conjunction: SearchConjunction,
   ): Promise<Dexie.Collection<V, string>> {
     // Searching with multiple 'wheres': https://stackoverflow.com/questions/35679590/dexiejs-indexeddb-chain-multiple-where-clauses
     // Unfortunately doesn't work out of the box.
@@ -211,7 +207,7 @@ export default class Repository<K extends string, V> {
   //          Since some of our search operations are not supported by Dexie, some _where functions return a lambda.
   // - lambda: For 'and' conjunctions, a naive filter function (lambda) must be used.
 
-  private _filterWhere(where: WhereClause<V, string>, crit: DBSearchCriteria<V, any>) {
+  private _filterWhere(where: WhereClause<V, string>, crit: SearchCriteriaDTO<V, any>) {
     switch (crit.valueType) {
       case 'array':
         return this._filterArrayWhere(where, crit);
@@ -224,7 +220,7 @@ export default class Repository<K extends string, V> {
     }
   }
 
-  private _filterLambda(crit: DBSearchCriteria<V, any>) {
+  private _filterLambda(crit: SearchCriteriaDTO<V, any>) {
     switch (crit.valueType) {
       case 'array':
         return this._filterArrayLambda(crit);
@@ -237,7 +233,7 @@ export default class Repository<K extends string, V> {
     }
   }
 
-  private _filterArrayWhere(where: WhereClause<V, string>, crit: DBArraySearchCriteria<V, any>) {
+  private _filterArrayWhere(where: WhereClause<V, string>, crit: ArraySearchCriteriaDTO<V, any>) {
     // Querying array props: https://dexie.org/docs/MultiEntry-Index
     // Check whether to search for empty arrays (e.g. no tags)
     if (crit.value.length === 0) {
@@ -257,7 +253,7 @@ export default class Repository<K extends string, V> {
     }
   }
 
-  private _filterArrayLambda(crit: DBArraySearchCriteria<V, any>) {
+  private _filterArrayLambda(crit: ArraySearchCriteriaDTO<V, any>) {
     if (crit.operator === 'contains') {
       // Check whether to search for empty arrays (e.g. no tags)
       return crit.value.length === 0
@@ -273,7 +269,7 @@ export default class Repository<K extends string, V> {
     }
   }
 
-  private _filterStringWhere(where: WhereClause<V, string>, crit: DBStringSearchCriteria<V>) {
+  private _filterStringWhere(where: WhereClause<V, string>, crit: StringSearchCriteriaDTO<V>) {
     const { key, operator, value } = crit;
 
     switch (operator) {
@@ -313,7 +309,8 @@ export default class Repository<K extends string, V> {
         return where
           .below(upperNeedleLowerBound)
           .or(key)
-          .between(upperNeedleUpperBound + '\uffff' + '\uffff', lowerNeedleLowerBound)
+          .between(upperNeedleUpperBound + '\uffff', lowerNeedleLowerBound, false, false)
+          .and((value) => !((value as any)[key] as string).startsWith(upperNeedleUpperBound))
           .or(key)
           .above(lowerNeedleUpperBound + '\uffff');
       }
@@ -323,7 +320,7 @@ export default class Repository<K extends string, V> {
     }
   }
 
-  private _filterStringLambda({ key, operator, value }: DBStringSearchCriteria<V>) {
+  private _filterStringLambda({ key, operator, value }: StringSearchCriteriaDTO<V>) {
     const valLow = value.toLowerCase();
 
     switch (operator) {
@@ -349,7 +346,7 @@ export default class Repository<K extends string, V> {
 
   private _filterNumberWhere(
     where: WhereClause<V, string>,
-    { operator, value }: DBNumberSearchCriteria<V>,
+    { operator, value }: NumberSearchCriteriaDTO<V>,
   ): Dexie.Collection<V, string> {
     switch (operator) {
       case 'equals':
@@ -370,7 +367,7 @@ export default class Repository<K extends string, V> {
     }
   }
 
-  private _filterNumberLambda({ key, operator, value }: DBNumberSearchCriteria<V>) {
+  private _filterNumberLambda({ key, operator, value }: NumberSearchCriteriaDTO<V>) {
     switch (operator) {
       case 'equals':
         return (t: any) => t[key] === value;
@@ -392,7 +389,7 @@ export default class Repository<K extends string, V> {
 
   private _filterDateWhere(
     where: WhereClause<V, string>,
-    { key, operator, value }: DBDateSearchCriteria<V>,
+    { key, operator, value }: DateSearchCriteriaDTO<V>,
   ): Dexie.Collection<V, string> {
     const dateStart = new Date(value);
     dateStart.setHours(0, 0, 0);
@@ -420,7 +417,7 @@ export default class Repository<K extends string, V> {
     }
   }
 
-  private _filterDateLambda({ key, operator, value }: DBDateSearchCriteria<V>) {
+  private _filterDateLambda({ key, operator, value }: DateSearchCriteriaDTO<V>) {
     const start = new Date(value);
     start.setHours(0, 0, 0);
     const end = new Date(value);

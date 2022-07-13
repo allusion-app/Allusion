@@ -1,5 +1,5 @@
 import { Transaction } from 'dexie';
-import { IFile } from 'src/entities/File';
+import { FileDTO } from 'src/api/FileDTO';
 import { IDBVersioningConfig } from './DBRepository';
 import fse from 'fs-extra';
 
@@ -54,7 +54,7 @@ export const dbConfig: IDBVersioningConfig[] = [
     upgrade: (tx: Transaction): void => {
       tx.table('files')
         .toCollection()
-        .modify((file: IFile) => {
+        .modify((file: FileDTO) => {
           file.dateLastIndexed = file.dateAdded;
           return file;
         });
@@ -83,7 +83,7 @@ export const dbConfig: IDBVersioningConfig[] = [
     upgrade: (tx: Transaction): void => {
       tx.table('files')
         .toCollection()
-        .modify((file: IFile) => {
+        .modify((file: FileDTO) => {
           try {
             // apparently you can't do async stuff here, even though it is typed to return a PromiseLike :/
             const stats = fse.statSync(file.absolutePath);

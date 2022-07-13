@@ -6,7 +6,7 @@ import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
-import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
+import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { HierarchicalSeparator } from 'src/frontend/data/View';
 import { useAction } from 'src/frontend/hooks/mobx';

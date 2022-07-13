@@ -1,16 +1,18 @@
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
-import Backend, { FileOrder } from 'src/backend/Backend';
-import { OrderDirection } from 'src/backend/DBRepository';
-import { ClientFile, IFile, IMG_EXTENSIONS_TYPE, mergeMovedFile } from 'src/entities/File';
-import { ID } from 'src/entities/ID';
+import Backend from 'src/backend/Backend';
+import { ClientFile, mergeMovedFile } from 'src/entities/File';
+import { ID } from 'src/api/ID';
 import { ClientLocation } from 'src/entities/Location';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
 import {
-  ClientFileSearchCriteria,
-  IFileSearchCriteria,
+  FileOrder,
+  FileSearchCriteriaDTO,
+  OrderDirection,
   SearchableFileData,
-} from 'src/entities/SearchCriteria';
-import { DBSearchCriteria } from 'src/backend/DBSearchCriteria';
+} from 'src/api/FileSearchDTO';
+import { SearchCriteriaDTO } from 'src/api/SearchCriteriaDTO';
 import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
 import { debounce } from 'common/timeout';
@@ -38,7 +40,7 @@ class FileStore {
    */
   public fileListLastModified = observable<Date>(new Date());
 
-  private filesToSave: Map<ID, IFile> = new Map();
+  private filesToSave: Map<ID, FileDTO> = new Map();
 
   /** The origin of the current files that are shown */
   @observable private content: Content = Content.All;
@@ -252,11 +254,11 @@ class FileStore {
 
   /** Replaces a file's data when it is moved or renamed */
   @action.bound
-  public replaceMovedFile(file: ClientFile, newData: IFile): void {
+  public replaceMovedFile(file: ClientFile, newData: FileDTO): void {
     if (this.fileIndex.has(file.id)) {
       file.dispose();
 
-      const newIFile = mergeMovedFile(file.serialize(), newData);
+      const newFileDTO = mergeMovedFile(file.serialize(), newData);
 
       // Move thumbnail
       const { thumbnailDirectory } = this.rootStore.uiStore; // TODO: make a config store for this?
@@ -265,7 +267,7 @@ class FileStore {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       fse.move(oldThumbnailPath, newThumbPath).catch(() => {});
 
-      const newClientFile = new ClientFile(this, newIFile);
+      const newClientFile = new ClientFile(this, newFileDTO);
       newClientFile.thumbnailPath = newThumbPath;
       this.fileIndex.insert(file.id, newClientFile);
       this.save(newClientFile.serialize());
@@ -297,7 +299,7 @@ class FileStore {
 
   @action async deleteFilesByExtension(ext: IMG_EXTENSIONS_TYPE): Promise<void> {
     try {
-      const crit: DBSearchCriteria<IFile, ID> = {
+      const crit: SearchCriteriaDTO<FileDTO, ID> = {
         key: 'extension',
         operator: 'equals',
         value: ext,
@@ -347,7 +349,7 @@ class FileStore {
       const criteria = ClientFileSearchCriteria.tags('contains', []);
       uiStore.searchCriteriaList.push(criteria);
       const fetchedFiles = await this.backend.searchFiles(
-        toDBFileSearchCriteria(this.rootStore, [criteria]),
+        toSearchCriteriaDTOs(this.rootStore, [criteria]),
         this.orderBy,
         this.orderDirection,
         uiStore.searchMatchAny,
@@ -417,7 +419,7 @@ class FileStore {
       return this.fetchAllFiles();
     }
 
-    const criteria = toDBFileSearchCriteria(
+    const criteria = toSearchCriteriaDTOs(
       this.rootStore,
       this.rootStore.uiStore.searchCriteriaList as any,
     );
@@ -472,7 +474,7 @@ class FileStore {
     return loc;
   }
 
-  save(file: IFile) {
+  save(file: FileDTO) {
     file.dateModified = new Date();
 
     // Save files in bulk so saving many files at once is faster.
@@ -500,7 +502,7 @@ class FileStore {
   }
 
   @action
-  public updateFromBackend(backendFiles: IFile[]): void {
+  public updateFromBackend(backendFiles: FileDTO[]): void {
     if (backendFiles.length === 0) {
       this.fileIndex.clear();
       this.rootStore.uiStore.fileSelection.clear();
@@ -558,7 +560,7 @@ class FileStore {
    * @returns A list of client files that were not reused from the existing fileList.
    */
   @action
-  private mergeFilesFromBackend(backendFiles: IFile[]): void {
+  private mergeFilesFromBackend(backendFiles: FileDTO[]): void {
     const disposedFiles = this.fileIndex.insertSort(
       backendFiles.map((backendFile) => [
         backendFile.id,
@@ -627,17 +629,17 @@ class FileStore {
 
 export default FileStore;
 
-type DBFileSearchCriterias = [
-  DBSearchCriteria<SearchableFileData, ID>,
-  ...DBSearchCriteria<SearchableFileData, ID>[]
+type SearchCriteriaDTOs = [
+  SearchCriteriaDTO<SearchableFileData, ID>,
+  ...SearchCriteriaDTO<SearchableFileData, ID>[]
 ];
 
-function toDBFileSearchCriteria(
+function toSearchCriteriaDTOs(
   rootStore: RootStore,
-  criterias: [IFileSearchCriteria, ...IFileSearchCriteria[]],
-): DBFileSearchCriterias {
-  const dbFIleSearchCriterias: DBSearchCriteria<SearchableFileData, ID>[] = criterias.map<
-    DBSearchCriteria<SearchableFileData, ID>
+  criterias: [FileSearchCriteriaDTO, ...FileSearchCriteriaDTO[]],
+): SearchCriteriaDTOs {
+  const dbFIleSearchCriterias: SearchCriteriaDTO<SearchableFileData, ID>[] = criterias.map<
+    SearchCriteriaDTO<SearchableFileData, ID>
   >((criteria) => {
     const { key, operator, value } = criteria;
 
@@ -679,5 +681,5 @@ function toDBFileSearchCriteria(
     }
   });
 
-  return dbFIleSearchCriterias as DBFileSearchCriterias;
+  return dbFIleSearchCriterias as SearchCriteriaDTOs;
 }

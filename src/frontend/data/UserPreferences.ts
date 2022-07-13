@@ -1,7 +1,5 @@
 import fse from 'fs-extra';
-import { FileOrder } from 'src/backend/Backend';
-import { OrderDirection } from 'src/backend/DBRepository';
-import { IFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { FileOrder, FileSearchCriteriaDTO, OrderDirection } from 'src/api/FileSearchDTO';
 import { RendererMessenger } from 'src/Messaging';
 import {
   HierarchicalSeparator,
@@ -29,7 +27,7 @@ export interface UserPreferences {
   isSlideMode: boolean;
   firstItem: number;
   searchMatchAny: boolean;
-  searchCriteriaList: IFileSearchCriteria[] | undefined;
+  searchCriteriaList: FileSearchCriteriaDTO[] | undefined;
   orderDirection: OrderDirection;
   orderBy: FileOrder;
   hierarchicalSeparator: HierarchicalSeparator;
@@ -261,8 +259,8 @@ function isOrderDirection(value: OrderDirection): value is OrderDirection {
 }
 
 function isSearchCriteriaList(
-  value: IFileSearchCriteria[] | undefined,
-): value is IFileSearchCriteria[] | undefined {
+  value: FileSearchCriteriaDTO[] | undefined,
+): value is FileSearchCriteriaDTO[] | undefined {
   // TODO: More sophiscated parsing...
   return value === undefined || Array.isArray(value);
 }

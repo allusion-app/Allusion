@@ -2,12 +2,12 @@ import React, { memo } from 'react';
 import { IconSet } from 'widgets/Icons';
 import { Callout, InfoButton } from 'widgets/notifications';
 import { RadioGroup, Radio } from 'widgets/Radio';
-import { IFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { FileSearchCriteriaDTO } from 'src/api/FileSearchDTO';
 import { KeySelector, OperatorSelector, ValueInput } from './Inputs';
 
 type QueryEditorProps = {
-  query: Map<number, IFileSearchCriteria>;
-  setQuery: React.Dispatch<React.SetStateAction<Map<number, IFileSearchCriteria>>>;
+  query: Map<number, FileSearchCriteriaDTO>;
+  setQuery: React.Dispatch<React.SetStateAction<Map<number, FileSearchCriteriaDTO>>>;
   submissionButtonText: string;
 };
 
@@ -73,13 +73,13 @@ export const QueryEditor = memo(function QueryEditor({
 type EditableCriteriaProps = {
   index: number;
   id: number;
-  criteria: IFileSearchCriteria;
-  dispatch: React.Dispatch<React.SetStateAction<Map<number, IFileSearchCriteria>>>;
+  criteria: FileSearchCriteriaDTO;
+  dispatch: React.Dispatch<React.SetStateAction<Map<number, FileSearchCriteriaDTO>>>;
 };
 
 // The main Criteria component, finds whatever input fields for the key should be rendered
 export const EditableCriteria = ({ index, id, criteria, dispatch }: EditableCriteriaProps) => {
-  const updateCriteria = (update: (criteria: IFileSearchCriteria) => IFileSearchCriteria) => {
+  const updateCriteria = (update: (criteria: FileSearchCriteriaDTO) => FileSearchCriteriaDTO) => {
     const c = update(criteria);
     dispatch((query) => new Map(query.set(id, c)));
   };

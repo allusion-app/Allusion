@@ -5,12 +5,13 @@ import { useAutorun } from 'src/frontend/hooks/mobx';
 import { Button, IconSet } from 'widgets';
 import { Dialog } from 'widgets/popovers';
 import CriteriaBuilder from './CriteriaBuilder';
-import { ClientFileSearchCriteria, IFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { FileSearchCriteriaDTO } from 'src/api/FileSearchDTO';
 import { QueryEditor, QueryMatch } from './QueryEditor';
 
 export const AdvancedSearchDialog = observer(() => {
   const { uiStore } = useStore();
-  const [query, setQuery] = useState(new Map<number, IFileSearchCriteria>());
+  const [query, setQuery] = useState(new Map<number, FileSearchCriteriaDTO>());
   const keySelector = useRef<HTMLSelectElement>(null);
   const idCounter = useRef(0);
 
@@ -31,7 +32,7 @@ export const AdvancedSearchDialog = observer(() => {
     setQuery(map);
   });
 
-  const add = useRef((criteria: IFileSearchCriteria) => {
+  const add = useRef((criteria: FileSearchCriteriaDTO) => {
     const id = idCounter.current;
     idCounter.current += 1;
     setQuery((map) => new Map(map.set(id, criteria)));

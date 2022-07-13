@@ -7,7 +7,8 @@ import { Button } from 'widgets/Button';
 import { IconSet } from 'widgets/Icons';
 import { Dialog } from 'widgets/popovers';
 import CriteriaBuilder from './CriteriaBuilder';
-import { ClientFileSearchCriteria, IFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { FileSearchCriteriaDTO } from 'src/api/FileSearchDTO';
 import { QueryEditor, QueryMatch } from './QueryEditor';
 
 type FileSearchEditorProps = {
@@ -40,7 +41,7 @@ const SearchItemDialog = observer<FileSearchEditorProps>(({ searchItem, onClose 
 
   const keySelector = useRef<HTMLSelectElement>(null);
 
-  const add = useRef((criteria: IFileSearchCriteria) => {
+  const add = useRef((criteria: FileSearchCriteriaDTO) => {
     const id = idCounter.current;
     idCounter.current += 1;
     setQuery((map) => new Map(map.set(id, criteria)));

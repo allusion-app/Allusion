@@ -1,18 +1,14 @@
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
 import Backend from 'src/backend/Backend';
-import { OrderDirection } from 'src/backend/DBRepository';
+import { OrderDirection } from 'src/api/FileSearchDTO';
 import ExifIO from 'common/ExifIO';
-import {
-  getMetaData,
-  IFile,
-  IMG_EXTENSIONS,
-  IMG_EXTENSIONS_TYPE,
-  mergeMovedFile,
-} from 'src/entities/File';
-import { generateId, ID } from 'src/entities/ID';
-import { ClientLocation, ClientSubLocation, ILocation } from 'src/entities/Location';
-import { DBSearchCriteria } from 'src/backend/DBSearchCriteria';
+import { getMetaData, mergeMovedFile } from 'src/entities/File';
+import { FileDTO, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
+import { generateId, ID } from 'src/api/ID';
+import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
+import { LocationDTO } from 'src/api/LocationDTO';
+import { SearchCriteriaDTO } from 'src/api/SearchCriteriaDTO';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';
 import { getThumbnailPath } from 'common/fs';
@@ -28,7 +24,7 @@ type Preferences = { extensions: IMG_EXTENSIONS_TYPE[] };
  * Note: note comparing size, since it can change, e.g. when writing tags to file metadata.
  *   Could still include it, but just to check whether it's in the same ballpark
  */
-function areFilesIdenticalBesidesName(a: IFile, b: IFile): boolean {
+function areFilesIdenticalBesidesName(a: FileDTO, b: FileDTO): boolean {
   return (
     a.ino === b.ino ||
     (a.width === b.width &&
@@ -89,7 +85,7 @@ class LocationStore {
     runInAction(() => this.locationList.replace(locations));
   }
 
-  save(loc: ILocation) {
+  save(loc: LocationDTO) {
     this.backend.saveLocation(loc);
   }
 
@@ -104,9 +100,9 @@ class LocationStore {
     // Get all files in the DB, set up data structures for quick lookups
     // Doing it for all locations, so files moved to another Location on disk, it's properly re-assigned in Allusion too
     // TODO: Could be optimized, at startup we already fetch all files, don't need to fetch them again here
-    const dbFiles: IFile[] = await this.backend.fetchFiles('id', OrderDirection.Asc);
+    const dbFiles: FileDTO[] = await this.backend.fetchFiles('id', OrderDirection.Asc);
     const dbFilesPathSet = new Set(dbFiles.map((f) => f.absolutePath));
-    const dbFilesByCreatedDate = new Map<number, IFile[]>();
+    const dbFilesByCreatedDate = new Map<number, FileDTO[]>();
     for (const file of dbFiles) {
       const time = file.dateCreated.getTime();
       const entry = dbFilesByCreatedDate.get(time);
@@ -172,7 +168,7 @@ class LocationStore {
       // Find all files that have been created (those on disk but not in DB)
       const createdPaths = diskFiles.filter((f) => !dbFilesPathSet.has(f.absolutePath));
       const createdFiles = await Promise.all(
-        createdPaths.map((path) => pathToIFile(path, location, this.rootStore.exifTool)),
+        createdPaths.map((path) => pathToFileDTO(path, location, this.rootStore.exifTool)),
       );
 
       // Find all files of this location that have been removed (those in DB but not on disk anymore)
@@ -215,14 +211,14 @@ class LocationStore {
       console.debug({ missingFiles, createdFiles, createdMatches, dbMatches });
 
       // Update renamed files in backend
-      const foundCreatedMatches = createdMatches.filter((m) => m !== undefined) as IFile[];
+      const foundCreatedMatches = createdMatches.filter((m) => m !== undefined) as FileDTO[];
       if (foundCreatedMatches.length > 0) {
         console.debug(
           `Found ${foundCreatedMatches.length} renamed/moved files in location ${location.name}. These are detected as new files, but will instead replace their original entry in the DB of Allusion`,
           foundCreatedMatches,
         );
         // TODO: remove thumbnail as well (clean-up needed, since the path changed)
-        const renamedFilesToUpdate: IFile[] = [];
+        const renamedFilesToUpdate: FileDTO[] = [];
         for (let i = 0; i < createdMatches.length; i++) {
           const match = createdMatches[i];
           if (match) {
@@ -245,7 +241,7 @@ class LocationStore {
           `Found ${numDbMatches.length} renamed/moved files in location ${location.name} that were already present in the database. Removing duplicates`,
           numDbMatches,
         );
-        const files: IFile[] = [];
+        const files: FileDTO[] = [];
         for (let i = 0; i < dbMatches.length; i++) {
           const match = dbMatches[i];
           if (match) {
@@ -273,7 +269,7 @@ class LocationStore {
       // Also update files that have changed, e.g. when overwriting a file (with same filename)
       // --> update metadata (resolution, size) and recreate thumbnail
       // This can be accomplished by comparing the dateLastIndexed of the file in DB to dateModified of the file on disk
-      const updatedFiles: IFile[] = [];
+      const updatedFiles: FileDTO[] = [];
       const thumbnailDirectory = runInAction(() => this.rootStore.uiStore.thumbnailDirectory);
       for (const dbFile of dbFiles) {
         const diskFile = diskFileMap.get(dbFile.absolutePath);
@@ -282,7 +278,7 @@ class LocationStore {
           dbFile.dateLastIndexed.getTime() < diskFile.dateModified.getTime() &&
           diskFile.size !== dbFile.size
         ) {
-          const newFile: IFile = {
+          const newFile: FileDTO = {
             ...dbFile,
             // Recreate metadata which checks the resolution of the image
             ...(await getMetaData(diskFile, this.rootStore.exifTool)),
@@ -326,7 +322,7 @@ class LocationStore {
     console.log('changing location path', location, newPath);
     // First, update the absolute path of all files from this location
     const locFiles = await this.findLocationFiles(location.id);
-    const files: IFile[] = locFiles.map((f) => ({
+    const files: FileDTO[] = locFiles.map((f) => ({
       ...f,
       absolutePath: SysPath.join(newPath, f.relativePath),
     }));
@@ -416,7 +412,7 @@ class LocationStore {
     // TODO: Should make N configurable, or determine based on the system/disk performance
     const N = 50;
     const files = await promiseAllLimit(
-      filePaths.map((path) => () => pathToIFile(path, location, this.rootStore.exifTool)),
+      filePaths.map((path) => () => pathToFileDTO(path, location, this.rootStore.exifTool)),
       N,
       showProgressToaster,
       () => isCancelled,
@@ -463,7 +459,7 @@ class LocationStore {
     const fileStore = this.rootStore.fileStore;
 
     // Gather file data
-    const file = await pathToIFile(fileStats, location, this.rootStore.exifTool);
+    const file = await pathToFileDTO(fileStats, location, this.rootStore.exifTool);
 
     // Check if file is being moved/renamed (which is detected as a "add" event followed by "remove" event)
     const match = runInAction(() => fileStore.fileList.find((f) => f.ino === fileStats.ino));
@@ -477,8 +473,8 @@ class LocationStore {
       }
       fileStore.replaceMovedFile(match, file);
     } else if (dbMatch) {
-      const newIFile = mergeMovedFile(dbMatch, file);
-      this.rootStore.fileStore.save(newIFile);
+      const newFileDTO = mergeMovedFile(dbMatch, file);
+      this.rootStore.fileStore.save(newFileDTO);
     } else {
       await this.backend.createFilesFromPath(fileStats.absolutePath, [file]);
 
@@ -504,8 +500,8 @@ class LocationStore {
   /**
    * Fetches the files belonging to a location
    */
-  @action async findLocationFiles(locationId: ID): Promise<IFile[]> {
-    const crit: DBSearchCriteria<IFile, ID> = {
+  @action async findLocationFiles(locationId: ID): Promise<FileDTO[]> {
+    const crit: SearchCriteriaDTO<FileDTO, ID> = {
       key: 'locationId',
       operator: 'equals',
       value: locationId,
@@ -515,7 +511,7 @@ class LocationStore {
   }
 
   @action async removeSublocationFiles(subLoc: ClientSubLocation): Promise<void> {
-    const crit: DBSearchCriteria<IFile, ID> = {
+    const crit: SearchCriteriaDTO<FileDTO, ID> = {
       key: 'absolutePath',
       operator: 'startsWith',
       value: subLoc.path,
@@ -557,11 +553,11 @@ export type FileStats = {
   ino: string;
 };
 
-export async function pathToIFile(
+export async function pathToFileDTO(
   stats: FileStats,
   loc: ClientLocation,
   exifIO: ExifIO,
-): Promise<IFile> {
+): Promise<FileDTO> {
   const now = new Date();
   return {
     absolutePath: stats.absolutePath,

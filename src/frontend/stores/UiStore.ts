@@ -1,7 +1,8 @@
 import { action, computed, makeAutoObservable, makeObservable, observable } from 'mobx';
 import { ClientFile } from 'src/entities/File';
-import { ID } from 'src/entities/ID';
-import { ClientFileSearchCriteria, IFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { ID } from 'src/api/ID';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { FileSearchCriteriaDTO } from 'src/api/FileSearchDTO';
 import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
@@ -78,7 +79,7 @@ class UiStore {
   public readonly fileSelection = new Selection<ClientFile>();
   public readonly tagSelection = new Selection<ClientTag>();
 
-  public readonly searchCriteriaList = observable<IFileSearchCriteria>([]);
+  public readonly searchCriteriaList = observable<FileSearchCriteriaDTO>([]);
 
   @observable thumbnailDirectory: string;
   @observable importDirectory: string; // for browser extension. Must be a (sub-folder of a) Location
@@ -476,13 +477,13 @@ class UiStore {
   }
 
   @action.bound
-  public addSearchCriteria(...queries: IFileSearchCriteria[]) {
+  public addSearchCriteria(...queries: FileSearchCriteriaDTO[]) {
     this.searchCriteriaList.push(...queries);
     this.viewQueryContent();
   }
 
   @action.bound
-  public toggleSearchCriterias(queries: IFileSearchCriteria[]) {
+  public toggleSearchCriterias(queries: FileSearchCriteriaDTO[]) {
     // TODO: can be improved
     const deepEqual = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -507,7 +508,7 @@ class UiStore {
   }
 
   @action.bound
-  public removeSearchCriteria(query: IFileSearchCriteria) {
+  public removeSearchCriteria(query: FileSearchCriteriaDTO) {
     this.searchCriteriaList.remove(query);
     if (this.searchCriteriaList.length > 0) {
       this.viewQueryContent();
@@ -517,7 +518,7 @@ class UiStore {
   }
 
   @action.bound
-  public replaceSearchCriteria(...queries: IFileSearchCriteria[]) {
+  public replaceSearchCriteria(...queries: FileSearchCriteriaDTO[]) {
     this.searchCriteriaList.replace(queries);
 
     if (this.searchCriteriaList.length > 0) {
