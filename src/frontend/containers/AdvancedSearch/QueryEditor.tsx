@@ -91,27 +91,31 @@ export const EditableCriteria = ({ index, id, criteria, dispatch }: EditableCrit
     });
   };
 
-  const rowId = `__criteria-${id}`;
+  const criteriaId = `__criteria-${id}`;
 
   return (
     <tr>
-      <th scope="row" id={rowId}>
+      <th scope="row" id={criteriaId}>
         {index + 1}
       </th>
       <td>
-        <KeySelector labelledby={rowId} criteria={criteria} updateCriteria={updateCriteria} />
+        <KeySelector
+          labelledby={`${criteriaId} col-key`}
+          criteria={criteria}
+          updateCriteria={updateCriteria}
+        />
       </td>
       <td>
-        <OperatorSelector labelledby={`${rowId} col-operator`} criteria={criteria} />
+        <OperatorSelector labelledby={`${criteriaId} col-operator`} criteria={criteria} />
       </td>
       <td>
-        <ValueInput labelledby={`${rowId} col-value`} criteria={criteria} />
+        <ValueInput labelledby={`${criteriaId} col-value`} criteria={criteria} />
       </td>
       <td>
         <button
           className="btn-icon"
           data-tooltip={`Remove Criteria ${index + 1}`}
-          aria-labelledby={`col-remove ${rowId}`}
+          aria-labelledby={`col-remove ${criteriaId}`}
           type="button"
           onClick={removeCriteria}
         >

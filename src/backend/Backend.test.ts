@@ -60,9 +60,11 @@ describe('Backend', () => {
     describe('removeTag', () => {
       it('should remove the tag from all files with that tag when removing that tag', async () => {
         await backend.createTag({ ...mockTag });
-        await backend.createFile({ ...mockFile, id: '1', tags: [mockTag.id] });
-        await backend.createFile({ ...mockFile, id: '2' });
-        await backend.removeTag(mockTag.id);
+        await backend.createFiles([
+          { ...mockFile, id: '1', tags: [mockTag.id] },
+          { ...mockFile, id: '2' },
+        ]);
+        await backend.removeTags([mockTag.id]);
         const dbFiles = await backend.fetchFiles('id', OrderDirection.Desc);
         expect(dbFiles).toHaveLength(2);
         expect(dbFiles[0].tags).toHaveLength(0);
@@ -72,8 +74,8 @@ describe('Backend', () => {
       it('should not remove other tags from the files of which a tag was deleted', async () => {
         await backend.createTag({ ...mockTag, id: 'tag1' });
         await backend.createTag({ ...mockTag, id: 'tag2' });
-        await backend.createFile({ ...mockFile, id: '1', tags: ['tag1', 'tag2'] });
-        await backend.removeTag('tag1');
+        await backend.createFiles([{ ...mockFile, id: '1', tags: ['tag1', 'tag2'] }]);
+        await backend.removeTags(['tag1']);
 
         const dbFiles = await backend.fetchFiles('id', OrderDirection.Desc);
 
@@ -89,7 +91,7 @@ describe('Backend', () => {
         await backend.createTag({ ...mockTag, id: 'tag1' });
         await backend.createTag({ ...mockTag, id: 'tag2' });
         await backend.createTag({ ...mockTag, id: 'tag3' });
-        await backend.createFile({ ...mockFile, id: '1', tags: ['tag1', 'tag2', 'tag3'] });
+        await backend.createFiles([{ ...mockFile, id: '1', tags: ['tag1', 'tag2', 'tag3'] }]);
         await backend.removeTags(['tag1', 'tag3']);
 
         const dbFiles = await backend.fetchFiles('id', OrderDirection.Desc);

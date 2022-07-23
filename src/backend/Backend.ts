@@ -113,9 +113,9 @@ export default class Backend {
     return this.tagRepository.create(tag);
   }
 
-  public async createFile(file: FileDTO): Promise<void> {
-    console.info('Backend: Creating file...', file);
-    return this.fileRepository.create(file);
+  public async createFiles(files: FileDTO[]): Promise<void> {
+    console.info('Backend: Creating files...', files);
+    return this.fileRepository.createMany(files);
   }
 
   public async createLocation(location: LocationDTO): Promise<void> {
@@ -158,24 +158,6 @@ export default class Backend {
     console.info('Backend: Saving searches...', searches);
     this.backupScheduler.notifyChange();
     return this.searchRepository.updateMany(searches);
-  }
-
-  public async removeTag(tag: ID): Promise<void> {
-    console.info('Backend: Removing tag...', tag);
-    // We have to make sure files tagged with this tag should be untagged
-    // Get all files with this tag
-    const filesWithTag = await this.fileRepository.find([
-      { key: 'tags', value: [tag], operator: 'contains', valueType: 'array' },
-    ]);
-    // Remove tag from files
-    for (const file of filesWithTag) {
-      file.tags.splice(file.tags.indexOf(tag), 1);
-    }
-    // Update files in db
-    await this.saveFiles(filesWithTag);
-    // Remove tag from db
-    this.backupScheduler.notifyChange();
-    return this.tagRepository.remove(tag);
   }
 
   public async removeTags(tags: ID[]): Promise<void> {
@@ -273,8 +255,7 @@ export default class Backend {
     const newFiles = files.filter((file) =>
       existingFilesInPath.every((f) => f.absolutePath !== file.absolutePath),
     );
-    console.debug('Creating files...');
-    await this.fileRepository.createMany(newFiles);
+    await this.createFiles(newFiles);
     console.debug('Done!');
   }
 

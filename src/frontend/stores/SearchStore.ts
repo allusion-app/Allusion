@@ -93,7 +93,7 @@ class SearchStore {
     this.backend.saveSearches(
       this.searchList
         .slice(startIndex, endIndex + 1)
-        .map((search, index) => search.serialize(index)),
+        .map((search, index) => search.serialize(startIndex + index)),
     );
   }
 
