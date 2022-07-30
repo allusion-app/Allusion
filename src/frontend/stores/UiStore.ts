@@ -1,3 +1,4 @@
+import { shell } from 'electron';
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe } from 'mobx';
 import { ClientFile, IFile } from 'src/entities/File';
@@ -51,6 +52,7 @@ export interface IHotkeyMap {
 
   // Other
   openPreviewWindow: string;
+  openExternal: string;
 }
 
 // https://blueprintjs.com/docs/#core/components/hotkeys.dialog
@@ -72,6 +74,7 @@ export const defaultHotkeyMap: IHotkeyMap = {
   search: 'mod + f',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
+  openExternal: 'mod + enter',
 };
 
 /**
@@ -343,6 +346,16 @@ class UiStore {
     if (document.activeElement && document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
+  }
+
+  @action.bound openExternal() {
+    // Don't open when no files have been selected
+    if (this.fileSelection.size === 0) {
+      return;
+    }
+
+    const absolutePaths = Array.from(this.fileSelection, (file) => file.absolutePath);
+    absolutePaths.forEach((path) => shell.openExternal(`file://${path}`).catch(console.error));
   }
 
   @action.bound toggleInspector() {
@@ -748,6 +761,8 @@ class UiStore {
     } else if (matches(hotkeyMap.openPreviewWindow)) {
       this.openPreviewWindow();
       e.preventDefault(); // prevent scrolling with space when opening the preview window
+    } else if (matches(hotkeyMap.openExternal)) {
+      this.openExternal();
       // Search
     } else if (matches(hotkeyMap.search)) {
       (document.querySelector('.searchbar input') as HTMLElement).focus();
