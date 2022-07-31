@@ -7,13 +7,13 @@ export interface Loader extends Decoder {
 }
 
 export interface Decoder {
-  decode: (buffer: Buffer) => ImageData;
+  decode: (buffer: Buffer) => Promise<ImageData>;
 }
 
 /** Returns a string that can be used as img src attribute */
 export async function getBlob(decoder: Decoder, path: string): Promise<string> {
   const buf = await fse.readFile(path);
-  const data = decoder.decode(buf);
+  const data = await decoder.decode(buf);
   const blob = await new Promise<Blob>((resolve, reject) =>
     dataToCanvas(data).toBlob(
       (blob) => (blob !== null ? resolve(blob) : reject()),
@@ -31,7 +31,7 @@ export async function generateThumbnail(
   thumbnailSize: number,
 ): Promise<void> {
   const buffer = await fse.readFile(inputPath);
-  const data = decoder.decode(buffer);
+  const data = await decoder.decode(buffer);
   const sampledCanvas = getSampledCanvas(dataToCanvas(data), thumbnailSize);
   const quality = computeQuality(sampledCanvas, thumbnailSize);
   const blobBuffer = await new Promise<ArrayBuffer>((resolve, reject) =>

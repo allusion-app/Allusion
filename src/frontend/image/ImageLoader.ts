@@ -8,11 +8,13 @@ import { generateThumbnailUsingWorker } from './ThumbnailGeneration';
 import StreamZip from 'node-stream-zip';
 import ExrLoader from './ExrLoader';
 import { generateThumbnail, getBlob } from './util';
+import PsdLoader from './PSDLoader';
 
 type FormatHandlerType =
   | 'web'
   | 'tifLoader'
   | 'exrLoader'
+  | 'psdLoader'
   | 'extractEmbeddedThumbnailOnly'
   | 'none';
 
@@ -28,7 +30,7 @@ const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   svg: 'none',
   tif: 'tifLoader',
   tiff: 'tifLoader',
-  psd: 'extractEmbeddedThumbnailOnly',
+  psd: 'psdLoader',
   kra: 'extractEmbeddedThumbnailOnly',
   // xcf: 'extractEmbeddedThumbnailOnly',
   exr: 'exrLoader',
@@ -40,6 +42,7 @@ type ObjectURL = string;
 class ImageLoader {
   private tifLoader: TifLoader;
   private exrLoader: ExrLoader;
+  private psdLoader: PsdLoader;
 
   private srcBufferCache: WeakMap<ClientFile, ObjectURL> = new WeakMap();
   private bufferCacheTimer: WeakMap<ClientFile, number> = new WeakMap();
@@ -47,11 +50,12 @@ class ImageLoader {
   constructor(private exifIO: ExifIO) {
     this.tifLoader = new TifLoader();
     this.exrLoader = new ExrLoader();
+    this.psdLoader = new PsdLoader();
     this.ensureThumbnail = action(this.ensureThumbnail.bind(this));
   }
 
   async init(): Promise<void> {
-    await Promise.all([this.tifLoader.init(), this.exrLoader.init()]);
+    await Promise.all([this.tifLoader.init(), this.exrLoader.init(), this.psdLoader.init()]);
   }
 
   needsThumbnail(file: IFile) {
@@ -82,7 +86,12 @@ class ImageLoader {
     };
 
     if (await fse.pathExists(thumbnailPath)) {
-      return false;
+      // Files like PSDs have a tendency to change: Check if thumbnail needs an update
+      const fileStats = await fse.stat(absolutePath);
+      const thumbStats = await fse.stat(thumbnailPath);
+      if (fileStats.mtime < thumbStats.ctime) {
+        return false; // if file mod date is before thumbnail creation date, keep using the same thumbnail
+      }
     }
 
     const handlerType = FormatHandlers[extension];
@@ -115,6 +124,10 @@ class ImageLoader {
           updateThumbnailPath(file, thumbnailPath);
         }
         break;
+      case 'psdLoader':
+        await generateThumbnail(this.psdLoader, absolutePath, thumbnailPath, thumbnailMaxSize);
+        updateThumbnailPath(file, thumbnailPath);
+        break;
       case 'none':
         // No thumbnail for this format
         file.setThumbnailPath(file.absolutePath);
@@ -145,6 +158,11 @@ class ImageLoader {
         this.updateCache(file, src);
         return src;
       }
+      case 'psdLoader':
+        const src =
+          this.srcBufferCache.get(file) ?? (await getBlob(this.psdLoader, file.absolutePath));
+        this.updateCache(file, src);
+        return src;
       // TODO: krita has full image also embedded (mergedimage.png)
       case 'extractEmbeddedThumbnailOnly':
       case 'none':

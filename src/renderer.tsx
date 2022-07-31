@@ -22,6 +22,7 @@ import PreviewApp from './frontend/Preview';
 import Overlay from './frontend/Overlay';
 import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
 import { promiseRetry } from '../common/timeout';
+import { IS_DEV } from 'common/process';
 
 const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
 
@@ -35,7 +36,13 @@ backend
     await rootStore.init(IS_PREVIEW_WINDOW);
     RendererMessenger.initialized();
   })
-  .catch((err) => console.error('Could not initialize backend!', err));
+  .catch((err) => {
+    console.error('Could not initialize backend!', err);
+    window.alert('An error has occurred, check the console for more details');
+    if (!IS_DEV) {
+      RendererMessenger.toggleDevTools();
+    }
+  });
 
 if (IS_PREVIEW_WINDOW) {
   RendererMessenger.onReceivePreviewFiles(

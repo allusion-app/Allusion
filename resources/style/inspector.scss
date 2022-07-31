@@ -82,6 +82,14 @@ table#file-info {
   td {
     padding-left: 1rem;
     word-break: break-word;
+
+    line-height: normal;
+    display: block;
+
+    // for fields with loads of text (like descriptions), limit the height
+    max-height: 200px;
+    overflow-y: auto;
+    // resize: vertical; // would be nice to enable only when overflowing
   }
 
   a {
