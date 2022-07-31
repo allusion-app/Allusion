@@ -32,14 +32,15 @@ export class PsdReaderWorker {
   }
 
   async readImage(data: Buffer) {
+    // TODO: Could also read files here if passing in the path: const data = await fse.readFile(absolutePath);
+
     // skipping thumbnail and layer images here so we don't have to clear and convert them all
     // before posting data back
-    // const data = await fse.readFile(absolutePath);
+    // TODO: look into using the skipThumbnail: false option for faster thumbnail extraction
     const psd = readPsd(data, {
       skipLayerImageData: true,
       skipThumbnail: true,
       useImageData: true,
-      // TODO: look into using the skipThumbnail: false option for faster thumbnail extraction
     });
 
     // imageData is available through the useImageData flag
