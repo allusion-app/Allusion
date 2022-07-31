@@ -15,7 +15,7 @@ import { IDataStorage } from '../api/data-storage';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
- * This helps code organization by enforcing a clear seperation between backend/frontend logic.
+ * This helps code organization by enforcing a clear separation between backend/frontend logic.
  * Whenever we want to change things in the backend, this should have no consequences in the frontend.
  * The backend has access to the database, which is exposed to the frontend through a set of endpoints.
  */
