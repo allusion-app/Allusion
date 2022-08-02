@@ -414,9 +414,7 @@ class UiStore {
   }
 
   @action.bound closeMoveFilesToTrash() {
-    if (this.fileSelection.size > 0) {
-      this.isMoveFilesToTrashOpen = false;
-    }
+    this.isMoveFilesToTrashOpen = false;
   }
 
   @action.bound closeManyExternalFiles() {
