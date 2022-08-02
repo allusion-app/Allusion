@@ -81,7 +81,7 @@ export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) =>
   return (
     <>
       <MenuItem
-        onClick={() => shell.openExternal(`file://${file.absolutePath}`).catch(console.error)}
+        onClick={() => uiStore.openExternal()}
         text="Open External"
         icon={IconSet.OPEN_EXTERNAL}
         disabled={file.isBroken}
