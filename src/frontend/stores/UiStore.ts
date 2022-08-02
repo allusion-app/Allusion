@@ -16,6 +16,7 @@ import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, notEmpty } from 'common/core';
 import { debounce } from 'common/timeout';
 import RootStore from './RootStore';
+import { maxNumberOfExternalFilesBeforeWarning } from 'common/config';
 
 export const enum ViewMethod {
   List,
@@ -161,6 +162,8 @@ class UiStore {
   @observable isToolbarFileRemoverOpen: boolean = false;
   /** Dialog for moving files to the system's trash bin, and removing from Allusion's database */
   @observable isMoveFilesToTrashOpen: boolean = false;
+  /** Dialog to warn the user when he tries to open too many files externally */
+  @observable isManyExternalFilesOpen: boolean = false;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
@@ -348,9 +351,14 @@ class UiStore {
     }
   }
 
-  @action.bound openExternal() {
+  @action.bound openExternal(warnIfTooManyFiles: boolean = true) {
     // Don't open when no files have been selected
     if (this.fileSelection.size === 0) {
+      return;
+    }
+
+    if (warnIfTooManyFiles && this.fileSelection.size > maxNumberOfExternalFilesBeforeWarning) {
+      this.isManyExternalFilesOpen = true;
       return;
     }
 
@@ -409,6 +417,10 @@ class UiStore {
     if (this.fileSelection.size > 0) {
       this.isMoveFilesToTrashOpen = false;
     }
+  }
+
+  @action.bound closeManyExternalFiles() {
+    this.isManyExternalFilesOpen = false;
   }
 
   @action.bound toggleToolbarTagPopover() {
