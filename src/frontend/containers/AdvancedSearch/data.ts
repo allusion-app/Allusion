@@ -1,5 +1,5 @@
 import { ID } from 'src/api/ID';
-import { IFile, IMG_EXTENSIONS } from 'src/api/FileDTO';
+import { FileDTO, IMG_EXTENSIONS } from 'src/api/FileDTO';
 import { FileSearchCriteria } from 'src/entities/SearchCriteria';
 import {
   OperatorType,
@@ -35,7 +35,7 @@ interface Field<K extends Key, O extends Operator, V extends Value> {
 }
 
 export type Key = keyof Pick<
-  IFile,
+  FileDTO,
   'name' | 'absolutePath' | 'tags' | 'extension' | 'size' | 'dateAdded'
 >;
 export type Operator = OperatorType;

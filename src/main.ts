@@ -20,7 +20,7 @@ import TrayIconMac from '../resources/logo/png/black/allusionTemplate@2x.png'; /
 import ClipServer, { IImportItem } from './clipper/server';
 import { createBugReport, githubUrl } from '../common/config';
 import { IS_DEV, IS_MAC } from '../common/process';
-import { ITag, ROOT_TAG_ID } from 'src/api/TagDTO';
+import { TagDTO, ROOT_TAG_ID } from 'src/api/TagDTO';
 import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 import { Rectangle } from 'electron/main';
 
@@ -855,7 +855,7 @@ async function addTagsToFile(item: IImportItem): Promise<boolean> {
   return false;
 }
 
-async function getTags(): Promise<ITag[]> {
+async function getTags(): Promise<TagDTO[]> {
   if (mainWindow !== null) {
     const { tags } = await MainMessenger.getTags(mainWindow.webContents);
     return tags.filter((t) => t.id !== ROOT_TAG_ID);

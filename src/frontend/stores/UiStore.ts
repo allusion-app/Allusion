@@ -1,7 +1,7 @@
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe } from 'mobx';
 import { ClientFile } from 'src/entities/File';
-import { IFile } from 'src/api/FileDTO';
+import { FileDTO } from 'src/api/FileDTO';
 import { ID } from 'src/api/ID';
 import {
   ClientBaseCriteria,
@@ -840,7 +840,7 @@ class UiStore {
         this.isRememberSearchEnabled = Boolean(prefs.isRememberSearchEnabled);
         if (this.isRememberSearchEnabled) {
           // If remember search criteria, restore the search criteria list...
-          const serializedCriteriaList: SearchCriteria<IFile>[] = JSON.parse(
+          const serializedCriteriaList: SearchCriteria<FileDTO>[] = JSON.parse(
             prefs.searchCriteriaList || '[]',
           );
           const newCrits = serializedCriteriaList.map((c) => ClientBaseCriteria.deserialize(c));

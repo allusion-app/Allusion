@@ -1,7 +1,7 @@
 import { action, Lambda, makeObservable, observable, observe } from 'mobx';
 import RootStore from 'src/frontend/stores/RootStore';
 import { camelCaseToSpaced } from 'common/fmt';
-import { IFile } from 'src/api/FileDTO';
+import { FileDTO } from 'src/api/FileDTO';
 import { ID } from 'src/api/ID';
 import {
   SearchCriteria,
@@ -18,13 +18,16 @@ import {
   NumberOperatorSymbols,
 } from '../api/SearchCriteriaDTO';
 
-export type IFileSearchCriteria = SearchCriteria<IFile>;
-export type FileSearchCriteria = ClientBaseCriteria<IFile>;
+export type IFileSearchCriteria = SearchCriteria<FileDTO>;
+export type FileSearchCriteria = ClientBaseCriteria<FileDTO>;
 
 // A dictionary of labels for (some of) the keys of the type we search for
 export type SearchKeyDict<T> = Partial<Record<keyof T, string>>;
 
-export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path', locationId: 'Location' };
+export const CustomKeyDict: SearchKeyDict<FileDTO> = {
+  absolutePath: 'Path',
+  locationId: 'Location',
+};
 
 export abstract class ClientBaseCriteria<T> implements IBaseSearchCriteria<T> {
   @observable public key: keyof T;

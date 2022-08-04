@@ -1,16 +1,16 @@
 import { action, IObservableArray, makeObservable, observable } from 'mobx';
 import RootStore from 'src/frontend/stores/RootStore';
-import { IFile } from 'src/api/FileDTO';
+import { FileDTO } from 'src/api/FileDTO';
 import { ID } from 'src/api/ID';
 import { ClientBaseCriteria } from './SearchCriteria';
 import { SearchCriteria } from 'src/api/SearchCriteriaDTO';
-import { IFileSearchItem } from 'src/api/FileSearchItemDTO';
+import { FileSearchItemDTO } from 'src/api/FileSearchItemDTO';
 
 export class ClientFileSearchItem {
   id: ID;
   @observable name: string = '';
   @observable matchAny: boolean = false;
-  readonly criteria: IObservableArray<ClientBaseCriteria<IFile>>;
+  readonly criteria: IObservableArray<ClientBaseCriteria<FileDTO>>;
 
   /** A custom index defined by the user for ordering the search items */
   index: number = 0;
@@ -21,7 +21,7 @@ export class ClientFileSearchItem {
   constructor(
     id: ID,
     name: string,
-    criteria: SearchCriteria<IFile>[],
+    criteria: SearchCriteria<FileDTO>[],
     matchAny: boolean,
     index: number,
   ) {
@@ -42,7 +42,7 @@ export class ClientFileSearchItem {
     this.matchAny = value;
   }
 
-  @action.bound setCriteria(newCriteria: ClientBaseCriteria<IFile>[]): void {
+  @action.bound setCriteria(newCriteria: ClientBaseCriteria<FileDTO>[]): void {
     this.criteria.replace(newCriteria);
   }
 
@@ -50,7 +50,7 @@ export class ClientFileSearchItem {
     this.index = newIndex;
   }
 
-  @action.bound serialize(rootStore: RootStore): IFileSearchItem {
+  @action.bound serialize(rootStore: RootStore): FileSearchItemDTO {
     return {
       id: this.id,
       name: this.name,

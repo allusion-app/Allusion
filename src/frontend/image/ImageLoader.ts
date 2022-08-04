@@ -3,7 +3,7 @@ import { action } from 'mobx';
 import ExifIO from 'common/ExifIO';
 import { thumbnailMaxSize } from 'common/config';
 import { ClientFile } from 'src/entities/File';
-import { IFile, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
 import TifLoader from './TifLoader';
 import { generateThumbnailUsingWorker } from './ThumbnailGeneration';
 import StreamZip from 'node-stream-zip';
@@ -55,7 +55,7 @@ class ImageLoader {
     await Promise.all([this.tifLoader.init(), this.exrLoader.init()]);
   }
 
-  needsThumbnail(file: IFile) {
+  needsThumbnail(file: FileDTO) {
     // Not using thumbnails for gifs, since they're mostly used for animations, which doesn't get preserved in thumbnails
     if (file.extension === 'gif') {
       return false;

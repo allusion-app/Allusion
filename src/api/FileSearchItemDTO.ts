@@ -1,11 +1,11 @@
-import { IFile } from './FileDTO';
+import { FileDTO } from './FileDTO';
 import { ID } from './ID';
 import { SearchCriteria } from './SearchCriteriaDTO';
 
-export interface IFileSearchItem {
+export type FileSearchItemDTO = {
   id: ID;
   name: string;
-  criteria: SearchCriteria<IFile>[];
+  criteria: SearchCriteria<FileDTO>[];
   matchAny?: boolean;
   index: number;
-}
+};

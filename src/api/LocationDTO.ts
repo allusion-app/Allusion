@@ -1,15 +1,15 @@
 import { ID } from './ID';
 
-export interface ILocation {
+export type LocationDTO = {
   id: ID;
   path: string;
   dateAdded: Date;
-  subLocations: ISubLocation[];
+  subLocations: SubLocationDTO[];
   index: number;
-}
+};
 
-export interface ISubLocation {
+export type SubLocationDTO = {
   name: string;
   isExcluded: boolean;
-  subLocations: ISubLocation[];
-}
+  subLocations: SubLocationDTO[];
+};

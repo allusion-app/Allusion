@@ -3,7 +3,7 @@ import { IReactionDisposer, observable, reaction, computed, action, makeObservab
 import TagStore from 'src/frontend/stores/TagStore';
 
 import { ID } from 'src/api/ID';
-import { ROOT_TAG_ID, ITag } from '../api/TagDTO';
+import { ROOT_TAG_ID, TagDTO } from '../api/TagDTO';
 
 /**
  * A Tag as it is stored in the Client.
@@ -180,7 +180,7 @@ export class ClientTag {
     this.store.refetchFiles();
   }
 
-  serialize(): ITag {
+  serialize(): TagDTO {
     return {
       id: this.id,
       name: this.name,

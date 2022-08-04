@@ -9,13 +9,13 @@ import { FolderWatcherWorker } from 'src/frontend/workers/folderWatcher.worker';
 import { RendererMessenger } from 'src/Messaging';
 import { IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
 import { ID } from 'src/api/ID';
-import { ISubLocation, ILocation } from 'src/api/LocationDTO';
+import { SubLocationDTO, LocationDTO } from 'src/api/LocationDTO';
 
 /** Sorts alphanumerically, "natural" sort */
-const sort = (a: ISubLocation, b: ISubLocation) =>
+const sort = (a: SubLocationDTO, b: SubLocationDTO) =>
   a.name.localeCompare(b.name, undefined, { numeric: true });
 
-export class ClientSubLocation implements ISubLocation {
+export class ClientSubLocation implements SubLocationDTO {
   @observable
   name: string;
   @observable
@@ -27,7 +27,7 @@ export class ClientSubLocation implements ISubLocation {
     public path: string,
     name: string,
     excluded: boolean,
-    subLocations: ISubLocation[],
+    subLocations: SubLocationDTO[],
   ) {
     this.name = name;
     this.isExcluded = excluded;
@@ -56,7 +56,7 @@ export class ClientSubLocation implements ISubLocation {
   };
 
   @action.bound
-  serialize(): ISubLocation {
+  serialize(): SubLocationDTO {
     return {
       name: this.name.toString(),
       isExcluded: Boolean(this.isExcluded),
@@ -97,7 +97,7 @@ export class ClientLocation {
     id: ID,
     path: string,
     dateAdded: Date,
-    subLocations: ISubLocation[],
+    subLocations: SubLocationDTO[],
     extensions: IMG_EXTENSIONS_TYPE[],
     index: number,
   ) {
@@ -211,7 +211,7 @@ export class ClientLocation {
   }
 
   @action.bound
-  serialize(): ILocation {
+  serialize(): LocationDTO {
     return {
       id: this.id,
       path: this.path,

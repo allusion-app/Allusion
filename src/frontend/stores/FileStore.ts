@@ -2,7 +2,7 @@ import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
 import Backend from 'src/backend/Backend';
 import { ClientFile, mergeMovedFile } from 'src/entities/File';
-import { FileOrder, IFile, IMG_EXTENSIONS_TYPE, OrderDirection } from 'src/api/FileDTO';
+import { FileOrder, FileDTO, IMG_EXTENSIONS_TYPE, OrderDirection } from 'src/api/FileDTO';
 import { ID } from 'src/api/ID';
 import { ClientLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
@@ -39,7 +39,7 @@ class FileStore {
   /** A map of file ID to its index in the file list, for quick lookups by ID */
   private readonly index = new Map<ID, number>();
 
-  private filesToSave: Map<ID, IFile> = new Map();
+  private filesToSave: Map<ID, FileDTO> = new Map();
 
   /** The origin of the current files that are shown */
   @observable private content: Content = Content.All;
@@ -250,7 +250,7 @@ class FileStore {
   }
 
   /** Replaces a file's data when it is moved or renamed */
-  @action.bound replaceMovedFile(file: ClientFile, newData: IFile) {
+  @action.bound replaceMovedFile(file: ClientFile, newData: FileDTO) {
     const index = this.index.get(file.id);
     if (index !== undefined) {
       file.dispose();
@@ -425,7 +425,7 @@ class FileStore {
     }
     try {
       const fetchedFiles = await this.backend.searchFiles(
-        criteria as [SearchCriteria<IFile>],
+        criteria as [SearchCriteria<FileDTO>],
         this.orderBy,
         this.orderDirection,
         uiStore.searchMatchAny,
@@ -493,7 +493,7 @@ class FileStore {
     return loc;
   }
 
-  save(file: IFile) {
+  save(file: FileDTO) {
     file.dateModified = new Date();
 
     // Save files in bulk so saving many files at once is faster.
@@ -545,7 +545,7 @@ class FileStore {
     }
   }
 
-  @action async updateFromBackend(backendFiles: IFile[]): Promise<void> {
+  @action async updateFromBackend(backendFiles: FileDTO[]): Promise<void> {
     if (backendFiles.length === 0) {
       this.rootStore.uiStore.clearFileSelection();
       this.fileListLastModified = new Date();
@@ -613,7 +613,7 @@ class FileStore {
    * @param backendFiles
    * @returns A list of Client files, and a set of keys that was reused from the existing fileList
    */
-  @action private filesFromBackend(backendFiles: IFile[]): [ClientFile[], Set<ID>] {
+  @action private filesFromBackend(backendFiles: FileDTO[]): [ClientFile[], Set<ID>] {
     const reusedStatus = new Set<ID>();
 
     const clientFiles = backendFiles.map((f) => {

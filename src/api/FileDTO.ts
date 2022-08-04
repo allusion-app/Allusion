@@ -1,6 +1,6 @@
 import { ID } from './ID';
 
-export interface IFile {
+export type FileDTO = {
   id: ID;
   /** Identifier for a file that persists after renaming/moving (retrieved from fs.Stats.ino) */
   ino: string;
@@ -29,7 +29,7 @@ export interface IFile {
   height: number;
   /** Date when this file was created (from the OS, not related to Allusion) */
   dateCreated: Date;
-}
+};
 
 export const IMG_EXTENSIONS = [
   'gif',
@@ -57,7 +57,7 @@ export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 
 export type SearchOrder<T> = keyof T | 'random';
 
-export type FileOrder = SearchOrder<IFile>;
+export type FileOrder = SearchOrder<FileDTO>;
 
 export const enum OrderDirection {
   Asc,

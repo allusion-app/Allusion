@@ -3,7 +3,7 @@ import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { IFile } from 'src/api/FileDTO';
+import { FileDTO } from 'src/api/FileDTO';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { LocationRemoval, SubLocationExclusion } from 'src/frontend/components/RemovalAlert';
@@ -97,7 +97,7 @@ const isExpanded = (nodeData: ClientLocation | ClientSubLocation, treeData: ITre
 const pathAsSearchPath = (path: string) => `${path}${SysPath.sep}`;
 
 const pathCriteria = (path: string) =>
-  new ClientStringSearchCriteria<IFile>('absolutePath', pathAsSearchPath(path), 'startsWith');
+  new ClientStringSearchCriteria<FileDTO>('absolutePath', pathAsSearchPath(path), 'startsWith');
 
 const customKeys = (
   search: (path: string) => void,

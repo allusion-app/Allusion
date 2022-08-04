@@ -12,7 +12,7 @@ import FileStore from 'src/frontend/stores/FileStore';
 import { FileStats } from 'src/frontend/stores/LocationStore';
 import { ID } from 'src/api/ID';
 import { ClientTag } from './Tag';
-import { IFile, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
 
 /** Retrieved file meta data information */
 interface IMetaData {
@@ -61,7 +61,7 @@ export class ClientFile {
   // Is undefined until existence check has been completed
   @observable isBroken?: boolean;
 
-  constructor(store: FileStore, fileProps: IFile) {
+  constructor(store: FileStore, fileProps: FileDTO) {
     this.store = store;
 
     this.ino = fileProps.ino;
@@ -147,7 +147,7 @@ export class ClientFile {
     this.tags.replace(tags);
   }
 
-  serialize(): IFile {
+  serialize(): FileDTO {
     return {
       id: this.id,
       ino: this.ino,
@@ -190,7 +190,7 @@ export async function getMetaData(stats: FileStats, exifIO: ExifIO): Promise<IMe
 }
 
 /** Merges an existing IFile file with a newly detected IFile: only the paths of the oldFile will be updated  */
-export function mergeMovedFile(oldFile: IFile, newFile: IFile): IFile {
+export function mergeMovedFile(oldFile: FileDTO, newFile: FileDTO): FileDTO {
   return {
     ...oldFile,
     ino: newFile.ino,

@@ -3,7 +3,7 @@ import { ID } from './ID';
 export const ROOT_TAG_ID = 'root';
 /* A Tag as it is represented in the Database */
 
-export interface ITag {
+export type TagDTO = {
   id: ID;
   name: string;
   dateAdded: Date;
@@ -11,4 +11,4 @@ export interface ITag {
   subTags: ID[];
   /** Whether any files with this tag should be hidden */
   isHidden: boolean;
-}
+};

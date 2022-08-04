@@ -4,7 +4,7 @@ import Backend from 'src/backend/Backend';
 
 import { generateId, ID } from 'src/api/ID';
 import { ClientTag } from 'src/entities/Tag';
-import { ITag, ROOT_TAG_ID } from 'src/api/TagDTO';
+import { TagDTO, ROOT_TAG_ID } from 'src/api/TagDTO';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 
 import RootStore from './RootStore';
@@ -157,11 +157,11 @@ class TagStore {
     this.rootStore.fileStore.refetch();
   }
 
-  save(tag: ITag) {
+  save(tag: TagDTO) {
     this.backend.saveTag(tag);
   }
 
-  @action private createTagGraph(backendTags: ITag[]) {
+  @action private createTagGraph(backendTags: TagDTO[]) {
     // Create tags
     for (const { id, name, dateAdded, color, isHidden } of backendTags) {
       // Create entity and set properties

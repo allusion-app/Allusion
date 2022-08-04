@@ -2,7 +2,7 @@ import { BrowserWindow, ipcMain, ipcRenderer, WebContents } from 'electron';
 import path from 'path';
 import { IImportItem } from './clipper/server';
 import { ID } from 'src/api/ID';
-import { ITag } from 'src/api/TagDTO';
+import { TagDTO } from 'src/api/TagDTO';
 import { ViewMethod } from './frontend/stores/UiStore';
 
 /**
@@ -58,7 +58,7 @@ export const enum WindowSystemButtonPress {
 export const GET_TAGS = 'GET_TAGS';
 export const RECEIVE_TAGS = 'RECEIVE_TAGS';
 export interface ITagsMessage {
-  tags: ITag[];
+  tags: TagDTO[];
 }
 
 export const STORE_FILE = 'STORE_FILE';
