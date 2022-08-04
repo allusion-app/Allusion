@@ -4,7 +4,7 @@ import { action } from 'mobx';
 import path from 'path';
 import { useEffect } from 'react';
 import { ClientFile } from 'src/entities/File';
-import { ID } from 'src/entities/ID';
+import { ID } from 'src/api/ID';
 
 export interface IThumbnailMessage {
   filePath: string;

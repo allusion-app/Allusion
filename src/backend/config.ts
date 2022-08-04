@@ -1,5 +1,5 @@
 import { Transaction } from 'dexie';
-import { IFile } from 'src/entities/File';
+import { IFile } from 'src/api/FileDTO';
 import { IDBVersioningConfig } from './DBRepository';
 import fse from 'fs-extra';
 

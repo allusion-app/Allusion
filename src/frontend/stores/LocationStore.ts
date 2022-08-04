@@ -1,17 +1,12 @@
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
 import Backend from 'src/backend/Backend';
-import { OrderDirection } from 'src/backend/DBRepository';
 import ExifIO from 'common/ExifIO';
-import {
-  getMetaData,
-  IFile,
-  IMG_EXTENSIONS,
-  IMG_EXTENSIONS_TYPE,
-  mergeMovedFile,
-} from 'src/entities/File';
-import { generateId, ID } from 'src/entities/ID';
-import { ClientLocation, ClientSubLocation, ILocation } from 'src/entities/Location';
+import { getMetaData, mergeMovedFile } from 'src/entities/File';
+import { IFile, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE, OrderDirection } from 'src/api/FileDTO';
+import { generateId, ID } from 'src/api/ID';
+import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
+import { ILocation } from 'src/api/LocationDTO';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/Messaging';

@@ -7,22 +7,9 @@ import { AppToaster } from 'src/frontend/components/Toaster';
 import LocationStore, { FileStats } from 'src/frontend/stores/LocationStore';
 import { FolderWatcherWorker } from 'src/frontend/workers/folderWatcher.worker';
 import { RendererMessenger } from 'src/Messaging';
-import { IMG_EXTENSIONS_TYPE } from './File';
-import { ID, IResource, ISerializable } from './ID';
-
-export interface ILocation extends IResource {
-  id: ID;
-  path: string;
-  dateAdded: Date;
-  subLocations: ISubLocation[];
-  index: number;
-}
-
-export interface ISubLocation {
-  name: string;
-  isExcluded: boolean;
-  subLocations: ISubLocation[];
-}
+import { IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
+import { ID } from 'src/api/ID';
+import { ISubLocation, ILocation } from 'src/api/LocationDTO';
 
 /** Sorts alphanumerically, "natural" sort */
 const sort = (a: ISubLocation, b: ISubLocation) =>
@@ -78,7 +65,7 @@ export class ClientSubLocation implements ISubLocation {
   }
 }
 
-export class ClientLocation implements ISerializable<ILocation> {
+export class ClientLocation {
   private store: LocationStore;
 
   worker?: Remote<FolderWatcherWorker>;

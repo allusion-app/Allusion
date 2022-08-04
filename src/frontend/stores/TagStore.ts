@@ -2,8 +2,9 @@ import { action, observable, computed, makeObservable } from 'mobx';
 
 import Backend from 'src/backend/Backend';
 
-import { generateId, ID } from 'src/entities/ID';
-import { ClientTag, ITag, ROOT_TAG_ID } from 'src/entities/Tag';
+import { generateId, ID } from 'src/api/ID';
+import { ClientTag } from 'src/entities/Tag';
+import { ITag, ROOT_TAG_ID } from 'src/api/TagDTO';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 
 import RootStore from './RootStore';

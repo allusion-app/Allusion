@@ -1,7 +1,6 @@
 import Dexie, { IndexableType, Transaction, WhereClause } from 'dexie';
 import { shuffleArray } from 'common/core';
 
-import { ID, IResource } from '../entities/ID';
 import {
   SearchCriteria,
   ITagSearchCriteria,
@@ -10,7 +9,8 @@ import {
   IDateSearchCriteria,
   StringOperatorType,
   NumberOperatorType,
-} from '../entities/SearchCriteria';
+} from '../api/SearchCriteriaDTO';
+import { OrderDirection, SearchOrder } from 'src/api/FileDTO';
 
 export interface IDBCollectionConfig {
   name: string;
@@ -48,13 +48,6 @@ export const dbDelete = (dbName: string): void => {
   Dexie.delete(dbName);
 };
 
-export const enum OrderDirection {
-  Asc,
-  Desc,
-}
-
-export type SearchOrder<T> = keyof T | 'random';
-
 export interface IDbRequest<T> {
   count?: number;
   order?: SearchOrder<T>;
@@ -72,7 +65,7 @@ export type SearchConjunction = 'and' | 'or';
  * A class that manages data retrieval and updating with a database.
  * Extends Dexie: https://dexie.org/docs/Tutorial/Consuming-dexie-as-a-module
  */
-export default class BaseRepository<T extends IResource> {
+export default class BaseRepository<ID extends string, T> {
   db: Dexie;
   collectionName: string;
   collection: Dexie.Table<T, ID>;

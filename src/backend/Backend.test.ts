@@ -10,9 +10,8 @@ jest.mock('../Messaging', () => ({
 }));
 
 import Backend from './Backend';
-import { ITag, ROOT_TAG_ID } from '../entities/Tag';
-import { IFile } from '../entities/File';
-import { OrderDirection } from './DBRepository';
+import { ITag, ROOT_TAG_ID } from '../api/TagDTO';
+import { IFile, OrderDirection } from '../api/FileDTO';
 
 let backend = new Backend();
 

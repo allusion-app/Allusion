@@ -1,6 +1,6 @@
 import { action, makeObservable, observable } from 'mobx';
 import Backend from 'src/backend/Backend';
-import { generateId, ID } from 'src/entities/ID';
+import { generateId, ID } from 'src/api/ID';
 import { ClientBaseCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import RootStore from './RootStore';
@@ -51,7 +51,7 @@ class SearchStore {
   @action.bound async remove(search: ClientFileSearchItem) {
     // Do we need to dispose anything? There is no save handler, observable properties should be disposed automatically I believe
     this.searchList.remove(search);
-    await this.backend.removeSearch(search.serialize(this.rootStore));
+    await this.backend.removeSearch(search.id);
   }
 
   @action.bound async duplicate(search: ClientFileSearchItem) {

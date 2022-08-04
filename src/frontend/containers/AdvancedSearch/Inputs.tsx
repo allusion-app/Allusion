@@ -1,6 +1,6 @@
 import { action } from 'mobx';
 import React, { ForwardedRef, forwardRef, useState } from 'react';
-import { IMG_EXTENSIONS } from 'src/entities/File';
+import { IMG_EXTENSIONS } from 'src/api/FileDTO';
 import {
   BinaryOperators,
   NumberOperators,
@@ -8,7 +8,7 @@ import {
   StringOperatorLabels,
   StringOperatorType,
   TagOperators,
-} from 'src/entities/SearchCriteria';
+} from 'src/api/SearchCriteriaDTO';
 import { ClientTag } from 'src/entities/Tag';
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useStore } from 'src/frontend/contexts/StoreContext';

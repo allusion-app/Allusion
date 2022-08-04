@@ -1,8 +1,22 @@
 import { action, Lambda, makeObservable, observable, observe } from 'mobx';
 import RootStore from 'src/frontend/stores/RootStore';
 import { camelCaseToSpaced } from 'common/fmt';
-import { IFile } from './File';
-import { ID, ISerializable } from './ID';
+import { IFile } from 'src/api/FileDTO';
+import { ID } from 'src/api/ID';
+import {
+  SearchCriteria,
+  IBaseSearchCriteria,
+  OperatorType,
+  INumberSearchCriteria,
+  IDateSearchCriteria,
+  IStringSearchCriteria,
+  ITagSearchCriteria,
+  TagOperatorType,
+  StringOperatorType,
+  StringOperatorLabels,
+  NumberOperatorType,
+  NumberOperatorSymbols,
+} from '../api/SearchCriteriaDTO';
 
 export type IFileSearchCriteria = SearchCriteria<IFile>;
 export type FileSearchCriteria = ClientBaseCriteria<IFile>;
@@ -12,104 +26,7 @@ export type SearchKeyDict<T> = Partial<Record<keyof T, string>>;
 
 export const CustomKeyDict: SearchKeyDict<IFile> = { absolutePath: 'Path', locationId: 'Location' };
 
-// Trick for converting array to type https://stackoverflow.com/a/49529930/2350481
-export const NumberOperators = [
-  'equals',
-  'notEqual',
-  'smallerThan',
-  'smallerThanOrEquals',
-  'greaterThan',
-  'greaterThanOrEquals',
-] as const;
-export type NumberOperatorType = typeof NumberOperators[number];
-
-export const NumberOperatorSymbols: Record<NumberOperatorType, string> = {
-  equals: '=',
-  notEqual: '≠',
-  smallerThan: '<',
-  smallerThanOrEquals: '≤',
-  greaterThan: '>',
-  greaterThanOrEquals: '≥',
-};
-
-export const StringOperators = [
-  'equalsIgnoreCase',
-  'equals',
-  'notEqual',
-  'startsWithIgnoreCase',
-  'startsWith',
-  'notStartsWith',
-  'contains',
-  'notContains',
-] as const;
-export type StringOperatorType = typeof StringOperators[number];
-
-export const StringOperatorLabels: Record<StringOperatorType, string> = {
-  equalsIgnoreCase: 'Equals',
-  equals: 'Equals', // not available as dropdown option to user to avoid clutter
-  notEqual: 'Not Equal',
-  startsWithIgnoreCase: 'Starts With',
-  startsWith: 'Starts With', // not available as dropdown option to user to avoid clutter
-  notStartsWith: 'Not Starts With',
-  contains: 'Contains',
-  notContains: 'Not Contains',
-};
-
-export const BinaryOperators = ['equals', 'notEqual'] as const;
-export type BinaryOperatorType = typeof BinaryOperators[number];
-
-export const TagOperators = [
-  'contains',
-  'notContains',
-  'containsRecursively',
-  'containsNotRecursively',
-] as const;
-export type TagOperatorType = typeof TagOperators[number];
-
-export type OperatorType =
-  | TagOperatorType
-  | NumberOperatorType
-  | StringOperatorType
-  | BinaryOperatorType;
-
-// FFR: Boolean keys are not supported in IndexedDB/Dexie - must store booleans as 0/1
-interface IBaseSearchCriteria<T> {
-  key: keyof T;
-  valueType: 'number' | 'date' | 'string' | 'array';
-  readonly operator: OperatorType;
-}
-
-export interface ITagSearchCriteria<T> extends IBaseSearchCriteria<T> {
-  value: ID[];
-  operator: TagOperatorType;
-}
-
-export interface IStringSearchCriteria<T> extends IBaseSearchCriteria<T> {
-  value: string;
-  operator: StringOperatorType;
-}
-
-export interface INumberSearchCriteria<T> extends IBaseSearchCriteria<T> {
-  value: number;
-  operator: NumberOperatorType;
-}
-
-export interface IDateSearchCriteria<T> extends IBaseSearchCriteria<T> {
-  value: Date;
-  /** TODO: Would be cool to have relative time: e.g. modified today/last month */
-  operator: NumberOperatorType;
-}
-
-// General search criteria for a database entity
-export type SearchCriteria<T> =
-  | ITagSearchCriteria<T>
-  | IStringSearchCriteria<T>
-  | INumberSearchCriteria<T>
-  | IDateSearchCriteria<T>;
-
-export abstract class ClientBaseCriteria<T>
-  implements IBaseSearchCriteria<T>, ISerializable<SearchCriteria<T>, RootStore>
-{
+export abstract class ClientBaseCriteria<T> implements IBaseSearchCriteria<T> {
   @observable public key: keyof T;
   @observable public valueType: 'number' | 'date' | 'string' | 'array';
   @observable public operator: OperatorType;

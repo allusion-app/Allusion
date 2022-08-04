@@ -1,11 +1,15 @@
-import { IResource, ID } from '../../entities/ID';
+import { ID } from 'src/api/ID';
 
 export const dbInit = jest.fn();
+
+interface IRecord {
+  id: ID;
+}
 
 /**
  * An in-memory database implementation for testing purposes
  */
-export default class InMemoryDbRepository<T extends IResource> {
+export default class InMemoryDbRepository<T extends IRecord> {
   /** A dictionairy containing all database entries in memory */
   items: T[] = [];
 

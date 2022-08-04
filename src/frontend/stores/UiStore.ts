@@ -1,13 +1,14 @@
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe } from 'mobx';
-import { ClientFile, IFile } from 'src/entities/File';
-import { ID } from 'src/entities/ID';
+import { ClientFile } from 'src/entities/File';
+import { IFile } from 'src/api/FileDTO';
+import { ID } from 'src/api/ID';
 import {
   ClientBaseCriteria,
   ClientTagSearchCriteria,
   FileSearchCriteria,
-  SearchCriteria,
 } from 'src/entities/SearchCriteria';
+import { SearchCriteria } from 'src/api/SearchCriteriaDTO';
 import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/Messaging';
 import { IS_PREVIEW_WINDOW } from 'common/window';

@@ -2,16 +2,15 @@ import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
 import Dexie, { IndexableType } from 'dexie';
 import fse from 'fs-extra';
 import { RendererMessenger } from 'src/Messaging';
-import { IFileSearchItem } from 'src/entities/SearchItem';
-import { FileOrder } from 'src/frontend/stores/FileStore';
-import { IFile } from '../entities/File';
-import { ID } from '../entities/ID';
-import { ILocation } from '../entities/Location';
-import { IStringSearchCriteria, SearchCriteria } from '../entities/SearchCriteria';
-import { ITag, ROOT_TAG_ID } from '../entities/Tag';
+import { IFileSearchItem } from 'src/api/FileSearchItemDTO';
+import { IFile, FileOrder, OrderDirection } from '../api/FileDTO';
+import { ID } from '../api/ID';
+import { ILocation } from '../api/LocationDTO';
+import { IStringSearchCriteria, SearchCriteria } from '../api/SearchCriteriaDTO';
+import { ITag, ROOT_TAG_ID } from '../api/TagDTO';
 import BackupScheduler from './BackupScheduler';
 import { dbConfig, DB_NAME } from './config';
-import DBRepository, { dbDelete, dbInit, OrderDirection } from './DBRepository';
+import DBRepository, { dbDelete, dbInit } from './DBRepository';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -20,10 +19,10 @@ import DBRepository, { dbDelete, dbInit, OrderDirection } from './DBRepository';
  * The backend has access to the database, which is exposed to the frontend through a set of endpoints.
  */
 export default class Backend {
-  private fileRepository: DBRepository<IFile>;
-  private tagRepository: DBRepository<ITag>;
-  private locationRepository: DBRepository<ILocation>;
-  private searchRepository: DBRepository<IFileSearchItem>;
+  private fileRepository: DBRepository<ID, IFile>;
+  private tagRepository: DBRepository<ID, ITag>;
+  private locationRepository: DBRepository<ID, ILocation>;
+  private searchRepository: DBRepository<ID, IFileSearchItem>;
   private db: Dexie;
   private backupScheduler: BackupScheduler;
 
@@ -228,10 +227,10 @@ export default class Backend {
     return this.locationRepository.remove(location);
   }
 
-  async removeSearch(search: IFileSearchItem): Promise<void> {
+  async removeSearch(search: ID): Promise<void> {
     console.info('Backend: Removing search...', search);
     this.backupScheduler.notifyChange();
-    return this.searchRepository.remove(search.id);
+    return this.searchRepository.remove(search);
   }
 
   async countFiles(

@@ -21,5 +21,5 @@
     "strict": true
   },
   "include": ["widgets/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts", "wasm/**/*", "common/**/*"],
-  "exclude": ["node_modules", "dist", "resources", "build"]
+  "exclude": ["**/node_modules", "**/.*/*", "dist", "resources", "build"]
 }

@@ -1,7 +1,7 @@
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { generateId } from 'src/entities/ID';
+import { generateId } from 'src/api/ID';
 import { CustomKeyDict, FileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import { SavedSearchRemoval } from 'src/frontend/components/RemovalAlert';

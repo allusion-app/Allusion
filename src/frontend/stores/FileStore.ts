@@ -1,15 +1,12 @@
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
 import Backend from 'src/backend/Backend';
-import { SearchOrder, OrderDirection } from 'src/backend/DBRepository';
-import { ClientFile, IFile, IMG_EXTENSIONS_TYPE, mergeMovedFile } from 'src/entities/File';
-import { ID } from 'src/entities/ID';
+import { ClientFile, mergeMovedFile } from 'src/entities/File';
+import { FileOrder, IFile, IMG_EXTENSIONS_TYPE, OrderDirection } from 'src/api/FileDTO';
+import { ID } from 'src/api/ID';
 import { ClientLocation } from 'src/entities/Location';
-import {
-  ClientStringSearchCriteria,
-  ClientTagSearchCriteria,
-  SearchCriteria,
-} from 'src/entities/SearchCriteria';
+import { ClientStringSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
+import { SearchCriteria } from 'src/api/SearchCriteriaDTO';
 import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
 import { debounce } from 'common/timeout';
@@ -21,8 +18,6 @@ const FILE_STORAGE_KEY = 'Allusion_File';
 
 /** These fields are stored and recovered when the application opens up */
 const PersistentPreferenceFields: Array<keyof FileStore> = ['orderDirection', 'orderBy'];
-
-export type FileOrder = SearchOrder<IFile>;
 
 const enum Content {
   All,

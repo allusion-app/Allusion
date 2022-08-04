@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import Path from 'path';
 
 import { RendererMessenger } from 'src/Messaging';
-import { IMG_EXTENSIONS } from 'src/entities/File';
+import { IMG_EXTENSIONS } from 'src/api/FileDTO';
 import { ClientLocation } from 'src/entities/Location';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import LocationStore from 'src/frontend/stores/LocationStore';

@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { ID } from 'src/entities/ID';
+import { ID } from 'src/api/ID';
 import { IconSet } from 'widgets/Icons';
 import { Callout, InfoButton } from 'widgets/notifications';
 import { RadioGroup, Radio } from 'widgets/Radio';

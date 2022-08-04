@@ -20,7 +20,7 @@ import TrayIconMac from '../resources/logo/png/black/allusionTemplate@2x.png'; /
 import ClipServer, { IImportItem } from './clipper/server';
 import { createBugReport, githubUrl } from '../common/config';
 import { IS_DEV, IS_MAC } from '../common/process';
-import { ITag, ROOT_TAG_ID } from './entities/Tag';
+import { ITag, ROOT_TAG_ID } from 'src/api/TagDTO';
 import { MainMessenger, WindowSystemButtonPress } from './Messaging';
 import { Rectangle } from 'electron/main';
 

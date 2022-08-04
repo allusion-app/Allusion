@@ -1,4 +1,4 @@
-import { ID } from 'src/entities/ID';
+import { ID } from 'src/api/ID';
 import { ClientTag } from 'src/entities/Tag';
 
 import { IAction, IExpansionState } from '../../types';

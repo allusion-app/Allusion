@@ -2,27 +2,15 @@ import { IReactionDisposer, observable, reaction, computed, action, makeObservab
 
 import TagStore from 'src/frontend/stores/TagStore';
 
-import { ID, IResource, ISerializable } from './ID';
-
-export const ROOT_TAG_ID = 'root';
-
-/* A Tag as it is represented in the Database */
-export interface ITag extends IResource {
-  id: ID;
-  name: string;
-  dateAdded: Date;
-  color: string;
-  subTags: ID[];
-  /** Whether any files with this tag should be hidden */
-  isHidden: boolean;
-}
+import { ID } from 'src/api/ID';
+import { ROOT_TAG_ID, ITag } from '../api/TagDTO';
 
 /**
  * A Tag as it is stored in the Client.
  * It is stored in a MobX store, which can observe changed made to it and subsequently
  * update the entity in the backend.
  */
-export class ClientTag implements ISerializable<ITag> {
+export class ClientTag {
   private store: TagStore;
   private saveHandler: IReactionDisposer;
 

@@ -1,13 +1,13 @@
-import { ID } from 'src/entities/ID';
-import { IFile, IMG_EXTENSIONS } from 'src/entities/File';
+import { ID } from 'src/api/ID';
+import { IFile, IMG_EXTENSIONS } from 'src/api/FileDTO';
+import { FileSearchCriteria } from 'src/entities/SearchCriteria';
 import {
   OperatorType,
   StringOperatorType,
   TagOperatorType,
   NumberOperatorType,
   BinaryOperatorType,
-  FileSearchCriteria,
-} from 'src/entities/SearchCriteria';
+} from 'src/api/SearchCriteriaDTO';
 import {
   ClientStringSearchCriteria,
   ClientTagSearchCriteria,

@@ -1,22 +1,16 @@
 import { action, IObservableArray, makeObservable, observable } from 'mobx';
 import RootStore from 'src/frontend/stores/RootStore';
-import { IFile } from './File';
-import { ID } from './ID';
-import { ClientBaseCriteria, SearchCriteria } from './SearchCriteria';
+import { IFile } from 'src/api/FileDTO';
+import { ID } from 'src/api/ID';
+import { ClientBaseCriteria } from './SearchCriteria';
+import { SearchCriteria } from 'src/api/SearchCriteriaDTO';
+import { IFileSearchItem } from 'src/api/FileSearchItemDTO';
 
-export interface ISearchItem<T> {
-  id: ID;
-  name: string;
-  criteria: SearchCriteria<T>[];
-  matchAny?: boolean;
-  index: number;
-}
-
-export class ClientSearchItem<T> {
+export class ClientFileSearchItem {
   id: ID;
   @observable name: string = '';
   @observable matchAny: boolean = false;
-  readonly criteria: IObservableArray<ClientBaseCriteria<T>>;
+  readonly criteria: IObservableArray<ClientBaseCriteria<IFile>>;
 
   /** A custom index defined by the user for ordering the search items */
   index: number = 0;
@@ -27,7 +21,7 @@ export class ClientSearchItem<T> {
   constructor(
     id: ID,
     name: string,
-    criteria: SearchCriteria<T>[],
+    criteria: SearchCriteria<IFile>[],
     matchAny: boolean,
     index: number,
   ) {
@@ -48,7 +42,7 @@ export class ClientSearchItem<T> {
     this.matchAny = value;
   }
 
-  @action.bound setCriteria(newCriteria: ClientBaseCriteria<T>[]): void {
+  @action.bound setCriteria(newCriteria: ClientBaseCriteria<IFile>[]): void {
     this.criteria.replace(newCriteria);
   }
 
@@ -56,7 +50,7 @@ export class ClientSearchItem<T> {
     this.index = newIndex;
   }
 
-  @action.bound serialize(rootStore: RootStore): ISearchItem<T> {
+  @action.bound serialize(rootStore: RootStore): IFileSearchItem {
     return {
       id: this.id,
       name: this.name,
@@ -66,6 +60,3 @@ export class ClientSearchItem<T> {
     };
   }
 }
-
-export type IFileSearchItem = ISearchItem<IFile>;
-export class ClientFileSearchItem extends ClientSearchItem<IFile> {}

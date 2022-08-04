@@ -11,8 +11,8 @@ import React, {
   forwardRef,
 } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
-import { OrderDirection } from 'src/backend/DBRepository';
-import { ClientFile, IFile } from 'src/entities/File';
+import { ClientFile } from 'src/entities/File';
+import { IFile, OrderDirection } from 'src/api/FileDTO';
 import { debouncedThrottle } from 'common/timeout';
 import { GalleryProps } from './utils';
 import { useStore } from 'src/frontend/contexts/StoreContext';
