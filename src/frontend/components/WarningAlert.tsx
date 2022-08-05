@@ -18,7 +18,7 @@ export const ManyOpenExternal = observer(() => {
   return (
     <Alert
       open={uiStore.isManyExternalFilesOpen}
-      title={`Are you sure you want to open so many files (${selection.size}) in their respective external apps?`}
+      title={`Are you sure you want to open ${selection.size} images in their default application?`}
       icon={IconSet.WARNING}
       type="warning"
       primaryButtonText="Confirm"
@@ -30,7 +30,7 @@ export const ManyOpenExternal = observer(() => {
         uiStore.closeManyExternalFiles();
       }}
     >
-      <p>If your hardware is not powerful enough, it could overload your CPU capacity!</p>
+      <p>This may severely slow down your computer, to the point of it becoming unresponsive.</p>
       <div className="deletion-confirmation-list">
         {Array.from(selection).map((f) => (
           <div key={f.id}>{f.absolutePath}</div>
