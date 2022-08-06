@@ -1,7 +1,7 @@
 import { action, Lambda, makeObservable, observable, observe } from 'mobx';
 import RootStore from 'src/frontend/stores/RootStore';
 import { camelCaseToSpaced } from 'common/fmt';
-import { FileDTO } from 'src/api/FileDTO';
+import { FileDTO } from 'src/api/File';
 import { ID } from 'src/api/ID';
 import {
   SearchCriteria,
@@ -16,7 +16,7 @@ import {
   StringOperatorLabels,
   NumberOperatorType,
   NumberOperatorSymbols,
-} from '../api/SearchCriteriaDTO';
+} from '../api/SearchCriteria';
 
 export type IFileSearchCriteria = SearchCriteria<FileDTO>;
 export type FileSearchCriteria = ClientBaseCriteria<FileDTO>;

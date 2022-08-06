@@ -1,5 +1,5 @@
 import { Transaction } from 'dexie';
-import { FileDTO } from 'src/api/FileDTO';
+import { FileDTO } from 'src/api/File';
 import { DBVersioningConfig } from './DBRepository';
 import fse from 'fs-extra';
 

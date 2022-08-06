@@ -1,6 +1,6 @@
-import { FileDTO } from './FileDTO';
+import { FileDTO } from './File';
 import { ID } from './ID';
-import { SearchCriteria } from './SearchCriteriaDTO';
+import { SearchCriteria } from './SearchCriteria';
 
 export type FileSearchItemDTO = {
   id: ID;

@@ -4,7 +4,7 @@ import http, { Server } from 'http';
 import path from 'path';
 import ExifIO from '../../common/ExifIO';
 import { SERVER_PORT } from '../../common/config';
-import { TagDTO } from '../api/TagDTO';
+import { TagDTO } from '../api/Tag';
 
 /**
  * The clip server hosts endpoints for our browser extension to import images,

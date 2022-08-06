@@ -2,7 +2,7 @@ import { BrowserWindow, ipcMain, ipcRenderer, WebContents } from 'electron';
 import path from 'path';
 import { IImportItem } from './clipper/server';
 import { ID } from 'src/api/ID';
-import { TagDTO } from 'src/api/TagDTO';
+import { TagDTO } from 'src/api/Tag';
 import { ViewMethod } from './frontend/stores/UiStore';
 
 /**

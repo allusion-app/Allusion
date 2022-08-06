@@ -10,7 +10,7 @@ import {
   IDateSearchCriteria,
   StringOperatorType,
   NumberOperatorType,
-} from '../api/SearchCriteriaDTO';
+} from '../api/SearchCriteria';
 import { OrderDirection, SearchOrder } from 'src/api/IDataStorage';
 
 export type DBCollectionConfig = {

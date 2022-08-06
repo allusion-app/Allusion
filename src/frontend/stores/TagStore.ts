@@ -4,7 +4,7 @@ import { IDataStorage } from 'src/api/IDataStorage';
 
 import { generateId, ID } from 'src/api/ID';
 import { ClientTag } from 'src/entities/Tag';
-import { TagDTO, ROOT_TAG_ID } from 'src/api/TagDTO';
+import { TagDTO, ROOT_TAG_ID } from 'src/api/Tag';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 
 import RootStore from './RootStore';

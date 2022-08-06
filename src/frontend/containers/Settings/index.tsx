@@ -7,7 +7,7 @@ import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
-import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
+import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import useCustomTheme from 'src/frontend/hooks/useCustomTheme';
 import { RendererMessenger } from 'src/Messaging';

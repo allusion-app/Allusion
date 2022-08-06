@@ -13,7 +13,7 @@ import React, {
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
 import { OrderDirection } from 'src/api/IDataStorage';
 import { ClientFile } from 'src/entities/File';
-import { FileDTO } from 'src/api/FileDTO';
+import { FileDTO } from 'src/api/File';
 import { debouncedThrottle } from 'common/timeout';
 import { GalleryProps } from './utils';
 import { useStore } from 'src/frontend/contexts/StoreContext';

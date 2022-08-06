@@ -3,7 +3,7 @@ import { IReactionDisposer, observable, reaction, computed, action, makeObservab
 import TagStore from 'src/frontend/stores/TagStore';
 
 import { ID } from 'src/api/ID';
-import { ROOT_TAG_ID, TagDTO } from '../api/TagDTO';
+import { ROOT_TAG_ID, TagDTO } from '../api/Tag';
 
 /**
  * A Tag as it is stored in the Client.

@@ -12,7 +12,7 @@ import FileStore from 'src/frontend/stores/FileStore';
 import { FileStats } from 'src/frontend/stores/LocationStore';
 import { ID } from 'src/api/ID';
 import { ClientTag } from './Tag';
-import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/File';
 
 /** Retrieved file meta data information */
 interface IMetaData {

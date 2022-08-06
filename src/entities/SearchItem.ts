@@ -1,10 +1,10 @@
 import { action, IObservableArray, makeObservable, observable } from 'mobx';
 import RootStore from 'src/frontend/stores/RootStore';
-import { FileDTO } from 'src/api/FileDTO';
+import { FileDTO } from 'src/api/File';
 import { ID } from 'src/api/ID';
 import { ClientBaseCriteria } from './SearchCriteria';
-import { SearchCriteria } from 'src/api/SearchCriteriaDTO';
-import { FileSearchItemDTO } from 'src/api/FileSearchItemDTO';
+import { SearchCriteria } from 'src/api/SearchCriteria';
+import { FileSearchItemDTO } from 'src/api/FileSearchItem';
 
 export class ClientFileSearchItem {
   id: ID;

@@ -1,10 +1,10 @@
 import { IndexableType } from 'dexie';
-import { FileDTO } from './FileDTO';
-import { FileSearchItemDTO } from './FileSearchItemDTO';
+import { FileDTO } from './File';
+import { FileSearchItemDTO } from './FileSearchItem';
 import { ID } from './ID';
-import { LocationDTO } from './LocationDTO';
-import { SearchCriteria } from './SearchCriteriaDTO';
-import { TagDTO } from './TagDTO';
+import { LocationDTO } from './Location';
+import { SearchCriteria } from './SearchCriteria';
+import { TagDTO } from './Tag';
 
 export interface IDataStorage {
   fetchTags: () => Promise<TagDTO[]>;
