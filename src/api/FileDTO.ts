@@ -54,12 +54,3 @@ export const IMG_EXTENSIONS = [
   // TODO: 'blend', raw, etc.?
 ] as const;
 export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
-
-export type SearchOrder<T> = keyof T | 'random';
-
-export type FileOrder = SearchOrder<FileDTO>;
-
-export const enum OrderDirection {
-  Asc,
-  Desc,
-}

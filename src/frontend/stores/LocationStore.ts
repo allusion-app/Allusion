@@ -1,9 +1,9 @@
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
-import { IDataStorage } from 'src/api/IDataStorage';
+import { IDataStorage, OrderDirection } from 'src/api/IDataStorage';
 import ExifIO from 'common/ExifIO';
 import { getMetaData, mergeMovedFile } from 'src/entities/File';
-import { FileDTO, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE, OrderDirection } from 'src/api/FileDTO';
+import { FileDTO, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
 import { generateId, ID } from 'src/api/ID';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { LocationDTO } from 'src/api/LocationDTO';

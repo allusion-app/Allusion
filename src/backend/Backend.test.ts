@@ -11,7 +11,8 @@ jest.mock('../Messaging', () => ({
 
 import Backend from './Backend';
 import { TagDTO, ROOT_TAG_ID } from '../api/TagDTO';
-import { FileDTO, OrderDirection } from '../api/FileDTO';
+import { FileDTO } from '../api/FileDTO';
+import { OrderDirection } from '../api/IDataStorage';
 
 let backend = new Backend();
 
