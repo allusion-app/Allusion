@@ -1,3 +1,4 @@
+import { shell } from 'electron';
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe } from 'mobx';
 import { ClientFile, IFile } from 'src/entities/File';
@@ -15,6 +16,7 @@ import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, notEmpty } from 'common/core';
 import { debounce } from 'common/timeout';
 import RootStore from './RootStore';
+import { maxNumberOfExternalFilesBeforeWarning } from 'common/config';
 
 export const enum ViewMethod {
   List,
@@ -51,6 +53,7 @@ export interface IHotkeyMap {
 
   // Other
   openPreviewWindow: string;
+  openExternal: string;
 }
 
 // https://blueprintjs.com/docs/#core/components/hotkeys.dialog
@@ -72,6 +75,7 @@ export const defaultHotkeyMap: IHotkeyMap = {
   search: 'mod + f',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
+  openExternal: 'mod + enter',
 };
 
 /**
@@ -158,6 +162,8 @@ class UiStore {
   @observable isToolbarFileRemoverOpen: boolean = false;
   /** Dialog for moving files to the system's trash bin, and removing from Allusion's database */
   @observable isMoveFilesToTrashOpen: boolean = false;
+  /** Dialog to warn the user when he tries to open too many files externally */
+  @observable isManyExternalFilesOpen: boolean = false;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
@@ -345,6 +351,21 @@ class UiStore {
     }
   }
 
+  @action.bound openExternal(warnIfTooManyFiles: boolean = true) {
+    // Don't open when no files have been selected
+    if (this.fileSelection.size === 0) {
+      return;
+    }
+
+    if (warnIfTooManyFiles && this.fileSelection.size > maxNumberOfExternalFilesBeforeWarning) {
+      this.isManyExternalFilesOpen = true;
+      return;
+    }
+
+    const absolutePaths = Array.from(this.fileSelection, (file) => file.absolutePath);
+    absolutePaths.forEach((path) => shell.openExternal(`file://${path}`).catch(console.error));
+  }
+
   @action.bound toggleInspector() {
     this.isInspectorOpen = !this.isInspectorOpen;
   }
@@ -393,9 +414,11 @@ class UiStore {
   }
 
   @action.bound closeMoveFilesToTrash() {
-    if (this.fileSelection.size > 0) {
-      this.isMoveFilesToTrashOpen = false;
-    }
+    this.isMoveFilesToTrashOpen = false;
+  }
+
+  @action.bound closeManyExternalFiles() {
+    this.isManyExternalFilesOpen = false;
   }
 
   @action.bound toggleToolbarTagPopover() {
@@ -748,6 +771,8 @@ class UiStore {
     } else if (matches(hotkeyMap.openPreviewWindow)) {
       this.openPreviewWindow();
       e.preventDefault(); // prevent scrolling with space when opening the preview window
+    } else if (matches(hotkeyMap.openExternal)) {
+      this.openExternal();
       // Search
     } else if (matches(hotkeyMap.search)) {
       (document.querySelector('.searchbar input') as HTMLElement).focus();

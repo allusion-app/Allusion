@@ -19,6 +19,8 @@ const isRenderer = process.type === 'renderer';
 // The values 600 : 400 needed to be flipped in order to get 600 on OSX Retina
 export const thumbnailMaxSize = isRenderer && globalThis.devicePixelRatio >= 1.5 ? 400 : 600;
 
+export const maxNumberOfExternalFilesBeforeWarning = 9;
+
 /**
  * Creates the body of a bug report
  * @param error The error message (error.stack if available)
