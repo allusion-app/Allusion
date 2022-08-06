@@ -11,6 +11,7 @@ import { TagDTO, ROOT_TAG_ID } from '../api/TagDTO';
 import BackupScheduler from './BackupScheduler';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbDelete, dbInit } from './DBRepository';
+import { IDataStorage } from 'src/api/IDataStorage';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -18,7 +19,7 @@ import DBRepository, { dbDelete, dbInit } from './DBRepository';
  * Whenever we want to change things in the backend, this should have no consequences in the frontend.
  * The backend has access to the database, which is exposed to the frontend through a set of endpoints.
  */
-export default class Backend {
+export default class Backend implements IDataStorage {
   private fileRepository: DBRepository<FileDTO>;
   private tagRepository: DBRepository<TagDTO>;
   private locationRepository: DBRepository<LocationDTO>;
@@ -244,7 +245,7 @@ export default class Backend {
     console.debug('Done!');
   }
 
-  async clearDatabase(): Promise<void> {
+  async clear(): Promise<void> {
     console.info('Clearing database...');
     return dbDelete(DB_NAME);
   }
@@ -259,7 +260,7 @@ export default class Backend {
   async restoreDatabaseFromFile(path: string): Promise<void> {
     const buffer = await fse.readFile(path);
     const blob = new Blob([buffer]);
-    await this.clearDatabase();
+    await this.clear();
     console.log('Importing database backup', path);
     await importDB(blob);
     // There also is "importInto" which as an "clearTablesBeforeImport" option,

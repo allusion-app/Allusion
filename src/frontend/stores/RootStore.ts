@@ -1,6 +1,6 @@
 import { configure, runInAction } from 'mobx';
 
-import Backend from 'src/backend/Backend';
+import { IDataStorage } from 'src/api/IDataStorage';
 
 import FileStore from './FileStore';
 import TagStore from './TagStore';
@@ -37,7 +37,7 @@ class RootStore {
   readonly imageLoader: ImageLoader;
   readonly clearDatabase: () => Promise<void>;
 
-  constructor(private backend: Backend) {
+  constructor(private backend: IDataStorage) {
     this.tagStore = new TagStore(backend, this);
     this.fileStore = new FileStore(backend, this);
     this.locationStore = new LocationStore(backend, this);
@@ -48,7 +48,7 @@ class RootStore {
 
     // SAFETY: The backend instance has the same lifetime as the RootStore.
     this.clearDatabase = async () => {
-      await backend.clearDatabase();
+      await backend.clear();
       RendererMessenger.clearDatabase();
       this.uiStore.clearPersistentPreferences();
       this.fileStore.clearPersistentPreferences();

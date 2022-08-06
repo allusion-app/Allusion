@@ -1,6 +1,6 @@
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
-import Backend from 'src/backend/Backend';
+import { IDataStorage } from 'src/api/IDataStorage';
 import ExifIO from 'common/ExifIO';
 import { getMetaData, mergeMovedFile } from 'src/entities/File';
 import { FileDTO, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE, OrderDirection } from 'src/api/FileDTO';
@@ -33,7 +33,7 @@ function areFilesIdenticalBesidesName(a: FileDTO, b: FileDTO): boolean {
 }
 
 class LocationStore {
-  private readonly backend: Backend;
+  private readonly backend: IDataStorage;
   private readonly rootStore: RootStore;
 
   readonly locationList = observable<ClientLocation>([]);
@@ -42,7 +42,7 @@ class LocationStore {
   // TODO: Maybe per location/sub-location?
   readonly enabledFileExtensions = observable(new Set<IMG_EXTENSIONS_TYPE>());
 
-  constructor(backend: Backend, rootStore: RootStore) {
+  constructor(backend: IDataStorage, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
 

@@ -1,6 +1,6 @@
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
-import Backend from 'src/backend/Backend';
+import { IDataStorage } from 'src/api/IDataStorage';
 import { ClientFile, mergeMovedFile } from 'src/entities/File';
 import { FileOrder, FileDTO, IMG_EXTENSIONS_TYPE, OrderDirection } from 'src/api/FileDTO';
 import { ID } from 'src/api/ID';
@@ -27,7 +27,7 @@ const enum Content {
 }
 
 class FileStore {
-  private readonly backend: Backend;
+  private readonly backend: IDataStorage;
   private readonly rootStore: RootStore;
 
   readonly fileList = observable<ClientFile>([]);
@@ -52,7 +52,7 @@ class FileStore {
   debouncedRefetch: () => void;
   debouncedSaveFilesToSave: () => Promise<void>;
 
-  constructor(backend: Backend, rootStore: RootStore) {
+  constructor(backend: IDataStorage, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
     makeObservable(this);
