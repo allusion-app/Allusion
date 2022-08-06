@@ -11,7 +11,7 @@ import {
   StringOperatorType,
   NumberOperatorType,
 } from '../api/SearchCriteriaDTO';
-import { OrderDirection, SearchOrder } from 'src/api/FileDTO';
+import { OrderDirection, SearchOrder } from 'src/api/IDataStorage';
 
 export type DBCollectionConfig = {
   name: string;

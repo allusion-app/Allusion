@@ -3,7 +3,7 @@ import Dexie, { IndexableType } from 'dexie';
 import fse from 'fs-extra';
 import { RendererMessenger } from 'src/Messaging';
 import { FileSearchItemDTO } from 'src/api/FileSearchItemDTO';
-import { FileDTO, FileOrder, OrderDirection } from '../api/FileDTO';
+import { FileDTO } from '../api/FileDTO';
 import { ID } from '../api/ID';
 import { LocationDTO } from '../api/LocationDTO';
 import { IStringSearchCriteria, SearchCriteria } from '../api/SearchCriteriaDTO';
@@ -11,7 +11,7 @@ import { TagDTO, ROOT_TAG_ID } from '../api/TagDTO';
 import BackupScheduler from './BackupScheduler';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbDelete, dbInit } from './DBRepository';
-import { IDataStorage } from 'src/api/IDataStorage';
+import { IDataStorage, FileOrder, OrderDirection } from 'src/api/IDataStorage';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.

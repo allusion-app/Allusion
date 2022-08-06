@@ -1,5 +1,5 @@
 import { IndexableType } from 'dexie';
-import { FileDTO, FileOrder, OrderDirection } from './FileDTO';
+import { FileDTO } from './FileDTO';
 import { FileSearchItemDTO } from './FileSearchItemDTO';
 import { ID } from './ID';
 import { LocationDTO } from './LocationDTO';
@@ -38,4 +38,13 @@ export interface IDataStorage {
   backupDatabaseToFile: (path: string) => Promise<void>;
   restoreDatabaseFromFile: (path: string) => Promise<void>;
   peekDatabaseFile: (path: string) => Promise<{ numTags: number; numFiles: number }>;
+}
+
+export type SearchOrder<T> = keyof T | 'random';
+
+export type FileOrder = SearchOrder<FileDTO>;
+
+export const enum OrderDirection {
+  Asc,
+  Desc,
 }

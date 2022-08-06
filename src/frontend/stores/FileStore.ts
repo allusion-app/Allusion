@@ -1,8 +1,8 @@
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
-import { IDataStorage } from 'src/api/IDataStorage';
+import { IDataStorage, FileOrder, OrderDirection } from 'src/api/IDataStorage';
 import { ClientFile, mergeMovedFile } from 'src/entities/File';
-import { FileOrder, FileDTO, IMG_EXTENSIONS_TYPE, OrderDirection } from 'src/api/FileDTO';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/FileDTO';
 import { ID } from 'src/api/ID';
 import { ClientLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
