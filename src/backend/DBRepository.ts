@@ -1,6 +1,7 @@
 import Dexie, { IndexableType, Transaction, WhereClause } from 'dexie';
 import { shuffleArray } from 'common/core';
 
+import { ID } from 'src/api/ID';
 import {
   SearchCriteria,
   ITagSearchCriteria,
@@ -12,22 +13,22 @@ import {
 } from '../api/SearchCriteriaDTO';
 import { OrderDirection, SearchOrder } from 'src/api/FileDTO';
 
-export interface IDBCollectionConfig {
+export type DBCollectionConfig = {
   name: string;
   schema: string;
-}
+};
 
-export interface IDBVersioningConfig {
+export type DBVersioningConfig = {
   version: number;
-  collections: IDBCollectionConfig[];
+  collections: DBCollectionConfig[];
   upgrade?: (tx: Transaction) => void | Promise<void>;
-}
+};
 
 /**
  * A function that should be called before using the database.
  * It initializes the object stores
  */
-export const dbInit = (configs: IDBVersioningConfig[], dbName: string): Dexie => {
+export const dbInit = (configs: DBVersioningConfig[], dbName: string): Dexie => {
   const db = new Dexie(dbName);
 
   // Initialize for each DB version: https://dexie.org/docs/Tutorial/Design#database-versioning
@@ -48,24 +49,21 @@ export const dbDelete = (dbName: string): void => {
   Dexie.delete(dbName);
 };
 
-export interface IDbRequest<T> {
+type DbQueryRequest<T> = {
   count?: number;
   order?: SearchOrder<T>;
   orderDirection?: OrderDirection;
-}
-
-export interface IDbQueryRequest<T> extends IDbRequest<T> {
   criteria: SearchCriteria<T> | [SearchCriteria<T>];
   matchAny?: boolean;
-}
+};
 
-export type SearchConjunction = 'and' | 'or';
+type SearchConjunction = 'and' | 'or';
 
 /**
  * A class that manages data retrieval and updating with a database.
  * Extends Dexie: https://dexie.org/docs/Tutorial/Consuming-dexie-as-a-module
  */
-export default class BaseRepository<ID extends string, T> {
+export default class BaseRepository<T> {
   db: Dexie;
   collectionName: string;
   collection: Dexie.Table<T, ID>;
@@ -91,10 +89,10 @@ export default class BaseRepository<ID extends string, T> {
       .toArray();
   }
 
-  public async getAll({ count, order, orderDirection }: IDbRequest<T>): Promise<T[]> {
+  public async getAll(order?: SearchOrder<T>, orderDirection?: OrderDirection): Promise<T[]> {
     const col =
       order && order !== 'random' ? this.collection.orderBy(order as string) : this.collection;
-    const res = await (count ? col.limit(count) : col).toArray();
+    const res = await col.toArray();
     return order === 'random'
       ? shuffleArray(res)
       : orderDirection === OrderDirection.Desc
@@ -102,9 +100,9 @@ export default class BaseRepository<ID extends string, T> {
       : res;
   }
 
-  public async find(req: IDbQueryRequest<T>): Promise<T[]> {
+  public async find(req: DbQueryRequest<T>): Promise<T[]> {
     const { order, orderDirection } = req;
-    let table = await this._find(req, req.matchAny ? 'or' : 'and');
+    let table = await this._find(req.criteria, req.matchAny ? 'or' : 'and');
     table = orderDirection === OrderDirection.Desc ? table.reverse() : table;
 
     if (order === 'random') {
@@ -114,7 +112,7 @@ export default class BaseRepository<ID extends string, T> {
       // (tested at ~5000 items, 500ms instead of 100ms)
       // easy to verify here https://jsfiddle.net/dfahlander/xf2zrL4p
       const res = await (order ? table.sortBy(order as string) : table.toArray());
-      return order === OrderDirection.Desc ? res.reverse() : res;
+      return orderDirection === OrderDirection.Desc ? res.reverse() : res;
     }
 
     // Slower alternative
@@ -122,22 +120,23 @@ export default class BaseRepository<ID extends string, T> {
     // return order ? table.sortBy(order as string) : table.toArray();
   }
 
-  public async count(queryRequest?: IDbQueryRequest<T>): Promise<number> {
-    if (!queryRequest) {
+  public async count(
+    criteria?: SearchCriteria<T> | [SearchCriteria<T>],
+    matchAny?: boolean,
+  ): Promise<number> {
+    if (criteria === undefined) {
       return this.collection.count();
     }
-    const table = await this._find(queryRequest, queryRequest.matchAny ? 'or' : 'and');
+    const table = await this._find(criteria, matchAny ? 'or' : 'and');
     return table.count();
   }
 
-  public async create(item: T): Promise<T> {
+  public async create(item: T): Promise<void> {
     await this.collection.put(item);
-    return item;
   }
 
-  public async createMany(items: T[]): Promise<T[]> {
+  public async createMany(items: T[]): Promise<void> {
     await this.collection.bulkAdd(items);
-    return items;
   }
 
   public async remove(item: ID): Promise<void> {
@@ -148,19 +147,17 @@ export default class BaseRepository<ID extends string, T> {
     return this.collection.bulkDelete(items);
   }
 
-  public async update(item: T): Promise<T> {
+  public async update(item: T): Promise<void> {
     await this.collection.put(item);
-    return item;
   }
 
-  public async updateMany(items: T[]): Promise<T[]> {
+  public async updateMany(items: T[]): Promise<void> {
     await this.collection.bulkPut(items); // note: this will also create them if they don't exist
-    return items;
   }
 
   private async _find(
-    { criteria }: IDbQueryRequest<T>,
-    conjunction: SearchConjunction = 'and',
+    criteria: SearchCriteria<T> | [SearchCriteria<T>],
+    conjunction: SearchConjunction,
   ): Promise<Dexie.Collection<T, string>> {
     // Searching with multiple 'wheres': https://stackoverflow.com/questions/35679590/dexiejs-indexeddb-chain-multiple-where-clauses
     // Unfortunately doesn't work out of the box.

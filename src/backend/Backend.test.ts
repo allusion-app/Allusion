@@ -62,7 +62,7 @@ describe('Backend', () => {
         await backend.createTag({ ...mockTag });
         await backend.createFile({ ...mockFile, id: '1', tags: [mockTag.id] });
         await backend.createFile({ ...mockFile, id: '2' });
-        await backend.removeTag(mockTag.id);
+        await backend.removeTags([mockTag.id]);
         const dbFiles = await backend.fetchFiles('id', OrderDirection.Desc);
         expect(dbFiles).toHaveLength(2);
         expect(dbFiles[0].tags).toHaveLength(0);
@@ -73,7 +73,7 @@ describe('Backend', () => {
         await backend.createTag({ ...mockTag, id: 'tag1' });
         await backend.createTag({ ...mockTag, id: 'tag2' });
         await backend.createFile({ ...mockFile, id: '1', tags: ['tag1', 'tag2'] });
-        await backend.removeTag('tag1');
+        await backend.removeTags(['tag1']);
 
         const dbFiles = await backend.fetchFiles('id', OrderDirection.Desc);
 

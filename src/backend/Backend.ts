@@ -19,10 +19,10 @@ import DBRepository, { dbDelete, dbInit } from './DBRepository';
  * The backend has access to the database, which is exposed to the frontend through a set of endpoints.
  */
 export default class Backend {
-  private fileRepository: DBRepository<ID, FileDTO>;
-  private tagRepository: DBRepository<ID, TagDTO>;
-  private locationRepository: DBRepository<ID, LocationDTO>;
-  private searchRepository: DBRepository<ID, FileSearchItemDTO>;
+  private fileRepository: DBRepository<FileDTO>;
+  private tagRepository: DBRepository<TagDTO>;
+  private locationRepository: DBRepository<LocationDTO>;
+  private searchRepository: DBRepository<FileSearchItemDTO>;
   private db: Dexie;
   private backupScheduler: BackupScheduler;
 
@@ -62,12 +62,12 @@ export default class Backend {
 
   async fetchTags(): Promise<TagDTO[]> {
     console.info('Backend: Fetching tags...');
-    return this.tagRepository.getAll({});
+    return this.tagRepository.getAll();
   }
 
   async fetchFiles(order: FileOrder, fileOrder: OrderDirection): Promise<FileDTO[]> {
     console.info('Backend: Fetching files...');
-    return this.fileRepository.getAll({ order, orderDirection: fileOrder });
+    return this.fileRepository.getAll(order, fileOrder);
   }
 
   async fetchFilesByID(ids: ID[]): Promise<FileDTO[]> {
@@ -87,12 +87,12 @@ export default class Backend {
     fileOrder: OrderDirection,
   ): Promise<LocationDTO[]> {
     console.info('Backend: Fetching locations...');
-    return this.locationRepository.getAll({ order, orderDirection: fileOrder });
+    return this.locationRepository.getAll(order, fileOrder);
   }
 
   async fetchSearches(): Promise<FileSearchItemDTO[]> {
     console.info('Backend: Fetching searches...');
-    return this.searchRepository.getAll({});
+    return this.searchRepository.getAll();
   }
 
   async searchFiles(
@@ -105,75 +105,51 @@ export default class Backend {
     return this.fileRepository.find({ criteria, order, orderDirection: fileOrder, matchAny });
   }
 
-  async createTag(tag: TagDTO): Promise<TagDTO> {
+  async createTag(tag: TagDTO): Promise<void> {
     console.info('Backend: Creating tag...', tag);
     this.backupScheduler.notifyChange();
     return this.tagRepository.create(tag);
   }
 
-  async createFile(file: FileDTO): Promise<FileDTO> {
+  async createFile(file: FileDTO): Promise<void> {
     console.info('Backend: Creating file...', file);
     return this.fileRepository.create(file);
   }
 
-  async createLocation(location: LocationDTO): Promise<LocationDTO> {
+  async createLocation(location: LocationDTO): Promise<void> {
     console.info('Backend: Create location...', location);
     this.backupScheduler.notifyChange();
     return this.locationRepository.create(location);
   }
 
-  async createSearch(search: FileSearchItemDTO): Promise<FileSearchItemDTO> {
+  async createSearch(search: FileSearchItemDTO): Promise<void> {
     console.info('Backend: Create search...', search);
     this.backupScheduler.notifyChange();
     return this.searchRepository.create(search);
   }
 
-  async saveTag(tag: TagDTO): Promise<TagDTO> {
+  async saveTag(tag: TagDTO): Promise<void> {
     console.info('Backend: Saving tag...', tag);
     this.backupScheduler.notifyChange();
     return this.tagRepository.update(tag);
   }
 
-  async saveFile(file: FileDTO): Promise<FileDTO> {
-    console.info('Backend: Saving file...', file);
-    this.backupScheduler.notifyChange();
-    return this.fileRepository.update(file);
-  }
-
-  async saveFiles(files: FileDTO[]): Promise<FileDTO[]> {
+  async saveFiles(files: FileDTO[]): Promise<void> {
     console.info('Backend: Saving files...', files);
     this.backupScheduler.notifyChange();
     return this.fileRepository.updateMany(files);
   }
 
-  async saveLocation(location: LocationDTO): Promise<LocationDTO> {
+  async saveLocation(location: LocationDTO): Promise<void> {
     console.info('Backend: Saving location...', location);
     this.backupScheduler.notifyChange();
     return this.locationRepository.update(location);
   }
 
-  async saveSearch(search: FileSearchItemDTO): Promise<FileSearchItemDTO> {
+  async saveSearch(search: FileSearchItemDTO): Promise<void> {
     console.info('Backend: Saving search...', search);
     this.backupScheduler.notifyChange();
     return this.searchRepository.update(search);
-  }
-
-  async removeTag(tag: ID): Promise<void> {
-    console.info('Backend: Removing tag...', tag);
-    // We have to make sure files tagged with this tag should be untagged
-    // Get all files with this tag
-    const filesWithTag = await this.fileRepository.find({
-      criteria: { key: 'tags', value: tag, operator: 'contains', valueType: 'array' },
-    });
-    // Remove tag from files
-    for (const file of filesWithTag) {
-      file.tags.splice(file.tags.indexOf(tag), 1);
-    }
-    // Update files in db
-    await this.saveFiles(filesWithTag);
-    // Remove tag from db
-    this.backupScheduler.notifyChange();
-    return this.tagRepository.remove(tag);
   }
 
   async removeTags(tags: ID[]): Promise<void> {
@@ -236,23 +212,20 @@ export default class Backend {
     return this.searchRepository.remove(search);
   }
 
-  async countFiles(
-    criteria?: SearchCriteria<FileDTO> | [SearchCriteria<FileDTO>],
-    matchAny?: boolean,
-  ): Promise<number> {
-    console.info('Get number of files...', criteria, matchAny);
-    return this.fileRepository.count(
-      criteria
-        ? {
-            criteria,
-            matchAny,
-          }
-        : undefined,
-    );
+  async countFiles(): Promise<[fileCount: number, untaggedFileCount: number]> {
+    console.info('Get number stats of files...');
+    const fileCount = this.fileRepository.count();
+    const untaggedFileCount = this.fileRepository.count({
+      key: 'tags',
+      operator: 'contains',
+      value: [],
+      valueType: 'array',
+    });
+    return Promise.all([fileCount, untaggedFileCount]);
   }
 
   // Creates many files at once, and checks for duplicates in the path they are in
-  async createFilesFromPath(path: string, files: FileDTO[]): Promise<FileDTO[]> {
+  async createFilesFromPath(path: string, files: FileDTO[]): Promise<void> {
     console.info('Backend: Creating files...', path, files);
     // Search for file paths that start with 'path', so those can be filtered out
     const criteria: IStringSearchCriteria<FileDTO> = {
@@ -267,9 +240,8 @@ export default class Backend {
       existingFilesInPath.every((f) => f.absolutePath !== file.absolutePath),
     );
     console.debug('Creating files...');
-    const res = await this.fileRepository.createMany(newFiles);
+    await this.fileRepository.createMany(newFiles);
     console.debug('Done!');
-    return res;
   }
 
   async clearDatabase(): Promise<void> {

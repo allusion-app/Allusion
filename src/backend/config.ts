@@ -1,6 +1,6 @@
 import { Transaction } from 'dexie';
 import { FileDTO } from 'src/api/FileDTO';
-import { IDBVersioningConfig } from './DBRepository';
+import { DBVersioningConfig } from './DBRepository';
 import fse from 'fs-extra';
 
 // The name of the IndexedDB
@@ -14,7 +14,7 @@ export const AUTO_BACKUP_TIMEOUT = 1000 * 60 * 10; // 10 minutes
 // Only for the indexes of the DB, not all fields
 // Versions help with upgrading DB to new configurations:
 // https://dexie.org/docs/Tutorial/Design#database-versioning
-export const dbConfig: IDBVersioningConfig[] = [
+export const dbConfig: DBVersioningConfig[] = [
   {
     // Version 4, 19-9-20: Added system created date
     version: 4,

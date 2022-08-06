@@ -437,15 +437,6 @@ class FileStore {
     }
   }
 
-  @action.bound async fetchFilesByIDs(files: ID[]) {
-    try {
-      const fetchedFiles = await this.backend.fetchFilesByID(files);
-      return this.updateFromBackend(fetchedFiles);
-    } catch (e) {
-      console.log('Could not find files based on IDs', e);
-    }
-  }
-
   @action.bound incrementNumUntaggedFiles() {
     this.numUntaggedFiles++;
   }
@@ -680,9 +671,7 @@ class FileStore {
 
   /** Initializes the total and untagged file counters by querying the database with count operations */
   async refetchFileCounts() {
-    const noTagsCriteria = new ClientTagSearchCriteria('tags').serialize(this.rootStore);
-    const numUntaggedFiles = await this.backend.countFiles(noTagsCriteria);
-    const numTotalFiles = await this.backend.countFiles();
+    const [numTotalFiles, numUntaggedFiles] = await this.backend.countFiles();
     runInAction(() => {
       this.numUntaggedFiles = numUntaggedFiles;
       this.numTotalFiles = numTotalFiles;
