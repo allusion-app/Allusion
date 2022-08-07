@@ -1,4 +1,8 @@
+import { shuffleArray } from 'common/core';
+import { IndexableType } from 'dexie';
+import { OrderBy, OrderDirection, ConditionDTO } from 'src/api/DataStorageSearch';
 import { ID } from 'src/api/ID';
+import { IRepository } from '../IRepository';
 
 export const dbInit = jest.fn();
 
@@ -9,70 +13,128 @@ interface IRecord {
 /**
  * An in-memory database implementation for testing purposes
  */
-export default class InMemoryDbRepository<T extends IRecord> {
+export default class InMemoryDbRepository<T extends IRecord> implements IRepository<T> {
   /** A dictionairy containing all database entries in memory */
   items: T[] = [];
 
-  async get(id: ID) {
-    return this.items.find((obj) => obj.id === id) as T;
+  async get(id: ID): Promise<T | undefined> {
+    return this.items.find((item) => item.id === id);
   }
 
-  async getAll({ count }: any) {
-    return this.items.slice(0, count);
+  async getByIds(ids: string[]): Promise<(T | undefined)[]> {
+    return ids.map((id) => this.items.find((item) => item.id === id));
   }
 
-  async find({ queryField, query, count }: any) {
-    return this.items
-      .filter((obj: any) =>
-        queryField in obj && Array.isArray(obj[queryField])
-          ? (obj[queryField] as any).includes(query)
-          : obj[queryField] === query,
-      )
-      .slice(0, count);
+  async getByKey(key: keyof T, value: IndexableType): Promise<T[]> {
+    return this.items.filter((item) => (item[key] as any) === value);
+  }
+
+  async getAll(): Promise<T[]> {
+    return this.items.slice();
+  }
+
+  async getAllOrdered(order: OrderBy<T>, orderDirection: OrderDirection): Promise<T[]> {
+    const items = this.items.slice();
+
+    if (order === 'random') {
+      return shuffleArray(items);
+    } else {
+      // TODO: Order by property
+      return orderDirection === OrderDirection.Desc ? items.reverse() : items;
+    }
+  }
+
+  async find(
+    criteria: ConditionDTO<T> | [ConditionDTO<T>],
+    order: OrderBy<T>,
+    orderDirection: OrderDirection,
+    matchAny?: boolean,
+  ): Promise<T[]> {
+    const criterias = Array.isArray(criteria) ? criteria : [criteria];
+    const items = this.items.filter((item) => {
+      if (matchAny) {
+        return criterias.some((criteria) => {
+          if (criteria.valueType === 'array') {
+            return criteria.value.every((value) => (item[criteria.key] as any).includes(value));
+          } else {
+            return (item[criteria.key] as any) === criteria.value;
+          }
+        });
+      } else {
+        criterias.every((criteria) => {
+          if (criteria.valueType === 'array') {
+            return criteria.value.every((value) => (item[criteria.key] as any).includes(value));
+          } else {
+            return (item[criteria.key] as any) === criteria.value;
+          }
+        });
+      }
+    });
+
+    if (order === 'random') {
+      return shuffleArray(items);
+    } else {
+      // TODO: Order by property
+      return orderDirection === OrderDirection.Desc ? items.reverse() : items;
+    }
+  }
+
+  async findExact(criteria: ConditionDTO<T>): Promise<T[]> {
+    return this.items.filter((item) => {
+      if (criteria.valueType === 'array') {
+        return criteria.value.every((value) => (item[criteria.key] as any).includes(value));
+      } else {
+        return (item[criteria.key] as any) === criteria.value;
+      }
+    });
   }
 
   async count(): Promise<number> {
     return this.items.length;
   }
 
-  async create(item: T) {
+  async countExact(criteria: ConditionDTO<T>): Promise<number> {
+    const items = await this.findExact(criteria);
+    return items.length;
+  }
+
+  async create(item: T): Promise<void> {
     this.items.push(item);
-    return item;
   }
 
-  async createMany(items: T[]) {
+  async createMany(items: T[]): Promise<void> {
     this.items.push(...items);
-    return items;
   }
 
-  async remove(item: T) {
-    if (this.items.includes(item)) {
-      this.items.splice(this.items.indexOf(item), 1);
+  async remove(id: ID): Promise<void> {
+    const index = this.items.findIndex((item) => item.id === id);
+    if (index > -1) {
+      this.items.splice(index, 1);
     }
   }
 
-  async removeMany(items: T[]) {
-    items.forEach((item) => {
-      if (this.items.includes(item)) {
-        this.items.splice(this.items.indexOf(item), 1);
+  async removeMany(ids: ID[]): Promise<void> {
+    for (const id of ids) {
+      const index = this.items.findIndex((item) => item.id === id);
+      if (index > -1) {
+        this.items.splice(index, 1);
       }
-    });
+    }
   }
 
-  async update(item: T) {
-    const index = this.items.indexOf(item);
+  async update(updatedItem: T): Promise<void> {
+    const index = this.items.findIndex((item) => item.id === updatedItem.id);
     if (index !== -1) {
-      this.items[index] = item;
+      this.items[index] = updatedItem;
     }
-    return item;
   }
-  async updateMany(items: T[]) {
-    items.forEach((item) => {
-      const index = this.items.indexOf(item);
+
+  async updateMany(updatedItems: T[]): Promise<void> {
+    for (const updatedItem of updatedItems) {
+      const index = this.items.findIndex((item) => item.id === updatedItem.id);
       if (index !== -1) {
-        this.items[index] = item;
+        this.items[index] = updatedItem;
       }
-    });
-    return items;
+    }
   }
 }

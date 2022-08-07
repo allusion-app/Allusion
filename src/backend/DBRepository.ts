@@ -1,6 +1,6 @@
 import Dexie, { IndexableType, Transaction, WhereClause } from 'dexie';
 import { shuffleArray } from 'common/core';
-
+import { IRepository } from './IRepository';
 import { ID } from 'src/api/ID';
 import {
   ConditionDTO,
@@ -56,7 +56,7 @@ type SearchConjunction = 'and' | 'or';
  * A class that manages data retrieval and updating with a database.
  * Extends Dexie: https://dexie.org/docs/Tutorial/Consuming-dexie-as-a-module
  */
-export default class BaseRepository<T> {
+export default class BaseRepository<T> implements IRepository<T> {
   db: Dexie;
   collectionName: string;
   collection: Dexie.Table<T, ID>;
