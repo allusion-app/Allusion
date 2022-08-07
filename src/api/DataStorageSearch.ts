@@ -61,8 +61,5 @@ export const StringOperators = [
 ] as const;
 export type StringOperatorType = typeof StringOperators[number];
 
-export const BinaryOperators = ['equals', 'notEqual'] as const;
-export type BinaryOperatorType = typeof BinaryOperators[number];
-
 export const ArrayOperators = ['contains', 'notContains'] as const;
 export type ArrayOperatorType = typeof ArrayOperators[number];

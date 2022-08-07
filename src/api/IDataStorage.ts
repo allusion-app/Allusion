@@ -1,9 +1,9 @@
 import { IndexableType } from 'dexie';
+import { ConditionDTO, OrderBy, OrderDirection } from './DataStorageSearch';
 import { FileDTO } from './File';
 import { FileSearchItemDTO } from './FileSearchItem';
 import { ID } from './ID';
 import { LocationDTO } from './Location';
-import { OrderBy, OrderDirection, ConditionDTO } from './DataStorageSearch';
 import { TagDTO } from './Tag';
 
 export interface IDataStorage {

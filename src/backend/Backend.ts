@@ -6,12 +6,7 @@ import { FileSearchItemDTO } from 'src/api/FileSearchItem';
 import { FileDTO } from '../api/File';
 import { ID } from '../api/ID';
 import { LocationDTO } from '../api/Location';
-import {
-  ConditionDTO,
-  OrderBy,
-  OrderDirection,
-  StringConditionDTO,
-} from 'src/api/DataStorageSearch';
+import { ConditionDTO, OrderBy, OrderDirection } from 'src/api/DataStorageSearch';
 import { TagDTO, ROOT_TAG_ID } from '../api/Tag';
 import BackupScheduler from './BackupScheduler';
 import { dbConfig, DB_NAME } from './config';
@@ -73,7 +68,7 @@ export default class Backend implements IDataStorage {
 
   async fetchFiles(order: OrderBy<FileDTO>, fileOrder: OrderDirection): Promise<FileDTO[]> {
     console.info('Backend: Fetching files...');
-    return this.fileRepository.getAll(order, fileOrder);
+    return this.fileRepository.getAllOrdered(order, fileOrder);
   }
 
   async fetchFilesByID(ids: ID[]): Promise<FileDTO[]> {
@@ -84,8 +79,7 @@ export default class Backend implements IDataStorage {
 
   async fetchFilesByKey(key: keyof FileDTO, value: IndexableType): Promise<FileDTO[]> {
     console.info('Backend: Fetching files by key/value...', { key, value });
-    const files = await this.fileRepository.getByKey(key, value);
-    return files;
+    return this.fileRepository.getByKey(key, value);
   }
 
   async fetchLocations(
@@ -93,7 +87,7 @@ export default class Backend implements IDataStorage {
     fileOrder: OrderDirection,
   ): Promise<LocationDTO[]> {
     console.info('Backend: Fetching locations...');
-    return this.locationRepository.getAll(order, fileOrder);
+    return this.locationRepository.getAllOrdered(order, fileOrder);
   }
 
   async fetchSearches(): Promise<FileSearchItemDTO[]> {
@@ -107,8 +101,8 @@ export default class Backend implements IDataStorage {
     fileOrder: OrderDirection,
     matchAny?: boolean,
   ): Promise<FileDTO[]> {
-    console.info('Backend: Searching files...', criteria, { matchAny });
-    return this.fileRepository.find({ criteria, order, orderDirection: fileOrder, matchAny });
+    console.info('Backend: Searching files...', { criteria, matchAny });
+    return this.fileRepository.find(criteria, order, fileOrder, matchAny);
   }
 
   async createTag(tag: TagDTO): Promise<void> {
@@ -162,8 +156,11 @@ export default class Backend implements IDataStorage {
     console.info('Backend: Removing tags...', tags);
     // We have to make sure files tagged with these tags should be untagged
     // Get all files with these tags
-    const filesWithTags = await this.fileRepository.find({
-      criteria: { key: 'tags', value: tags, operator: 'contains', valueType: 'array' },
+    const filesWithTags = await this.fileRepository.findExact({
+      key: 'tags',
+      value: tags,
+      operator: 'contains',
+      valueType: 'array',
     });
     const deletedTags = new Set(tags);
     // Remove tags from files
@@ -180,8 +177,11 @@ export default class Backend implements IDataStorage {
   async mergeTags(tagToBeRemoved: ID, tagToMergeWith: ID): Promise<void> {
     console.info('Merging tags', tagToBeRemoved, tagToMergeWith);
     // Replace tag on all files with the tag to be removed
-    const filesWithTags = await this.fileRepository.find({
-      criteria: { key: 'tags', value: [tagToBeRemoved], operator: 'contains', valueType: 'array' },
+    const filesWithTags = await this.fileRepository.findExact({
+      key: 'tags',
+      value: [tagToBeRemoved],
+      operator: 'contains',
+      valueType: 'array',
     });
     for (const file of filesWithTags) {
       // Might contain duplicates if the tag to be merged with was already on the file, so array -> set -> array to remove dupes
@@ -204,8 +204,11 @@ export default class Backend implements IDataStorage {
 
   async removeLocation(location: ID): Promise<void> {
     console.info('Backend: Remove location...', location);
-    const filesWithLocation = await this.fileRepository.find({
-      criteria: { key: 'locationId', value: location, operator: 'equals', valueType: 'string' },
+    const filesWithLocation = await this.fileRepository.findExact({
+      key: 'locationId',
+      value: location,
+      operator: 'equals',
+      valueType: 'string',
     });
     await this.removeFiles(filesWithLocation.map((f) => f.id));
     this.backupScheduler.notifyChange();
@@ -221,7 +224,7 @@ export default class Backend implements IDataStorage {
   async countFiles(): Promise<[fileCount: number, untaggedFileCount: number]> {
     console.info('Get number stats of files...');
     const fileCount = this.fileRepository.count();
-    const untaggedFileCount = this.fileRepository.count({
+    const untaggedFileCount = this.fileRepository.countExact({
       key: 'tags',
       operator: 'contains',
       value: [],
@@ -234,13 +237,12 @@ export default class Backend implements IDataStorage {
   async createFilesFromPath(path: string, files: FileDTO[]): Promise<void> {
     console.info('Backend: Creating files...', path, files);
     // Search for file paths that start with 'path', so those can be filtered out
-    const criteria: StringConditionDTO<FileDTO> = {
+    const existingFilesInPath = await this.fileRepository.findExact({
       valueType: 'string',
       operator: 'startsWith',
       key: 'absolutePath',
       value: path,
-    };
-    const existingFilesInPath: FileDTO[] = await this.fileRepository.find({ criteria });
+    });
     console.debug('Filtering files...');
     const newFiles = files.filter((file) =>
       existingFilesInPath.every((f) => f.absolutePath !== file.absolutePath),

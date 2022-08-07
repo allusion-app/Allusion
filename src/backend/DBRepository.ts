@@ -50,13 +50,6 @@ export const dbDelete = (dbName: string): void => {
   Dexie.delete(dbName);
 };
 
-type DbQueryRequest<T> = {
-  order?: OrderBy<T>;
-  orderDirection?: OrderDirection;
-  criteria: ConditionDTO<T> | [ConditionDTO<T>];
-  matchAny?: boolean;
-};
-
 type SearchConjunction = 'and' | 'or';
 
 /**
@@ -89,29 +82,36 @@ export default class BaseRepository<T> {
       .toArray();
   }
 
-  public async getAll(order?: OrderBy<T>, orderDirection?: OrderDirection): Promise<T[]> {
-    const col = order && order !== 'random' ? this.collection.orderBy(order) : this.collection;
-    const res = await col.toArray();
-    return order === 'random'
-      ? shuffleArray(res)
-      : orderDirection === OrderDirection.Desc
-      ? res.reverse()
-      : res;
+  public async getAll(): Promise<T[]> {
+    return this.collection.toArray();
   }
 
-  public async find(req: DbQueryRequest<T>): Promise<T[]> {
-    const { order, orderDirection } = req;
-    let table = await this._find(req.criteria, req.matchAny ? 'or' : 'and');
-    table = orderDirection === OrderDirection.Desc ? table.reverse() : table;
+  public async getAllOrdered(order: OrderBy<T>, orderDirection: OrderDirection): Promise<T[]> {
+    if (order === 'random') {
+      return shuffleArray(await this.collection.toArray());
+    }
+
+    const collection = this.collection.orderBy(order);
+    const items = await collection.toArray();
+    return orderDirection === OrderDirection.Desc ? items.reverse() : items;
+  }
+
+  public async find(
+    criteria: ConditionDTO<T> | [ConditionDTO<T>],
+    order: OrderBy<T>,
+    orderDirection: OrderDirection,
+    matchAny: boolean = false,
+  ): Promise<T[]> {
+    const collection = await this._find(criteria, matchAny ? 'or' : 'and');
 
     if (order === 'random') {
-      return shuffleArray(await table.toArray());
+      return shuffleArray(await collection.toArray());
     } else {
       // table.reverse() can be an order of magnitude slower as a javascript .reverse() call at the end
       // (tested at ~5000 items, 500ms instead of 100ms)
       // easy to verify here https://jsfiddle.net/dfahlander/xf2zrL4p
-      const res = await (order ? table.sortBy(order) : table.toArray());
-      return orderDirection === OrderDirection.Desc ? res.reverse() : res;
+      const items = await collection.sortBy(order);
+      return orderDirection === OrderDirection.Desc ? items.reverse() : items;
     }
 
     // Slower alternative
@@ -119,14 +119,17 @@ export default class BaseRepository<T> {
     // return order ? table.sortBy(order as string) : table.toArray();
   }
 
-  public async count(
-    criteria?: ConditionDTO<T> | [ConditionDTO<T>],
-    matchAny?: boolean,
-  ): Promise<number> {
-    if (criteria === undefined) {
-      return this.collection.count();
-    }
-    const table = await this._find(criteria, matchAny ? 'or' : 'and');
+  public async findExact(criteria: ConditionDTO<T>): Promise<T[]> {
+    const collection = await this._find(criteria, 'and');
+    return collection.toArray();
+  }
+
+  public async count(): Promise<number> {
+    return this.collection.count();
+  }
+
+  public async countExact(criteria: ConditionDTO<T>): Promise<number> {
+    const table = await this._find(criteria, 'and');
     return table.count();
   }
 
