@@ -1,17 +1,8 @@
 import { ID } from './ID';
 import { FileDTO } from './File';
+import { NumberOperatorType, StringOperatorType } from './DataStorageSearch';
 
 // Trick for converting array to type https://stackoverflow.com/a/49529930/2350481
-
-export const NumberOperators = [
-  'equals',
-  'notEqual',
-  'smallerThan',
-  'smallerThanOrEquals',
-  'greaterThan',
-  'greaterThanOrEquals',
-] as const;
-export type NumberOperatorType = typeof NumberOperators[number];
 
 export const NumberOperatorSymbols: Record<NumberOperatorType, string> = {
   equals: '=',
@@ -21,18 +12,6 @@ export const NumberOperatorSymbols: Record<NumberOperatorType, string> = {
   greaterThan: '>',
   greaterThanOrEquals: '≥',
 };
-
-export const StringOperators = [
-  'equalsIgnoreCase',
-  'equals',
-  'notEqual',
-  'startsWithIgnoreCase',
-  'startsWith',
-  'notStartsWith',
-  'contains',
-  'notContains',
-] as const;
-export type StringOperatorType = typeof StringOperators[number];
 
 export const StringOperatorLabels: Record<StringOperatorType, string> = {
   equalsIgnoreCase: 'Equals',

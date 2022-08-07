@@ -1,12 +1,11 @@
 import { action } from 'mobx';
 import React, { ForwardedRef, forwardRef, useState } from 'react';
 import { IMG_EXTENSIONS } from 'src/api/File';
+import { NumberOperators, StringOperatorType } from 'src/api/DataStorageSearch';
 import {
   BinaryOperators,
-  NumberOperators,
   NumberOperatorSymbols,
   StringOperatorLabels,
-  StringOperatorType,
   TagOperators,
 } from 'src/api/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';

@@ -12,9 +12,7 @@ import {
   IStringSearchCriteria,
   ITagSearchCriteria,
   TagOperatorType,
-  StringOperatorType,
   StringOperatorLabels,
-  NumberOperatorType,
   NumberOperatorSymbols,
 } from '../api/SearchCriteria';
 import {
@@ -22,7 +20,9 @@ import {
   ConditionDTO,
   DateConditionDTO,
   NumberConditionDTO,
+  NumberOperatorType,
   StringConditionDTO,
+  StringOperatorType,
 } from 'src/api/DataStorageSearch';
 
 // A dictionary of labels for (some of) the keys of the type we search for
