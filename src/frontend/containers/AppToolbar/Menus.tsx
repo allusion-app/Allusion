@@ -6,7 +6,8 @@ import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
 import { getThumbnailSize } from '../ContentView/utils';
 import { MenuDivider, MenuSliderItem } from 'widgets/menus/menu-items';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { FileOrder, OrderDirection } from 'src/api/IDataStorage';
+import { OrderBy, OrderDirection } from 'src/api/DataStorageSearch';
+import { FileDTO } from 'src/api/File';
 
 // Tooltip info
 const enum Tooltip {
@@ -47,7 +48,7 @@ export const ViewCommand = () => {
 };
 
 const sortMenuData: Array<{
-  prop: FileOrder;
+  prop: OrderBy<FileDTO>;
   icon: JSX.Element;
   text: string;
   hideDirection?: boolean;

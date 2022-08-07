@@ -1,4 +1,5 @@
 import { ID } from './ID';
+import { FileDTO } from './File';
 
 // Trick for converting array to type https://stackoverflow.com/a/49529930/2350481
 
@@ -60,37 +61,38 @@ export type OperatorType =
   | NumberOperatorType
   | StringOperatorType
   | BinaryOperatorType;
+
 // FFR: Boolean keys are not supported in IndexedDB/Dexie - must store booleans as 0/1
-export interface IBaseSearchCriteria<T> {
-  key: keyof T;
+export interface IBaseSearchCriteria {
+  key: keyof FileDTO;
   valueType: 'number' | 'date' | 'string' | 'array';
   readonly operator: OperatorType;
 }
 
-export interface ITagSearchCriteria<T> extends IBaseSearchCriteria<T> {
+export interface ITagSearchCriteria extends IBaseSearchCriteria {
   value: ID[];
   operator: TagOperatorType;
 }
 
-export interface IStringSearchCriteria<T> extends IBaseSearchCriteria<T> {
+export interface IStringSearchCriteria extends IBaseSearchCriteria {
   value: string;
   operator: StringOperatorType;
 }
 
-export interface INumberSearchCriteria<T> extends IBaseSearchCriteria<T> {
+export interface INumberSearchCriteria extends IBaseSearchCriteria {
   value: number;
   operator: NumberOperatorType;
 }
 
-export interface IDateSearchCriteria<T> extends IBaseSearchCriteria<T> {
+export interface IDateSearchCriteria extends IBaseSearchCriteria {
   value: Date;
   /** TODO: Would be cool to have relative time: e.g. modified today/last month */
   operator: NumberOperatorType;
 }
 // General search criteria for a database entity
 
-export type SearchCriteria<T> =
-  | ITagSearchCriteria<T>
-  | IStringSearchCriteria<T>
-  | INumberSearchCriteria<T>
-  | IDateSearchCriteria<T>;
+export type SearchCriteria =
+  | ITagSearchCriteria
+  | IStringSearchCriteria
+  | INumberSearchCriteria
+  | IDateSearchCriteria;

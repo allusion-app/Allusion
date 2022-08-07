@@ -12,7 +12,7 @@ jest.mock('../Messaging', () => ({
 import Backend from './Backend';
 import { TagDTO, ROOT_TAG_ID } from '../api/Tag';
 import { FileDTO } from '../api/File';
-import { OrderDirection } from '../api/IDataStorage';
+import { OrderDirection } from '../api/DataStorageSearch';
 
 let backend = new Backend();
 

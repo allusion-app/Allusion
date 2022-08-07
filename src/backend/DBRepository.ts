@@ -3,15 +3,16 @@ import { shuffleArray } from 'common/core';
 
 import { ID } from 'src/api/ID';
 import {
-  SearchCriteria,
-  ITagSearchCriteria,
-  IStringSearchCriteria,
-  INumberSearchCriteria,
-  IDateSearchCriteria,
+  ConditionDTO,
+  ArrayConditionDTO,
+  StringConditionDTO,
+  NumberConditionDTO,
+  DateConditionDTO,
   StringOperatorType,
   NumberOperatorType,
-} from '../api/SearchCriteria';
-import { OrderDirection, SearchOrder } from 'src/api/IDataStorage';
+  OrderBy,
+  OrderDirection,
+} from '../api/DataStorageSearch';
 
 export type DBCollectionConfig = {
   name: string;
@@ -50,10 +51,9 @@ export const dbDelete = (dbName: string): void => {
 };
 
 type DbQueryRequest<T> = {
-  count?: number;
-  order?: SearchOrder<T>;
+  order?: OrderBy<T>;
   orderDirection?: OrderDirection;
-  criteria: SearchCriteria<T> | [SearchCriteria<T>];
+  criteria: ConditionDTO<T> | [ConditionDTO<T>];
   matchAny?: boolean;
 };
 
@@ -89,9 +89,8 @@ export default class BaseRepository<T> {
       .toArray();
   }
 
-  public async getAll(order?: SearchOrder<T>, orderDirection?: OrderDirection): Promise<T[]> {
-    const col =
-      order && order !== 'random' ? this.collection.orderBy(order as string) : this.collection;
+  public async getAll(order?: OrderBy<T>, orderDirection?: OrderDirection): Promise<T[]> {
+    const col = order && order !== 'random' ? this.collection.orderBy(order) : this.collection;
     const res = await col.toArray();
     return order === 'random'
       ? shuffleArray(res)
@@ -111,7 +110,7 @@ export default class BaseRepository<T> {
       // table.reverse() can be an order of magnitude slower as a javascript .reverse() call at the end
       // (tested at ~5000 items, 500ms instead of 100ms)
       // easy to verify here https://jsfiddle.net/dfahlander/xf2zrL4p
-      const res = await (order ? table.sortBy(order as string) : table.toArray());
+      const res = await (order ? table.sortBy(order) : table.toArray());
       return orderDirection === OrderDirection.Desc ? res.reverse() : res;
     }
 
@@ -121,7 +120,7 @@ export default class BaseRepository<T> {
   }
 
   public async count(
-    criteria?: SearchCriteria<T> | [SearchCriteria<T>],
+    criteria?: ConditionDTO<T> | [ConditionDTO<T>],
     matchAny?: boolean,
   ): Promise<number> {
     if (criteria === undefined) {
@@ -156,7 +155,7 @@ export default class BaseRepository<T> {
   }
 
   private async _find(
-    criteria: SearchCriteria<T> | [SearchCriteria<T>],
+    criteria: ConditionDTO<T> | [ConditionDTO<T>],
     conjunction: SearchConjunction,
   ): Promise<Dexie.Collection<T, string>> {
     // Searching with multiple 'wheres': https://stackoverflow.com/questions/35679590/dexiejs-indexeddb-chain-multiple-where-clauses
@@ -171,9 +170,7 @@ export default class BaseRepository<T> {
       let allWheres = true;
       let table: Dexie.Collection<T, string> | undefined = undefined;
       for (const crit of criteriaList) {
-        const where = !table
-          ? this.collection.where(crit.key as string)
-          : table.or(crit.key as string);
+        const where = !table ? this.collection.where(crit.key) : table.or(crit.key);
         const tableOrFilter = this._filterWhere(where, crit);
 
         if (typeof tableOrFilter === 'function') {
@@ -198,7 +195,7 @@ export default class BaseRepository<T> {
     // Since not all operators we need are supported by "where" filters, _filterWhere can also return a lambda.
     const [firstCrit, ...otherCrits] = criteriaList;
 
-    const where = this.collection.where(firstCrit.key as string);
+    const where = this.collection.where(firstCrit.key);
     const whereOrFilter = this._filterWhere(where, firstCrit);
     let table =
       typeof whereOrFilter !== 'function' ? whereOrFilter : this.collection.filter(whereOrFilter);
@@ -221,39 +218,39 @@ export default class BaseRepository<T> {
   //          Since some of our search operations are not supported by Dexie, some _where functions return a lambda.
   // - lambda: For 'and' conjunctions, a naive filter function (lambda) must be used.
 
-  private _filterWhere(where: WhereClause<T, string>, crit: SearchCriteria<T>) {
+  private _filterWhere(where: WhereClause<T, string>, crit: ConditionDTO<T>) {
     switch (crit.valueType) {
       case 'array':
-        return this._filterArrayWhere(where, crit as ITagSearchCriteria<T>);
+        return this._filterArrayWhere(where, crit);
       case 'string':
-        return this._filterStringWhere(where, crit as IStringSearchCriteria<T>);
+        return this._filterStringWhere(where, crit);
       case 'number':
-        return this._filterNumberWhere(where, crit as INumberSearchCriteria<T>);
+        return this._filterNumberWhere(where, crit);
       case 'date':
-        return this._filterDateWhere(where, crit as IDateSearchCriteria<T>);
+        return this._filterDateWhere(where, crit);
     }
   }
 
-  private _filterLambda(crit: SearchCriteria<T>) {
+  private _filterLambda(crit: ConditionDTO<T>) {
     switch (crit.valueType) {
       case 'array':
-        return this._filterArrayLambda(crit as ITagSearchCriteria<T>);
+        return this._filterArrayLambda(crit);
       case 'string':
-        return this._filterStringLambda(crit as IStringSearchCriteria<T>);
+        return this._filterStringLambda(crit);
       case 'number':
-        return this._filterNumberLambda(crit as INumberSearchCriteria<T>);
+        return this._filterNumberLambda(crit);
       case 'date':
-        return this._filterDateLambda(crit as IDateSearchCriteria<T>);
+        return this._filterDateLambda(crit);
     }
   }
 
-  private _filterArrayWhere(where: WhereClause<T, string>, crit: ITagSearchCriteria<T>) {
+  private _filterArrayWhere(where: WhereClause<T, string>, crit: ArrayConditionDTO<T, any>) {
     // Querying array props: https://dexie.org/docs/MultiEntry-Index
     // Check whether to search for empty arrays (e.g. no tags)
     if (crit.value.length === 0) {
       return crit.operator === 'contains'
-        ? (val: T): boolean => (val as any)[crit.key as string].length === 0
-        : (val: T): boolean => (val as any)[crit.key as string].length !== 0;
+        ? (val: T): boolean => (val as any)[crit.key].length === 0
+        : (val: T): boolean => (val as any)[crit.key].length !== 0;
     } else {
       // contains/notContains 1 or more elements
       if (crit.operator === 'contains') {
@@ -262,28 +259,28 @@ export default class BaseRepository<T> {
         // not contains: there as a noneOf() function we used to use, but it matches every item individually, e.g.
         // an item with tags "Apple, Pear" is matched twice: once as Apple, once as Pear; A "notContains Apple" still matches for Pear
         return (val: T): boolean =>
-          (val as any)[crit.key as string].every((val: string) => !crit.value.includes(val));
+          (val as any)[crit.key].every((val: string) => !crit.value.includes(val));
       }
     }
   }
 
-  private _filterArrayLambda(crit: ITagSearchCriteria<T>) {
+  private _filterArrayLambda(crit: ArrayConditionDTO<T, any>) {
     if (crit.operator === 'contains') {
       // Check whether to search for empty arrays (e.g. no tags)
       return crit.value.length === 0
-        ? (val: T): boolean => (val as any)[crit.key as string].length === 0
+        ? (val: T): boolean => (val as any)[crit.key].length === 0
         : (val: T): boolean =>
-            crit.value.some((item) => (val as any)[crit.key as string].indexOf(item) !== -1);
+            crit.value.some((item) => (val as any)[crit.key].indexOf(item) !== -1);
     } else {
       // not contains
       return crit.value.length === 0
-        ? (val: T): boolean => (val as any)[crit.key as string].length !== 0
+        ? (val: T): boolean => (val as any)[crit.key].length !== 0
         : (val: T): boolean =>
-            crit.value.every((item) => (val as any)[crit.key as string].indexOf(item) === -1);
+            crit.value.every((item) => (val as any)[crit.key].indexOf(item) === -1);
     }
   }
 
-  private _filterStringWhere(where: WhereClause<T, string>, crit: IStringSearchCriteria<T>) {
+  private _filterStringWhere(where: WhereClause<T, string>, crit: StringConditionDTO<T>) {
     const dbStringOperators = [
       'equalsIgnoreCase',
       'equals',
@@ -300,8 +297,8 @@ export default class BaseRepository<T> {
     return this._filterStringLambda(crit);
   }
 
-  private _filterStringLambda(crit: IStringSearchCriteria<T>) {
-    const { key, value } = crit as IStringSearchCriteria<T>;
+  private _filterStringLambda(crit: StringConditionDTO<T>) {
+    const { key, value } = crit;
     const valLow = value.toLowerCase();
 
     const getFilterFunc = (operator: StringOperatorType) => {
@@ -327,7 +324,7 @@ export default class BaseRepository<T> {
     return getFilterFunc(crit.operator);
   }
 
-  private _filterNumberWhere(where: WhereClause<T, string>, crit: INumberSearchCriteria<T>) {
+  private _filterNumberWhere(where: WhereClause<T, string>, crit: NumberConditionDTO<T>) {
     type DbNumberOperator =
       | 'equals'
       | 'notEqual'
@@ -361,7 +358,7 @@ export default class BaseRepository<T> {
     return where[funcName](crit.value);
   }
 
-  private _filterNumberLambda(crit: INumberSearchCriteria<T>) {
+  private _filterNumberLambda(crit: NumberConditionDTO<T>) {
     const { key, value } = crit;
 
     const getFilterFunc = (operator: NumberOperatorType) => {
@@ -387,7 +384,7 @@ export default class BaseRepository<T> {
     return getFilterFunc(crit.operator);
   }
 
-  private _filterDateWhere(where: WhereClause<T, string>, crit: IDateSearchCriteria<T>) {
+  private _filterDateWhere(where: WhereClause<T, string>, crit: DateConditionDTO<T>) {
     const dateStart = new Date(crit.value);
     dateStart.setHours(0, 0, 0);
     const dateEnd = new Date(crit.value);
@@ -418,7 +415,7 @@ export default class BaseRepository<T> {
     return col;
   }
 
-  private _filterDateLambda(crit: IDateSearchCriteria<T>) {
+  private _filterDateLambda(crit: DateConditionDTO<T>) {
     const { key } = crit;
     const start = new Date(crit.value);
     start.setHours(0, 0, 0);

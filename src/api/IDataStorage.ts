@@ -3,19 +3,19 @@ import { FileDTO } from './File';
 import { FileSearchItemDTO } from './FileSearchItem';
 import { ID } from './ID';
 import { LocationDTO } from './Location';
-import { SearchCriteria } from './SearchCriteria';
+import { OrderBy, OrderDirection, ConditionDTO } from './DataStorageSearch';
 import { TagDTO } from './Tag';
 
 export interface IDataStorage {
   fetchTags: () => Promise<TagDTO[]>;
-  fetchFiles: (order: FileOrder, fileOrder: OrderDirection) => Promise<FileDTO[]>;
+  fetchFiles: (order: OrderBy<FileDTO>, fileOrder: OrderDirection) => Promise<FileDTO[]>;
   fetchFilesByID: (ids: ID[]) => Promise<FileDTO[]>;
   fetchFilesByKey: (key: keyof FileDTO, value: IndexableType) => Promise<FileDTO[]>;
   fetchLocations: (order: keyof LocationDTO, fileOrder: OrderDirection) => Promise<LocationDTO[]>;
   fetchSearches: () => Promise<FileSearchItemDTO[]>;
   searchFiles: (
-    criteria: SearchCriteria<FileDTO> | [SearchCriteria<FileDTO>],
-    order: FileOrder,
+    criteria: ConditionDTO<FileDTO> | [ConditionDTO<FileDTO>],
+    order: OrderBy<FileDTO>,
     fileOrder: OrderDirection,
     matchAny?: boolean,
   ) => Promise<FileDTO[]>;
@@ -38,13 +38,4 @@ export interface IDataStorage {
   backupDatabaseToFile: (path: string) => Promise<void>;
   restoreDatabaseFromFile: (path: string) => Promise<void>;
   peekDatabaseFile: (path: string) => Promise<{ numTags: number; numFiles: number }>;
-}
-
-export type SearchOrder<T> = keyof T | 'random';
-
-export type FileOrder = SearchOrder<FileDTO>;
-
-export const enum OrderDirection {
-  Asc,
-  Desc,
 }

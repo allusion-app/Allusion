@@ -6,12 +6,17 @@ import { FileSearchItemDTO } from 'src/api/FileSearchItem';
 import { FileDTO } from '../api/File';
 import { ID } from '../api/ID';
 import { LocationDTO } from '../api/Location';
-import { IStringSearchCriteria, SearchCriteria } from '../api/SearchCriteria';
+import {
+  ConditionDTO,
+  OrderBy,
+  OrderDirection,
+  StringConditionDTO,
+} from 'src/api/DataStorageSearch';
 import { TagDTO, ROOT_TAG_ID } from '../api/Tag';
 import BackupScheduler from './BackupScheduler';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbDelete, dbInit } from './DBRepository';
-import { IDataStorage, FileOrder, OrderDirection } from 'src/api/IDataStorage';
+import { IDataStorage } from 'src/api/IDataStorage';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -66,7 +71,7 @@ export default class Backend implements IDataStorage {
     return this.tagRepository.getAll();
   }
 
-  async fetchFiles(order: FileOrder, fileOrder: OrderDirection): Promise<FileDTO[]> {
+  async fetchFiles(order: OrderBy<FileDTO>, fileOrder: OrderDirection): Promise<FileDTO[]> {
     console.info('Backend: Fetching files...');
     return this.fileRepository.getAll(order, fileOrder);
   }
@@ -97,8 +102,8 @@ export default class Backend implements IDataStorage {
   }
 
   async searchFiles(
-    criteria: SearchCriteria<FileDTO> | [SearchCriteria<FileDTO>],
-    order: FileOrder,
+    criteria: ConditionDTO<FileDTO> | [ConditionDTO<FileDTO>],
+    order: OrderBy<FileDTO>,
     fileOrder: OrderDirection,
     matchAny?: boolean,
   ): Promise<FileDTO[]> {
@@ -229,7 +234,7 @@ export default class Backend implements IDataStorage {
   async createFilesFromPath(path: string, files: FileDTO[]): Promise<void> {
     console.info('Backend: Creating files...', path, files);
     // Search for file paths that start with 'path', so those can be filtered out
-    const criteria: IStringSearchCriteria<FileDTO> = {
+    const criteria: StringConditionDTO<FileDTO> = {
       valueType: 'string',
       operator: 'startsWith',
       key: 'absolutePath',

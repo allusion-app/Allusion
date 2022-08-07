@@ -1,6 +1,6 @@
 import { ID } from 'src/api/ID';
 import { FileDTO, IMG_EXTENSIONS } from 'src/api/File';
-import { FileSearchCriteria } from 'src/entities/SearchCriteria';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
 import {
   OperatorType,
   StringOperatorType,
@@ -66,7 +66,7 @@ export function defaultQuery(key: Key): Criteria {
 
 const BYTES_IN_MB = 1024 * 1024;
 
-export function fromCriteria(criteria: FileSearchCriteria): [ID, Criteria] {
+export function fromCriteria(criteria: ClientFileSearchCriteria): [ID, Criteria] {
   const query = defaultQuery('tags');
   if (
     criteria instanceof ClientStringSearchCriteria &&
@@ -88,7 +88,7 @@ export function fromCriteria(criteria: FileSearchCriteria): [ID, Criteria] {
   return [generateCriteriaId(), query];
 }
 
-export function intoCriteria(query: Criteria, tagStore: TagStore): FileSearchCriteria {
+export function intoCriteria(query: Criteria, tagStore: TagStore): ClientFileSearchCriteria {
   if (query.key === 'name' || query.key === 'absolutePath' || query.key === 'extension') {
     return new ClientStringSearchCriteria(query.key, query.value, query.operator);
   } else if (query.key === 'dateAdded') {

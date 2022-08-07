@@ -11,7 +11,7 @@ import React, {
   forwardRef,
 } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
-import { OrderDirection } from 'src/api/IDataStorage';
+import { OrderDirection } from 'src/api/DataStorageSearch';
 import { ClientFile } from 'src/entities/File';
 import { FileDTO } from 'src/api/File';
 import { debouncedThrottle } from 'common/timeout';

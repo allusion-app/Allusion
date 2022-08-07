@@ -1,7 +1,7 @@
 import { action, makeObservable, observable } from 'mobx';
 import { IDataStorage } from 'src/api/IDataStorage';
 import { generateId, ID } from 'src/api/ID';
-import { ClientBaseCriteria } from 'src/entities/SearchCriteria';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/FileSearchItem';
 import RootStore from './RootStore';
 
@@ -72,7 +72,7 @@ class SearchStore {
     search.setMatchAny(this.rootStore.uiStore.searchMatchAny);
     search.setCriteria(
       this.rootStore.uiStore.searchCriteriaList.map((c) =>
-        ClientBaseCriteria.deserialize(c.serialize(this.rootStore)),
+        ClientFileSearchCriteria.deserialize(c.serialize(this.rootStore)),
       ),
     );
   }

@@ -17,27 +17,31 @@ import {
   NumberOperatorType,
   NumberOperatorSymbols,
 } from '../api/SearchCriteria';
-
-export type IFileSearchCriteria = SearchCriteria<FileDTO>;
-export type FileSearchCriteria = ClientBaseCriteria<FileDTO>;
+import {
+  ArrayConditionDTO,
+  ConditionDTO,
+  DateConditionDTO,
+  NumberConditionDTO,
+  StringConditionDTO,
+} from 'src/api/DataStorageSearch';
 
 // A dictionary of labels for (some of) the keys of the type we search for
-export type SearchKeyDict<T> = Partial<Record<keyof T, string>>;
+export type SearchKeyDict = Partial<Record<keyof FileDTO, string>>;
 
-export const CustomKeyDict: SearchKeyDict<FileDTO> = {
+export const CustomKeyDict: SearchKeyDict = {
   absolutePath: 'Path',
   locationId: 'Location',
 };
 
-export abstract class ClientBaseCriteria<T> implements IBaseSearchCriteria<T> {
-  @observable public key: keyof T;
+export abstract class ClientFileSearchCriteria implements IBaseSearchCriteria {
+  @observable public key: keyof FileDTO;
   @observable public valueType: 'number' | 'date' | 'string' | 'array';
   @observable public operator: OperatorType;
 
   private disposers: Lambda[] = [];
 
   constructor(
-    key: keyof T,
+    key: keyof FileDTO,
     valueType: 'number' | 'date' | 'string' | 'array',
     operator: OperatorType,
   ) {
@@ -47,25 +51,26 @@ export abstract class ClientBaseCriteria<T> implements IBaseSearchCriteria<T> {
     makeObservable(this);
   }
 
-  abstract getLabel(dict: SearchKeyDict<T>, rootStore: RootStore): string;
-  abstract serialize(rootStore: RootStore): SearchCriteria<T>;
+  abstract getLabel(dict: SearchKeyDict, rootStore: RootStore): string;
+  abstract serialize(rootStore: RootStore): SearchCriteria;
+  abstract toCondition(rootStore: RootStore): ConditionDTO<FileDTO>;
 
-  static deserialize<T>(criteria: SearchCriteria<T>): ClientBaseCriteria<T> {
+  static deserialize(criteria: SearchCriteria): ClientFileSearchCriteria {
     const { valueType } = criteria;
     switch (valueType) {
       case 'number':
-        const num = criteria as INumberSearchCriteria<T>;
+        const num = criteria as INumberSearchCriteria;
         return new ClientNumberSearchCriteria(num.key, num.value, num.operator);
       case 'date':
-        const dat = criteria as IDateSearchCriteria<T>;
+        const dat = criteria as IDateSearchCriteria;
         return new ClientDateSearchCriteria(dat.key, dat.value, dat.operator);
       case 'string':
-        const str = criteria as IStringSearchCriteria<T>;
+        const str = criteria as IStringSearchCriteria;
         return new ClientStringSearchCriteria(str.key, str.value, str.operator);
       case 'array':
         // Deserialize the array criteria: it's transformed from 1 ID into a list of IDs in serialize()
         // and untransformed here from a list of IDs to 1 ID
-        const arr = criteria as ITagSearchCriteria<T>;
+        const arr = criteria as ITagSearchCriteria;
         const op =
           arr.value.length <= 1
             ? arr.operator
@@ -81,7 +86,7 @@ export abstract class ClientBaseCriteria<T> implements IBaseSearchCriteria<T> {
     }
   }
 
-  observe(callback: (criteria: ClientBaseCriteria<T>) => void): void {
+  observe(callback: (criteria: ClientFileSearchCriteria) => void): void {
     this.disposers.push(
       observe(this, 'key', () => callback(this)),
       observe(this, 'valueType', () => callback(this)),
@@ -97,10 +102,10 @@ export abstract class ClientBaseCriteria<T> implements IBaseSearchCriteria<T> {
   }
 }
 
-export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
+export class ClientTagSearchCriteria extends ClientFileSearchCriteria {
   @observable public value?: ID;
 
-  constructor(key: keyof T, id?: ID, operator: TagOperatorType = 'containsRecursively') {
+  constructor(key: keyof FileDTO, id?: ID, operator: TagOperatorType = 'containsRecursively') {
     super(key, 'array', operator);
     this.value = id;
     makeObservable(this);
@@ -114,7 +119,7 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
     return !this.value && !this.operator.toLowerCase().includes('not');
   };
 
-  @action.bound getLabel: (dict: SearchKeyDict<T>, rootStore: RootStore) => string = (
+  @action.bound getLabel: (dict: SearchKeyDict, rootStore: RootStore) => string = (
     dict,
     rootStore,
   ) => {
@@ -127,7 +132,7 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
   };
 
   @action.bound
-  serialize = (rootStore: RootStore): ITagSearchCriteria<T> => {
+  serialize = (rootStore: RootStore): ITagSearchCriteria => {
     // for the *recursive options, convert it to the corresponding non-recursive option,
     // by putting all child IDs in the value in the serialization step
     let op = this.operator as TagOperatorType;
@@ -151,6 +156,10 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
     };
   };
 
+  toCondition = (rootStore: RootStore): ArrayConditionDTO<FileDTO, any> => {
+    return this.serialize(rootStore) as ArrayConditionDTO<FileDTO, any>;
+  };
+
   @action.bound setOperator(op: TagOperatorType): void {
     this.operator = op;
   }
@@ -160,27 +169,31 @@ export class ClientTagSearchCriteria<T> extends ClientBaseCriteria<T> {
   }
 }
 
-export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
+export class ClientStringSearchCriteria extends ClientFileSearchCriteria {
   @observable public value: string;
 
-  constructor(key: keyof T, value: string = '', operator: StringOperatorType = 'contains') {
+  constructor(key: keyof FileDTO, value: string = '', operator: StringOperatorType = 'contains') {
     super(key, 'string', operator);
     this.value = value;
     makeObservable(this);
   }
 
-  @action.bound getLabel: (dict: SearchKeyDict<T>) => string = (dict) =>
+  @action.bound getLabel: (dict: SearchKeyDict) => string = (dict) =>
     `${dict[this.key] || camelCaseToSpaced(this.key as string)} ${
       StringOperatorLabels[this.operator as StringOperatorType] || camelCaseToSpaced(this.operator)
     } "${this.value}"`;
 
-  @action.bound serialize = (): IStringSearchCriteria<T> => {
+  @action.bound serialize = (): IStringSearchCriteria => {
     return {
       key: this.key,
       valueType: this.valueType,
       operator: this.operator as StringOperatorType,
       value: this.value,
     };
+  };
+
+  toCondition = (): StringConditionDTO<FileDTO> => {
+    return this.serialize() as StringConditionDTO<FileDTO>;
   };
 
   @action.bound setOperator(op: StringOperatorType): void {
@@ -192,11 +205,11 @@ export class ClientStringSearchCriteria<T> extends ClientBaseCriteria<T> {
   }
 }
 
-export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
+export class ClientNumberSearchCriteria extends ClientFileSearchCriteria {
   @observable public value: number;
 
   constructor(
-    key: keyof T,
+    key: keyof FileDTO,
     value: number = 0,
     operator: NumberOperatorType = 'greaterThanOrEquals',
   ) {
@@ -209,13 +222,17 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
       NumberOperatorSymbols[this.operator as NumberOperatorType] || camelCaseToSpaced(this.operator)
     } ${this.value}`;
 
-  @action.bound serialize = (): INumberSearchCriteria<T> => {
+  @action.bound serialize = (): INumberSearchCriteria => {
     return {
       key: this.key,
       valueType: this.valueType,
       operator: this.operator as NumberOperatorType,
       value: this.value,
     };
+  };
+
+  toCondition = (): NumberConditionDTO<FileDTO> => {
+    return this.serialize() as NumberConditionDTO<FileDTO>;
   };
 
   @action.bound setOperator(op: NumberOperatorType): void {
@@ -227,28 +244,36 @@ export class ClientNumberSearchCriteria<T> extends ClientBaseCriteria<T> {
   }
 }
 
-export class ClientDateSearchCriteria<T> extends ClientBaseCriteria<T> {
+export class ClientDateSearchCriteria extends ClientFileSearchCriteria {
   @observable public value: Date;
 
-  constructor(key: keyof T, value: Date = new Date(), operator: NumberOperatorType = 'equals') {
+  constructor(
+    key: keyof FileDTO,
+    value: Date = new Date(),
+    operator: NumberOperatorType = 'equals',
+  ) {
     super(key, 'date', operator);
     this.value = value;
     this.value.setHours(0, 0, 0, 0);
     makeObservable(this);
   }
 
-  @action.bound getLabel: (dict: SearchKeyDict<T>) => string = (dict) =>
+  @action.bound getLabel: (dict: SearchKeyDict) => string = (dict) =>
     `${dict[this.key] || camelCaseToSpaced(this.key as string)} ${
       NumberOperatorSymbols[this.operator as NumberOperatorType] || camelCaseToSpaced(this.operator)
     } ${this.value.toLocaleDateString()}`;
 
-  @action.bound serialize = (): IDateSearchCriteria<T> => {
+  @action.bound serialize = (): IDateSearchCriteria => {
     return {
       key: this.key,
       valueType: this.valueType,
       operator: this.operator as NumberOperatorType,
       value: this.value,
     };
+  };
+
+  toCondition = (): DateConditionDTO<FileDTO> => {
+    return this.serialize() as DateConditionDTO<FileDTO>;
   };
 
   @action.bound setOperator(op: NumberOperatorType): void {

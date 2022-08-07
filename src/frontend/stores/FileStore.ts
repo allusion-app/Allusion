@@ -1,12 +1,12 @@
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
-import { IDataStorage, FileOrder, OrderDirection } from 'src/api/IDataStorage';
+import { IDataStorage } from 'src/api/IDataStorage';
+import { ConditionDTO, OrderBy, OrderDirection } from 'src/api/DataStorageSearch';
 import { ClientFile, mergeMovedFile } from 'src/entities/File';
 import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/File';
 import { ID } from 'src/api/ID';
 import { ClientLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { SearchCriteria } from 'src/api/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
 import { debounce } from 'common/timeout';
@@ -44,7 +44,7 @@ class FileStore {
   /** The origin of the current files that are shown */
   @observable private content: Content = Content.All;
   @observable orderDirection: OrderDirection = OrderDirection.Desc;
-  @observable orderBy: FileOrder = 'dateAdded';
+  @observable orderBy: OrderBy<FileDTO> = 'dateAdded';
   @observable numTotalFiles = 0;
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
@@ -206,7 +206,7 @@ class FileStore {
     this.refetch();
   }
 
-  @action.bound orderFilesBy(prop: FileOrder = 'dateAdded') {
+  @action.bound orderFilesBy(prop: OrderBy<FileDTO> = 'dateAdded') {
     this.setOrderBy(prop);
     this.refetch();
   }
@@ -298,7 +298,7 @@ class FileStore {
   @action async deleteFilesByExtension(ext: IMG_EXTENSIONS_TYPE): Promise<void> {
     try {
       const crit = new ClientStringSearchCriteria('extension', ext, 'equals');
-      const files = await this.backend.searchFiles(crit.serialize(), 'id', OrderDirection.Asc);
+      const files = await this.backend.searchFiles(crit.toCondition(), 'id', OrderDirection.Asc);
       console.log('Files to delete', ext, files);
       await this.backend.removeFiles(files.map((f) => f.id));
 
@@ -340,7 +340,7 @@ class FileStore {
       const criteria = new ClientTagSearchCriteria('tags');
       uiStore.searchCriteriaList.push(criteria);
       const fetchedFiles = await this.backend.searchFiles(
-        criteria.serialize(this.rootStore),
+        criteria.toCondition(this.rootStore),
         this.orderBy,
         this.orderDirection,
         uiStore.searchMatchAny,
@@ -425,7 +425,7 @@ class FileStore {
     }
     try {
       const fetchedFiles = await this.backend.searchFiles(
-        criteria as [SearchCriteria<FileDTO>],
+        criteria as [ConditionDTO<FileDTO>],
         this.orderBy,
         this.orderDirection,
         uiStore.searchMatchAny,
@@ -682,7 +682,7 @@ class FileStore {
     this.orderDirection = order;
   }
 
-  @action private setOrderBy(prop: FileOrder = 'dateAdded') {
+  @action private setOrderBy(prop: OrderBy<FileDTO> = 'dateAdded') {
     this.orderBy = prop;
   }
 

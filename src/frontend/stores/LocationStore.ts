@@ -1,6 +1,7 @@
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
-import { IDataStorage, OrderDirection } from 'src/api/IDataStorage';
+import { IDataStorage } from 'src/api/IDataStorage';
+import { OrderDirection } from 'src/api/DataStorageSearch';
 import ExifIO from 'common/ExifIO';
 import { getMetaData, mergeMovedFile } from 'src/entities/File';
 import { FileDTO, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/File';
@@ -500,7 +501,7 @@ class LocationStore {
    * Fetches the files belonging to a location
    */
   @action async findLocationFiles(locationId: ID): Promise<FileDTO[]> {
-    const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').serialize();
+    const crit = new ClientStringSearchCriteria('locationId', locationId, 'equals').toCondition();
     return this.backend.searchFiles(crit, 'id', OrderDirection.Asc);
   }
 
@@ -509,7 +510,7 @@ class LocationStore {
       'absolutePath',
       subLoc.path,
       'startsWith',
-    ).serialize();
+    ).toCondition();
     const files = await this.backend.searchFiles(crit, 'id', OrderDirection.Asc);
     await this.backend.removeFiles(files.map((f) => f.id));
     this.rootStore.fileStore.refetch();
