@@ -15,7 +15,7 @@ import { SubLocationDTO, LocationDTO } from 'src/api/Location';
 const sort = (a: SubLocationDTO, b: SubLocationDTO) =>
   a.name.localeCompare(b.name, undefined, { numeric: true });
 
-export class ClientSubLocation implements SubLocationDTO {
+export class ClientSubLocation {
   @observable
   name: string;
   @observable
