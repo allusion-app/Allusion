@@ -12,8 +12,6 @@ import {
   IStringSearchCriteria,
   ITagSearchCriteria,
   TagOperatorType,
-  StringOperatorLabels,
-  NumberOperatorSymbols,
 } from '../api/SearchCriteria';
 import {
   ArrayConditionDTO,
@@ -31,6 +29,27 @@ export type SearchKeyDict = Partial<Record<keyof FileDTO, string>>;
 export const CustomKeyDict: SearchKeyDict = {
   absolutePath: 'Path',
   locationId: 'Location',
+};
+
+// Trick for converting array to type https://stackoverflow.com/a/49529930/2350481
+export const NumberOperatorSymbols: Record<NumberOperatorType, string> = {
+  equals: '=',
+  notEqual: '≠',
+  smallerThan: '<',
+  smallerThanOrEquals: '≤',
+  greaterThan: '>',
+  greaterThanOrEquals: '≥',
+};
+
+export const StringOperatorLabels: Record<StringOperatorType, string> = {
+  equalsIgnoreCase: 'Equals',
+  equals: 'Equals',
+  notEqual: 'Not Equal',
+  startsWithIgnoreCase: 'Starts With',
+  startsWith: 'Starts With',
+  notStartsWith: 'Not Starts With',
+  contains: 'Contains',
+  notContains: 'Not Contains',
 };
 
 export abstract class ClientFileSearchCriteria implements IBaseSearchCriteria {

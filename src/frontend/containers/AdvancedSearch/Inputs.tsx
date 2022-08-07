@@ -2,12 +2,8 @@ import { action } from 'mobx';
 import React, { ForwardedRef, forwardRef, useState } from 'react';
 import { IMG_EXTENSIONS } from 'src/api/File';
 import { NumberOperators, StringOperatorType } from 'src/api/DataStorageSearch';
-import {
-  BinaryOperators,
-  NumberOperatorSymbols,
-  StringOperatorLabels,
-  TagOperators,
-} from 'src/api/SearchCriteria';
+import { BinaryOperators, TagOperators } from 'src/api/SearchCriteria';
+import { NumberOperatorSymbols, StringOperatorLabels } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useStore } from 'src/frontend/contexts/StoreContext';
