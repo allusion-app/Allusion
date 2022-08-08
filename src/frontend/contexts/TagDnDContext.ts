@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { ClientFile } from 'src/entities/File';
 import { ClientLocation } from 'src/entities/Location';
-import { ClientFileSearchItem } from 'src/entities/FileSearchItem';
+import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import { ClientTag } from 'src/entities/Tag';
 
 // Common

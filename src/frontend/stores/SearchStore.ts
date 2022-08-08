@@ -2,7 +2,7 @@ import { action, makeObservable, observable } from 'mobx';
 import { IDataStorage } from 'src/api/IDataStorage';
 import { generateId, ID } from 'src/api/ID';
 import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientFileSearchItem } from 'src/entities/FileSearchItem';
+import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import RootStore from './RootStore';
 
 /**

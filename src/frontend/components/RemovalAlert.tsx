@@ -9,7 +9,7 @@ import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
 import { AppToaster } from './Toaster';
 import { RendererMessenger } from 'src/Messaging';
-import { ClientFileSearchItem } from 'src/entities/FileSearchItem';
+import { ClientFileSearchItem } from 'src/entities/SearchItem';
 
 interface IRemovalProps<T> {
   object: T;

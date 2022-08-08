@@ -3,7 +3,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { generateId } from 'src/api/ID';
 import { CustomKeyDict, ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientFileSearchItem } from 'src/entities/FileSearchItem';
+import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import { SavedSearchRemoval } from 'src/frontend/components/RemovalAlert';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import {
