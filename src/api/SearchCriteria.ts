@@ -46,7 +46,6 @@ export interface IDateSearchCriteria extends IBaseSearchCriteria {
   /** TODO: Would be cool to have relative time: e.g. modified today/last month */
   operator: NumberOperatorType;
 }
-// General search criteria for a database entity
 
 export type SearchCriteria =
   | ITagSearchCriteria

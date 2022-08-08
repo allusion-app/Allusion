@@ -417,15 +417,15 @@ class FileStore {
 
   @action.bound async fetchFilesByQuery() {
     const { uiStore } = this.rootStore;
-    const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) =>
-      c.serialize(this.rootStore),
-    );
-    if (criteria.length === 0) {
+
+    if (uiStore.searchCriteriaList.length === 0) {
       return this.fetchAllFiles();
     }
+
+    const criterias = uiStore.searchCriteriaList.map((c) => c.toCondition(this.rootStore));
     try {
       const fetchedFiles = await this.backend.searchFiles(
-        criteria as [ConditionDTO<FileDTO>],
+        criterias as [ConditionDTO<FileDTO>, ...ConditionDTO<FileDTO>[]],
         this.orderBy,
         this.orderDirection,
         uiStore.searchMatchAny,

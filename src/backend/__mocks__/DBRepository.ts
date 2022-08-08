@@ -45,12 +45,11 @@ export default class InMemoryDbRepository<T extends IRecord> implements IReposit
   }
 
   async find(
-    criteria: ConditionDTO<T> | [ConditionDTO<T>],
+    criterias: [ConditionDTO<T>, ...ConditionDTO<T>[]],
     order: OrderBy<T>,
     orderDirection: OrderDirection,
     matchAny?: boolean,
   ): Promise<T[]> {
-    const criterias = Array.isArray(criteria) ? criteria : [criteria];
     const items = this.items.filter((item) => {
       if (matchAny) {
         return criterias.some((criteria) => {

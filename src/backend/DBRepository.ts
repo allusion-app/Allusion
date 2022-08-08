@@ -95,12 +95,12 @@ export default class BaseRepository<T> implements IRepository<T> {
   }
 
   public async find(
-    criteria: ConditionDTO<T> | [ConditionDTO<T>],
+    criterias: [ConditionDTO<T>, ...ConditionDTO<T>[]],
     order: OrderBy<T>,
     orderDirection: OrderDirection,
     matchAny: boolean = false,
   ): Promise<T[]> {
-    const collection = await this._find(criteria, matchAny ? 'or' : 'and');
+    const collection = await this._find(criterias, matchAny ? 'or' : 'and');
 
     if (order === 'random') {
       return shuffleArray(await collection.toArray());
@@ -114,7 +114,7 @@ export default class BaseRepository<T> implements IRepository<T> {
   }
 
   public async findExact(criteria: ConditionDTO<T>): Promise<T[]> {
-    const collection = await this._find(criteria, 'and');
+    const collection = await this._find([criteria], 'and');
     return collection.toArray();
   }
 
@@ -123,7 +123,7 @@ export default class BaseRepository<T> implements IRepository<T> {
   }
 
   public async countExact(criteria: ConditionDTO<T>): Promise<number> {
-    const collection = await this._find(criteria, 'and');
+    const collection = await this._find([criteria], 'and');
     return collection.count();
   }
 
@@ -152,7 +152,7 @@ export default class BaseRepository<T> implements IRepository<T> {
   }
 
   private async _find(
-    criteria: ConditionDTO<T> | [ConditionDTO<T>],
+    criterias: [ConditionDTO<T>, ...ConditionDTO<T>[]],
     conjunction: SearchConjunction,
   ): Promise<Dexie.Collection<T, string>> {
     // Searching with multiple 'wheres': https://stackoverflow.com/questions/35679590/dexiejs-indexeddb-chain-multiple-where-clauses
@@ -160,13 +160,12 @@ export default class BaseRepository<T> implements IRepository<T> {
     // It's one of the things they are working on, looks much better: https://github.com/dfahlander/Dexie.js/issues/427
     // We'll have to mostly rely on naive filter function (lambdas)
 
-    const criteriaList = Array.isArray(criteria) ? criteria : [criteria];
-    if (criteriaList.length > 1 && conjunction === 'or') {
+    if (criterias.length > 1 && conjunction === 'or') {
       // OR: We can only chain ORs if all filters can be "where" functions - else we do an ugly .some() check on every document
 
       let allWheres = true;
       let table: Dexie.Collection<T, string> | undefined = undefined;
-      for (const crit of criteriaList) {
+      for (const crit of criterias) {
         const where = !table ? this.collection.where(crit.key) : table.or(crit.key);
         const tableOrFilter = this.filterWhere(where, crit);
 
@@ -181,7 +180,7 @@ export default class BaseRepository<T> implements IRepository<T> {
       if (allWheres && table) {
         return table;
       } else {
-        const critLambdas = criteriaList.map((crit) => this.filterLambda(crit));
+        const critLambdas = criterias.map((crit) => this.filterLambda(crit));
         return this.collection.filter((t) => critLambdas.some((lambda) => lambda(t)));
       }
     }
@@ -190,7 +189,7 @@ export default class BaseRepository<T> implements IRepository<T> {
     // Dexie can use a fast "where" search for the initial search
     // For consecutive "and" conjunctions, a lambda function must be used
     // Since not all operators we need are supported by "where" filters, _filterWhere can also return a lambda.
-    const [firstCrit, ...otherCrits] = criteriaList;
+    const [firstCrit, ...otherCrits] = criterias;
 
     const where = this.collection.where(firstCrit.key);
     const whereOrFilter = this.filterWhere(where, firstCrit);

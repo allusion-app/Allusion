@@ -3,7 +3,7 @@ import RootStore from 'src/frontend/stores/RootStore';
 import { ID } from '../api/ID';
 import { ClientFileSearchCriteria } from './SearchCriteria';
 import { SearchCriteria } from '../api/SearchCriteria';
-import { FileSearchItemDTO } from '../api/FileSearchItem';
+import { FileSearchDTO } from '../api/FileSearch';
 
 export class ClientFileSearchItem {
   id: ID;
@@ -43,7 +43,7 @@ export class ClientFileSearchItem {
     this.index = newIndex;
   }
 
-  @action.bound serialize(rootStore: RootStore): FileSearchItemDTO {
+  @action.bound serialize(rootStore: RootStore): FileSearchDTO {
     return {
       id: this.id,
       name: this.name,

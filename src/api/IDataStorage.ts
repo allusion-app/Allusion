@@ -1,7 +1,7 @@
 import { IndexableType } from 'dexie';
 import { ConditionDTO, OrderBy, OrderDirection } from './DataStorageSearch';
 import { FileDTO } from './File';
-import { FileSearchItemDTO } from './FileSearchItem';
+import { FileSearchDTO } from './FileSearch';
 import { ID } from './ID';
 import { LocationDTO } from './Location';
 import { TagDTO } from './Tag';
@@ -12,9 +12,9 @@ export interface IDataStorage {
   fetchFilesByID: (ids: ID[]) => Promise<FileDTO[]>;
   fetchFilesByKey: (key: keyof FileDTO, value: IndexableType) => Promise<FileDTO[]>;
   fetchLocations: (order: keyof LocationDTO, fileOrder: OrderDirection) => Promise<LocationDTO[]>;
-  fetchSearches: () => Promise<FileSearchItemDTO[]>;
+  fetchSearches: () => Promise<FileSearchDTO[]>;
   searchFiles: (
-    criteria: ConditionDTO<FileDTO> | [ConditionDTO<FileDTO>],
+    criteria: ConditionDTO<FileDTO> | [ConditionDTO<FileDTO>, ...ConditionDTO<FileDTO>[]],
     order: OrderBy<FileDTO>,
     fileOrder: OrderDirection,
     matchAny?: boolean,
@@ -22,11 +22,11 @@ export interface IDataStorage {
   createTag: (tag: TagDTO) => Promise<void>;
   createFile: (file: FileDTO) => Promise<void>;
   createLocation: (location: LocationDTO) => Promise<void>;
-  createSearch: (search: FileSearchItemDTO) => Promise<void>;
+  createSearch: (search: FileSearchDTO) => Promise<void>;
   saveTag: (tag: TagDTO) => Promise<void>;
   saveFiles: (files: FileDTO[]) => Promise<void>;
   saveLocation: (location: LocationDTO) => Promise<void>;
-  saveSearch: (search: FileSearchItemDTO) => Promise<void>;
+  saveSearch: (search: FileSearchDTO) => Promise<void>;
   removeTags: (tags: ID[]) => Promise<void>;
   mergeTags: (tagToBeRemoved: ID, tagToMergeWith: ID) => Promise<void>;
   removeFiles: (files: ID[]) => Promise<void>;

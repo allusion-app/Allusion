@@ -2,7 +2,7 @@ import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
 import Dexie, { IndexableType } from 'dexie';
 import fse from 'fs-extra';
 import { RendererMessenger } from 'src/Messaging';
-import { FileSearchItemDTO } from '../api/FileSearchItem';
+import { FileSearchDTO } from '../api/FileSearch';
 import { FileDTO } from '../api/File';
 import { ID } from '../api/ID';
 import { LocationDTO } from '../api/Location';
@@ -23,7 +23,7 @@ export default class Backend implements IDataStorage {
   private fileRepository: DBRepository<FileDTO>;
   private tagRepository: DBRepository<TagDTO>;
   private locationRepository: DBRepository<LocationDTO>;
-  private searchRepository: DBRepository<FileSearchItemDTO>;
+  private searchRepository: DBRepository<FileSearchDTO>;
   private db: Dexie;
   private backupScheduler: BackupScheduler;
 
@@ -90,19 +90,20 @@ export default class Backend implements IDataStorage {
     return this.locationRepository.getAllOrdered(order, fileOrder);
   }
 
-  async fetchSearches(): Promise<FileSearchItemDTO[]> {
+  async fetchSearches(): Promise<FileSearchDTO[]> {
     console.info('Backend: Fetching searches...');
     return this.searchRepository.getAll();
   }
 
   async searchFiles(
-    criteria: ConditionDTO<FileDTO> | [ConditionDTO<FileDTO>],
+    criteria: ConditionDTO<FileDTO> | [ConditionDTO<FileDTO>, ...ConditionDTO<FileDTO>[]],
     order: OrderBy<FileDTO>,
     fileOrder: OrderDirection,
     matchAny?: boolean,
   ): Promise<FileDTO[]> {
     console.info('Backend: Searching files...', { criteria, matchAny });
-    return this.fileRepository.find(criteria, order, fileOrder, matchAny);
+    const criterias = Array.isArray(criteria) ? criteria : ([criteria] as [ConditionDTO<FileDTO>]);
+    return this.fileRepository.find(criterias, order, fileOrder, matchAny);
   }
 
   async createTag(tag: TagDTO): Promise<void> {
@@ -122,7 +123,7 @@ export default class Backend implements IDataStorage {
     return this.locationRepository.create(location);
   }
 
-  async createSearch(search: FileSearchItemDTO): Promise<void> {
+  async createSearch(search: FileSearchDTO): Promise<void> {
     console.info('Backend: Create search...', search);
     this.backupScheduler.notifyChange();
     return this.searchRepository.create(search);
@@ -146,7 +147,7 @@ export default class Backend implements IDataStorage {
     return this.locationRepository.update(location);
   }
 
-  async saveSearch(search: FileSearchItemDTO): Promise<void> {
+  async saveSearch(search: FileSearchDTO): Promise<void> {
     console.info('Backend: Saving search...', search);
     this.backupScheduler.notifyChange();
     return this.searchRepository.update(search);

@@ -1,7 +1,6 @@
 import { ID } from './ID';
 
 export const ROOT_TAG_ID = 'root';
-/* A Tag as it is represented in the Database */
 
 export type TagDTO = {
   id: ID;

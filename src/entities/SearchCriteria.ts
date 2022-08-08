@@ -31,7 +31,6 @@ export const CustomKeyDict: SearchKeyDict = {
   locationId: 'Location',
 };
 
-// Trick for converting array to type https://stackoverflow.com/a/49529930/2350481
 export const NumberOperatorSymbols: Record<NumberOperatorType, string> = {
   equals: '=',
   notEqual: '≠',

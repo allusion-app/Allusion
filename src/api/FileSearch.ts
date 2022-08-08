@@ -1,7 +1,7 @@
 import { ID } from './ID';
 import { SearchCriteria } from './SearchCriteria';
 
-export type FileSearchItemDTO = {
+export type FileSearchDTO = {
   id: ID;
   name: string;
   criteria: SearchCriteria[];

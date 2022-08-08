@@ -8,7 +8,7 @@ export interface IRepository<T> {
   getByKey: (key: keyof T, value: IndexableType) => Promise<T[]>;
   getAllOrdered: (order: OrderBy<T>, orderDirection: OrderDirection) => Promise<T[]>;
   find: (
-    criteria: ConditionDTO<T> | [ConditionDTO<T>],
+    criteria: [ConditionDTO<T>, ...ConditionDTO<T>[]],
     order: OrderBy<T>,
     orderDirection: OrderDirection,
     matchAny?: boolean,
