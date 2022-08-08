@@ -100,7 +100,7 @@ export default class BaseRepository<T> implements IRepository<T> {
     orderDirection: OrderDirection,
     matchAny: boolean = false,
   ): Promise<T[]> {
-    const collection = await this._find(criterias, matchAny ? 'or' : 'and');
+    const collection = await this.filter(criterias, matchAny ? 'or' : 'and');
 
     if (order === 'random') {
       return shuffleArray(await collection.toArray());
@@ -114,7 +114,7 @@ export default class BaseRepository<T> implements IRepository<T> {
   }
 
   public async findExact(criteria: ConditionDTO<T>): Promise<T[]> {
-    const collection = await this._find([criteria], 'and');
+    const collection = await this.filter([criteria], 'and');
     return collection.toArray();
   }
 
@@ -123,7 +123,7 @@ export default class BaseRepository<T> implements IRepository<T> {
   }
 
   public async countExact(criteria: ConditionDTO<T>): Promise<number> {
-    const collection = await this._find([criteria], 'and');
+    const collection = await this.filter([criteria], 'and');
     return collection.count();
   }
 
@@ -151,7 +151,7 @@ export default class BaseRepository<T> implements IRepository<T> {
     await this.collection.bulkPut(items); // note: this will also create them if they don't exist
   }
 
-  private async _find(
+  private async filter(
     criterias: [ConditionDTO<T>, ...ConditionDTO<T>[]],
     conjunction: SearchConjunction,
   ): Promise<Dexie.Collection<T, string>> {
