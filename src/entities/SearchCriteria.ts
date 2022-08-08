@@ -1,8 +1,8 @@
 import { action, Lambda, makeObservable, observable, observe } from 'mobx';
 import RootStore from 'src/frontend/stores/RootStore';
 import { camelCaseToSpaced } from 'common/fmt';
-import { FileDTO } from 'src/api/File';
-import { ID } from 'src/api/ID';
+import { FileDTO } from '../api/File';
+import { ID } from '../api/ID';
 import {
   SearchCriteria,
   IBaseSearchCriteria,
@@ -21,7 +21,7 @@ import {
   NumberOperatorType,
   StringConditionDTO,
   StringOperatorType,
-} from 'src/api/DataStorageSearch';
+} from '../api/DataStorageSearch';
 
 // A dictionary of labels for (some of) the keys of the type we search for
 export type SearchKeyDict = Partial<Record<keyof FileDTO, string>>;
@@ -43,10 +43,10 @@ export const NumberOperatorSymbols: Record<NumberOperatorType, string> = {
 
 export const StringOperatorLabels: Record<StringOperatorType, string> = {
   equalsIgnoreCase: 'Equals',
-  equals: 'Equals',
+  equals: 'Equals', // not available as dropdown option to user to avoid clutter
   notEqual: 'Not Equal',
   startsWithIgnoreCase: 'Starts With',
-  startsWith: 'Starts With',
+  startsWith: 'Starts With', // not available as dropdown option to user to avoid clutter
   notStartsWith: 'Not Starts With',
   contains: 'Contains',
   notContains: 'Not Contains',

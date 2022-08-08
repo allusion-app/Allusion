@@ -7,9 +7,9 @@ import { AppToaster } from 'src/frontend/components/Toaster';
 import LocationStore, { FileStats } from 'src/frontend/stores/LocationStore';
 import { FolderWatcherWorker } from 'src/frontend/workers/folderWatcher.worker';
 import { RendererMessenger } from 'src/Messaging';
-import { IMG_EXTENSIONS_TYPE } from 'src/api/File';
-import { ID } from 'src/api/ID';
-import { SubLocationDTO, LocationDTO } from 'src/api/Location';
+import { IMG_EXTENSIONS_TYPE } from '../api/File';
+import { ID } from '../api/ID';
+import { SubLocationDTO, LocationDTO } from '../api/Location';
 
 /** Sorts alphanumerically, "natural" sort */
 const sort = (a: SubLocationDTO, b: SubLocationDTO) =>

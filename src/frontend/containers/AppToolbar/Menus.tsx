@@ -1,13 +1,13 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 
+import { OrderBy, OrderDirection } from 'src/api/DataStorageSearch';
+import { FileDTO } from 'src/api/File';
 import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
 import { getThumbnailSize } from '../ContentView/utils';
 import { MenuDivider, MenuSliderItem } from 'widgets/menus/menu-items';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { OrderBy, OrderDirection } from 'src/api/DataStorageSearch';
-import { FileDTO } from 'src/api/File';
 
 // Tooltip info
 const enum Tooltip {

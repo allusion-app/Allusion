@@ -115,15 +115,15 @@ class RootStore {
   }
 
   async backupDatabaseToFile(path: string) {
-    return this.backend.backupDatabaseToFile(path);
+    return this.backend.backupToFile(path);
   }
 
   async restoreDatabaseFromFile(path: string) {
-    return this.backend.restoreDatabaseFromFile(path);
+    return this.backend.restoreFromFile(path);
   }
 
   async peekDatabaseFile(path: string) {
-    return this.backend.peekDatabaseFile(path);
+    return this.backend.peekFile(path);
   }
 }
 

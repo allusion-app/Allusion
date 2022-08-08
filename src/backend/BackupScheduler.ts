@@ -74,7 +74,7 @@ export default class BackupScheduler {
     this.lastBackupIndex = (this.lastBackupIndex + 1) % NUM_AUTO_BACKUPS;
 
     try {
-      await this.backend.backupDatabaseToFile(filePath);
+      await this.backend.backupToFile(filePath);
       console.log('Created automatic backup', filePath);
 
       // Check for daily backup

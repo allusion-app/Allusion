@@ -35,7 +35,7 @@ export interface IDataStorage {
   countFiles: () => Promise<[fileCount: number, untaggedFileCount: number]>;
   createFilesFromPath: (path: string, files: FileDTO[]) => Promise<void>;
   clear: () => Promise<void>;
-  backupDatabaseToFile: (path: string) => Promise<void>;
-  restoreDatabaseFromFile: (path: string) => Promise<void>;
-  peekDatabaseFile: (path: string) => Promise<{ numTags: number; numFiles: number }>;
+  backupToFile: (path: string) => Promise<void>;
+  restoreFromFile: (path: string) => Promise<void>;
+  peekFile: (path: string) => Promise<[numTags: number, numFiles: number]>;
 }

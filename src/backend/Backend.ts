@@ -2,16 +2,16 @@ import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
 import Dexie, { IndexableType } from 'dexie';
 import fse from 'fs-extra';
 import { RendererMessenger } from 'src/Messaging';
-import { FileSearchItemDTO } from 'src/api/FileSearchItem';
+import { FileSearchItemDTO } from '../api/FileSearchItem';
 import { FileDTO } from '../api/File';
 import { ID } from '../api/ID';
 import { LocationDTO } from '../api/Location';
-import { ConditionDTO, OrderBy, OrderDirection } from 'src/api/DataStorageSearch';
+import { ConditionDTO, OrderBy, OrderDirection } from '../api/DataStorageSearch';
 import { TagDTO, ROOT_TAG_ID } from '../api/Tag';
 import BackupScheduler from './BackupScheduler';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbDelete, dbInit } from './DBRepository';
-import { IDataStorage } from 'src/api/IDataStorage';
+import { IDataStorage } from '../api/IDataStorage';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -257,14 +257,14 @@ export default class Backend implements IDataStorage {
     return dbDelete(DB_NAME);
   }
 
-  async backupDatabaseToFile(path: string): Promise<void> {
+  async backupToFile(path: string): Promise<void> {
     const blob = await exportDB(this.db, { prettyJson: false });
     // might be nice to zip it and encode as base64 to save space. Keeping it simple for now
     await fse.ensureFile(path);
     await fse.writeFile(path, await blob.text());
   }
 
-  async restoreDatabaseFromFile(path: string): Promise<void> {
+  async restoreFromFile(path: string): Promise<void> {
     const buffer = await fse.readFile(path);
     const blob = new Blob([buffer]);
     await this.clear();
@@ -274,17 +274,14 @@ export default class Backend implements IDataStorage {
     // but that didn't seem to work correctly (files were always re-created after restarting for some reason)
   }
 
-  async peekDatabaseFile(path: string): Promise<{ numTags: number; numFiles: number }> {
+  async peekFile(path: string): Promise<[numTags: number, numFiles: number]> {
     const buffer = await fse.readFile(path);
     const blob = new Blob([buffer]);
     const metadata = await peakImportFile(blob); // heh, they made a typo
     const tagsTable = metadata.data.tables.find((t) => t.name === 'tags');
     const filesTable = metadata.data.tables.find((t) => t.name === 'files');
     if (tagsTable && filesTable) {
-      return {
-        numTags: tagsTable.rowCount,
-        numFiles: filesTable.rowCount,
-      };
+      return [tagsTable.rowCount, filesTable.rowCount];
     }
     throw new Error('Database does not contain a table for files and/or tags');
   }

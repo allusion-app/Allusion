@@ -1,7 +1,7 @@
 import { shuffleArray } from 'common/core';
 import { IndexableType } from 'dexie';
-import { OrderBy, OrderDirection, ConditionDTO } from 'src/api/DataStorageSearch';
-import { ID } from 'src/api/ID';
+import { OrderBy, OrderDirection, ConditionDTO } from '../../api/DataStorageSearch';
+import { ID } from '../../api/ID';
 import { IRepository } from '../IRepository';
 
 export const dbInit = jest.fn();

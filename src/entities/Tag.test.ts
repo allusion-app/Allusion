@@ -1,6 +1,6 @@
 import TagStore from 'src/frontend/stores/TagStore';
 import { ClientTag } from './Tag';
-import { ROOT_TAG_ID } from 'src/api/Tag';
+import { ROOT_TAG_ID } from '../api/Tag';
 
 jest.mock('../frontend/stores/TagStore', () => ({
   default: {

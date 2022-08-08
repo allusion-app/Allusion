@@ -8,8 +8,6 @@ import {
   StringConditionDTO,
   NumberConditionDTO,
   DateConditionDTO,
-  StringOperatorType,
-  NumberOperatorType,
   OrderBy,
   OrderDirection,
 } from '../api/DataStorageSearch';
@@ -107,16 +105,12 @@ export default class BaseRepository<T> implements IRepository<T> {
     if (order === 'random') {
       return shuffleArray(await collection.toArray());
     } else {
-      // table.reverse() can be an order of magnitude slower as a javascript .reverse() call at the end
+      // table.reverse() can be an order of magnitude slower than a javascript .reverse() call
       // (tested at ~5000 items, 500ms instead of 100ms)
       // easy to verify here https://jsfiddle.net/dfahlander/xf2zrL4p
       const items = await collection.sortBy(order);
       return orderDirection === OrderDirection.Desc ? items.reverse() : items;
     }
-
-    // Slower alternative
-    // table = count ? table.limit(count) : table;
-    // return order ? table.sortBy(order as string) : table.toArray();
   }
 
   public async findExact(criteria: ConditionDTO<T>): Promise<T[]> {
@@ -129,8 +123,8 @@ export default class BaseRepository<T> implements IRepository<T> {
   }
 
   public async countExact(criteria: ConditionDTO<T>): Promise<number> {
-    const table = await this._find(criteria, 'and');
-    return table.count();
+    const collection = await this._find(criteria, 'and');
+    return collection.count();
   }
 
   public async create(item: T): Promise<void> {
@@ -174,7 +168,7 @@ export default class BaseRepository<T> implements IRepository<T> {
       let table: Dexie.Collection<T, string> | undefined = undefined;
       for (const crit of criteriaList) {
         const where = !table ? this.collection.where(crit.key) : table.or(crit.key);
-        const tableOrFilter = this._filterWhere(where, crit);
+        const tableOrFilter = this.filterWhere(where, crit);
 
         if (typeof tableOrFilter === 'function') {
           allWheres = false;
@@ -187,7 +181,7 @@ export default class BaseRepository<T> implements IRepository<T> {
       if (allWheres && table) {
         return table;
       } else {
-        const critLambdas = criteriaList.map((crit) => this._filterLambda(crit));
+        const critLambdas = criteriaList.map((crit) => this.filterLambda(crit));
         return this.collection.filter((t) => critLambdas.some((lambda) => lambda(t)));
       }
     }
@@ -199,13 +193,13 @@ export default class BaseRepository<T> implements IRepository<T> {
     const [firstCrit, ...otherCrits] = criteriaList;
 
     const where = this.collection.where(firstCrit.key);
-    const whereOrFilter = this._filterWhere(where, firstCrit);
+    const whereOrFilter = this.filterWhere(where, firstCrit);
     let table =
       typeof whereOrFilter !== 'function' ? whereOrFilter : this.collection.filter(whereOrFilter);
 
     // Then just chain a loop of and() calls. A .every() feels more efficient than chaining table.and() calls
     if (otherCrits.length) {
-      table = table.and((item) => otherCrits.every((crit) => this._filterLambda(crit)(item)));
+      table = table.and((item) => otherCrits.every((crit) => this.filterLambda(crit)(item)));
     }
     // for (const crit of otherCrits) {
     //   table = table.and(this._filterLambda(crit));
@@ -221,33 +215,33 @@ export default class BaseRepository<T> implements IRepository<T> {
   //          Since some of our search operations are not supported by Dexie, some _where functions return a lambda.
   // - lambda: For 'and' conjunctions, a naive filter function (lambda) must be used.
 
-  private _filterWhere(where: WhereClause<T, string>, crit: ConditionDTO<T>) {
+  private filterWhere(where: WhereClause<T, string>, crit: ConditionDTO<T>) {
     switch (crit.valueType) {
       case 'array':
-        return this._filterArrayWhere(where, crit);
+        return this.filterArrayWhere(where, crit);
       case 'string':
-        return this._filterStringWhere(where, crit);
+        return this.filterStringWhere(where, crit);
       case 'number':
-        return this._filterNumberWhere(where, crit);
+        return this.filterNumberWhere(where, crit);
       case 'date':
-        return this._filterDateWhere(where, crit);
+        return this.filterDateWhere(where, crit);
     }
   }
 
-  private _filterLambda(crit: ConditionDTO<T>) {
+  private filterLambda(crit: ConditionDTO<T>) {
     switch (crit.valueType) {
       case 'array':
-        return this._filterArrayLambda(crit);
+        return this.filterArrayLambda(crit);
       case 'string':
-        return this._filterStringLambda(crit);
+        return this.filterStringLambda(crit);
       case 'number':
-        return this._filterNumberLambda(crit);
+        return this.filterNumberLambda(crit);
       case 'date':
-        return this._filterDateLambda(crit);
+        return this.filterDateLambda(crit);
     }
   }
 
-  private _filterArrayWhere(where: WhereClause<T, string>, crit: ArrayConditionDTO<T, any>) {
+  private filterArrayWhere(where: WhereClause<T, string>, crit: ArrayConditionDTO<T, any>) {
     // Querying array props: https://dexie.org/docs/MultiEntry-Index
     // Check whether to search for empty arrays (e.g. no tags)
     if (crit.value.length === 0) {
@@ -267,7 +261,7 @@ export default class BaseRepository<T> implements IRepository<T> {
     }
   }
 
-  private _filterArrayLambda(crit: ArrayConditionDTO<T, any>) {
+  private filterArrayLambda(crit: ArrayConditionDTO<T, any>) {
     if (crit.operator === 'contains') {
       // Check whether to search for empty arrays (e.g. no tags)
       return crit.value.length === 0
@@ -283,7 +277,7 @@ export default class BaseRepository<T> implements IRepository<T> {
     }
   }
 
-  private _filterStringWhere(where: WhereClause<T, string>, crit: StringConditionDTO<T>) {
+  private filterStringWhere(where: WhereClause<T, string>, crit: StringConditionDTO<T>) {
     const dbStringOperators = [
       'equalsIgnoreCase',
       'equals',
@@ -297,154 +291,124 @@ export default class BaseRepository<T> implements IRepository<T> {
       return where[funcName](crit.value);
     }
     // Use normal string filter as fallback for functions not supported by the DB
-    return this._filterStringLambda(crit);
+    return this.filterStringLambda(crit);
   }
 
-  private _filterStringLambda(crit: StringConditionDTO<T>) {
+  private filterStringLambda(crit: StringConditionDTO<T>) {
     const { key, value } = crit;
     const valLow = value.toLowerCase();
 
-    const getFilterFunc = (operator: StringOperatorType) => {
-      switch (operator) {
-        case 'equals':
-          return (t: any) => (t[key] as string).toLowerCase() === valLow;
-        case 'notEqual':
-          return (t: any) => (t[key] as string).toLowerCase() !== valLow;
-        case 'contains':
-          return (t: any) => (t[key] as string).toLowerCase().includes(valLow);
-        case 'notContains':
-          return (t: any) => !(t[key] as string).toLowerCase().includes(valLow);
-        case 'startsWith':
-          return (t: any) => (t[key] as string).toLowerCase().startsWith(valLow);
-        case 'notStartsWith':
-          return (t: any) => !(t[key] as string).toLowerCase().startsWith(valLow);
-        default:
-          console.log('String operator not allowed:', operator);
-          return () => false;
-      }
-    };
-
-    return getFilterFunc(crit.operator);
-  }
-
-  private _filterNumberWhere(where: WhereClause<T, string>, crit: NumberConditionDTO<T>) {
-    type DbNumberOperator =
-      | 'equals'
-      | 'notEqual'
-      | 'below'
-      | 'belowOrEqual'
-      | 'above'
-      | 'aboveOrEqual';
-    const funcName = ((operator: NumberOperatorType): DbNumberOperator | undefined => {
-      switch (operator) {
-        case 'equals':
-          return 'equals';
-        case 'notEqual':
-          return 'notEqual';
-        case 'smallerThan':
-          return 'below';
-        case 'smallerThanOrEquals':
-          return 'belowOrEqual';
-        case 'greaterThan':
-          return 'above';
-        case 'greaterThanOrEquals':
-          return 'aboveOrEqual';
-        default:
-          return undefined;
-      }
-    })(crit.operator);
-
-    if (!funcName) {
-      console.log('Number operator not allowed:', crit.operator);
-      return this.collection.filter(() => false);
+    switch (crit.operator) {
+      case 'equals':
+        return (t: any) => (t[key] as string).toLowerCase() === valLow;
+      case 'notEqual':
+        return (t: any) => (t[key] as string).toLowerCase() !== valLow;
+      case 'contains':
+        return (t: any) => (t[key] as string).toLowerCase().includes(valLow);
+      case 'notContains':
+        return (t: any) => !(t[key] as string).toLowerCase().includes(valLow);
+      case 'startsWith':
+        return (t: any) => (t[key] as string).toLowerCase().startsWith(valLow);
+      case 'notStartsWith':
+        return (t: any) => !(t[key] as string).toLowerCase().startsWith(valLow);
+      default:
+        console.log('String operator not allowed:', crit.operator);
+        return () => false;
     }
-    return where[funcName](crit.value);
   }
 
-  private _filterNumberLambda(crit: NumberConditionDTO<T>) {
+  private filterNumberWhere(where: WhereClause<T, string>, crit: NumberConditionDTO<T>) {
+    switch (crit.operator) {
+      case 'equals':
+        return where.equals(crit.value);
+      case 'notEqual':
+        return where.notEqual(crit.value);
+      case 'smallerThan':
+        return where.below(crit.value);
+      case 'smallerThanOrEquals':
+        return where.belowOrEqual(crit.value);
+      case 'greaterThan':
+        return where.above(crit.value);
+      case 'greaterThanOrEquals':
+        return where.aboveOrEqual(crit.value);
+      default:
+        const _exhaustiveCheck: never = crit.operator;
+        return _exhaustiveCheck;
+    }
+  }
+
+  private filterNumberLambda(crit: NumberConditionDTO<T>) {
     const { key, value } = crit;
 
-    const getFilterFunc = (operator: NumberOperatorType) => {
-      switch (operator) {
-        case 'equals':
-          return (t: any) => t[key] === value;
-        case 'notEqual':
-          return (t: any) => t[key] !== value;
-        case 'smallerThan':
-          return (t: any) => t[key] < value;
-        case 'smallerThanOrEquals':
-          return (t: any) => t[key] <= value;
-        case 'greaterThan':
-          return (t: any) => t[key] > value;
-        case 'greaterThanOrEquals':
-          return (t: any) => t[key] >= value;
-        default:
-          console.log('Number operator not allowed:', crit.operator);
-          return () => false;
-      }
-    };
-
-    return getFilterFunc(crit.operator);
+    switch (crit.operator) {
+      case 'equals':
+        return (t: any) => t[key] === value;
+      case 'notEqual':
+        return (t: any) => t[key] !== value;
+      case 'smallerThan':
+        return (t: any) => t[key] < value;
+      case 'smallerThanOrEquals':
+        return (t: any) => t[key] <= value;
+      case 'greaterThan':
+        return (t: any) => t[key] > value;
+      case 'greaterThanOrEquals':
+        return (t: any) => t[key] >= value;
+      default:
+        const _exhaustiveCheck: never = crit.operator;
+        return _exhaustiveCheck;
+    }
   }
 
-  private _filterDateWhere(where: WhereClause<T, string>, crit: DateConditionDTO<T>) {
+  private filterDateWhere(where: WhereClause<T, string>, crit: DateConditionDTO<T>) {
     const dateStart = new Date(crit.value);
     dateStart.setHours(0, 0, 0);
     const dateEnd = new Date(crit.value);
     dateEnd.setHours(23, 59, 59);
 
-    const col = ((operator: NumberOperatorType): Dexie.Collection<T, string> | undefined => {
-      switch (operator) {
-        // equal to this day, so between 0:00 and 23:59
-        case 'equals':
-          return where.between(dateStart, dateEnd);
-        case 'smallerThan':
-          return where.below(dateStart);
-        case 'smallerThanOrEquals':
-          return where.below(dateEnd);
-        case 'greaterThan':
-          return where.above(dateEnd);
-        case 'greaterThanOrEquals':
-          return where.above(dateStart);
-        default:
-          return undefined;
-      }
-    })(crit.operator);
-
-    if (!col) {
-      // Use fallback
-      return this._filterDateLambda(crit);
+    switch (crit.operator) {
+      // equal to this day, so between 0:00 and 23:59
+      case 'equals':
+        return where.between(dateStart, dateEnd);
+      case 'smallerThan':
+        return where.below(dateStart);
+      case 'smallerThanOrEquals':
+        return where.below(dateEnd);
+      case 'greaterThan':
+        return where.above(dateEnd);
+      case 'greaterThanOrEquals':
+        return where.above(dateStart);
+      // not equal to this day, so before 0:00 or after 23:59
+      case 'notEqual':
+        return where.below(dateStart).or(crit.key).above(dateEnd);
+      default:
+        const _exhaustiveCheck: never = crit.operator;
+        return _exhaustiveCheck;
     }
-    return col;
   }
 
-  private _filterDateLambda(crit: DateConditionDTO<T>) {
+  private filterDateLambda(crit: DateConditionDTO<T>) {
     const { key } = crit;
     const start = new Date(crit.value);
     start.setHours(0, 0, 0);
     const end = new Date(crit.value);
     end.setHours(23, 59, 59);
 
-    const getFilterFunc = (operator: NumberOperatorType) => {
-      switch (operator) {
-        case 'equals':
-          return (t: any) => t[key] >= start || t[key] <= end;
-        case 'notEqual':
-          return (t: any) => t[key] < start || t[key] > end;
-        case 'smallerThan':
-          return (t: any) => t[key] < start;
-        case 'smallerThanOrEquals':
-          return (t: any) => t[key] <= end;
-        case 'greaterThan':
-          return (t: any) => t[key] > end;
-        case 'greaterThanOrEquals':
-          return (t: any) => t[key] >= start;
-        default:
-          console.log('Date operator not allowed:', crit.operator);
-          return () => false;
-      }
-    };
-
-    return getFilterFunc(crit.operator);
+    switch (crit.operator) {
+      case 'equals':
+        return (t: any) => t[key] >= start || t[key] <= end;
+      case 'notEqual':
+        return (t: any) => t[key] < start || t[key] > end;
+      case 'smallerThan':
+        return (t: any) => t[key] < start;
+      case 'smallerThanOrEquals':
+        return (t: any) => t[key] <= end;
+      case 'greaterThan':
+        return (t: any) => t[key] > end;
+      case 'greaterThanOrEquals':
+        return (t: any) => t[key] >= start;
+      default:
+        const _exhaustiveCheck: never = crit.operator;
+        return _exhaustiveCheck;
+    }
   }
 }

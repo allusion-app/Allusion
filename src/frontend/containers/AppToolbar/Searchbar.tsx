@@ -17,7 +17,7 @@ const Searchbar = observer(() => {
       (crit) =>
         crit.key === 'tags' &&
         crit.operator === 'containsRecursively' &&
-        (crit as ClientTagSearchCriteria<any>).value,
+        (crit as ClientTagSearchCriteria).value,
     );
 
   return <div className="searchbar">{isQuickSearch ? <QuickSearchList /> : <CriteriaList />}</div>;

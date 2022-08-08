@@ -107,7 +107,7 @@ const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
   if (nodeData.isSearched) {
     // if it already exists, then remove it
     const alreadySearchedCrit = uiStore.searchCriteriaList.find((c) =>
-      (c as ClientTagSearchCriteria<any>).value?.includes(nodeData.id),
+      (c as ClientTagSearchCriteria).value?.includes(nodeData.id),
     );
     if (alreadySearchedCrit) {
       uiStore.replaceSearchCriterias(
