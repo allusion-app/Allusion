@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/RenderMessenger';
 import { AppToaster } from '../components/Toaster';
 import UiStore from '../stores/UiStore';
 

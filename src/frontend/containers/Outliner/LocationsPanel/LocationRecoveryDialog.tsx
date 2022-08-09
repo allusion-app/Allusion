@@ -3,7 +3,7 @@ import fse from 'fs-extra';
 import { observer } from 'mobx-react-lite';
 import Path from 'path';
 
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/RenderMessenger';
 import { IMG_EXTENSIONS } from 'src/api/File';
 import { ClientLocation } from 'src/entities/Location';
 import { useStore } from 'src/frontend/contexts/StoreContext';

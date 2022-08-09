@@ -6,7 +6,7 @@ import { retainArray } from 'common/core';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import LocationStore, { FileStats } from 'src/frontend/stores/LocationStore';
 import { FolderWatcherWorker } from 'src/frontend/workers/folderWatcher.worker';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/RenderMessenger';
 import { IMG_EXTENSIONS_TYPE } from '../api/File';
 import { ID } from '../api/ID';
 import { SubLocationDTO, LocationDTO } from '../api/Location';

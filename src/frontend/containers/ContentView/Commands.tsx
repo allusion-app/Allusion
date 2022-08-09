@@ -5,7 +5,7 @@ import { ClientFile } from 'src/entities/File';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDAttribute, DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/RenderMessenger';
 import { IconSet } from 'widgets/Icons';
 import { Menu, MenuDivider, MenuSubItem, useContextMenu } from 'widgets/menus';
 import { LayoutMenuItems, SortMenuItems } from '../AppToolbar/Menus';

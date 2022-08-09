@@ -5,7 +5,7 @@ import { ID } from 'src/api/ID';
 import { ClientFileSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { SearchCriteria } from 'src/api/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/RenderMessenger';
 import { IS_PREVIEW_WINDOW } from 'common/window';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, notEmpty } from 'common/core';

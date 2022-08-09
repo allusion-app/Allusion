@@ -8,7 +8,7 @@ import { AppToaster } from 'src/frontend/components/Toaster';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import FileStore from 'src/frontend/stores/FileStore';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/RenderMessenger';
 import { IExpansionState } from '../../types';
 import {
   findDroppedFileMatches,

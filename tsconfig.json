@@ -18,7 +18,8 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": true,
     "useUnknownInCatchVariables": false,
-    "strict": true
+    "strict": true, 
+    "isolatedModules": true
   },
   "include": ["widgets/**/*", "src/**/*", "custom.d.ts", "types/*.d.ts", "wasm/**/*", "common/**/*"],
   "exclude": ["**/node_modules", "**/.*/*", "dist", "resources", "build"]

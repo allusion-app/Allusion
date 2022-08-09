@@ -4,13 +4,13 @@ import {
   BrowserWindowConstructorOptions,
   dialog,
   Menu,
-  nativeImage,
   nativeTheme,
   screen,
   session,
-  shell,
+  Rectangle,
   Tray,
-} from 'electron';
+} from 'electron/main';
+import { nativeImage, shell } from 'electron/common';
 import path from 'path';
 import fse from 'fs-extra';
 import { autoUpdater, UpdateInfo } from 'electron-updater';
@@ -20,9 +20,9 @@ import TrayIconMac from '../resources/logo/png/black/allusionTemplate@2x.png'; /
 import ClipServer, { IImportItem } from './clipper/server';
 import { createBugReport, githubUrl } from '../common/config';
 import { IS_DEV, IS_MAC } from '../common/process';
-import { TagDTO, ROOT_TAG_ID } from 'src/api/Tag';
-import { MainMessenger, WindowSystemButtonPress } from './Messaging';
-import { Rectangle } from 'electron/main';
+import { TagDTO, ROOT_TAG_ID } from './api/Tag';
+import { MainMessenger } from './ipc/MainMessenger';
+import { WindowSystemButtonPress } from './ipc/messages';
 
 // TODO: change this when running in portable mode, see portable-improvements branch
 const basePath = app.getPath('userData');

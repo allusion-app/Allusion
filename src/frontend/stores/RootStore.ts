@@ -9,7 +9,7 @@ import LocationStore from './LocationStore';
 import ExifIO from 'common/ExifIO';
 import ImageLoader from '../image/ImageLoader';
 
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/RenderMessenger';
 import SearchStore from './SearchStore';
 
 // This will throw exceptions whenver we try to modify the state directly without an action

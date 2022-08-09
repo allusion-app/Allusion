@@ -30,7 +30,7 @@ const Placeholder = observer(() => {
 export default Placeholder;
 
 import { IconSet, Button, ButtonGroup, SVG } from 'widgets';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/RenderMessenger';
 import useMountState from 'src/frontend/hooks/useMountState';
 
 const PreviewWindowPlaceholder = observer(() => {

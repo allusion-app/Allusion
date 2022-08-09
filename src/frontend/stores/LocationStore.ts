@@ -10,7 +10,7 @@ import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { LocationDTO } from 'src/api/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { AppToaster } from 'src/frontend/components/Toaster';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/RenderMessenger';
 import { getThumbnailPath } from 'common/fs';
 import { promiseAllLimit } from 'common/promise';
 import RootStore from './RootStore';

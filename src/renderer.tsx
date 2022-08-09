@@ -10,7 +10,7 @@ import { observe, runInAction } from 'mobx';
 // in the HTML file
 import './style.scss';
 
-import { RendererMessenger } from './Messaging';
+import { RendererMessenger } from 'src/ipc/RenderMessenger';
 
 import Backend from './backend/Backend';
 

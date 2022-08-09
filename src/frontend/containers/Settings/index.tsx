@@ -10,7 +10,7 @@ import React, { ReactNode, useCallback, useEffect, useState } from 'react';
 import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/File';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import useCustomTheme from 'src/frontend/hooks/useCustomTheme';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/RenderMessenger';
 import {
   Button,
   ButtonGroup,
