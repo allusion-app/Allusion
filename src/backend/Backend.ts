@@ -1,7 +1,7 @@
 import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
 import Dexie, { IndexableType } from 'dexie';
 import fse from 'fs-extra';
-import { RendererMessenger } from 'src/ipc/RenderMessenger';
+import { RendererMessenger } from '../ipc/RenderMessenger';
 import { FileSearchDTO } from '../api/FileSearch';
 import { FileDTO } from '../api/File';
 import { ID } from '../api/ID';

@@ -1,7 +1,7 @@
 // Mocks the DBRepository file with the one defined in the __mocks__ directory
 jest.mock('./DBRepository');
 jest.mock('./BackupScheduler');
-jest.mock('../Messaging', () => ({
+jest.mock('../ipc/RenderMessenger', () => ({
   RendererMessenger: {
     getDefaultBackupDirectory() {
       return Promise.resolve('/tmp');
