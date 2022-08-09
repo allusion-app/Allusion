@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron/renderer';
+import { ipcRenderer } from 'electron';
 import path from 'path';
 import {
   ADD_TAGS_TO_FILE,

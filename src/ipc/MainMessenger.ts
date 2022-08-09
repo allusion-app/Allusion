@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, WebContents } from 'electron/main';
+import { BrowserWindow, ipcMain, WebContents } from 'electron';
 import {
   ADD_TAGS_TO_FILE,
   CHECK_FOR_UPDATES,

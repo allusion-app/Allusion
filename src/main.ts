@@ -4,13 +4,14 @@ import {
   BrowserWindowConstructorOptions,
   dialog,
   Menu,
+  nativeImage,
   nativeTheme,
   screen,
   session,
+  shell,
   Rectangle,
   Tray,
-} from 'electron/main';
-import { nativeImage, shell } from 'electron/common';
+} from 'electron';
 import path from 'path';
 import fse from 'fs-extra';
 import { autoUpdater, UpdateInfo } from 'electron-updater';
