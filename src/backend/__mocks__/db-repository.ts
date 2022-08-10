@@ -50,23 +50,20 @@ export default class InMemoryDbRepository<T extends IRecord> implements IReposit
     orderDirection: OrderDirection,
     matchAny?: boolean,
   ): Promise<T[]> {
+    // TODO: Match using operators
+    function isMatch(item: T, criteria: ConditionDTO<T>) {
+      if (criteria.valueType === 'array') {
+        return criteria.value.every((value) => (item[criteria.key] as any).includes(value));
+      } else {
+        return (item[criteria.key] as any) === criteria.value;
+      }
+    }
+
     const items = this.items.filter((item) => {
       if (matchAny) {
-        return criterias.some((criteria) => {
-          if (criteria.valueType === 'array') {
-            return criteria.value.every((value) => (item[criteria.key] as any).includes(value));
-          } else {
-            return (item[criteria.key] as any) === criteria.value;
-          }
-        });
+        return criterias.some((criteria) => isMatch(item, criteria));
       } else {
-        criterias.every((criteria) => {
-          if (criteria.valueType === 'array') {
-            return criteria.value.every((value) => (item[criteria.key] as any).includes(value));
-          } else {
-            return (item[criteria.key] as any) === criteria.value;
-          }
-        });
+        return criterias.every((criteria) => isMatch(item, criteria));
       }
     });
 
