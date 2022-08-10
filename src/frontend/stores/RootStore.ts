@@ -1,6 +1,6 @@
 import { configure, runInAction } from 'mobx';
 
-import { IDataStorage } from 'src/api/IDataStorage';
+import { IDataStorage } from 'src/api/data-storage';
 
 import FileStore from './FileStore';
 import TagStore from './TagStore';
@@ -9,7 +9,7 @@ import LocationStore from './LocationStore';
 import ExifIO from 'common/ExifIO';
 import ImageLoader from '../image/ImageLoader';
 
-import { RendererMessenger } from 'src/ipc/RenderMessenger';
+import { RendererMessenger } from 'src/ipc/renderer';
 import SearchStore from './SearchStore';
 
 // This will throw exceptions whenver we try to modify the state directly without an action

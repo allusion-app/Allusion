@@ -1,10 +1,10 @@
 import { action, observable, computed, makeObservable } from 'mobx';
 
-import { IDataStorage } from 'src/api/IDataStorage';
+import { IDataStorage } from 'src/api/data-storage';
 
-import { generateId, ID } from 'src/api/ID';
+import { generateId, ID } from 'src/api/id';
 import { ClientTag } from 'src/entities/Tag';
-import { TagDTO, ROOT_TAG_ID } from 'src/api/Tag';
+import { TagDTO, ROOT_TAG_ID } from 'src/api/tag';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 
 import RootStore from './RootStore';

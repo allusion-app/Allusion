@@ -1,5 +1,5 @@
-import { ID } from './ID';
-import { SearchCriteria } from './SearchCriteria';
+import { ID } from './id';
+import { SearchCriteria } from './search-criteria';
 
 export type FileSearchDTO = {
   id: ID;

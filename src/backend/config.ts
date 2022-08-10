@@ -1,6 +1,6 @@
 import { Transaction } from 'dexie';
-import { FileDTO } from 'src/api/File';
-import { DBVersioningConfig } from './DBRepository';
+import { FileDTO } from 'src/api/file';
+import { DBVersioningConfig } from './db-repository';
 import fse from 'fs-extra';
 
 // The name of the IndexedDB

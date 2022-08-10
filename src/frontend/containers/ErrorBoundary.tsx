@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { shell } from 'electron';
 import { mapStackTrace } from 'sourcemapped-stacktrace';
 
-import { RendererMessenger } from 'src/ipc/RenderMessenger';
+import { RendererMessenger } from 'src/ipc/renderer';
 import { createBugReport, githubUrl } from 'common/config';
 
 import { useStore } from '../contexts/StoreContext';

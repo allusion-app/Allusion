@@ -3,7 +3,7 @@ import { action } from 'mobx';
 import ExifIO from 'common/ExifIO';
 import { thumbnailMaxSize } from 'common/config';
 import { ClientFile } from 'src/entities/File';
-import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/File';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/file';
 import TifLoader from './TifLoader';
 import { generateThumbnailUsingWorker } from './ThumbnailGeneration';
 import StreamZip from 'node-stream-zip';

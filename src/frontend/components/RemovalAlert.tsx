@@ -8,7 +8,7 @@ import { useStore } from 'src/frontend/contexts/StoreContext';
 import { Tag, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
 import { AppToaster } from './Toaster';
-import { RendererMessenger } from 'src/ipc/RenderMessenger';
+import { RendererMessenger } from 'src/ipc/renderer';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
 
 interface IRemovalProps<T> {

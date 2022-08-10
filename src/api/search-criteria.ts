@@ -1,6 +1,6 @@
-import { ID } from './ID';
-import { FileDTO } from './File';
-import { NumberOperatorType, StringOperatorType } from './DataStorageSearch';
+import { ID } from './id';
+import { FileDTO } from './file';
+import { NumberOperatorType, StringOperatorType } from './data-storage-search';
 
 export const BinaryOperators = ['equals', 'notEqual'] as const;
 export type BinaryOperatorType = typeof BinaryOperators[number];

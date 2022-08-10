@@ -1,4 +1,4 @@
-import { ID } from './ID';
+import { ID } from './id';
 
 export type LocationDTO = {
   id: ID;

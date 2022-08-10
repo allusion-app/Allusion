@@ -1,7 +1,7 @@
 import Dexie, { IndexableType, Transaction, WhereClause } from 'dexie';
 import { shuffleArray } from 'common/core';
-import { IRepository } from './IRepository';
-import { ID } from 'src/api/ID';
+import { IRepository } from './repository';
+import { ID } from 'src/api/id';
 import {
   ConditionDTO,
   ArrayConditionDTO,
@@ -10,7 +10,7 @@ import {
   DateConditionDTO,
   OrderBy,
   OrderDirection,
-} from '../api/DataStorageSearch';
+} from '../api/data-storage-search';
 
 export type DBCollectionConfig = {
   name: string;

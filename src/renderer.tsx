@@ -10,9 +10,9 @@ import { observe, runInAction } from 'mobx';
 // in the HTML file
 import './style.scss';
 
-import { RendererMessenger } from 'src/ipc/RenderMessenger';
+import { RendererMessenger } from 'src/ipc/renderer';
 
-import Backend from './backend/Backend';
+import Backend from './backend/backend';
 
 import StoreProvider from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';

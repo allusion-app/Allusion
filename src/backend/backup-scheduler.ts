@@ -2,7 +2,7 @@ import fse from 'fs-extra';
 import path from 'path';
 import { debounce } from 'common/timeout';
 
-import Backend from './Backend';
+import Backend from './backend';
 import { NUM_AUTO_BACKUPS, AUTO_BACKUP_TIMEOUT } from './config';
 
 /** Returns the date at 00:00 today */

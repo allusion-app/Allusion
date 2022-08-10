@@ -1,7 +1,7 @@
 // Mocks the DBRepository file with the one defined in the __mocks__ directory
-jest.mock('./DBRepository');
-jest.mock('./BackupScheduler');
-jest.mock('../ipc/RenderMessenger', () => ({
+jest.mock('./db-repository');
+jest.mock('./backup-scheduler');
+jest.mock('../ipc/renderer', () => ({
   RendererMessenger: {
     getDefaultBackupDirectory() {
       return Promise.resolve('/tmp');
@@ -9,10 +9,10 @@ jest.mock('../ipc/RenderMessenger', () => ({
   },
 }));
 
-import Backend from './Backend';
-import { TagDTO, ROOT_TAG_ID } from '../api/Tag';
-import { FileDTO } from '../api/File';
-import { OrderDirection } from '../api/DataStorageSearch';
+import Backend from './backend';
+import { TagDTO, ROOT_TAG_ID } from '../api/tag';
+import { FileDTO } from '../api/file';
+import { OrderDirection } from '../api/data-storage-search';
 
 let backend = new Backend();
 

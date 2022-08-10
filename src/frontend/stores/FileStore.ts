@@ -1,10 +1,10 @@
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
-import { IDataStorage } from 'src/api/IDataStorage';
-import { ConditionDTO, OrderBy, OrderDirection } from 'src/api/DataStorageSearch';
+import { IDataStorage } from 'src/api/data-storage';
+import { ConditionDTO, OrderBy, OrderDirection } from 'src/api/data-storage-search';
 import { ClientFile, mergeMovedFile } from 'src/entities/File';
-import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/File';
-import { ID } from 'src/api/ID';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/file';
+import { ID } from 'src/api/id';
 import { ClientLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';

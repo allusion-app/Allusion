@@ -1,8 +1,8 @@
 import { action, Lambda, makeObservable, observable, observe } from 'mobx';
 import RootStore from 'src/frontend/stores/RootStore';
 import { camelCaseToSpaced } from 'common/fmt';
-import { FileDTO } from '../api/File';
-import { ID } from '../api/ID';
+import { FileDTO } from '../api/file';
+import { ID } from '../api/id';
 import {
   SearchCriteria,
   IBaseSearchCriteria,
@@ -12,7 +12,7 @@ import {
   IStringSearchCriteria,
   ITagSearchCriteria,
   TagOperatorType,
-} from '../api/SearchCriteria';
+} from '../api/search-criteria';
 import {
   ArrayConditionDTO,
   ConditionDTO,
@@ -21,7 +21,7 @@ import {
   NumberOperatorType,
   StringConditionDTO,
   StringOperatorType,
-} from '../api/DataStorageSearch';
+} from '../api/data-storage-search';
 
 // A dictionary of labels for (some of) the keys of the type we search for
 export type SearchKeyDict = Partial<Record<keyof FileDTO, string>>;

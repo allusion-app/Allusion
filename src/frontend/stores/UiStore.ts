@@ -1,11 +1,11 @@
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe } from 'mobx';
 import { ClientFile } from 'src/entities/File';
-import { ID } from 'src/api/ID';
+import { ID } from 'src/api/id';
 import { ClientFileSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { SearchCriteria } from 'src/api/SearchCriteria';
+import { SearchCriteria } from 'src/api/search-criteria';
 import { ClientTag } from 'src/entities/Tag';
-import { RendererMessenger } from 'src/ipc/RenderMessenger';
+import { RendererMessenger } from 'src/ipc/renderer';
 import { IS_PREVIEW_WINDOW } from 'common/window';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, notEmpty } from 'common/core';

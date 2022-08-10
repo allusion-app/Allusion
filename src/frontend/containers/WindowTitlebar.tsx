@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
 import { WindowSystemButtonPress } from 'src/ipc/messages';
-import { RendererMessenger } from 'src/ipc/RenderMessenger';
+import { RendererMessenger } from 'src/ipc/renderer';
 import { IconSet } from 'widgets/Icons';
 import { useStore } from '../contexts/StoreContext';
 import { IS_MAC } from 'common/process';

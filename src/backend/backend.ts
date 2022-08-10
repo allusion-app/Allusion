@@ -1,17 +1,17 @@
 import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
 import Dexie, { IndexableType } from 'dexie';
 import fse from 'fs-extra';
-import { RendererMessenger } from '../ipc/RenderMessenger';
-import { FileSearchDTO } from '../api/FileSearch';
-import { FileDTO } from '../api/File';
-import { ID } from '../api/ID';
-import { LocationDTO } from '../api/Location';
-import { ConditionDTO, OrderBy, OrderDirection } from '../api/DataStorageSearch';
-import { TagDTO, ROOT_TAG_ID } from '../api/Tag';
-import BackupScheduler from './BackupScheduler';
+import { RendererMessenger } from '../ipc/renderer';
+import { FileSearchDTO } from '../api/file-search';
+import { FileDTO } from '../api/file';
+import { ID } from '../api/id';
+import { LocationDTO } from '../api/location';
+import { ConditionDTO, OrderBy, OrderDirection } from '../api/data-storage-search';
+import { TagDTO, ROOT_TAG_ID } from '../api/tag';
+import BackupScheduler from './backup-scheduler';
 import { dbConfig, DB_NAME } from './config';
-import DBRepository, { dbDelete, dbInit } from './DBRepository';
-import { IDataStorage } from '../api/IDataStorage';
+import DBRepository, { dbDelete, dbInit } from './db-repository';
+import { IDataStorage } from '../api/data-storage';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.

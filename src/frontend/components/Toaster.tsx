@@ -2,7 +2,7 @@ import React from 'react';
 import { action, makeObservable, observable } from 'mobx';
 import { observer } from 'mobx-react-lite';
 
-import { ID } from 'src/api/ID';
+import { ID } from 'src/api/id';
 
 import { Toast } from 'widgets/notifications';
 import { Button } from 'widgets/Button';

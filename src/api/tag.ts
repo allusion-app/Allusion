@@ -1,4 +1,4 @@
-import { ID } from './ID';
+import { ID } from './id';
 
 export const ROOT_TAG_ID = 'root';
 

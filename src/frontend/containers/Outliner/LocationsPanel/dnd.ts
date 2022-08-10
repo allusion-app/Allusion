@@ -1,12 +1,12 @@
 import fse from 'fs-extra';
 import path from 'path';
 import { ClientFile } from 'src/entities/File';
-import { IMG_EXTENSIONS } from 'src/api/File';
+import { IMG_EXTENSIONS } from 'src/api/file';
 import { ALLOWED_DROP_TYPES } from 'src/frontend/contexts/DropContext';
 import { retainArray } from 'common/core';
 import { timeoutPromise } from 'common/timeout';
 import { StoreFileMessage } from 'src/ipc/messages';
-import { RendererMessenger } from 'src/ipc/RenderMessenger';
+import { RendererMessenger } from 'src/ipc/renderer';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import FileStore from 'src/frontend/stores/FileStore';
 import { action } from 'mobx';

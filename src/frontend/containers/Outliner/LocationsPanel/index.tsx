@@ -13,7 +13,7 @@ import { DnDLocationType, useLocationDnD } from 'src/frontend/contexts/TagDnDCon
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import LocationStore from 'src/frontend/stores/LocationStore';
 import { triggerContextMenuEvent, emptyFunction } from '../utils';
-import { RendererMessenger } from 'src/ipc/RenderMessenger';
+import { RendererMessenger } from 'src/ipc/renderer';
 import { IconSet, Tree } from 'widgets';
 import { Menu, MenuDivider, MenuItem, Toolbar, ToolbarButton, useContextMenu } from 'widgets/menus';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';

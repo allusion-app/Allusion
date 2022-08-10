@@ -1,8 +1,8 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { OrderBy, OrderDirection } from 'src/api/DataStorageSearch';
-import { FileDTO } from 'src/api/File';
+import { OrderBy, OrderDirection } from 'src/api/data-storage-search';
+import { FileDTO } from 'src/api/file';
 import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
 import { getThumbnailSize } from '../ContentView/utils';

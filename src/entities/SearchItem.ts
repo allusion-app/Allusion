@@ -1,9 +1,9 @@
 import { action, IObservableArray, makeObservable, observable } from 'mobx';
 import RootStore from 'src/frontend/stores/RootStore';
-import { ID } from '../api/ID';
+import { ID } from '../api/id';
 import { ClientFileSearchCriteria } from './SearchCriteria';
-import { SearchCriteria } from '../api/SearchCriteria';
-import { FileSearchDTO } from '../api/FileSearch';
+import { SearchCriteria } from '../api/search-criteria';
+import { FileSearchDTO } from '../api/file-search';
 
 export class ClientFileSearchItem {
   id: ID;

@@ -6,10 +6,10 @@ import { retainArray } from 'common/core';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import LocationStore, { FileStats } from 'src/frontend/stores/LocationStore';
 import { FolderWatcherWorker } from 'src/frontend/workers/folderWatcher.worker';
-import { RendererMessenger } from 'src/ipc/RenderMessenger';
-import { IMG_EXTENSIONS_TYPE } from '../api/File';
-import { ID } from '../api/ID';
-import { SubLocationDTO, LocationDTO } from '../api/Location';
+import { RendererMessenger } from 'src/ipc/renderer';
+import { IMG_EXTENSIONS_TYPE } from '../api/file';
+import { ID } from '../api/id';
+import { SubLocationDTO, LocationDTO } from '../api/location';
 
 /** Sorts alphanumerically, "natural" sort */
 const sort = (a: SubLocationDTO, b: SubLocationDTO) =>

@@ -21,8 +21,8 @@ import TrayIconMac from '../resources/logo/png/black/allusionTemplate@2x.png'; /
 import ClipServer, { IImportItem } from './clipper/server';
 import { createBugReport, githubUrl } from '../common/config';
 import { IS_DEV, IS_MAC } from '../common/process';
-import { TagDTO, ROOT_TAG_ID } from './api/Tag';
-import { MainMessenger } from './ipc/MainMessenger';
+import { TagDTO, ROOT_TAG_ID } from './api/tag';
+import { MainMessenger } from './ipc/main';
 import { WindowSystemButtonPress } from './ipc/messages';
 
 // TODO: change this when running in portable mode, see portable-improvements branch

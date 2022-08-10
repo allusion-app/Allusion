@@ -11,9 +11,9 @@ import React, {
   forwardRef,
 } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
-import { OrderDirection } from 'src/api/DataStorageSearch';
+import { OrderDirection } from 'src/api/data-storage-search';
 import { ClientFile } from 'src/entities/File';
-import { FileDTO } from 'src/api/File';
+import { FileDTO } from 'src/api/file';
 import { debouncedThrottle } from 'common/timeout';
 import { GalleryProps } from './utils';
 import { useStore } from 'src/frontend/contexts/StoreContext';

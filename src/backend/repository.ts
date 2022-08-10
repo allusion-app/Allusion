@@ -1,6 +1,6 @@
 import { IndexableType } from 'dexie';
-import { ConditionDTO, OrderBy, OrderDirection } from 'src/api/DataStorageSearch';
-import { ID } from 'src/api/ID';
+import { ConditionDTO, OrderBy, OrderDirection } from 'src/api/data-storage-search';
+import { ID } from 'src/api/id';
 
 export interface IRepository<T> {
   get: (id: ID) => Promise<T | undefined>;

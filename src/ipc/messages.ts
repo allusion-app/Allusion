@@ -1,6 +1,6 @@
 import { IImportItem } from '../clipper/server';
-import { ID } from '../api/ID';
-import { TagDTO } from '../api/Tag';
+import { ID } from '../api/id';
+import { TagDTO } from '../api/tag';
 import { ViewMethod } from '../frontend/stores/UiStore';
 
 /**

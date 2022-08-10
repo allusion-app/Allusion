@@ -10,9 +10,9 @@ import Path from 'path';
 import ExifIO from 'common/ExifIO';
 import FileStore from 'src/frontend/stores/FileStore';
 import { FileStats } from 'src/frontend/stores/LocationStore';
-import { ID } from '../api/ID';
+import { ID } from '../api/id';
 import { ClientTag } from './Tag';
-import { FileDTO, IMG_EXTENSIONS_TYPE } from '../api/File';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from '../api/file';
 
 /** Retrieved file meta data information */
 interface IMetaData {

@@ -1,8 +1,8 @@
-import { ID } from 'src/api/ID';
-import { FileDTO, IMG_EXTENSIONS } from 'src/api/File';
+import { ID } from 'src/api/id';
+import { FileDTO, IMG_EXTENSIONS } from 'src/api/file';
 import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
-import { NumberOperatorType, StringOperatorType } from 'src/api/DataStorageSearch';
-import { OperatorType, TagOperatorType, BinaryOperatorType } from 'src/api/SearchCriteria';
+import { NumberOperatorType, StringOperatorType } from 'src/api/data-storage-search';
+import { OperatorType, TagOperatorType, BinaryOperatorType } from 'src/api/search-criteria';
 import {
   ClientStringSearchCriteria,
   ClientTagSearchCriteria,
