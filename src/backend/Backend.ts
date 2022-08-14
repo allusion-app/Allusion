@@ -40,19 +40,6 @@ export default class Backend {
 
   async init(isMainWindow: boolean): Promise<void> {
     if (isMainWindow) {
-      // Create a root tag if it does not exist
-      const tagCount = await this.tagRepository.count();
-      if (tagCount === 0) {
-        await this.createTag({
-          id: ROOT_TAG_ID,
-          name: 'Root',
-          dateAdded: new Date(),
-          subTags: [],
-          color: '',
-          isHidden: false,
-        });
-      }
-
       try {
         await this.backupScheduler.initialize(await RendererMessenger.getDefaultBackupDirectory());
       } catch (e) {

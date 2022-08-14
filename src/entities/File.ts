@@ -65,7 +65,7 @@ export interface IFile extends IMetaData, IResource {
   dateModified: Date;
   /**
    * When the file was last indexed in Allusion: concerning the metadata and thumbnail.
-   * If the system's modified date of the file exceeds this date, those properties shoudld be re-initialized
+   * If the system's modified date of the file exceeds this date, those properties should be re-initialized
    **/
   dateLastIndexed: Date;
 }
@@ -216,6 +216,10 @@ export class ClientFile implements ISerializable<IFile> {
   }
 }
 
+export function getExtension(filepath: string): IMG_EXTENSIONS_TYPE {
+  return Path.extname(filepath).slice(1).toLowerCase() as IMG_EXTENSIONS_TYPE;
+}
+
 /** Should be called when after constructing a file before sending it to the backend. */
 export async function getMetaData(stats: FileStats, exifIO: ExifIO): Promise<IMetaData> {
   const path = stats.absolutePath;
@@ -223,7 +227,7 @@ export async function getMetaData(stats: FileStats, exifIO: ExifIO): Promise<IMe
 
   return {
     name: Path.basename(path),
-    extension: Path.extname(path).slice(1).toLowerCase() as IMG_EXTENSIONS_TYPE,
+    extension: getExtension(path),
     size: stats.size,
     width: dimensions.width,
     height: dimensions.height,

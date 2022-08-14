@@ -11,8 +11,9 @@ export interface ITag extends IResource {
   id: ID;
   name: string;
   dateAdded: Date;
+  dateModified: Date;
   color: string;
-  subTags: ID[];
+  parentId: ID;
   /** Whether any files with this tag should be hidden */
   isHidden: boolean;
 }
@@ -28,6 +29,7 @@ export class ClientTag implements ISerializable<ITag> {
 
   readonly id: ID;
   readonly dateAdded: Date;
+  dateModified: Date;
   @observable name: string;
   @observable color: string;
   @observable isHidden: boolean;
@@ -47,12 +49,14 @@ export class ClientTag implements ISerializable<ITag> {
     id: ID,
     name: string,
     dateAdded: Date,
+    dateModified: Date,
     color: string,
     isHidden: boolean,
   ) {
     this.store = store;
     this.id = id;
     this.dateAdded = dateAdded;
+    this.dateModified = dateModified;
     this.name = name;
     this.color = color;
     this.fileCount = 0;
@@ -197,8 +201,9 @@ export class ClientTag implements ISerializable<ITag> {
       id: this.id,
       name: this.name,
       dateAdded: this.dateAdded,
+      dateModified: this.dateModified,
       color: this.color,
-      subTags: this.subTags.map((subTag) => subTag.id),
+      parentId: this.parent.id,
       isHidden: this.isHidden,
     };
   }

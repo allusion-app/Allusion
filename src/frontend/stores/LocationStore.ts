@@ -93,8 +93,12 @@ class LocationStore {
     this.backend.saveLocation(loc);
   }
 
-  // E.g. in preview window, it's not needed to watch the locations
-  // Returns whether files have been added, changed or removed
+  /**
+   * Returns whether files have been added, changed or removed
+   * Not included in initialization by default, since
+   * e.g. in preview window, it's not needed to watch the locations
+   * @returns Whether any new files found on disk, indicating the view might need an update
+   */
   @action async watchLocations() {
     const progressToastKey = 'progress';
     let foundNewFiles = false;
@@ -118,7 +122,7 @@ class LocationStore {
     }
 
     // For every location, find created/moved/deleted files, and update the database accordingly.
-    // TODO: Do this in a web worker, not in the renderer thread!
+    // TODO: Do this in a web worker, not in the "main" renderer thread!
     for (let i = 0; i < len; i++) {
       const location = getLocation(i);
 
@@ -303,6 +307,10 @@ class LocationStore {
 
       console.groupEnd();
 
+      // TODO: sync
+      // location.writeStateFile();
+      // location.updateFromStateFile();
+
       foundNewFiles = foundNewFiles || newFiles.length > 0;
     }
 
@@ -393,11 +401,14 @@ class LocationStore {
       toastKey,
     );
 
+    // Start watching the location folder, get back a list of all (non-excluded) image files
     const filePaths = await location.init();
 
     if (isCancelled || filePaths === undefined) {
       return;
     }
+
+    // Now we start scanning the files on disk and comparing their existence to what's in the database
 
     const showProgressToaster = (progress: number) =>
       !isCancelled &&

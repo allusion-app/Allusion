@@ -89,7 +89,7 @@ class TagStore {
 
   @action.bound async create(parent: ClientTag, tagName: string) {
     const id = generateId();
-    const tag = new ClientTag(this, id, tagName, new Date(), '', false);
+    const tag = new ClientTag(this, id, tagName, new Date(), new Date(), '', false);
     this.tagGraph.set(tag.id, tag);
     tag.setParent(parent);
     parent.subTags.push(tag);
@@ -162,18 +162,25 @@ class TagStore {
 
   @action private createTagGraph(backendTags: ITag[]) {
     // Create tags
-    for (const { id, name, dateAdded, color, isHidden } of backendTags) {
+    for (const { id, name, dateAdded, dateModified, color, isHidden } of backendTags) {
       // Create entity and set properties
       // We have to do this because JavaScript does not allow multiple constructor.
-      const tag = new ClientTag(this, id, name, dateAdded, color, isHidden);
+      const tag = new ClientTag(this, id, name, dateAdded, dateModified, color, isHidden);
       // Add to index
       this.tagGraph.set(tag.id, tag);
     }
 
     // Set parent and add sub tags
-    for (const { id, subTags } of backendTags) {
+    for (const { id, parentId } of backendTags) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const tag = this.tagGraph.get(id)!;
+      if (parentId) {
+        const parent = this.tagGraph.get(parentId);
+        if (!parent) {
+
+        }
+      }
+
 
       for (const id of subTags) {
         const subTag = this.get(id);

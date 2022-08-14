@@ -104,6 +104,7 @@ export class ClientLocation implements ISerializable<ILocation> {
   readonly id: ID;
   readonly path: string;
   readonly dateAdded: Date;
+  dateStateSynchronized: Date | null;
 
   constructor(
     store: LocationStore,
@@ -118,6 +119,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     this.id = id;
     this.path = path;
     this.dateAdded = dateAdded;
+    this.dateStateSynchronized = null;
     this.extensions = extensions;
     this.index = index;
 
