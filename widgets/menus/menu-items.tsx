@@ -2,15 +2,15 @@ import React, { ForwardedRef, forwardRef, useCallback, useRef } from 'react';
 
 import { IconSet } from '../Icons';
 
-export interface IMenuItem {
+export type MenuItemProps = {
   icon?: JSX.Element;
   text: string;
   accelerator?: JSX.Element;
   onClick: (event: React.MouseEvent<HTMLElement>) => void;
   disabled?: boolean;
-}
+};
 
-export const MenuItem = ({ text, icon, onClick, accelerator, disabled }: IMenuItem) => (
+export const MenuItem = ({ text, icon, onClick, accelerator, disabled }: MenuItemProps) => (
   <li
     role="menuitem"
     tabIndex={-1}
@@ -25,9 +25,7 @@ export const MenuItem = ({ text, icon, onClick, accelerator, disabled }: IMenuIt
   </li>
 );
 
-export interface IMenuRadioItem extends IMenuItem {
-  checked: boolean;
-}
+export type MenuRadioItemProps = { checked: boolean } & MenuItemProps;
 
 export const MenuRadioItem = ({
   text,
@@ -36,7 +34,7 @@ export const MenuRadioItem = ({
   onClick,
   accelerator,
   disabled,
-}: IMenuRadioItem) => (
+}: MenuRadioItemProps) => (
   <li
     role="menuitemradio"
     aria-checked={checked}
@@ -52,7 +50,7 @@ export const MenuRadioItem = ({
   </li>
 );
 
-export type IMenuCheckboxItem = Omit<IMenuRadioItem, 'icon'>;
+export type MenuCheckboxItemProps = Omit<MenuRadioItemProps, 'icon'>;
 
 export const MenuCheckboxItem = ({
   text,
@@ -60,7 +58,7 @@ export const MenuCheckboxItem = ({
   onClick,
   accelerator,
   disabled,
-}: IMenuCheckboxItem) => (
+}: MenuCheckboxItemProps) => (
   <li
     role="menuitemcheckbox"
     aria-checked={checked}
@@ -138,12 +136,12 @@ export const MenuSliderItem = ({
 
 export const MenuDivider = () => <li role="separator" className="menu-separator"></li>;
 
-export interface MenuItemLinkProps {
+export type MenuItemLinkProps = {
   icon?: JSX.Element;
   text: string;
   disabled?: boolean;
   expanded: boolean;
-}
+};
 
 export const MenuItemLink = forwardRef(function MenuItemLink(
   { expanded, disabled, icon, text }: MenuItemLinkProps,

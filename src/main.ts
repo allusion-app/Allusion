@@ -9,6 +9,7 @@ import {
   screen,
   session,
   shell,
+  Rectangle,
   Tray,
 } from 'electron';
 import path from 'path';
@@ -20,9 +21,9 @@ import TrayIconMac from '../resources/logo/png/black/allusionTemplate@2x.png'; /
 import ClipServer, { IImportItem } from './clipper/server';
 import { createBugReport, githubUrl } from '../common/config';
 import { IS_DEV, IS_MAC } from '../common/process';
-import { ITag, ROOT_TAG_ID } from './entities/Tag';
-import { MainMessenger, WindowSystemButtonPress } from './Messaging';
-import { Rectangle } from 'electron/main';
+import { TagDTO, ROOT_TAG_ID } from './api/tag';
+import { MainMessenger } from './ipc/main';
+import { WindowSystemButtonPress } from './ipc/messages';
 
 // TODO: change this when running in portable mode, see portable-improvements branch
 const basePath = app.getPath('userData');
@@ -855,7 +856,7 @@ async function addTagsToFile(item: IImportItem): Promise<boolean> {
   return false;
 }
 
-async function getTags(): Promise<ITag[]> {
+async function getTags(): Promise<TagDTO[]> {
   if (mainWindow !== null) {
     const { tags } = await MainMessenger.getTags(mainWindow.webContents);
     return tags.filter((t) => t.id !== ROOT_TAG_ID);

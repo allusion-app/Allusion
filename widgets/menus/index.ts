@@ -7,7 +7,7 @@ import {
   MenuProps,
   MenuChild,
   MenuChildren,
-  IMenuRadioGroup,
+  MenuRadioGroupProps,
   MenuSubItemProps,
 } from './menus';
 import {
@@ -15,9 +15,9 @@ import {
   MenuDivider,
   MenuItem,
   MenuRadioItem,
-  IMenuItem,
-  IMenuCheckboxItem,
-  IMenuRadioItem,
+  MenuItemProps,
+  MenuCheckboxItemProps,
+  MenuRadioItemProps,
   MenuItemLinkProps,
 } from './menu-items';
 import { ContextMenuLayer, useContextMenu } from './ContextMenu';
@@ -31,14 +31,17 @@ export {
   MenuItem,
   MenuRadioItem,
   MenuSubItem,
+};
+
+export type {
   MenuProps,
   MenuChild,
   MenuChildren,
-  IMenuRadioGroup,
+  MenuRadioGroupProps,
   MenuSubItemProps,
-  IMenuItem,
-  IMenuCheckboxItem,
-  IMenuRadioItem,
+  MenuItemProps,
+  MenuCheckboxItemProps,
+  MenuRadioItemProps,
   MenuItemLinkProps,
 };
 

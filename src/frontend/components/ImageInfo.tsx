@@ -8,7 +8,7 @@ import { formatDateTime, humanFileSize } from 'common/fmt';
 import { IconSet } from 'widgets/Icons';
 import { Toolbar, ToolbarButton } from 'widgets/Toolbar';
 import { AppToaster } from './Toaster';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/renderer';
 
 type CommonMetadata = {
   name: string;

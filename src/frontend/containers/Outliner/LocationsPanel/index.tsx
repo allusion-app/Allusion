@@ -3,7 +3,6 @@ import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { IFile } from 'src/entities/File';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { LocationRemoval, SubLocationExclusion } from 'src/frontend/components/RemovalAlert';
@@ -14,7 +13,7 @@ import { DnDLocationType, useLocationDnD } from 'src/frontend/contexts/TagDnDCon
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import LocationStore from 'src/frontend/stores/LocationStore';
 import { triggerContextMenuEvent, emptyFunction } from '../utils';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/renderer';
 import { IconSet, Tree } from 'widgets';
 import { Menu, MenuDivider, MenuItem, Toolbar, ToolbarButton, useContextMenu } from 'widgets/menus';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
@@ -97,7 +96,7 @@ const isExpanded = (nodeData: ClientLocation | ClientSubLocation, treeData: ITre
 const pathAsSearchPath = (path: string) => `${path}${SysPath.sep}`;
 
 const pathCriteria = (path: string) =>
-  new ClientStringSearchCriteria<IFile>('absolutePath', pathAsSearchPath(path), 'startsWith');
+  new ClientStringSearchCriteria('absolutePath', pathAsSearchPath(path), 'startsWith');
 
 const customKeys = (
   search: (path: string) => void,

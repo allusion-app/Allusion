@@ -4,7 +4,7 @@ import http, { Server } from 'http';
 import path from 'path';
 import ExifIO from '../../common/ExifIO';
 import { SERVER_PORT } from '../../common/config';
-import { ITag } from '../entities/Tag';
+import { TagDTO } from '../api/tag';
 
 /**
  * The clip server hosts endpoints for our browser extension to import images,
@@ -74,7 +74,7 @@ class ClipServer {
   private server: Server | null = null;
   private importImage: (item: IImportItem) => Promise<boolean>;
   private addTagsToFile: (item: IImportItem) => Promise<boolean>;
-  private requestTags: () => Promise<ITag[]>;
+  private requestTags: () => Promise<TagDTO[]>;
 
   /**
    * @param importImage A callback function that imports an image in the database - returns false when database is not accessible.
@@ -84,7 +84,7 @@ class ClipServer {
   constructor(
     importImage: (item: IImportItem) => Promise<boolean>,
     addTagsToFile: (item: IImportItem) => Promise<boolean>,
-    requestTags: () => Promise<ITag[]>,
+    requestTags: () => Promise<TagDTO[]>,
   ) {
     this.importImage = importImage;
     this.addTagsToFile = addTagsToFile;

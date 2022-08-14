@@ -1,14 +1,13 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
 
-import { OrderDirection } from 'src/backend/DBRepository';
-
+import { OrderBy, OrderDirection } from 'src/api/data-storage-search';
+import { FileDTO } from 'src/api/file';
 import { IconSet, KeyCombo } from 'widgets';
 import { MenuButton, MenuRadioGroup, MenuRadioItem } from 'widgets/menus';
 import { getThumbnailSize } from '../ContentView/utils';
 import { MenuDivider, MenuSliderItem } from 'widgets/menus/menu-items';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { FileOrder } from 'src/frontend/stores/FileStore';
 
 // Tooltip info
 const enum Tooltip {
@@ -49,7 +48,7 @@ export const ViewCommand = () => {
 };
 
 const sortMenuData: Array<{
-  prop: FileOrder;
+  prop: OrderBy<FileDTO>;
   icon: JSX.Element;
   text: string;
   hideDirection?: boolean;

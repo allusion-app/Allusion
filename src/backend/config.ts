@@ -1,6 +1,6 @@
 import { Transaction } from 'dexie';
-import { IFile } from 'src/entities/File';
-import { IDBVersioningConfig } from './DBRepository';
+import { FileDTO } from 'src/api/file';
+import { DBVersioningConfig } from './db-repository';
 import fse from 'fs-extra';
 
 // The name of the IndexedDB
@@ -14,7 +14,7 @@ export const AUTO_BACKUP_TIMEOUT = 1000 * 60 * 10; // 10 minutes
 // Only for the indexes of the DB, not all fields
 // Versions help with upgrading DB to new configurations:
 // https://dexie.org/docs/Tutorial/Design#database-versioning
-export const dbConfig: IDBVersioningConfig[] = [
+export const dbConfig: DBVersioningConfig[] = [
   {
     // Version 4, 19-9-20: Added system created date
     version: 4,
@@ -54,7 +54,7 @@ export const dbConfig: IDBVersioningConfig[] = [
     upgrade: (tx: Transaction): void => {
       tx.table('files')
         .toCollection()
-        .modify((file: IFile) => {
+        .modify((file: FileDTO) => {
           file.dateLastIndexed = file.dateAdded;
           return file;
         });
@@ -83,7 +83,7 @@ export const dbConfig: IDBVersioningConfig[] = [
     upgrade: (tx: Transaction): void => {
       tx.table('files')
         .toCollection()
-        .modify((file: IFile) => {
+        .modify((file: FileDTO) => {
           try {
             // apparently you can't do async stuff here, even though it is typed to return a PromiseLike :/
             const stats = fse.statSync(file.absolutePath);

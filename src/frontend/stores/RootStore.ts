@@ -1,6 +1,6 @@
 import { configure, runInAction } from 'mobx';
 
-import Backend from 'src/backend/Backend';
+import { IDataStorage } from 'src/api/data-storage';
 
 import FileStore from './FileStore';
 import TagStore from './TagStore';
@@ -9,7 +9,7 @@ import LocationStore from './LocationStore';
 import ExifIO from 'common/ExifIO';
 import ImageLoader from '../image/ImageLoader';
 
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/renderer';
 import SearchStore from './SearchStore';
 
 // This will throw exceptions whenver we try to modify the state directly without an action
@@ -37,7 +37,7 @@ class RootStore {
   readonly imageLoader: ImageLoader;
   readonly clearDatabase: () => Promise<void>;
 
-  constructor(private backend: Backend) {
+  constructor(private backend: IDataStorage) {
     this.tagStore = new TagStore(backend, this);
     this.fileStore = new FileStore(backend, this);
     this.locationStore = new LocationStore(backend, this);
@@ -48,7 +48,7 @@ class RootStore {
 
     // SAFETY: The backend instance has the same lifetime as the RootStore.
     this.clearDatabase = async () => {
-      await backend.clearDatabase();
+      await backend.clear();
       RendererMessenger.clearDatabase();
       this.uiStore.clearPersistentPreferences();
       this.fileStore.clearPersistentPreferences();
@@ -115,15 +115,15 @@ class RootStore {
   }
 
   async backupDatabaseToFile(path: string) {
-    return this.backend.backupDatabaseToFile(path);
+    return this.backend.backupToFile(path);
   }
 
   async restoreDatabaseFromFile(path: string) {
-    return this.backend.restoreDatabaseFromFile(path);
+    return this.backend.restoreFromFile(path);
   }
 
   async peekDatabaseFile(path: string) {
-    return this.backend.peekDatabaseFile(path);
+    return this.backend.peekFile(path);
   }
 }
 

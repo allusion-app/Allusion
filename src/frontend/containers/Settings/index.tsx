@@ -7,10 +7,10 @@ import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
-import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
+import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/file';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import useCustomTheme from 'src/frontend/hooks/useCustomTheme';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/renderer';
 import {
   Button,
   ButtonGroup,
@@ -218,10 +218,10 @@ const ImportExport = observer(() => {
       return;
     }
     try {
-      const backupStats = await rootStore.peekDatabaseFile(path);
+      const [numTags, numFiles] = await rootStore.peekDatabaseFile(path);
       setConfirmingFileImport({
         path,
-        info: `Backup contains ${backupStats.numTags} tags (currently ${tagStore.count}) and ${backupStats.numFiles} images (currently ${fileStore.numTotalFiles}).`,
+        info: `Backup contains ${numTags} tags (currently ${tagStore.count}) and ${numFiles} images (currently ${fileStore.numTotalFiles}).`,
       });
     } catch (e) {
       console.log(e);

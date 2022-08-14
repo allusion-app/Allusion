@@ -1,10 +1,12 @@
 import fse from 'fs-extra';
 import path from 'path';
-import { ClientFile, IMG_EXTENSIONS } from 'src/entities/File';
+import { ClientFile } from 'src/entities/File';
+import { IMG_EXTENSIONS } from 'src/api/file';
 import { ALLOWED_DROP_TYPES } from 'src/frontend/contexts/DropContext';
 import { retainArray } from 'common/core';
 import { timeoutPromise } from 'common/timeout';
-import { IStoreFileMessage, RendererMessenger } from 'src/Messaging';
+import { StoreFileMessage } from 'src/ipc/messages';
+import { RendererMessenger } from 'src/ipc/renderer';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
 import FileStore from 'src/frontend/stores/FileStore';
 import { action } from 'mobx';
@@ -59,7 +61,7 @@ export function handleDragLeave(event: React.DragEvent<HTMLDivElement>) {
 
 export async function storeDroppedImage(dropData: (string | File)[], directory: string) {
   for (const dataItem of dropData) {
-    let fileData: IStoreFileMessage | undefined;
+    let fileData: StoreFileMessage | undefined;
 
     // Store file -> detected by watching the directory -> automatically imported
     if (dataItem instanceof File) {
