@@ -172,7 +172,7 @@ interface MatchingTagsListProps {
 }
 
 const MatchingTagsList = observer(
-  function MatchingTagsList(
+  React.forwardRef(function MatchingTagsList(
     { inputText, counter, resetTextBox }: MatchingTagsListProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) {
@@ -220,8 +220,7 @@ const MatchingTagsList = observer(
         />
       </Grid>
     );
-  },
-  { forwardRef: true },
+  }),
 );
 
 interface CreateOptionProps {

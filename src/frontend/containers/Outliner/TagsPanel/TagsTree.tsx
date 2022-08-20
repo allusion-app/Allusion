@@ -128,7 +128,7 @@ const TagItem = observer((props: ITagItemProps) => {
 
   const show = useContextMenu();
   const handleContextMenu = useCallback(
-    (e) =>
+    (e: React.MouseEvent) =>
       show(
         e.clientX,
         e.clientY,

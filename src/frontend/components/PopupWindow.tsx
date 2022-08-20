@@ -4,6 +4,7 @@ import Overlay from '../Overlay';
 
 const PLATFORM = process.platform;
 interface IPopupWindowProps {
+  children: React.ReactNode;
   onClose: () => void;
   windowName: string;
   closeOnEscape?: boolean;

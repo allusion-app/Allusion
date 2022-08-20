@@ -272,10 +272,10 @@ const ImportExport = observer(() => {
           value={exifTool.hierarchicalSeparator}
           onChange={(e) => exifTool.setHierarchicalSeparator(e.target.value)}
         >
-          <option value="|">|</option>
-          <option value="/">/</option>
-          <option value="\">\</option>
-          <option value=":">:</option>
+          <option value="|">Vertical bar: |</option>
+          <option value="/">Forward slash: /</option>
+          <option value="\">Backward slash: \</option>
+          <option value=":">Colon: :</option>
         </select>
       </fieldset>
       {/* TODO: adobe bridge has option to read with multiple separators */}

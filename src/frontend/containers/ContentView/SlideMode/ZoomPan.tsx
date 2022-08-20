@@ -3,24 +3,24 @@
  * MIT license, see LICENSE file
  */
 
-import React from 'react';
 import { clamp } from 'common/core';
+import React from 'react';
 
 import {
+  createTransform,
+  createVec2,
+  Dimension,
+  getAutofitScale,
+  getConstrainedScale,
+  getImageOverflow,
   getPinchLength,
   getPinchMidpoint,
   getRelativePosition,
   isEqualDimension,
   isEqualTransform,
-  getAutofitScale,
-  tryPreventDefault,
-  getImageOverflow,
-  Dimension,
-  Vec2,
   Transform,
-  createTransform,
-  getConstrainedScale,
-  createVec2,
+  tryPreventDefault,
+  Vec2,
 } from './utils';
 
 const OVERZOOM_TOLERANCE = 0.05;
@@ -290,8 +290,9 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
           onWheel: this.handleMouseWheel,
           onDragStart: tryPreventDefault,
           onContextMenu: tryPreventDefault,
-          style: imageStyle(this.state),
-        })}
+          style: imageStyle(this.state) as any,
+        } as any)}
+        {/* TODO: fix types */}
       </div>
     );
   }
