@@ -384,11 +384,6 @@ const imageFormatInts: Partial<Record<IMG_EXTENSIONS_TYPE, ReactNode>> = {
       {IconSet.WARNING}
     </span>
   ),
-  psd: (
-    <span title="Only a low-resolution thumbnail will be available" className="info-icon">
-      {IconSet.INFO}
-    </span>
-  ),
 };
 
 const ImageFormatPicker = observer(() => {
