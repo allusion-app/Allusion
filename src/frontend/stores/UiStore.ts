@@ -105,6 +105,7 @@ const PersistentPreferenceFields: Array<keyof UiStore> = [
   'hotkeyMap',
   'isThumbnailTagOverlayEnabled',
   'isThumbnailFilenameOverlayEnabled',
+  'isThumbnailResolutionOverlayEnabled',
   'outlinerWidth',
   'inspectorWidth',
   'isRememberSearchEnabled',
@@ -145,6 +146,7 @@ class UiStore {
   /** Whether to show the tags on images in the content view */
   @observable isThumbnailTagOverlayEnabled: boolean = true;
   @observable isThumbnailFilenameOverlayEnabled: boolean = false;
+  @observable isThumbnailResolutionOverlayEnabled: boolean = false;
   /** Whether to restore the last search query on start-up */
   @observable isRememberSearchEnabled: boolean = true;
   /** Index of the first item in the viewport. Also acts as the current item shown in slide mode */
@@ -306,6 +308,10 @@ class UiStore {
 
   @action.bound toggleThumbnailFilenameOverlay() {
     this.isThumbnailFilenameOverlayEnabled = !this.isThumbnailFilenameOverlayEnabled;
+  }
+
+  @action.bound toggleThumbnailResolutionOverlay() {
+    this.isThumbnailResolutionOverlayEnabled = !this.isThumbnailResolutionOverlayEnabled;
   }
 
   @action.bound toggleRememberSearchQuery() {
@@ -851,9 +857,8 @@ class UiStore {
           this.setThumbnailShape(prefs.thumbnailShape);
         }
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
-        this.isThumbnailFilenameOverlayEnabled = Boolean(
-          prefs.isThumbnailFilenameOverlayEnabled ?? false,
-        );
+        this.isThumbnailFilenameOverlayEnabled = Boolean(prefs.isThumbnailFilenameOverlayEnabled ?? false); // eslint-disable-line prettier/prettier
+        this.isThumbnailResolutionOverlayEnabled = Boolean(prefs.isThumbnailResolutionOverlayEnabled ?? false); // eslint-disable-line prettier/prettier
         this.outlinerWidth = Math.max(Number(prefs.outlinerWidth), UiStore.MIN_OUTLINER_WIDTH);
         this.inspectorWidth = Math.max(Number(prefs.inspectorWidth), UiStore.MIN_INSPECTOR_WIDTH);
         Object.entries<string>(prefs.hotkeyMap).forEach(

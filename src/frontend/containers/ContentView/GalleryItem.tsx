@@ -64,7 +64,14 @@ export const MasonryCell = observer(
           />
         )}
 
-        {uiStore.isThumbnailFilenameOverlayEnabled && <ThumbnailFilename file={file} />}
+        {(uiStore.isThumbnailFilenameOverlayEnabled ||
+          uiStore.isThumbnailResolutionOverlayEnabled) && (
+          <ThumbnailOverlay
+            file={file}
+            showFilename={uiStore.isThumbnailFilenameOverlayEnabled}
+            showResolution={uiStore.isThumbnailResolutionOverlayEnabled}
+          />
+        )}
 
         {/* Show tags when the option is enabled, or when the file is selected */}
         {(uiStore.isThumbnailTagOverlayEnabled || uiStore.fileSelection.has(file)) &&
@@ -204,14 +211,32 @@ const TagWithHint = observer(
   },
 );
 
-const ThumbnailFilename = ({ file }: { file: ClientFile }) => {
+const ThumbnailOverlay = ({
+  file,
+  showFilename,
+  showResolution,
+}: {
+  file: ClientFile;
+  showFilename: boolean;
+  showResolution: boolean;
+}) => {
   const title = `${ellipsize(file.absolutePath, 80, 'middle')}, ${file.width}x${
     file.height
   }, ${humanFileSize(file.size)}`;
 
   return (
-    <div className="thumbnail-filename" data-tooltip={title}>
-      {file.name}
+    <div className="thumbnail-overlay" data-tooltip={title}>
+      {showFilename && (
+        <div className="thumbnail-filename" data-tooltip={title}>
+          {file.name}
+        </div>
+      )}
+
+      {showResolution && (
+        <div className="thumbnail-resolution" data-tooltip={title}>
+          {file.width}⨯{file.height}
+        </div>
+      )}
     </div>
   );
 };

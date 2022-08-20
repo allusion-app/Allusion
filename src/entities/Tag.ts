@@ -1,3 +1,4 @@
+import { MAX_TAG_DEPTH } from 'common/config';
 import { IReactionDisposer, observable, reaction, computed, action, makeObservable } from 'mobx';
 
 import TagStore from 'src/frontend/stores/TagStore';
@@ -71,24 +72,31 @@ export class ClientTag {
 
   /** Returns this tag and all of its sub-tags ordered depth-first */
   @action getSubTree(): Generator<ClientTag> {
-    function* tree(tag: ClientTag): Generator<ClientTag> {
+    function* tree(tag: ClientTag, iteration: number): Generator<ClientTag> {
+      if (iteration > MAX_TAG_DEPTH) {
+        console.error('Subtree has too many tags. Is there a cycle in the tag tree?', tag);
+        return;
+      }
+
       yield tag;
       for (const subTag of tag.subTags) {
-        yield* tree(subTag);
+        yield* tree(subTag, iteration + 1);
       }
     }
-    return tree(this);
+    return tree(this, 0);
   }
 
   /** Returns this tag and all its ancestors (excluding root tag). */
   @action getAncestors(): Generator<ClientTag> {
-    function* ancestors(tag: ClientTag): Generator<ClientTag> {
-      if (tag.id !== ROOT_TAG_ID) {
+    function* ancestors(tag: ClientTag, iteration: number): Generator<ClientTag> {
+      if (iteration > MAX_TAG_DEPTH) {
+        console.error('Tag has too many ancestors. Is there a cycle in the tag tree?', tag);
+      } else if (tag.id !== ROOT_TAG_ID) {
         yield tag;
-        yield* ancestors(tag.parent);
+        yield* ancestors(tag.parent, iteration + 1);
       }
     }
-    return ancestors(this);
+    return ancestors(this, 0);
   }
 
   /** Returns the tags up the hierarchy from this tag, excluding the root tag */
