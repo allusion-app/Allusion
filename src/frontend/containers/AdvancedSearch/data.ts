@@ -1,13 +1,8 @@
-import { ID } from 'src/entities/ID';
-import { IFile, IMG_EXTENSIONS } from 'src/entities/File';
-import {
-  OperatorType,
-  StringOperatorType,
-  TagOperatorType,
-  NumberOperatorType,
-  BinaryOperatorType,
-  FileSearchCriteria,
-} from 'src/entities/SearchCriteria';
+import { ID } from 'src/api/id';
+import { FileDTO, IMG_EXTENSIONS } from 'src/api/file';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
+import { NumberOperatorType, StringOperatorType } from 'src/api/data-storage-search';
+import { OperatorType, TagOperatorType, BinaryOperatorType } from 'src/api/search-criteria';
 import {
   ClientStringSearchCriteria,
   ClientTagSearchCriteria,
@@ -35,7 +30,7 @@ interface Field<K extends Key, O extends Operator, V extends Value> {
 }
 
 export type Key = keyof Pick<
-  IFile,
+  FileDTO,
   'name' | 'absolutePath' | 'tags' | 'extension' | 'size' | 'dateAdded'
 >;
 export type Operator = OperatorType;
@@ -66,7 +61,7 @@ export function defaultQuery(key: Key): Criteria {
 
 const BYTES_IN_MB = 1024 * 1024;
 
-export function fromCriteria(criteria: FileSearchCriteria): [ID, Criteria] {
+export function fromCriteria(criteria: ClientFileSearchCriteria): [ID, Criteria] {
   const query = defaultQuery('tags');
   if (
     criteria instanceof ClientStringSearchCriteria &&
@@ -88,7 +83,7 @@ export function fromCriteria(criteria: FileSearchCriteria): [ID, Criteria] {
   return [generateCriteriaId(), query];
 }
 
-export function intoCriteria(query: Criteria, tagStore: TagStore): FileSearchCriteria {
+export function intoCriteria(query: Criteria, tagStore: TagStore): ClientFileSearchCriteria {
   if (query.key === 'name' || query.key === 'absolutePath' || query.key === 'extension') {
     return new ClientStringSearchCriteria(query.key, query.value, query.operator);
   } else if (query.key === 'dateAdded') {

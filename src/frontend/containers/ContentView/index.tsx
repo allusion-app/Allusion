@@ -14,6 +14,7 @@ import { useTagDnD } from 'src/frontend/contexts/TagDnDContext';
 import { MoveFilesToTrashBin } from 'src/frontend/components/RemovalAlert';
 import { useAction } from 'src/frontend/hooks/mobx';
 import useIsWindowMaximized from 'src/frontend/hooks/useIsWindowMaximized';
+import { ManyOpenExternal } from 'src/frontend/components/WarningAlert';
 
 const ContentView = observer(() => {
   const {
@@ -108,6 +109,7 @@ const Content = observer(() => {
     >
       <Layout contentRect={contentRect} />
       <MoveFilesToTrashBin />
+      <ManyOpenExternal />
     </div>
   );
 });

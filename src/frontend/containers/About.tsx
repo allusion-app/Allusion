@@ -5,7 +5,7 @@ import { useStore } from '../contexts/StoreContext';
 
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter-dark.jpg';
 import { shell } from 'electron';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/renderer';
 
 const clickLink = (e: React.MouseEvent<HTMLAnchorElement>) => {
   e.preventDefault();

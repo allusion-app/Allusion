@@ -2,29 +2,29 @@ import './menu.scss';
 import React, { ForwardedRef, forwardRef, useLayoutEffect, useState } from 'react';
 
 import {
-  IMenuCheckboxItem,
-  IMenuItem,
+  MenuCheckboxItemProps,
+  MenuItemProps,
   MenuItemLinkProps,
-  IMenuRadioItem,
+  MenuRadioItemProps,
   MenuItemLink,
 } from './menu-items';
 import { usePopover } from '../popovers/usePopover';
 
-export interface MenuProps {
+export type MenuProps = {
   id?: string;
   children: MenuChildren;
   label?: string;
   labelledby?: string;
-}
+};
 
 export type MenuChildren = MenuChild | MenuChild[] | React.ReactFragment;
 
 export type MenuChild =
-  | React.ReactElement<IMenuCheckboxItem>
-  | React.ReactElement<IMenuItem>
+  | React.ReactElement<MenuCheckboxItemProps>
+  | React.ReactElement<MenuItemProps>
   | React.ReactElement<MenuItemLinkProps>
-  | React.ReactElement<IMenuRadioGroup>
-  | React.ReactElement<IMenuRadioGroup>
+  | React.ReactElement<MenuRadioGroupProps>
+  | React.ReactElement<MenuRadioGroupProps>
   | React.ReactElement<MenuSubItemProps>;
 
 export const Menu = forwardRef(function Menu(
@@ -46,12 +46,12 @@ export const Menu = forwardRef(function Menu(
   );
 });
 
-export interface MenuSubItemProps {
+export type MenuSubItemProps = {
   icon?: JSX.Element;
   text: string;
   disabled?: boolean;
   children: React.ReactNode;
-}
+};
 
 export const MenuSubItem = ({ text, icon, disabled, children }: MenuSubItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -140,12 +140,12 @@ export const MenuSubItem = ({ text, icon, disabled, children }: MenuSubItemProps
   );
 };
 
-export interface IMenuRadioGroup {
-  children: React.ReactElement<IMenuRadioItem>[];
+export type MenuRadioGroupProps = {
+  children: React.ReactElement<MenuRadioItemProps>[];
   label?: string;
-}
+};
 
-export const MenuRadioGroup = ({ children, label }: IMenuRadioGroup) => (
+export const MenuRadioGroup = ({ children, label }: MenuRadioGroupProps) => (
   <li role="none">
     <ul role="group" aria-label={label} onKeyDown={handleMenuKeyDown}>
       {children}

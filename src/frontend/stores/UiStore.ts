@@ -1,20 +1,18 @@
+import { shell } from 'electron';
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, observe } from 'mobx';
-import { ClientFile, IFile } from 'src/entities/File';
-import { ID } from 'src/entities/ID';
-import {
-  ClientBaseCriteria,
-  ClientTagSearchCriteria,
-  FileSearchCriteria,
-  SearchCriteria,
-} from 'src/entities/SearchCriteria';
+import { ClientFile } from 'src/entities/File';
+import { ID } from 'src/api/id';
+import { ClientFileSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
+import { SearchCriteria } from 'src/api/search-criteria';
 import { ClientTag } from 'src/entities/Tag';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/renderer';
 import { IS_PREVIEW_WINDOW } from 'common/window';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, notEmpty } from 'common/core';
 import { debounce } from 'common/timeout';
 import RootStore from './RootStore';
+import { maxNumberOfExternalFilesBeforeWarning } from 'common/config';
 
 export const enum ViewMethod {
   List,
@@ -51,6 +49,7 @@ export interface IHotkeyMap {
 
   // Other
   openPreviewWindow: string;
+  openExternal: string;
 }
 
 // https://blueprintjs.com/docs/#core/components/hotkeys.dialog
@@ -72,6 +71,7 @@ export const defaultHotkeyMap: IHotkeyMap = {
   search: 'mod + f',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
+  openExternal: 'mod + enter',
 };
 
 /**
@@ -158,6 +158,8 @@ class UiStore {
   @observable isToolbarFileRemoverOpen: boolean = false;
   /** Dialog for moving files to the system's trash bin, and removing from Allusion's database */
   @observable isMoveFilesToTrashOpen: boolean = false;
+  /** Dialog to warn the user when he tries to open too many files externally */
+  @observable isManyExternalFilesOpen: boolean = false;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
@@ -165,7 +167,7 @@ class UiStore {
   readonly fileSelection = observable(new Set<ClientFile>());
   readonly tagSelection = observable(new Set<ClientTag>());
 
-  readonly searchCriteriaList = observable<FileSearchCriteria>([]);
+  readonly searchCriteriaList = observable<ClientFileSearchCriteria>([]);
 
   @observable thumbnailDirectory: string = '';
   @observable importDirectory: string = ''; // for browser extension. Must be a (sub-folder of a) Location
@@ -345,6 +347,21 @@ class UiStore {
     }
   }
 
+  @action.bound openExternal(warnIfTooManyFiles: boolean = true) {
+    // Don't open when no files have been selected
+    if (this.fileSelection.size === 0) {
+      return;
+    }
+
+    if (warnIfTooManyFiles && this.fileSelection.size > maxNumberOfExternalFilesBeforeWarning) {
+      this.isManyExternalFilesOpen = true;
+      return;
+    }
+
+    const absolutePaths = Array.from(this.fileSelection, (file) => file.absolutePath);
+    absolutePaths.forEach((path) => shell.openExternal(`file://${path}`).catch(console.error));
+  }
+
   @action.bound toggleInspector() {
     this.isInspectorOpen = !this.isInspectorOpen;
   }
@@ -393,9 +410,11 @@ class UiStore {
   }
 
   @action.bound closeMoveFilesToTrash() {
-    if (this.fileSelection.size > 0) {
-      this.isMoveFilesToTrashOpen = false;
-    }
+    this.isMoveFilesToTrashOpen = false;
+  }
+
+  @action.bound closeManyExternalFiles() {
+    this.isManyExternalFilesOpen = false;
   }
 
   @action.bound toggleToolbarTagPopover() {
@@ -605,19 +624,19 @@ class UiStore {
     }
   }
 
-  @action.bound addSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
+  @action.bound addSearchCriteria(query: Exclude<ClientFileSearchCriteria, 'key'>) {
     this.searchCriteriaList.push(query);
     this.viewQueryContent();
     query.observe(this.debouncedStorePersistentPreferences);
   }
 
-  @action.bound addSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+  @action.bound addSearchCriterias(queries: Exclude<ClientFileSearchCriteria[], 'key'>) {
     this.searchCriteriaList.push(...queries);
     queries.forEach((query) => query.observe(this.debouncedStorePersistentPreferences));
     this.viewQueryContent();
   }
 
-  @action.bound toggleSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+  @action.bound toggleSearchCriterias(queries: Exclude<ClientFileSearchCriteria[], 'key'>) {
     // TODO: can be improved
     const deepEqual = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -644,7 +663,7 @@ class UiStore {
     }
   }
 
-  @action.bound removeSearchCriteria(query: FileSearchCriteria) {
+  @action.bound removeSearchCriteria(query: ClientFileSearchCriteria) {
     query.dispose();
     this.searchCriteriaList.remove(query);
     if (this.searchCriteriaList.length > 0) {
@@ -654,11 +673,11 @@ class UiStore {
     }
   }
 
-  @action.bound replaceSearchCriteria(query: Exclude<FileSearchCriteria, 'key'>) {
+  @action.bound replaceSearchCriteria(query: Exclude<ClientFileSearchCriteria, 'key'>) {
     this.replaceSearchCriterias([query]);
   }
 
-  @action.bound replaceSearchCriterias(queries: Exclude<FileSearchCriteria[], 'key'>) {
+  @action.bound replaceSearchCriterias(queries: Exclude<ClientFileSearchCriteria[], 'key'>) {
     this.searchCriteriaList.forEach((c) => c.dispose());
 
     this.searchCriteriaList.replace(queries);
@@ -701,7 +720,10 @@ class UiStore {
     this.clearTagSelection();
   }
 
-  @action.bound replaceCriteriaItem(oldCrit: FileSearchCriteria, crit: FileSearchCriteria) {
+  @action.bound replaceCriteriaItem(
+    oldCrit: ClientFileSearchCriteria,
+    crit: ClientFileSearchCriteria,
+  ) {
     const index = this.searchCriteriaList.indexOf(oldCrit);
     if (index !== -1) {
       this.searchCriteriaList[index].dispose();
@@ -748,6 +770,8 @@ class UiStore {
     } else if (matches(hotkeyMap.openPreviewWindow)) {
       this.openPreviewWindow();
       e.preventDefault(); // prevent scrolling with space when opening the preview window
+    } else if (matches(hotkeyMap.openExternal)) {
+      this.openExternal();
       // Search
     } else if (matches(hotkeyMap.search)) {
       (document.querySelector('.searchbar input') as HTMLElement).focus();
@@ -839,10 +863,12 @@ class UiStore {
         this.isRememberSearchEnabled = Boolean(prefs.isRememberSearchEnabled);
         if (this.isRememberSearchEnabled) {
           // If remember search criteria, restore the search criteria list...
-          const serializedCriteriaList: SearchCriteria<IFile>[] = JSON.parse(
+          const serializedCriteriaList: SearchCriteria[] = JSON.parse(
             prefs.searchCriteriaList || '[]',
           );
-          const newCrits = serializedCriteriaList.map((c) => ClientBaseCriteria.deserialize(c));
+          const newCrits = serializedCriteriaList.map((c) =>
+            ClientFileSearchCriteria.deserialize(c),
+          );
           this.searchCriteriaList.push(...newCrits);
           newCrits.forEach((crit) => crit.observe(this.debouncedStorePersistentPreferences));
 

@@ -1,14 +1,9 @@
 import { action } from 'mobx';
 import React, { ForwardedRef, forwardRef, useState } from 'react';
-import { IMG_EXTENSIONS } from 'src/entities/File';
-import {
-  BinaryOperators,
-  NumberOperators,
-  NumberOperatorSymbols,
-  StringOperatorLabels,
-  StringOperatorType,
-  TagOperators,
-} from 'src/entities/SearchCriteria';
+import { IMG_EXTENSIONS } from 'src/api/file';
+import { NumberOperators, StringOperatorType } from 'src/api/data-storage-search';
+import { BinaryOperators, TagOperators } from 'src/api/search-criteria';
+import { NumberOperatorSymbols, StringOperatorLabels } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useStore } from 'src/frontend/contexts/StoreContext';

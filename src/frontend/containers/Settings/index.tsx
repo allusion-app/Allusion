@@ -1,4 +1,4 @@
-import { chromeExtensionUrl } from 'common/config';
+import { chromeExtensionUrl, firefoxExtensionUrl } from 'common/config';
 import { getFilenameFriendlyFormattedDateTime } from 'common/fmt';
 import { getThumbnailPath, isDirEmpty } from 'common/fs';
 import { WINDOW_STORAGE_KEY } from 'common/window';
@@ -7,10 +7,10 @@ import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
-import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
+import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/file';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import useCustomTheme from 'src/frontend/hooks/useCustomTheme';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/renderer';
 import {
   Button,
   ButtonGroup,
@@ -218,10 +218,10 @@ const ImportExport = observer(() => {
       return;
     }
     try {
-      const backupStats = await rootStore.peekDatabaseFile(path);
+      const [numTags, numFiles] = await rootStore.peekDatabaseFile(path);
       setConfirmingFileImport({
         path,
-        info: `Backup contains ${backupStats.numTags} tags (currently ${tagStore.count}) and ${backupStats.numFiles} images (currently ${fileStore.numTotalFiles}).`,
+        info: `Backup contains ${numTags} tags (currently ${tagStore.count}) and ${numFiles} images (currently ${fileStore.numTotalFiles}).`,
       });
     } catch (e) {
       console.log(e);
@@ -524,7 +524,6 @@ const BackgroundProcesses = observer(() => {
         <legend>Run in background</legend>
         <Toggle checked={isRunInBackground} onChange={toggleRunInBackground} />
       </fieldset>
-
       <fieldset>
         <legend>Browser extension download directory (must be in a Location)</legend>
         <div className="input-file">
@@ -541,7 +540,6 @@ const BackgroundProcesses = observer(() => {
           />
         </div>
       </fieldset>
-
       <fieldset>
         <legend>Browser extension support</legend>
         <Toggle
@@ -559,7 +557,6 @@ const BackgroundProcesses = observer(() => {
           }
         />
       </fieldset>
-
       <Callout icon={IconSet.INFO}>
         For the browser extension to work, first choose a download folder that is in one of your
         locations already added to Allusion, then enable the browser extension support toggle.
@@ -569,8 +566,12 @@ const BackgroundProcesses = observer(() => {
       <Button
         onClick={() => shell.openExternal(chromeExtensionUrl)}
         styling="outlined"
-        icon={IconSet.CHROME_DEVTOOLS}
-        text="Get the extension from the Chrome Web Store"
+        text="Chrome Web Store"
+      />{' '}
+      <Button
+        onClick={() => shell.openExternal(firefoxExtensionUrl)}
+        styling="outlined"
+        text="FireFox add-on"
       />
     </>
   );

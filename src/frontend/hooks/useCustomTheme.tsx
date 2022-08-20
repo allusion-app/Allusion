@@ -3,7 +3,7 @@ import fse from 'fs-extra';
 import path from 'path';
 
 import useLocalStorage from './useLocalStorage';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/renderer';
 import { AppToaster } from '../components/Toaster';
 import { getExtraResourcePath } from '../../../common/fs';
 

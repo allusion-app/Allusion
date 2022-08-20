@@ -3,8 +3,6 @@ import React, { useEffect, useRef, useLayoutEffect, CSSProperties, useState } fr
 
 import './tree.scss';
 
-import { ID } from 'src/entities/ID';
-
 // --- Helper function for tree items ---
 
 const setTabFocus = (element: HTMLElement, preventScroll = true) => {
@@ -229,7 +227,7 @@ export const createBranchOnKeyDown = (
 /** Representation of Node Data */
 export interface INodeData {
   /** A unique key identifier used as the key value for React components */
-  id: ID;
+  id: string;
   /** Pointer to addionally related data */
   nodeData: any;
   /**

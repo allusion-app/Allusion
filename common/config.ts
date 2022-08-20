@@ -8,6 +8,9 @@ export const githubUrl = 'https://github.com/allusion-app/VisualLibrary';
 export const chromeExtensionUrl =
   'https://chrome.google.com/webstore/detail/allusion-web-clipper/gjceheijjnmdfcolopodbopfoaicobna';
 
+export const firefoxExtensionUrl =
+  'https://addons.mozilla.org/nl/firefox/addon/allusion-web-clipper/';
+
 export const RECURSIVE_DIR_WATCH_DEPTH = 16;
 
 export const thumbnailFormat = 'webp';
@@ -18,6 +21,8 @@ const isRenderer = process.type === 'renderer';
 // A value of 1 indicates a classic 96 DPI (76 DPI on some platforms) display, while a value of 2 is expected for HiDPI/Retina displays.
 // The values 600 : 400 needed to be flipped in order to get 600 on OSX Retina
 export const thumbnailMaxSize = isRenderer && globalThis.devicePixelRatio >= 1.5 ? 400 : 600;
+
+export const maxNumberOfExternalFilesBeforeWarning = 9;
 
 /**
  * Creates the body of a bug report

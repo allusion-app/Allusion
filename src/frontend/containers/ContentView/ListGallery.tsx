@@ -11,8 +11,9 @@ import React, {
   forwardRef,
 } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
-import { OrderDirection } from 'src/backend/DBRepository';
-import { ClientFile, IFile } from 'src/entities/File';
+import { OrderDirection } from 'src/api/data-storage-search';
+import { ClientFile } from 'src/entities/File';
+import { FileDTO } from 'src/api/file';
 import { debouncedThrottle } from 'common/timeout';
 import { GalleryProps } from './utils';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -147,7 +148,7 @@ const Body = forwardRef(function Body(
 interface ColumnHeaderData {
   title: string;
   // Also indicates whether this column _can_ be sorted on
-  sortKey?: keyof IFile;
+  sortKey?: keyof FileDTO;
   // cellContent: (props: ICellContentProps) => ReactNode;
 }
 
@@ -212,7 +213,7 @@ const ColumnHeader = memo(function ColumnHeader({ title, setColumnWidth }: Colum
 });
 
 interface SortableHeaderProps extends ColumnHeaderProps {
-  sortKey: keyof IFile;
+  sortKey: keyof FileDTO;
 }
 
 const SortableHeader = observer(({ title, sortKey, setColumnWidth }: SortableHeaderProps) => {
