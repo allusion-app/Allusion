@@ -7,12 +7,12 @@ import {
   reaction,
 } from 'mobx';
 import Path from 'path';
-import ExifIO from 'common/ExifIO';
+import ImageLoader from 'src/frontend/image/ImageLoader';
 import FileStore from 'src/frontend/stores/FileStore';
 import { FileStats } from 'src/frontend/stores/LocationStore';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from '../api/file';
 import { ID } from '../api/id';
 import { ClientTag } from './Tag';
-import { FileDTO, IMG_EXTENSIONS_TYPE } from '../api/file';
 
 /** Retrieved file meta data information */
 interface IMetaData {
@@ -175,9 +175,9 @@ export class ClientFile {
 }
 
 /** Should be called when after constructing a file before sending it to the backend. */
-export async function getMetaData(stats: FileStats, exifIO: ExifIO): Promise<IMetaData> {
+export async function getMetaData(stats: FileStats, imageLoader: ImageLoader): Promise<IMetaData> {
   const path = stats.absolutePath;
-  const dimensions = await exifIO.getDimensions(path);
+  const dimensions = await imageLoader.getImageResolution(stats.absolutePath);
 
   return {
     name: Path.basename(path),

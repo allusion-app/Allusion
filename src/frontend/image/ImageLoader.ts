@@ -174,6 +174,28 @@ class ImageLoader {
     }
   }
 
+  /** Returns 0 for width and height if they can't be determined */
+  async getImageResolution(absolutePath: string): Promise<{ width: number; height: number }> {
+    // ExifTool should be able to read the resolution from any image file
+    const dimensions = await this.exifIO.getDimensions(absolutePath);
+
+    // User report: Resolution can't be found for PSD files.
+    // Can't reproduce myself, but putting a check in place anyway. Maybe due to old PSD format?
+    // Read the actual file using the PSD loader and get the resolution from there.
+    if (
+      absolutePath.toLowerCase().endsWith('psd') &&
+      (dimensions.width === 0 || dimensions.height === 0)
+    ) {
+      try {
+        const psdData = await this.psdLoader.decode(await fse.readFile(absolutePath));
+        dimensions.width = psdData.width;
+        dimensions.height = psdData.height;
+      } catch (e) {}
+    }
+
+    return dimensions;
+  }
+
   private async extractKritaThumbnail(absolutePath: string, outputPath: string) {
     const zip = new StreamZip.async({ file: absolutePath });
     let success = false;
