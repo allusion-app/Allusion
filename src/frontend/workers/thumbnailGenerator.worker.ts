@@ -3,6 +3,7 @@ import fse from 'fs-extra';
 import { thumbnailFormat, thumbnailMaxSize } from 'common/config';
 import { IThumbnailMessage, IThumbnailMessageResponse } from '../image/ThumbnailGeneration';
 
+// TODO: Merge this with the generateThumbnail func from frontend/image/utils.ts, it's duplicate code
 const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | null> => {
   const inputBuffer = await fse.readFile(filePath);
   const inputBlob = new Blob([inputBuffer]);

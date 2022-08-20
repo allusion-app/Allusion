@@ -30,6 +30,7 @@ export async function generateThumbnail(
   outputPath: string,
   thumbnailSize: number,
 ): Promise<void> {
+  // TODO: merge this functionality with the thumbnail worker: it's basically duplicate code
   const buffer = await fse.readFile(inputPath);
   const data = await decoder.decode(buffer);
   const sampledCanvas = getSampledCanvas(dataToCanvas(data), thumbnailSize);
@@ -66,11 +67,14 @@ function getSampledCanvas(canvas: HTMLCanvasElement, targetSize: number): HTMLCa
   return sampledCanvas;
 }
 
+/** Dynamically computes the compression quality for a thumbnail based on how much it is scaled compared to the maximum target size */
 function computeQuality(canvas: HTMLCanvasElement, targetSize: number): number {
-  const maxSize = Math.max(canvas.width, canvas.height);
-  return clamp(targetSize / maxSize, 0.5, 1.0);
+  const minSize = Math.min(canvas.width, canvas.height);
+  // A low minimum size needs to correspond to a high quality, to retain details when it is displayed as cropped
+  return clamp(1 - minSize / targetSize, 0.5, 0.9);
 }
 
+/** Scales the width and height to be the targetSize in the largest dimension, while retaining the aspect ratio */
 function getScaledSize(
   width: number,
   height: number,
@@ -78,11 +82,11 @@ function getScaledSize(
 ): [width: number, height: number] {
   const widthScale = targetSize / width;
   const heightScale = targetSize / height;
-  const scale = Math.max(widthScale, heightScale);
+  const scale = Math.min(widthScale, heightScale);
   return [Math.floor(width * scale), Math.floor(height * scale)];
 }
 
-// Cut out rectangle in center if image has extreme aspect ratios.
+/** Cut out rectangle in center if image has extreme aspect ratios. */
 function getAreaOfInterest(
   width: number,
   height: number,
