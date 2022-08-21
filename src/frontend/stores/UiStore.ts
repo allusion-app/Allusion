@@ -19,13 +19,14 @@ export const enum ViewMethod {
   Grid,
   MasonryVertical,
   MasonryHorizontal,
+  TagBrowser,
 }
 export type ThumbnailSize = 'small' | 'medium' | 'large' | number;
 type ThumbnailShape = 'square' | 'letterbox';
 const PREFERENCES_STORAGE_KEY = 'preferences';
 
 export interface IHotkeyMap {
-  // Outerliner actions
+  // Outliner actions
   toggleOutliner: string;
   replaceQuery: string;
 
@@ -140,6 +141,7 @@ class UiStore {
   @observable searchMatchAny = false;
   @observable method: ViewMethod = ViewMethod.Grid;
   @observable isSlideMode: boolean = false;
+  @observable tagBrowserTag?: ClientTag;
   @observable isFullScreen: boolean = false;
   @observable outlinerWidth: number = UiStore.MIN_OUTLINER_WIDTH;
   @observable inspectorWidth: number = UiStore.MIN_INSPECTOR_WIDTH;
@@ -195,6 +197,7 @@ class UiStore {
 
   @action.bound init() {
     this.isInitialized = true;
+    this.tagBrowserTag = this.rootStore.tagStore.root;
   }
 
   /////////////////// UI Actions ///////////////////
@@ -212,6 +215,10 @@ class UiStore {
 
   @computed get isMasonryHorizontal(): boolean {
     return this.method === ViewMethod.MasonryHorizontal;
+  }
+
+  @computed get isTagBrowser(): boolean {
+    return this.method === ViewMethod.TagBrowser;
   }
 
   @action.bound setThumbnailSize(size: ThumbnailSize) {
@@ -274,6 +281,11 @@ class UiStore {
     this.method = ViewMethod.MasonryHorizontal;
   }
 
+  @action.bound setMethodTagBrowser() {
+    this.method = ViewMethod.TagBrowser;
+    this.tagBrowserTag = this.rootStore.tagStore.root;
+  }
+
   @action.bound enableSlideMode() {
     this.isSlideMode = true;
     this.updateWindowTitle();
@@ -286,6 +298,11 @@ class UiStore {
 
   @action.bound toggleSlideMode() {
     this.isSlideMode = !this.isSlideMode;
+    this.updateWindowTitle();
+  }
+
+  @action.bound setTagBrowserTag(tag: ClientTag) {
+    this.tagBrowserTag = tag;
     this.updateWindowTitle();
   }
 

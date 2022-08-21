@@ -11,6 +11,7 @@ import ListGallery from './ListGallery';
 import MasonryRenderer from './Masonry/MasonryRenderer';
 import SlideMode from './SlideMode';
 import { ContentRect } from './utils';
+import TagBrowser from './TagBrowser';
 
 interface LayoutProps {
   contentRect: ContentRect;
@@ -147,6 +148,9 @@ const Layout = ({ contentRect }: LayoutProps) => {
           lastSelectionIndex={lastSelectionIndex}
         />
       );
+      break;
+    case ViewMethod.TagBrowser:
+      overviewElem = <TagBrowser contentRect={contentRect} />;
       break;
     default:
       overviewElem = 'unknown view method';

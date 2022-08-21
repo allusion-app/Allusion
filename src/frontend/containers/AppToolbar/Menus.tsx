@@ -128,6 +128,13 @@ export const LayoutMenuItems = observer(() => {
         text="Horizontal Masonry"
         accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewMasonryHorizontal} />}
       />
+      <MenuRadioItem
+        icon={IconSet.TAG_GROUP}
+        onClick={uiStore.setMethodTagBrowser}
+        checked={uiStore.isTagBrowser}
+        text="Tag Browser"
+        // accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewMasonryHorizontal} />}
+      />
     </MenuRadioGroup>
   );
 });
