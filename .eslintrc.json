@@ -23,10 +23,10 @@
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-inferrable-types": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
-    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-unused-vars": "warn",
     "quotes": ["error", "single"],
     "jsx-quotes": ["error", "prefer-double"],
-    "no-trailing-spaces": "error",
+    "no-trailing-spaces": "warn",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
     "react/no-children-prop": "off",
@@ -37,7 +37,7 @@
   },
   "overrides": [
     {
-      "files": ["src/entities/*.ts", "src/backend/*.ts"],
+      "files": ["src/api/*.ts", "src/backend/*.ts", "src/entities/*.ts"],
       "rules": {
         "@typescript-eslint/explicit-module-boundary-types": "error"
       }
