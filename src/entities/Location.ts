@@ -10,6 +10,7 @@ import { RendererMessenger } from 'src/ipc/renderer';
 import { IMG_EXTENSIONS_TYPE } from '../api/file';
 import { ID } from '../api/id';
 import { SubLocationDTO, LocationDTO } from '../api/location';
+import { StartupBehaviourFlag } from 'src/services';
 
 /** Sorts alphanumerically, "natural" sort */
 const sort = (a: SubLocationDTO, b: SubLocationDTO) =>
@@ -68,6 +69,8 @@ export class ClientSubLocation {
 export class ClientLocation {
   private store: LocationStore;
 
+  flags = StartupBehaviourFlag.Scan;
+
   worker?: Remote<FolderWatcherWorker>;
 
   // Whether the initial scan has been completed, and new/removed files are being watched
@@ -86,7 +89,7 @@ export class ClientLocation {
 
   readonly subLocations: IObservableArray<ClientSubLocation>;
   /** A cached list of all sublocations that are excluded (isExcluded === true) */
-  protected readonly excludedPaths: ClientSubLocation[] = [];
+  public readonly excludedPaths: ClientSubLocation[] = [];
 
   readonly id: ID;
   readonly path: string;

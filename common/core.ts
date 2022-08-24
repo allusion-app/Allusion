@@ -14,7 +14,7 @@ export function clamp(value: number, min: number, max: number): number {
 export function shuffleArray<T>(array: T[]): T[] {
   for (let i = array.length - 1; i > 0; i--) {
     const rand = Math.floor(Math.random() * (i + 1));
-    [array[i], array[rand]] = [array[rand], array[i]];
+    swap(array, i, rand);
   }
   return array;
 }
@@ -46,7 +46,7 @@ export function retainArray<T>(array: T[], predicate: (element: T, index: number
       // Move retained element to the beginning of the hole (deleted elements). Doing so will
       // shift the hole to the end of the array.
       const holeSlot = i - deleteCount;
-      array.copyWithin(holeSlot, i, i + 1);
+      swap(array, holeSlot, i);
     }
     i += 1;
   }
@@ -55,4 +55,8 @@ export function retainArray<T>(array: T[], predicate: (element: T, index: number
 
 export function notEmpty<TValue>(value: TValue): value is NonNullable<TValue> {
   return value !== null && value !== undefined;
+}
+
+export function swap<T>(array: T[], x: number, y: number) {
+  [array[x], array[y]] = [array[y], array[x]];
 }
