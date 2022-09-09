@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { observe, runInAction } from 'mobx';
+import { autorun, runInAction } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -43,6 +43,10 @@ import SplashScreen from './frontend/containers/SplashScreen';
     !IS_PREVIEW_WINDOW ? setupMainApp(backend) : setupPreviewApp(backend),
     new Promise((resolve) => setTimeout(resolve, SPLASH_SCREEN_TIME)),
   ]);
+
+  autorun(() => {
+    document.title = rootStore.getWindowTitle();
+  });
 
   // Render our react components in the div with id 'app' in the html file
   // The Provider component provides the state management for the application
@@ -133,16 +137,11 @@ async function setupMainApp(backend: Backend): Promise<[RootStore, () => JSX.Ele
     console.error('Cannot load window preferences', e);
   }
 
-  // Change window title to filename when changing the selected file
-  observe(rootStore.uiStore, 'windowTitle', ({ object }) => {
-    document.title = object.get();
-  });
-
   return [rootStore, App];
 }
 
 async function setupPreviewApp(backend: Backend): Promise<[RootStore, () => JSX.Element]> {
-  const rootStore = await RootStore.main(backend);
+  const rootStore = await RootStore.preview(backend);
   rootStore.uiStore.enableSlideMode();
   RendererMessenger.initialized();
 
@@ -187,25 +186,5 @@ async function setupPreviewApp(backend: Backend): Promise<[RootStore, () => JSX.
       window.close();
     }
   });
-
-  const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
-
-  // Change window title to filename on load
-  observe(rootStore.fileStore.fileList, ({ object: list }) => {
-    if (list.length > 0) {
-      const file = list[0];
-      document.title = `${file.absolutePath} • ${PREVIEW_WINDOW_BASENAME}`;
-    }
-  });
-
-  // Change window title to filename when changing the selected file
-  observe(rootStore.uiStore, 'firstItem', ({ object }) => {
-    const index = object.get();
-    if (!isNaN(index) && index >= 0 && index < rootStore.fileStore.fileList.length) {
-      const file = rootStore.fileStore.fileList[index];
-      document.title = `${file.absolutePath || '?'} • ${PREVIEW_WINDOW_BASENAME}`;
-    }
-  });
-
   return [rootStore, PreviewApp];
 }

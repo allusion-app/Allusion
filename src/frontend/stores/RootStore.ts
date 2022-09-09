@@ -35,8 +35,12 @@ class RootStore {
   readonly searchStore: SearchStore;
   readonly exifTool: ExifIO;
   readonly imageLoader: ImageLoader;
+  readonly getWindowTitle: () => string;
 
-  private constructor(private backend: IDataStorage) {
+  private constructor(
+    private backend: IDataStorage,
+    formatWindowTitle: (FileStore: FileStore, uiStore: UiStore) => string,
+  ) {
     this.tagStore = new TagStore(backend, this);
     this.fileStore = new FileStore(backend, this);
     this.locationStore = new LocationStore(backend, this);
@@ -44,10 +48,18 @@ class RootStore {
     this.searchStore = new SearchStore(backend, this);
     this.exifTool = new ExifIO(localStorage.getItem('hierarchical-separator') || undefined);
     this.imageLoader = new ImageLoader(this.exifTool);
+    this.getWindowTitle = () => formatWindowTitle(this.fileStore, this.uiStore);
   }
 
   static async main(backend: IDataStorage): Promise<RootStore> {
-    const rootStore = new RootStore(backend);
+    const rootStore = new RootStore(backend, (fileStore, uiStore) => {
+      if (uiStore.isSlideMode && fileStore.fileList.length > 0) {
+        const activeFile = fileStore.fileList[uiStore.firstItem];
+        return `${activeFile.filename}.${activeFile.extension} - Allusion`;
+      } else {
+        return 'Allusion';
+      }
+    });
 
     await Promise.all([
       // The location store must be initiated because the file entity contructor
@@ -102,7 +114,16 @@ class RootStore {
   }
 
   static async preview(backend: IDataStorage): Promise<RootStore> {
-    const rootStore = new RootStore(backend);
+    const rootStore = new RootStore(backend, (fileStore, uiStore) => {
+      const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
+      const index = uiStore.firstItem;
+      if (index >= 0 && index < fileStore.fileList.length) {
+        const file = fileStore.fileList[index];
+        return `${file.absolutePath} • ${PREVIEW_WINDOW_BASENAME}`;
+      } else {
+        return PREVIEW_WINDOW_BASENAME;
+      }
+    });
 
     await Promise.all([
       // The location store must be initiated because the file entity contructor

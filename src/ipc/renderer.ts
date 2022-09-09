@@ -137,13 +137,25 @@ export class RendererMessenger {
 
   static onClosedPreviewWindow = (cb: () => void) => ipcRenderer.on(CLOSED_PREVIEW_WINDOW, cb);
 
-  static onMaximize = (cb: () => void) => ipcRenderer.on(WINDOW_MAXIMIZE, () => cb());
+  static onMaximize = (cb: () => void) => {
+    ipcRenderer.on(WINDOW_MAXIMIZE, cb);
+    return () => ipcRenderer.removeListener(WINDOW_MAXIMIZE, cb);
+  };
 
-  static onUnmaximize = (cb: () => void) => ipcRenderer.on(WINDOW_UNMAXIMIZE, () => cb());
+  static onUnmaximize = (cb: () => void) => {
+    ipcRenderer.on(WINDOW_UNMAXIMIZE, cb);
+    return () => ipcRenderer.removeListener(WINDOW_UNMAXIMIZE, cb);
+  };
 
-  static onFocus = (cb: () => void) => ipcRenderer.on(WINDOW_FOCUS, () => cb());
+  static onFocus = (cb: () => void) => {
+    ipcRenderer.on(WINDOW_FOCUS, cb);
+    return () => ipcRenderer.removeListener(WINDOW_FOCUS, cb);
+  };
 
-  static onBlur = (cb: () => void) => ipcRenderer.on(WINDOW_BLUR, () => cb());
+  static onBlur = (cb: () => void) => {
+    ipcRenderer.on(WINDOW_BLUR, cb);
+    return () => ipcRenderer.removeListener(WINDOW_BLUR, cb);
+  };
 
   static pressWindowSystemButton = (button: WindowSystemButtonPress) =>
     ipcRenderer.send(WINDOW_SYSTEM_BUTTON_PRESS, button);
