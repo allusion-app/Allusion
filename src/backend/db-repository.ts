@@ -55,13 +55,9 @@ type SearchConjunction = 'and' | 'or';
  * Extends Dexie: https://dexie.org/docs/Tutorial/Consuming-dexie-as-a-module
  */
 export default class BaseRepository<T> implements IRepository<T> {
-  db: Dexie;
-  collectionName: string;
-  collection: Dexie.Table<T, ID>;
+  private readonly collection: Dexie.Table<T, ID>;
 
   constructor(collectionName: string, db: Dexie) {
-    this.db = db;
-    this.collectionName = collectionName;
     this.collection = db.table(collectionName);
   }
 

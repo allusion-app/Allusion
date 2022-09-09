@@ -120,8 +120,6 @@ class UiStore {
 
   private readonly rootStore: RootStore;
 
-  @observable isInitialized = false;
-
   // Theme
   @observable theme: 'light' | 'dark' = 'dark';
 
@@ -189,10 +187,6 @@ class UiStore {
         observe(this, f, this.debouncedStorePersistentPreferences),
       );
     }
-  }
-
-  @action.bound init() {
-    this.isInitialized = true;
   }
 
   /////////////////// UI Actions ///////////////////

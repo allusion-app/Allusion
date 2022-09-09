@@ -22,22 +22,130 @@ import PreviewApp from './frontend/Preview';
 import Overlay from './frontend/Overlay';
 import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
 import { promiseRetry } from '../common/timeout';
+import SplashScreen from './frontend/containers/SplashScreen';
 
-const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
+(async function main(): Promise<void> {
+  const container = document.getElementById('app');
 
-// Initialize the backend for the App, that serves as an API to the front-end
-const backend = new Backend();
-const rootStore = new RootStore(backend);
-backend
-  .init(!IS_PREVIEW_WINDOW)
-  .then(async () => {
-    console.log('Backend has been initialized!');
-    await rootStore.init(IS_PREVIEW_WINDOW);
-    RendererMessenger.initialized();
-  })
-  .catch((err) => console.error('Could not initialize backend!', err));
+  if (container === null) {
+    throw new Error();
+  }
 
-if (IS_PREVIEW_WINDOW) {
+  ReactDOM.render(<SplashScreen />, container);
+
+  // Initialize the backend for the App, that serves as an API to the front-end
+  const backend = await Backend.init();
+  console.log('Backend has been initialized!');
+
+  const SPLASH_SCREEN_TIME = 1400;
+
+  const [[rootStore, Component]] = await Promise.all([
+    !IS_PREVIEW_WINDOW ? setupMainApp(backend) : setupPreviewApp(backend),
+    new Promise((resolve) => setTimeout(resolve, SPLASH_SCREEN_TIME)),
+  ]);
+
+  // Render our react components in the div with id 'app' in the html file
+  // The Provider component provides the state management for the application
+  ReactDOM.render(
+    <StoreProvider value={rootStore}>
+      <Component />
+      <Overlay />
+    </StoreProvider>,
+    container,
+  );
+
+  window.addEventListener('beforeunload', () => {
+    // TODO: check whether this works okay with running in background process
+    // And when force-closing the application. I think it might be keep running...
+    // Update: yes, it keeps running when force-closing. Not sure how to fix. Don't think it can run as child-process
+    rootStore.exifTool.close();
+  });
+
+  // -------------------------------------------
+  // Messaging with the main process
+  // -------------------------------------------
+
+  RendererMessenger.onImportExternalImage(async ({ item }) => {
+    console.log('Importing image...', item);
+    // Might take a while for the file watcher to detect the image - otherwise the image is not in the DB and cannot be tagged
+    promiseRetry(() => addTagsToFile(item.filePath, item.tagNames));
+  });
+
+  RendererMessenger.onAddTagsToFile(async ({ item }) => {
+    console.log('Adding tags to file...', item);
+    await addTagsToFile(item.filePath, item.tagNames);
+  });
+
+  RendererMessenger.onGetTags(async () => ({ tags: await backend.fetchTags() }));
+
+  RendererMessenger.onFullScreenChanged((val) => rootStore.uiStore.setFullScreen(val));
+
+  /**
+   * Adds tags to a file, given its name and the names of the tags
+   * @param filePath The path of the file
+   * @param tagNames The names of the tags
+   */
+  async function addTagsToFile(filePath: string, tagNames: string[]) {
+    const { fileStore, tagStore } = rootStore;
+    const clientFile = runInAction(() =>
+      fileStore.fileList.find((file) => file.absolutePath === filePath),
+    );
+    if (clientFile) {
+      const tags = await Promise.all(
+        tagNames.map(async (tagName) => {
+          const clientTag = tagStore.findByName(tagName);
+          if (clientTag !== undefined) {
+            return clientTag;
+          } else {
+            const newClientTag = await tagStore.create(tagStore.root, tagName);
+            return newClientTag;
+          }
+        }),
+      );
+      tags.forEach(clientFile.addTag);
+    } else {
+      throw new Error('Could not find image to set tags for ' + filePath);
+    }
+  }
+})();
+
+async function setupMainApp(backend: Backend): Promise<[RootStore, () => JSX.Element]> {
+  const [rootStore] = await Promise.all([RootStore.main(backend), backend.setupBackup()]);
+  RendererMessenger.initialized();
+
+  RendererMessenger.onClosedPreviewWindow(() => {
+    rootStore.uiStore.closePreviewWindow();
+  });
+
+  // Recover global preferences
+  try {
+    const window_preferences = localStorage.getItem(WINDOW_STORAGE_KEY);
+    if (window_preferences === null) {
+      localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: false }));
+    } else {
+      const prefs = JSON.parse(window_preferences);
+      if (prefs.isFullScreen === true) {
+        RendererMessenger.setFullScreen(true);
+        rootStore.uiStore.setFullScreen(true);
+      }
+    }
+  } catch (e) {
+    console.error('Cannot load window preferences', e);
+  }
+
+  // Change window title to filename when changing the selected file
+  observe(rootStore.uiStore, 'windowTitle', ({ object }) => {
+    document.title = object.get();
+  });
+
+  return [rootStore, App];
+}
+
+async function setupPreviewApp(backend: Backend): Promise<[RootStore, () => JSX.Element]> {
+  const rootStore = await RootStore.main(backend);
+  rootStore.uiStore.enableSlideMode();
+  RendererMessenger.initialized();
+
   RendererMessenger.onReceivePreviewFiles(
     async ({ ids, thumbnailDirectory, viewMethod, activeImgId }) => {
       rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
@@ -45,9 +153,7 @@ if (IS_PREVIEW_WINDOW) {
       rootStore.uiStore.enableSlideMode();
 
       runInAction(() => {
-        if (rootStore.uiStore.isInspectorOpen) {
-          rootStore.uiStore.toggleInspector();
-        }
+        rootStore.uiStore.isInspectorOpen = false;
       });
 
       const files = await backend.fetchFilesByID(ids);
@@ -82,6 +188,8 @@ if (IS_PREVIEW_WINDOW) {
     }
   });
 
+  const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
+
   // Change window title to filename on load
   observe(rootStore.fileStore.fileList, ({ object: list }) => {
     if (list.length > 0) {
@@ -98,92 +206,6 @@ if (IS_PREVIEW_WINDOW) {
       document.title = `${file.absolutePath || '?'} • ${PREVIEW_WINDOW_BASENAME}`;
     }
   });
-} else {
-  RendererMessenger.onClosedPreviewWindow(() => {
-    rootStore.uiStore.closePreviewWindow();
-  });
-  // Recover global preferences
-  try {
-    const window_preferences = localStorage.getItem(WINDOW_STORAGE_KEY);
-    if (window_preferences === null) {
-      localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: false }));
-    } else {
-      const prefs = JSON.parse(window_preferences);
-      if (prefs.isFullScreen === true) {
-        RendererMessenger.setFullScreen(true);
-        rootStore.uiStore.setFullScreen(true);
-      }
-    }
-  } catch (e) {
-    console.error('Cannot load window preferences', e);
-  }
 
-  // Change window title to filename when changing the selected file
-  observe(rootStore.uiStore, 'windowTitle', ({ object }) => {
-    document.title = object.get();
-  });
+  return [rootStore, PreviewApp];
 }
-
-window.addEventListener('beforeunload', () => {
-  // TODO: check whether this works okay with running in background process
-  // And when force-closing the application. I think it might be keep running...
-  // Update: yes, it keeps running when force-closing. Not sure how to fix. Don't think it can run as child-process
-  rootStore.exifTool.close();
-});
-
-// Render our react components in the div with id 'app' in the html file
-// The Provider component provides the state management for the application
-ReactDOM.render(
-  <StoreProvider value={rootStore}>
-    {IS_PREVIEW_WINDOW ? <PreviewApp /> : <App />}
-    <Overlay />
-  </StoreProvider>,
-  document.getElementById('app'),
-);
-
-// -------------------------------------------
-// Messaging with the main process
-// -------------------------------------------
-
-/**
- * Adds tags to a file, given its name and the names of the tags
- * @param filePath The path of the file
- * @param tagNames The names of the tags
- */
-async function addTagsToFile(filePath: string, tagNames: string[]) {
-  const { fileStore, tagStore } = rootStore;
-  const clientFile = runInAction(() =>
-    fileStore.fileList.find((file) => file.absolutePath === filePath),
-  );
-  if (clientFile) {
-    const tags = await Promise.all(
-      tagNames.map(async (tagName) => {
-        const clientTag = tagStore.findByName(tagName);
-        if (clientTag !== undefined) {
-          return clientTag;
-        } else {
-          const newClientTag = await tagStore.create(tagStore.root, tagName);
-          return newClientTag;
-        }
-      }),
-    );
-    tags.forEach(clientFile.addTag);
-  } else {
-    throw new Error('Could not find image to set tags for ' + filePath);
-  }
-}
-
-RendererMessenger.onImportExternalImage(async ({ item }) => {
-  console.log('Importing image...', item);
-  // Might take a while for the file watcher to detect the image - otherwise the image is not in the DB and cannot be tagged
-  promiseRetry(() => addTagsToFile(item.filePath, item.tagNames));
-});
-
-RendererMessenger.onAddTagsToFile(async ({ item }) => {
-  console.log('Adding tags to file...', item);
-  await addTagsToFile(item.filePath, item.tagNames);
-});
-
-RendererMessenger.onGetTags(async () => ({ tags: await backend.fetchTags() }));
-
-RendererMessenger.onFullScreenChanged((val) => rootStore.uiStore.setFullScreen(val));

@@ -35,9 +35,8 @@ class RootStore {
   readonly searchStore: SearchStore;
   readonly exifTool: ExifIO;
   readonly imageLoader: ImageLoader;
-  readonly clearDatabase: () => Promise<void>;
 
-  constructor(private backend: IDataStorage) {
+  private constructor(private backend: IDataStorage) {
     this.tagStore = new TagStore(backend, this);
     this.fileStore = new FileStore(backend, this);
     this.locationStore = new LocationStore(backend, this);
@@ -45,85 +44,105 @@ class RootStore {
     this.searchStore = new SearchStore(backend, this);
     this.exifTool = new ExifIO(localStorage.getItem('hierarchical-separator') || undefined);
     this.imageLoader = new ImageLoader(this.exifTool);
-
-    // SAFETY: The backend instance has the same lifetime as the RootStore.
-    this.clearDatabase = async () => {
-      await backend.clear();
-      RendererMessenger.clearDatabase();
-      this.uiStore.clearPersistentPreferences();
-      this.fileStore.clearPersistentPreferences();
-    };
   }
 
-  async init(isPreviewWindow: boolean) {
-    // The location store must be initiated because the file entity contructor
-    // uses the location reference to set values.
-    await this.locationStore.init();
-    // The tag store needs to be awaited because file entites have references
-    // to tag entities.
-    await this.tagStore.init();
+  static async main(backend: IDataStorage): Promise<RootStore> {
+    const rootStore = new RootStore(backend);
 
     await Promise.all([
-      this.exifTool.initialize(),
-      this.imageLoader.init(),
-      this.searchStore.init(),
+      // The location store must be initiated because the file entity contructor
+      // uses the location reference to set values.
+      rootStore.locationStore.init(),
+      // The tag store needs to be awaited because file entites have references
+      // to tag entities.
+      rootStore.tagStore.init(),
+      rootStore.exifTool.initialize(),
+      rootStore.imageLoader.init(),
+      rootStore.searchStore.init(),
     ]);
+
+    // Restore preferences, which affects how the file store initializes
+    // It depends on tag store being intialized for reconstructing search criteria
+    rootStore.uiStore.recoverPersistentPreferences();
+    rootStore.fileStore.recoverPersistentPreferences();
+    const isSlideMode = runInAction(() => rootStore.uiStore.isSlideMode);
+
+    const numCriterias = runInAction(() => rootStore.uiStore.searchCriteriaList.length);
+
+    // There may already be a search already present, recovered from a previous session
+    const fileStoreInit =
+      numCriterias === 0
+        ? rootStore.fileStore.fetchAllFiles
+        : () => {
+            // When searching by criteria, the file counts won't be set (only when fetching all files),
+            // so fetch them manually
+            rootStore.fileStore.refetchFileCounts().catch(console.error);
+            return rootStore.fileStore.fetchFilesByQuery();
+          };
+
+    // Load the files already in the database so user instantly sees their images
+    fileStoreInit().then(() => {
+      rootStore.tagStore.initializeFileCounts(rootStore.fileStore.fileList);
+
+      // If slide mode was recovered from previous session, it's disabled by setContentQuery :/
+      // hacky workaround
+      if (isSlideMode) {
+        rootStore.uiStore.enableSlideMode();
+      }
+    });
+
+    // Then, look for any new or removed images, and refetch if necessary
+    rootStore.locationStore.watchLocations().then((foundNewFiles) => {
+      if (foundNewFiles) {
+        rootStore.fileStore.refetch();
+      }
+    });
+
+    return rootStore;
+  }
+
+  static async preview(backend: IDataStorage): Promise<RootStore> {
+    const rootStore = new RootStore(backend);
+
+    await Promise.all([
+      // The location store must be initiated because the file entity contructor
+      // uses the location reference to set values.
+      rootStore.locationStore.init(),
+      // The tag store needs to be awaited because file entites have references
+      // to tag entities.
+      rootStore.tagStore.init(),
+      rootStore.exifTool.initialize(),
+      rootStore.imageLoader.init(),
+    ]);
+
+    // Restore preferences, which affects how the file store initializes
+    // It depends on tag store being intialized for reconstructing search criteria
+    rootStore.uiStore.recoverPersistentPreferences();
+    rootStore.fileStore.recoverPersistentPreferences();
 
     // The preview window is opened while the locations are already watched. The
     // files are fetched based on the file selection.
-    if (!isPreviewWindow) {
-      // Then, restore preferences, which affects how the file store initializes
-      // It depends on tag store being intialized for reconstructing search criteria
-      this.uiStore.recoverPersistentPreferences();
-      this.fileStore.recoverPersistentPreferences();
-      const isSlideMode = runInAction(() => this.uiStore.isSlideMode);
 
-      const numCriterias = runInAction(() => this.uiStore.searchCriteriaList.length);
-
-      // There may already be a search already present, recovered from a previous session
-      const fileStoreInit =
-        numCriterias === 0
-          ? this.fileStore.fetchAllFiles
-          : () => {
-              // When searching by criteria, the file counts won't be set (only when fetching all files),
-              // so fetch them manually
-              this.fileStore.refetchFileCounts().catch(console.error);
-              return this.fileStore.fetchFilesByQuery();
-            };
-
-      // Load the files already in the database so user instantly sees their images
-      fileStoreInit().then(() => {
-        this.tagStore.initializeFileCounts(this.fileStore.fileList);
-
-        // If slide mode was recovered from previous session, it's disabled by setContentQuery :/
-        // hacky workaround
-        if (isSlideMode) {
-          this.uiStore.enableSlideMode();
-        }
-      });
-
-      // Then, look for any new or removed images, and refetch if necessary
-      this.locationStore.watchLocations().then((foundNewFiles) => {
-        if (foundNewFiles) {
-          this.fileStore.refetch();
-        }
-      });
-    }
-
-    // Upon loading data, initialize UI state.
-    this.uiStore.init();
+    return rootStore;
   }
 
-  async backupDatabaseToFile(path: string) {
+  async backupDatabaseToFile(path: string): Promise<void> {
     return this.backend.backupToFile(path);
   }
 
-  async restoreDatabaseFromFile(path: string) {
+  async restoreDatabaseFromFile(path: string): Promise<void> {
     return this.backend.restoreFromFile(path);
   }
 
-  async peekDatabaseFile(path: string) {
+  async peekDatabaseFile(path: string): Promise<[numTags: number, numFiles: number]> {
     return this.backend.peekFile(path);
+  }
+
+  async clearDatabase(): Promise<void> {
+    await this.backend.clear();
+    RendererMessenger.clearDatabase();
+    this.uiStore.clearPersistentPreferences();
+    this.fileStore.clearPersistentPreferences();
   }
 }
 

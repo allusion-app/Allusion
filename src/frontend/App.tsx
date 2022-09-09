@@ -1,11 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 
 import { useStore } from './contexts/StoreContext';
 
 import ErrorBoundary from './containers/ErrorBoundary';
 import HelpCenter from './containers/HelpCenter';
-import SplashScreen from './containers/SplashScreen';
 import { Toaster as CustomToaster } from './components/Toaster';
 
 import AdvancedSearchDialog from './containers/AdvancedSearch';
@@ -19,7 +18,6 @@ import About from './containers/About';
 import { CustomThemeProvider } from './hooks/useCustomTheme';
 import { useClipboardImporter } from './hooks/useClipboardImporter';
 
-const SPLASH_SCREEN_TIME = 1400;
 const PLATFORM = process.platform;
 
 const App = observer(() => {
@@ -29,14 +27,9 @@ const App = observer(() => {
   useWorkerListener();
   useClipboardImporter(uiStore);
 
-  // Show splash screen for some time or when app is not initialized
-  const [showSplash, setShowSplash] = useState(true);
-
   const isOutlinerOpen = uiStore.isOutlinerOpen;
 
   useEffect(() => {
-    setTimeout(() => setShowSplash(false), SPLASH_SCREEN_TIME);
-
     // Add listener for global keyboard shortcuts
     window.addEventListener('keydown', uiStore.processGlobalShortCuts);
 
@@ -49,10 +42,6 @@ const App = observer(() => {
       uiStore.toggleOutliner();
     }
   }, [uiStore, isOutlinerOpen]);
-
-  if (!uiStore.isInitialized || showSplash) {
-    return <SplashScreen />;
-  }
 
   return (
     <CustomThemeProvider>

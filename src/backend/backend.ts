@@ -27,7 +27,7 @@ export default class Backend implements IDataStorage {
   private db: Dexie;
   private backupScheduler: BackupScheduler;
 
-  constructor() {
+  private constructor() {
     console.info(`Initializing database "${DB_NAME}"...`);
     // Initialize database tables
     this.db = dbInit(dbConfig, DB_NAME);
@@ -38,26 +38,28 @@ export default class Backend implements IDataStorage {
     this.backupScheduler = new BackupScheduler(this);
   }
 
-  async init(isMainWindow: boolean): Promise<void> {
-    if (isMainWindow) {
-      // Create a root tag if it does not exist
-      const tagCount = await this.tagRepository.count();
-      if (tagCount === 0) {
-        await this.createTag({
-          id: ROOT_TAG_ID,
-          name: 'Root',
-          dateAdded: new Date(),
-          subTags: [],
-          color: '',
-          isHidden: false,
-        });
-      }
+  static async init(): Promise<Backend> {
+    const backend = new Backend();
+    // Create a root tag if it does not exist
+    const tagCount = await backend.tagRepository.count();
+    if (tagCount === 0) {
+      await backend.createTag({
+        id: ROOT_TAG_ID,
+        name: 'Root',
+        dateAdded: new Date(),
+        subTags: [],
+        color: '',
+        isHidden: false,
+      });
+    }
+    return backend;
+  }
 
-      try {
-        await this.backupScheduler.initialize(await RendererMessenger.getDefaultBackupDirectory());
-      } catch (e) {
-        console.error('Could not initialize backup scheduler', e);
-      }
+  async setupBackup(): Promise<void> {
+    try {
+      await this.backupScheduler.initialize(await RendererMessenger.getDefaultBackupDirectory());
+    } catch (e) {
+      console.error('Could not initialize backup scheduler', e);
     }
   }
 
@@ -82,12 +84,9 @@ export default class Backend implements IDataStorage {
     return this.fileRepository.getByKey(key, value);
   }
 
-  async fetchLocations(
-    order: keyof LocationDTO,
-    fileOrder: OrderDirection,
-  ): Promise<LocationDTO[]> {
+  async fetchLocations(): Promise<LocationDTO[]> {
     console.info('Backend: Fetching locations...');
-    return this.locationRepository.getAllOrdered(order, fileOrder);
+    return this.locationRepository.getAllOrdered('dateAdded', OrderDirection.Asc);
   }
 
   async fetchSearches(): Promise<FileSearchDTO[]> {

@@ -14,8 +14,6 @@ import { TagDTO, ROOT_TAG_ID } from '../api/tag';
 import { FileDTO } from '../api/file';
 import { OrderDirection } from '../api/data-storage-search';
 
-let backend = new Backend();
-
 const mockTag: TagDTO = {
   id: 'tag1',
   name: 'tag1 name',
@@ -45,12 +43,8 @@ const mockFile: FileDTO = {
 
 describe('Backend', () => {
   describe('Tag API', () => {
-    beforeEach(async () => {
-      backend = new Backend();
-      await backend.init(true);
-    });
-
     it('should be able to fetch a tag after adding it', async () => {
+      const backend = await Backend.init();
       await backend.createTag({ ...mockTag });
       const dbTags = await backend.fetchTags();
       expect(dbTags).toHaveLength(2);
@@ -60,6 +54,7 @@ describe('Backend', () => {
 
     describe('removeTag', () => {
       it('should remove the tag from all files with that tag when removing that tag', async () => {
+        const backend = await Backend.init();
         await backend.createTag({ ...mockTag });
         await backend.createFile({ ...mockFile, id: '1', tags: [mockTag.id] });
         await backend.createFile({ ...mockFile, id: '2' });
@@ -71,6 +66,7 @@ describe('Backend', () => {
       });
 
       it('should not remove other tags from the files of which a tag was deleted', async () => {
+        const backend = await Backend.init();
         await backend.createTag({ ...mockTag, id: 'tag1' });
         await backend.createTag({ ...mockTag, id: 'tag2' });
         await backend.createFile({ ...mockFile, id: '1', tags: ['tag1', 'tag2'] });
@@ -87,6 +83,7 @@ describe('Backend', () => {
 
     describe('removeTags', () => {
       it('should remove only the tags that were deleted from the files that had them', async () => {
+        const backend = await Backend.init();
         await backend.createTag({ ...mockTag, id: 'tag1' });
         await backend.createTag({ ...mockTag, id: 'tag2' });
         await backend.createTag({ ...mockTag, id: 'tag3' });
