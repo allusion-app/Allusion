@@ -123,8 +123,6 @@ class UiStore {
   // Theme
   @observable theme: 'light' | 'dark' = 'dark';
 
-  @observable windowTitle = 'Allusion';
-
   // UI
   @observable isOutlinerOpen: boolean = true;
   @observable isInspectorOpen: boolean = true;
@@ -230,19 +228,9 @@ class UiStore {
     this.setThumbnailShape('letterbox');
   }
 
-  @action updateWindowTitle() {
-    if (this.isSlideMode && this.rootStore.fileStore.fileList.length > 0) {
-      const activeFile = this.rootStore.fileStore.fileList[this.firstItem];
-      this.windowTitle = `${activeFile.filename}.${activeFile.extension} - Allusion`;
-    } else {
-      this.windowTitle = 'Allusion';
-    }
-  }
-
   @action.bound setFirstItem(index: number = 0) {
     if (isFinite(index) && index < this.rootStore.fileStore.fileList.length) {
       this.firstItem = index;
-      this.updateWindowTitle();
     }
   }
 
@@ -268,17 +256,14 @@ class UiStore {
 
   @action.bound enableSlideMode() {
     this.isSlideMode = true;
-    this.updateWindowTitle();
   }
 
   @action.bound disableSlideMode() {
     this.isSlideMode = false;
-    this.updateWindowTitle();
   }
 
   @action.bound toggleSlideMode() {
     this.isSlideMode = !this.isSlideMode;
-    this.updateWindowTitle();
   }
 
   /** This does not actually set the window to full-screen, just for bookkeeping! Use RendererMessenger instead */
