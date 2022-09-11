@@ -21,7 +21,7 @@ import Tree, { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
 import SearchItemDialog from '../../AdvancedSearch/SearchItemDialog';
 import { IExpansionState } from '../../types';
 import { createDragReorderHelper } from '../TreeItemDnD';
-import { emptyFunction, triggerContextMenuEvent } from '../utils';
+import { triggerContextMenuEvent } from '../utils';
 
 // Tooltip info
 const enum Tooltip {
@@ -327,7 +327,7 @@ const SavedSearchesList = ({ onDelete, onEdit, onDuplicate, onReplace }: ISearch
         nodeData,
         treeData,
         isExpanded,
-        emptyFunction,
+        () => {},
         toggleExpansion,
         customKeys.bind(null, (crits: ClientFileSearchCriteria[], searchMatchAny: boolean) => {
           uiStore.replaceSearchCriterias(crits);
@@ -356,7 +356,6 @@ const SavedSearchesList = ({ onDelete, onEdit, onDuplicate, onReplace }: ISearch
       treeData={treeData}
       toggleExpansion={toggleExpansion}
       onBranchKeyDown={handleBranchKeyDown}
-      onLeafKeyDown={emptyFunction}
     />
   );
 };

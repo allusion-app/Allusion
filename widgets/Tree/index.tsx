@@ -249,7 +249,7 @@ interface ITreeNode extends INodeData {
   size: number;
   pos: number;
   treeData: any;
-  onLeafKeyDown: KeyDownEventHandler;
+  onLeafKeyDown?: KeyDownEventHandler;
 }
 
 type ILeaf = ITreeNode;
@@ -260,7 +260,7 @@ interface IBranch extends ITreeNode {
   isExpanded: (nodeData: any, treeData: any) => boolean;
   toggleExpansion: (nodeData: any, treeData: any) => void;
   children: ITreeItem[];
-  onBranchKeyDown: KeyDownEventHandler;
+  onBranchKeyDown?: KeyDownEventHandler;
 }
 
 const TreeLeaf = ({
@@ -282,7 +282,7 @@ const TreeLeaf = ({
       aria-setsize={size}
       aria-posinset={pos}
       aria-selected={isSelected?.(nodeData, treeData)}
-      onKeyDown={(e) => onLeafKeyDown(e, nodeData, treeData)}
+      onKeyDown={(e) => onLeafKeyDown?.(e, nodeData, treeData)}
       role="treeitem"
       tabIndex={-1}
       data-id={encodeURIComponent(dataId)}
@@ -343,7 +343,7 @@ const TreeBranch = ({
       aria-level={level}
       aria-setsize={size}
       aria-posinset={pos}
-      onKeyDown={(e) => onBranchKeyDown(e, nodeData, treeData)}
+      onKeyDown={(e) => onBranchKeyDown?.(e, nodeData, treeData)}
       data-id={encodeURIComponent(dataId)}
     >
       <div className="label">
@@ -422,9 +422,9 @@ export interface ITree {
   /** Toggles the expansion of a parent node */
   toggleExpansion: (nodeData: any, treeData: any) => void;
   /** `onKeyDown` Event Handler for branch nodes (see `createBranchOnKeyDown`) */
-  onLeafKeyDown: KeyDownEventHandler;
+  onLeafKeyDown?: KeyDownEventHandler;
   /** `onKeyDown` Event Handler for leaf nodes (see `createLeafOnKeyDown`) */
-  onBranchKeyDown: KeyDownEventHandler;
+  onBranchKeyDown?: KeyDownEventHandler;
   /**
    * Pointer to external data
    *
