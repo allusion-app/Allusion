@@ -318,7 +318,7 @@ const TreeBranch = ({
   dataId,
 }: IBranch) => {
   const transition = useRef<HTMLDivElement | null>(null);
-  const expanded = isExpanded(nodeData, treeData) ?? false;
+  const expanded = isExpanded(nodeData, treeData);
   const [end, setEnd] = useState<number | undefined>(expanded ? undefined : overScan);
 
   // TODO: Try transitionrun/transitionstart instead on ul element.
