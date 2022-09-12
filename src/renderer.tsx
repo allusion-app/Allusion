@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { autorun, runInAction } from 'mobx';
+import { autorun, reaction, runInAction } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -16,7 +16,8 @@ import Backend from './backend/backend';
 
 import StoreProvider from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';
-
+import { FILE_STORAGE_KEY } from './frontend/stores/FileStore';
+import { PREFERENCES_STORAGE_KEY } from './frontend/stores/UiStore';
 import App from './frontend/App';
 import PreviewApp from './frontend/Preview';
 import Overlay from './frontend/Overlay';
@@ -136,6 +137,23 @@ async function setupMainApp(backend: Backend): Promise<[RootStore, () => JSX.Ele
   } catch (e) {
     console.error('Cannot load window preferences', e);
   }
+
+  // Debounced and automatic storing of preferences
+  reaction(
+    () => rootStore.fileStore.getPersistentPreferences(),
+    (preferences) => {
+      localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(preferences));
+    },
+    { delay: 200 },
+  );
+
+  reaction(
+    () => rootStore.uiStore.getPersistentPreferences(),
+    (preferences) => {
+      localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(preferences));
+    },
+    { delay: 200 },
+  );
 
   return [rootStore, App];
 }
