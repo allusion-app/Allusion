@@ -37,7 +37,7 @@ export const Alert = (props: AlertProps) => {
 
   useEffect(() => {
     if (dialog.current) {
-      open ? dialog.current.showModal?.() : dialog.current.close?.();
+      open ? dialog.current.showModal() : dialog.current.close();
     }
   }, [open]);
 

@@ -42,7 +42,7 @@ export const Dialog = (props: DialogProps) => {
 
   useEffect(() => {
     if (dialog.current) {
-      open ? dialog.current.showModal?.() : dialog.current.close?.();
+      open ? dialog.current.showModal() : dialog.current.close();
     }
   }, [open]);
 
