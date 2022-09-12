@@ -1,89 +1,80 @@
-import { runInAction } from 'mobx';
 import { ClientFile } from 'src/entities/File';
 // Force Webpack to include worker and WASM file in the build folder!
-import { default as init, MasonryWorker, MasonryType } from 'wasm/packages/masonry';
+import { default as init, MasonryWorker, MasonryType, InitOutput } from 'wasm/packages/masonry';
 import { ITransform, Layouter } from './layout-helpers';
 
 export interface MasonryOptions {
   type: MasonryType;
-  thumbSize: number;
-  padding: number;
+  size: number;
 }
 
-const defaultOpts: MasonryOptions = {
-  type: MasonryType.Vertical,
-  thumbSize: 300,
-  padding: 8,
-};
+export const MASONRY_PADDING = 8;
 
 export class MasonryWorkerAdapter implements Layouter {
   private worker?: MasonryWorker;
   private memory?: WebAssembly.Memory;
 
-  private prevNumImgs: number = 0;
+  private imageCount: number = 0;
 
-  async initialize(numItems: number) {
-    this.prevNumImgs = numItems;
+  get isInitialized(): boolean {
+    return this.memory !== undefined && this.worker !== undefined;
+  }
 
-    if (this.memory !== undefined && this.worker !== undefined) {
+  *initialize(imageCount: number): Generator<unknown, void, any> {
+    if (this.isInitialized) {
       return;
     }
 
     console.debug('initializing masonry worker...');
-    const wasm = await init();
+    const wasm: InitOutput = yield init();
     this.memory = wasm.memory;
 
     const worker = new Worker(new URL('wasm/packages/masonry/worker.js', import.meta.url), {
       type: 'module',
     });
     worker.postMessage(this.memory);
-    this.worker = new MasonryWorker(numItems);
+    this.worker = new MasonryWorker(imageCount);
+    this.imageCount = imageCount;
   }
 
-  async compute(
-    imgs: ClientFile[],
-    numImgs: number,
+  *compute(
+    images: readonly ClientFile[],
     containerWidth: number,
-    opts: Partial<MasonryOptions>,
-  ): Promise<number | undefined> {
+    type: MasonryType,
+    size: number,
+  ): Generator<unknown, number, any> {
     const worker = this.worker;
     if (worker === undefined) {
-      return Promise.reject('Worker is uninitialized.');
+      throw new Error('Worker is uninitialized.');
     }
 
-    if (this.prevNumImgs !== numImgs) {
-      worker.resize(numImgs);
+    const imageCount = images.length;
+
+    if (this.imageCount !== imageCount) {
+      worker.resize(imageCount);
     }
 
-    this.prevNumImgs = numImgs;
-    runInAction(() => {
-      for (let i = 0; i < imgs.length; i++) {
-        worker.set_dimension(i, imgs[i].width, imgs[i].height);
-      }
-    });
+    this.imageCount = imageCount;
+    for (let i = 0; i < imageCount; i++) {
+      worker.set_dimension(i, images[i].width, images[i].height);
+    }
 
-    await worker.compute(
-      containerWidth,
-      opts.type || defaultOpts.type,
-      opts.thumbSize || defaultOpts.thumbSize,
-      opts.padding || defaultOpts.padding,
-    );
+    yield worker.compute(containerWidth, type, size, MASONRY_PADDING);
+
     return worker.get_height();
   }
 
-  async recompute(
+  *recompute(
     containerWidth: number,
-    opts: Partial<MasonryOptions>,
-  ): Promise<number | undefined> {
+    type: MasonryType,
+    size: number,
+  ): Generator<unknown, number, any> {
     if (this.worker === undefined) {
-      return Promise.reject('Worker is uninitialized.');
+      throw new Error('Worker is uninitialized.');
     }
-    await this.worker.compute(
-      containerWidth,
-      opts.type || defaultOpts.type,
-      opts.thumbSize || defaultOpts.thumbSize,
-      opts.padding || defaultOpts.padding,
-    );
+
+    yield this.worker.compute(containerWidth, type, size, MASONRY_PADDING);
+
     return this.worker.get_height();
   }
 

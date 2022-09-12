@@ -20,48 +20,53 @@ const enum TooltipInfo {
 }
 
 export const OutlinerActionBar = observer(() => {
-  const { fileStore, uiStore } = useStore();
+  const rootStore = useStore();
+  const { fileStore } = rootStore;
 
-  const handleUntaggedClick = useCallback((e: React.MouseEvent) => {
-    if (!e.ctrlKey) {
-      fileStore.fetchUntaggedFiles();
-      return;
-    }
-    // With ctrl key pressed, either add/remove a Untagged criteria based on whether it's already there
-    const maybeUntaggedCrit = uiStore.searchCriteriaList.find(
-      (crit) => crit instanceof ClientTagSearchCriteria && !crit.value,
-    );
+  const handleUntaggedClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (!e.ctrlKey) {
+        rootStore.showUntaggedFiles();
+        return;
+      }
 
-    if (maybeUntaggedCrit) {
-      uiStore.removeSearchCriteria(maybeUntaggedCrit);
-    } else {
-      uiStore.addSearchCriteria(new ClientTagSearchCriteria('tags'));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      const { uiStore } = rootStore;
+      // With ctrl key pressed, either add/remove a Untagged criteria based on whether it's already there
+      const maybeUntaggedCrit = uiStore.searchCriteriaList.find(
+        (crit) => crit instanceof ClientTagSearchCriteria && !crit.value,
+      );
+
+      if (maybeUntaggedCrit) {
+        uiStore.removeSearchCriteria(maybeUntaggedCrit);
+      } else {
+        uiStore.addSearchCriteria(new ClientTagSearchCriteria('tags'));
+      }
+    },
+    [rootStore],
+  );
 
   return (
     <Toolbar id="actionbar" label="Action Bar" controls="content-view">
       <ToolbarButton
         text={fileStore.numTotalFiles}
         icon={IconSet.MEDIA}
-        onClick={fileStore.fetchAllFiles}
-        pressed={fileStore.showsAllContent}
+        onClick={rootStore.showAllFiles}
+        pressed={rootStore.showsAllContent}
         tooltip={TooltipInfo.AllImages}
       />
       <ToolbarButton
         text={fileStore.numUntaggedFiles}
         icon={IconSet.TAG_BLANCO}
         onClick={handleUntaggedClick}
-        pressed={fileStore.showsUntaggedContent}
+        pressed={rootStore.showsUntaggedContent}
         tooltip={TooltipInfo.Untagged}
       />
       {fileStore.numMissingFiles > 0 && (
         <ToolbarButton
           text={fileStore.numMissingFiles}
           icon={IconSet.WARNING_FILL}
-          onClick={fileStore.fetchMissingFiles}
-          pressed={fileStore.showsMissingContent}
+          onClick={rootStore.showMissingFiles}
+          pressed={rootStore.showsMissingContent}
           tooltip={TooltipInfo.Missing}
         />
       )}

@@ -116,7 +116,7 @@ class UiStore {
   static MIN_OUTLINER_WIDTH = 192; // default of 12 rem
   static MIN_INSPECTOR_WIDTH = 288; // default of 18 rem
 
-  private readonly rootStore: RootStore;
+  readonly #rootStore: RootStore;
 
   // Theme
   @observable theme: 'light' | 'dark' = 'dark';
@@ -154,6 +154,7 @@ class UiStore {
   @observable isMoveFilesToTrashOpen: boolean = false;
   /** Dialog to warn the user when he tries to open too many files externally */
   @observable isManyExternalFilesOpen: boolean = false;
+  @observable showsMissingContent = false;
 
   // Selections
   // Observable arrays recommended like this here https://github.com/mobxjs/mobx/issues/669#issuecomment-269119270.
@@ -161,7 +162,7 @@ class UiStore {
   readonly fileSelection = observable(new Set<ClientFile>());
   readonly tagSelection = observable(new Set<ClientTag>());
 
-  readonly searchCriteriaList = observable<ClientFileSearchCriteria>([]);
+  readonly #searchCriteriaList = observable<ClientFileSearchCriteria>([]);
 
   @observable thumbnailDirectory: string = '';
   @observable importDirectory: string = ''; // for browser extension. Must be a (sub-folder of a) Location
@@ -169,8 +170,12 @@ class UiStore {
   @observable readonly hotkeyMap: IHotkeyMap = observable(defaultHotkeyMap);
 
   constructor(rootStore: RootStore) {
-    this.rootStore = rootStore;
+    this.#rootStore = rootStore;
     makeObservable(this);
+  }
+
+  get searchCriteriaList(): readonly ClientFileSearchCriteria[] {
+    return this.#searchCriteriaList;
   }
 
   /////////////////// UI Actions ///////////////////
@@ -207,15 +212,15 @@ class UiStore {
   }
 
   @action.bound setThumbnailSquare() {
-    this.setThumbnailShape('square');
+    this.thumbnailShape = 'square';
   }
 
   @action.bound setThumbnailLetterbox() {
-    this.setThumbnailShape('letterbox');
+    this.thumbnailShape = 'letterbox';
   }
 
   @action.bound setFirstItem(index: number = 0) {
-    if (isFinite(index) && index < this.rootStore.fileStore.fileList.length) {
+    if (isFinite(index) && index < this.#rootStore.fileStore.fileList.length) {
       this.firstItem = index;
     }
   }
@@ -278,11 +283,11 @@ class UiStore {
   }
 
   @action.bound openOutliner() {
-    this.setIsOutlinerOpen(true);
+    this.isOutlinerOpen = true;
   }
 
   @action.bound toggleOutliner() {
-    this.setIsOutlinerOpen(!this.isOutlinerOpen);
+    this.isOutlinerOpen = !this.isOutlinerOpen;
   }
 
   @action.bound openPreviewWindow() {
@@ -360,9 +365,7 @@ class UiStore {
   }
 
   @action.bound openToolbarFileRemover() {
-    if (!this.rootStore.fileStore.showsMissingContent) {
-      this.rootStore.fileStore.fetchMissingFiles();
-    }
+    this.showsMissingContent = true;
     this.isToolbarFileRemoverOpen = true;
   }
 
@@ -417,7 +420,7 @@ class UiStore {
   }
 
   @action.bound toggleTheme() {
-    this.setTheme(this.theme === 'dark' ? 'light' : 'dark');
+    this.theme = this.theme === 'dark' ? 'light' : 'dark';
     RendererMessenger.setTheme({ theme: this.theme === 'dark' ? 'dark' : 'light' });
   }
 
@@ -439,7 +442,7 @@ class UiStore {
       this.clearFileSelection();
     }
     this.fileSelection.add(file);
-    this.setFirstItem(this.rootStore.fileStore.getIndex(file.id));
+    this.setFirstItem(this.#rootStore.fileStore.getIndex(file.id));
   }
 
   @action.bound deselectFile(file: ClientFile) {
@@ -462,12 +465,12 @@ class UiStore {
       this.fileSelection.clear();
     }
     for (let i = start; i <= end; i++) {
-      this.fileSelection.add(this.rootStore.fileStore.fileList[i]);
+      this.fileSelection.add(this.#rootStore.fileStore.fileList[i]);
     }
   }
 
   @action.bound selectAllFiles() {
-    this.fileSelection.replace(this.rootStore.fileStore.fileList);
+    this.fileSelection.replace(this.#rootStore.fileStore.fileList);
   }
 
   @action.bound clearFileSelection() {
@@ -495,7 +498,7 @@ class UiStore {
 
   /** Selects a range of tags, where indices correspond to the flattened tag list. */
   @action.bound selectTagRange(start: number, end: number, additive?: boolean) {
-    const tagTreeList = this.rootStore.tagStore.tagList;
+    const tagTreeList = this.#rootStore.tagStore.tagList;
     if (!additive) {
       this.tagSelection.replace(tagTreeList.slice(start, end + 1));
       return;
@@ -506,7 +509,7 @@ class UiStore {
   }
 
   @action.bound selectAllTags() {
-    this.tagSelection.replace(this.rootStore.tagStore.tagList);
+    this.tagSelection.replace(this.#rootStore.tagStore.tagList);
   }
 
   @action.bound clearTagSelection() {
@@ -515,7 +518,7 @@ class UiStore {
 
   @action.bound async removeSelectedTags() {
     const ctx = this.getTagContextItems();
-    return this.rootStore.tagStore.deleteTags(ctx);
+    return this.#rootStore.tagStore.deleteTags(ctx);
   }
 
   @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
@@ -535,7 +538,7 @@ class UiStore {
    * but can be easily found by getting the tags from each collection.
    */
   @action.bound getTagContextItems(activeItemId?: ID) {
-    const { tagStore } = this.rootStore;
+    const { tagStore } = this.#rootStore;
 
     // If no id was given, the context is the tag selection. Else, it might be a single tag/collection
     let isContextTheSelection = activeItemId === undefined;
@@ -566,7 +569,7 @@ class UiStore {
    * @param targetId Where to move the selection to
    */
   @action.bound moveSelectedTagItems(id: ID, pos = 0) {
-    const { tagStore } = this.rootStore;
+    const { tagStore } = this.#rootStore;
 
     const target = tagStore.get(id);
     if (!target) {
@@ -583,20 +586,20 @@ class UiStore {
   /////////////////// Search Actions ///////////////////
   @action.bound clearSearchCriteriaList() {
     if (this.searchCriteriaList.length > 0) {
-      this.searchCriteriaList.forEach((c) => c.dispose());
-      this.searchCriteriaList.clear();
-      this.viewAllContent();
+      this.#searchCriteriaList.forEach((c) => c.dispose());
+      this.#searchCriteriaList.clear();
+      this.#viewContent();
     }
   }
 
   @action.bound addSearchCriteria(query: Exclude<ClientFileSearchCriteria, 'key'>) {
-    this.searchCriteriaList.push(query);
-    this.viewQueryContent();
+    this.#searchCriteriaList.push(query);
+    this.#viewContent();
   }
 
   @action.bound addSearchCriterias(queries: Exclude<ClientFileSearchCriteria[], 'key'>) {
-    this.searchCriteriaList.push(...queries);
-    this.viewQueryContent();
+    this.#searchCriteriaList.push(...queries);
+    this.#viewContent();
   }
 
   @action.bound toggleSearchCriterias(queries: Exclude<ClientFileSearchCriteria[], 'key'>) {
@@ -606,20 +609,16 @@ class UiStore {
     // With control, add or remove the criteria based on whether they're already being searched with
     const existingMatchingCriterias = queries.map((crit) =>
       this.searchCriteriaList.find((other) =>
-        deepEqual(other.serialize(this.rootStore), crit.serialize(this.rootStore)),
+        deepEqual(other.serialize(this.#rootStore), crit.serialize(this.#rootStore)),
       ),
     );
     if (existingMatchingCriterias.every(notEmpty)) {
       // If they're already in there, remove them
       existingMatchingCriterias.forEach((query) => {
-        this.searchCriteriaList.remove(query);
+        this.#searchCriteriaList.remove(query);
         query.dispose();
       });
-      if (this.searchCriteriaList.length > 0) {
-        this.viewQueryContent();
-      } else {
-        this.viewAllContent();
-      }
+      this.#viewContent();
     } else {
       // If they're not already in there, add them
       this.addSearchCriterias(queries);
@@ -628,12 +627,8 @@ class UiStore {
 
   @action.bound removeSearchCriteria(query: ClientFileSearchCriteria) {
     query.dispose();
-    this.searchCriteriaList.remove(query);
-    if (this.searchCriteriaList.length > 0) {
-      this.viewQueryContent();
-    } else {
-      this.viewAllContent();
-    }
+    this.#searchCriteriaList.remove(query);
+    this.#viewContent();
   }
 
   @action.bound replaceSearchCriteria(query: Exclude<ClientFileSearchCriteria, 'key'>) {
@@ -642,26 +637,14 @@ class UiStore {
 
   @action.bound replaceSearchCriterias(queries: Exclude<ClientFileSearchCriteria[], 'key'>) {
     this.searchCriteriaList.forEach((c) => c.dispose());
-
-    this.searchCriteriaList.replace(queries);
-
-    if (this.searchCriteriaList.length > 0) {
-      this.viewQueryContent();
-    } else {
-      this.viewAllContent();
-    }
+    this.#searchCriteriaList.replace(queries);
+    this.#viewContent();
   }
 
   @action.bound removeSearchCriteriaByIndex(i: number) {
-    const removedCrits = this.searchCriteriaList.splice(i, 1);
-
-    removedCrits.forEach((c) => c.dispose());
-
-    if (this.searchCriteriaList.length > 0) {
-      this.viewQueryContent();
-    } else {
-      this.viewAllContent();
-    }
+    const removedCriterias = this.#searchCriteriaList.splice(i, 1);
+    removedCriterias.forEach((c) => c.dispose());
+    this.#viewContent();
   }
 
   @action.bound addTagSelectionToCriteria() {
@@ -684,11 +667,11 @@ class UiStore {
     oldCrit: ClientFileSearchCriteria,
     crit: ClientFileSearchCriteria,
   ) {
-    const index = this.searchCriteriaList.indexOf(oldCrit);
+    const index = this.#searchCriteriaList.indexOf(oldCrit);
     if (index !== -1) {
-      this.searchCriteriaList[index].dispose();
-      this.searchCriteriaList[index] = crit;
-      this.viewQueryContent();
+      this.#searchCriteriaList[index].dispose();
+      this.#searchCriteriaList[index] = crit;
+      this.#viewContent();
     }
   }
 
@@ -788,10 +771,10 @@ class UiStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        if (prefs.theme) {
-          this.setTheme(prefs.theme);
+        if (prefs.theme === 'dark' || prefs.theme === 'light') {
+          this.theme = prefs.theme;
         }
-        this.setIsOutlinerOpen(prefs.isOutlinerOpen);
+        this.isOutlinerOpen = Boolean(prefs.isOutlinerOpen);
         this.isInspectorOpen = Boolean(prefs.isInspectorOpen);
         if (prefs.thumbnailDirectory) {
           this.setThumbnailDirectory(prefs.thumbnailDirectory);
@@ -803,8 +786,8 @@ class UiStore {
         if (prefs.thumbnailSize) {
           this.setThumbnailSize(prefs.thumbnailSize);
         }
-        if (prefs.thumbnailShape) {
-          this.setThumbnailShape(prefs.thumbnailShape);
+        if (prefs.thumbnailShape === 'square' || prefs.thumbnailShape === 'letterbox') {
+          this.thumbnailShape = prefs.thumbnailShape;
         }
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
         this.isThumbnailFilenameOverlayEnabled = Boolean(
@@ -827,7 +810,7 @@ class UiStore {
           const newCrits = serializedCriteriaList.map((c) =>
             ClientFileSearchCriteria.deserialize(c),
           );
-          this.searchCriteriaList.push(...newCrits);
+          this.#searchCriteriaList.push(...newCrits);
 
           // and other content-related options. So it's just like you never closed Allusion!
           this.firstItem = prefs.firstItem;
@@ -870,7 +853,7 @@ class UiStore {
       isSlideMode: this.isSlideMode,
       firstItem: this.firstItem,
       searchMatchAny: this.searchMatchAny,
-      searchCriteriaList: this.searchCriteriaList.map((c) => c.serialize(this.rootStore)),
+      searchCriteriaList: this.searchCriteriaList.map((c) => c.serialize(this.#rootStore)),
     };
     return preferences;
   }
@@ -898,29 +881,14 @@ class UiStore {
 
   /** Return {@link UiStore.firstItem}: first item visible in viewport, and the current item in SlideMode */
   @computed get firstFileInView(): ClientFile | undefined {
-    return this.firstItem < this.rootStore.fileStore.fileList.length
-      ? this.rootStore.fileStore.fileList[this.firstItem]
+    return this.firstItem < this.#rootStore.fileStore.fileList.length
+      ? this.#rootStore.fileStore.fileList[this.firstItem]
       : undefined;
   }
 
-  @action private viewAllContent() {
-    this.rootStore.fileStore.fetchAllFiles();
-  }
-
-  @action private viewQueryContent() {
-    this.rootStore.fileStore.fetchFilesByQuery();
-  }
-
-  @action private setTheme(theme: 'light' | 'dark' = 'dark') {
-    this.theme = theme;
-  }
-
-  @action private setIsOutlinerOpen(value: boolean = true) {
-    this.isOutlinerOpen = value;
-  }
-
-  @action private setThumbnailShape(shape: ThumbnailShape) {
-    this.thumbnailShape = shape;
+  #viewContent() {
+    this.showsMissingContent = false;
+    this.isSlideMode = false;
   }
 }
 

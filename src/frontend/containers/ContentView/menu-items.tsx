@@ -10,14 +10,15 @@ import { LocationTreeItemRevealer } from '../Outliner/LocationsPanel';
 import { TagsTreeItemRevealer } from '../Outliner/TagsPanel/TagsTree';
 
 export const MissingFileMenuItems = observer(() => {
-  const { uiStore, fileStore } = useStore();
+  const rootStore = useStore();
+  const { uiStore } = rootStore;
   return (
     <>
       <MenuItem
-        onClick={fileStore.fetchMissingFiles}
+        onClick={rootStore.showMissingFiles}
         text="Open Recovery Panel"
         icon={IconSet.WARNING_BROKEN_LINK}
-        disabled={fileStore.showsMissingContent}
+        disabled={rootStore.showsMissingContent}
       />
       <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
     </>

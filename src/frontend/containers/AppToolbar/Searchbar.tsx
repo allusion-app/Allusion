@@ -101,12 +101,11 @@ const QuickSearchList = observer(() => {
 });
 
 const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
-  const { fileStore, uiStore } = useStore();
+  const { uiStore } = useStore();
 
   const handleClick = useRef((e: React.MouseEvent) => {
     e.stopPropagation();
     uiStore.toggleSearchMatchAny();
-    fileStore.refetch();
   }).current;
 
   return (
@@ -122,7 +121,7 @@ const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
 
 const CriteriaList = observer(() => {
   const rootStore = useStore();
-  const { fileStore, uiStore } = rootStore;
+  const { uiStore } = rootStore;
   return (
     <div className="input" onClick={uiStore.toggleAdvancedSearch}>
       <div className="multiautocomplete-input">
@@ -146,7 +145,6 @@ const CriteriaList = observer(() => {
             text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
             onClick={(e) => {
               uiStore.toggleSearchMatchAny();
-              fileStore.refetch();
               e.stopPropagation();
               e.preventDefault();
               // TODO: search input element keeps focus after click???

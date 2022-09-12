@@ -177,7 +177,6 @@ export class ClientTag {
 
   @action.bound toggleHidden(): void {
     this.isHidden = !this.isHidden;
-    this.store.refetchFiles();
   }
 
   serialize(): TagDTO {
@@ -189,10 +188,6 @@ export class ClientTag {
       subTags: this.subTags.map((subTag) => subTag.id),
       isHidden: this.isHidden,
     };
-  }
-
-  async delete(): Promise<void> {
-    return this.store.delete(this);
   }
 
   dispose(): void {

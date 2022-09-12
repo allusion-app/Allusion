@@ -1,14 +1,16 @@
-import { action } from 'mobx';
+import { action, autorun, flow } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import FocusManager from 'src/frontend/FocusManager';
 import { ViewMethod } from 'src/frontend/stores/UiStore';
-import { debounce, throttle } from 'common/timeout';
+import { CancellablePromise } from 'common/promise';
+import { sleep, throttle } from 'common/timeout';
 import { MasonryType } from 'wasm/packages/masonry';
 import { GalleryProps, getThumbnailSize } from '../utils';
-import { MasonryWorkerAdapter } from './MasonryWorkerAdapter';
+import { MasonryWorkerAdapter, MASONRY_PADDING } from './MasonryWorkerAdapter';
 import VirtualizedRenderer from './VirtualizedRenderer';
+import { useComputed } from 'src/frontend/hooks/mobx';
 
 type SupportedViewMethod =
   | ViewMethod.MasonryVertical
@@ -22,28 +24,22 @@ const ViewMethodLayoutDict: Record<SupportedViewMethod, MasonryType> = {
 };
 
 const SCROLL_BAR_WIDTH = 8;
-const MASONRY_PADDING = 8; // Note: keep in sync with .masonry class padding
 
 const worker = new MasonryWorkerAdapter();
 
 const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: GalleryProps) => {
-  const { fileStore, uiStore } = useStore();
-  const [containerHeight, setContainerHeight] = useState<number>();
+  const rootStore = useStore();
+  const [containerHeight, setContainerHeight] = useState<number>(0);
   // The timestamp from when the layout was last updated
   const [layoutTimestamp, setLayoutTimestamp] = useState<Date>(new Date());
-  // Needed in order to re-render forcefully when the layout updates
-  // Doesn't seem to be necessary anymore - might cause overlapping thumbnails, but could not reproduce
-  const [forceRerenderObj, setForceRerenderObj] = useState<Date>(new Date());
-  const thumbnailSize = getThumbnailSize(uiStore.thumbnailSize);
+  const thumbnailSize = useComputed(() => getThumbnailSize(rootStore.uiStore.thumbnailSize));
   const containerWidth = contentRect.width - SCROLL_BAR_WIDTH - MASONRY_PADDING;
-
-  const viewMethod = uiStore.method as SupportedViewMethod;
-  const numImages = fileStore.fileList.length;
 
   // Vertical keyboard navigation with lastSelectionIndex
   // note: horizontal keyboard navigation is handled elsewhere: LayoutSwitcher
   useEffect(() => {
     const onKeyDown = action((e: KeyboardEvent) => {
+      const { fileStore, uiStore } = rootStore;
       let index = lastSelectionIndex.current;
       if (index === undefined) {
         return;
@@ -88,104 +84,99 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Initialize on mount
-  useEffect(() => {
-    (async function onMount() {
-      try {
-        await worker.initialize(numImages);
-        const containerHeight = await worker.compute(
-          fileStore.fileList,
-          numImages,
-          containerWidth,
-          {
-            thumbSize: thumbnailSize,
-            type: ViewMethodLayoutDict[viewMethod],
-          },
-        );
-        setContainerHeight(containerHeight);
-        setLayoutTimestamp(new Date());
-        setForceRerenderObj(new Date());
-      } catch (e) {
-        console.error(e);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   // Compute new layout when content changes (new fileList, e.g. sorting, searching)
   useEffect(() => {
-    if (containerHeight !== undefined && containerWidth > 100) {
-      // todo: could debounce if needed. Or only recompute in increments?
-      console.debug('Masonry: Items changed. Computing new layout!');
-      (async function onItemOrderChange() {
+    console.debug('Masonry: Items changed. Computing new layout!');
+    let layoutTask: CancellablePromise<void> | undefined = undefined;
+
+    const dispose = autorun(() => {
+      rootStore.fileStore.index.observe();
+
+      if (worker.isInitialized && layoutTask !== undefined) {
+        layoutTask.cancel();
+      }
+      layoutTask = flow(function* compute() {
+        const {
+          fileStore: { fileList },
+          uiStore: { method },
+        } = rootStore;
         try {
-          const containerHeight = await worker.compute(
-            fileStore.fileList,
-            numImages,
+          if (!worker.isInitialized) {
+            yield* worker.initialize(fileList.length);
+          }
+          const containerHeight = yield* worker.compute(
+            fileList,
             containerWidth,
-            {
-              thumbSize: thumbnailSize,
-              type: ViewMethodLayoutDict[viewMethod],
-            },
+            ViewMethodLayoutDict[method as SupportedViewMethod],
+            thumbnailSize.get(),
           );
           setContainerHeight(containerHeight);
           setLayoutTimestamp(new Date());
-          // setForceRerenderObj(new Date()); // doesn't seem necessary anymore, which is nice, because it caused flickering when refetching
         } catch (e) {
           console.error(e);
         }
       })();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [numImages, fileStore.fileListLastModified]);
+      layoutTask.catch(() => console.debug('Cancelled initializing worker.'));
+    });
 
-  const handleResize = useRef(
-    (() => {
-      async function onResize(
-        containerWidth: number,
-        thumbnailSize: number,
-        viewMethod: SupportedViewMethod,
-      ) {
-        console.debug('Masonry: Environment changed. Recomputing layout!');
-        try {
-          const containerHeight = await worker.recompute(containerWidth, {
-            thumbSize: thumbnailSize,
-            type: ViewMethodLayoutDict[viewMethod],
-          });
-          setContainerHeight(containerHeight);
-          setLayoutTimestamp(new Date());
-          // no need for force rerender: causes flickering. Rerender already happening due to container height update anyways
-        } catch (e) {
-          console.error(e);
-        }
+    return () => {
+      dispose();
+      if (worker.isInitialized && layoutTask !== undefined) {
+        layoutTask.cancel();
       }
-
-      // Debounce is not needed due to performance, but images are
-      // sometimes repeatedly swapping columns every recomputation, which looks awful
-      return debounce(onResize, 150);
-    })(),
-  );
+    };
+  }, [containerWidth, thumbnailSize, rootStore]);
 
   // Re-compute when the environment changes (container width, thumbnail size, view method)
   useEffect(() => {
-    if (containerHeight !== undefined && containerWidth > 100) {
-      handleResize.current(containerWidth, thumbnailSize, viewMethod);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [containerWidth, handleResize, thumbnailSize, viewMethod]);
+    console.debug('Masonry: Environment changed. Recomputing layout!');
+    let layoutTask: CancellablePromise<void> | undefined = undefined;
 
-  return !containerHeight ? (
+    const dispose = autorun(() => {
+      const viewMethod = rootStore.uiStore.method as SupportedViewMethod;
+      const size = thumbnailSize.get();
+
+      if (!worker.isInitialized || containerWidth < size) {
+        return;
+      }
+
+      layoutTask?.cancel();
+      layoutTask = flow(function* recompute() {
+        // Debounce is not needed due to performance, but images are sometimes repeatedly swapping columns every
+        // recomputation, which looks awful.
+        yield sleep(150);
+
+        try {
+          const containerHeight = yield* worker.recompute(
+            containerWidth,
+            ViewMethodLayoutDict[viewMethod],
+            size,
+          );
+          setContainerHeight(containerHeight);
+          setLayoutTimestamp(new Date());
+        } catch (e) {
+          console.error(e);
+        }
+      })();
+      layoutTask.catch(() => console.debug('Cancelled re-computing layout.'));
+    });
+
+    return () => {
+      dispose();
+      layoutTask?.cancel();
+    };
+  }, [containerWidth, thumbnailSize, rootStore]);
+
+  return !worker.isInitialized ? (
     <></>
   ) : (
     <VirtualizedRenderer
       className="masonry"
-      // Force a complete re-render when the layout has been changed
-      key={forceRerenderObj.getTime()}
       containerWidth={containerWidth}
       containerHeight={containerHeight}
-      images={fileStore.fileList}
+      images={rootStore.fileStore.fileList}
       layout={worker}
-      overscan={thumbnailSize * 3}
+      overscan={thumbnailSize.get() * 3}
       lastSelectionIndex={lastSelectionIndex}
       layoutUpdateDate={layoutTimestamp}
       padding={MASONRY_PADDING}

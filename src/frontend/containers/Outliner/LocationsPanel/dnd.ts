@@ -4,7 +4,7 @@ import { ClientFile } from 'src/entities/File';
 import { IMG_EXTENSIONS } from 'src/api/file';
 import { ALLOWED_DROP_TYPES } from 'src/frontend/contexts/DropContext';
 import { retainArray } from 'common/core';
-import { timeoutPromise } from 'common/timeout';
+import { withTimeout } from 'common/timeout';
 import { StoreFileMessage } from 'src/ipc/messages';
 import { RendererMessenger } from 'src/ipc/renderer';
 import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
@@ -100,7 +100,7 @@ export async function storeDroppedImage(dropData: (string | File)[], directory: 
 /** Tests whether a URL points to an image */
 async function testImage(url: string, timeout: number = 2000): Promise<boolean> {
   try {
-    const blob = await timeoutPromise(timeout, fetch(url));
+    const blob = await withTimeout(timeout, fetch(url));
     return IMG_EXTENSIONS.some((ext) => blob.type.endsWith(ext));
   } catch (e) {
     return false;

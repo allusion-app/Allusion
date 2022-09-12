@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { autorun, reaction, runInAction } from 'mobx';
+import { autorun, flow, reaction, runInAction } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -22,8 +22,11 @@ import App from './frontend/App';
 import PreviewApp from './frontend/Preview';
 import Overlay from './frontend/Overlay';
 import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
-import { promiseRetry } from '../common/timeout';
+import { CancellablePromise } from 'common/promise';
+import { promiseRetry, sleep } from '../common/timeout';
 import SplashScreen from './frontend/containers/SplashScreen';
+import { ConditionDTO } from './api/data-storage-search';
+import { FileDTO } from './api/file';
 
 (async function main(): Promise<void> {
   const container = document.getElementById('app');
@@ -155,39 +158,102 @@ async function setupMainApp(backend: Backend): Promise<[RootStore, () => JSX.Ele
     { delay: 200 },
   );
 
+  const fetchTask = flow(function* fetch(
+    showsMissingContent: boolean,
+    conditions: ConditionDTO<FileDTO>[],
+    matchAny: boolean,
+  ) {
+    const DELAY = 200;
+    // We are waiting here instead of passing a value to the delay option of the reaction function in order to be able
+    // to cancel the task immediately in the reaction. Otherwise, it could happen that a fetch begins but the
+    // dependencies change again before DELAY milliseconds passed. By the time the reaction has run again, it might be
+    // finished already.
+    yield sleep(DELAY);
+
+    if (showsMissingContent) {
+      yield* rootStore.fileStore.fetchMissingFiles();
+    } else {
+      if (conditions.length === 0) {
+        yield* rootStore.fileStore.fetchAllFiles();
+      } else {
+        yield* rootStore.fileStore.fetchFilesByQuery(
+          conditions as [ConditionDTO<FileDTO>, ...ConditionDTO<FileDTO>[]],
+          matchAny,
+        );
+      }
+    }
+  });
+
+  // The reaction runs immediately and synchrounously which is why there is no need for a queue.
+  let runningTask: CancellablePromise<void> | undefined = undefined;
+
+  // Debounced and automatic fetching
+  reaction(
+    () => {
+      return [
+        rootStore.uiStore.showsMissingContent,
+        rootStore.uiStore.searchCriteriaList.map((criteria) => criteria.toCondition(rootStore)),
+        rootStore.uiStore.searchMatchAny,
+        // Other dependencies a query relies on
+        rootStore.fileStore.orderBy,
+        rootStore.fileStore.orderDirection,
+        rootStore.tagStore.hiddenTagIDs,
+        // Forces refetch
+        rootStore.fetchToken,
+      ] as const;
+    },
+    ([showsMissingContent, conditions, matchAny]) => {
+      runningTask?.cancel();
+      runningTask = fetchTask(showsMissingContent, conditions, matchAny);
+      runningTask.catch(() =>
+        console.debug('Cancelled fetch request:', { showsMissingContent, conditions, matchAny }),
+      );
+    },
+  );
+
   return [rootStore, App];
 }
 
 async function setupPreviewApp(backend: Backend): Promise<[RootStore, () => JSX.Element]> {
   const rootStore = await RootStore.preview(backend);
-  rootStore.uiStore.enableSlideMode();
   RendererMessenger.initialized();
 
-  RendererMessenger.onReceivePreviewFiles(
-    async ({ ids, thumbnailDirectory, viewMethod, activeImgId }) => {
-      rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
-      rootStore.uiStore.setMethod(viewMethod);
-      rootStore.uiStore.enableSlideMode();
+  await new Promise<void>((resolve) => {
+    let fetchTask: CancellablePromise<void> = sleep(0);
+    let executor: (() => void) | undefined = resolve;
 
-      runInAction(() => {
-        rootStore.uiStore.isInspectorOpen = false;
-      });
+    RendererMessenger.onReceivePreviewFiles((message) => {
+      fetchTask.cancel();
+      fetchTask = flow(function* fetchReceivedFiles() {
+        const { ids, thumbnailDirectory, viewMethod, activeImgId } = message;
+        const { fileStore, locationStore, uiStore } = rootStore;
+        uiStore.setThumbnailDirectory(thumbnailDirectory);
+        uiStore.setMethod(viewMethod);
+        uiStore.enableSlideMode();
+        uiStore.isInspectorOpen = false;
 
-      const files = await backend.fetchFilesByID(ids);
+        yield* fileStore.fetchFilesByIDs(ids);
+        // If a file has a location we don't know about (e.g. when a new location was added to the main window),
+        // re-fetch the locations in the preview window.
+        const hasNewLocation = fileStore.fileList.some(
+          (file) => !locationStore.locationList.some((location) => location.id === file.locationId),
+        );
 
-      // If a file has a location we don't know about (e.g. when a new location was added to the main window),
-      // re-fetch the locations in the preview window
-      const hasNewLocation = runInAction(() =>
-        files.some((f) => !rootStore.locationStore.locationList.find((l) => l.id === f.id)),
-      );
-      if (hasNewLocation) {
-        await rootStore.locationStore.init();
-      }
+        if (hasNewLocation) {
+          yield locationStore.init();
+        }
 
-      await rootStore.fileStore.updateFromBackend(files);
-      rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
-    },
-  );
+        const firstItem = activeImgId !== undefined ? fileStore.getIndex(activeImgId) ?? 0 : 0;
+        uiStore.setFirstItem(firstItem);
+
+        // Does this release the memory?
+        if (executor !== undefined) {
+          executor();
+          executor = undefined;
+        }
+      })();
+    });
+  });
 
   // Close preview with space
   window.addEventListener('keydown', (e: KeyboardEvent) => {
@@ -204,5 +270,6 @@ async function setupPreviewApp(backend: Backend): Promise<[RootStore, () => JSX.
       window.close();
     }
   });
+
   return [rootStore, PreviewApp];
 }

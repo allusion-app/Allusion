@@ -12,6 +12,7 @@ import BackupScheduler from './backup-scheduler';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbDelete, dbInit } from './db-repository';
 import { IDataStorage } from '../api/data-storage';
+import { retainArray } from 'common/core';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -162,10 +163,12 @@ export default class Backend implements IDataStorage {
       operator: 'contains',
       valueType: 'array',
     });
-    const deletedTags = new Set(tags);
-    // Remove tags from files
-    for (const file of filesWithTags) {
-      file.tags = file.tags.filter((t) => !deletedTags.has(t));
+    {
+      const deletedTags = new Set(tags);
+      // Remove tags from files
+      for (const file of filesWithTags) {
+        retainArray(file.tags, (tag) => !deletedTags.has(tag));
+      }
     }
     // Update files in db
     await this.saveFiles(filesWithTags);
@@ -183,12 +186,24 @@ export default class Backend implements IDataStorage {
       operator: 'contains',
       valueType: 'array',
     });
+
     for (const file of filesWithTags) {
-      // Might contain duplicates if the tag to be merged with was already on the file, so array -> set -> array to remove dupes
-      file.tags = Array.from(
-        new Set(file.tags.map((t) => (t === tagToBeRemoved ? tagToMergeWith : t))),
-      );
+      // Might contain duplicates if the tag to be merged with was already on the file.
+      let isMerged = false;
+
+      // Backwards iteration is safer when removing items in an array while iterating.
+      for (let index = file.tags.length - 1; index >= 0; index--) {
+        const tag = file.tags[index];
+
+        if (!isMerged && tag === tagToBeRemoved) {
+          file.tags[index] = tagToMergeWith;
+          isMerged = true;
+        } else if (tag === tagToMergeWith) {
+          file.tags.splice(index, 1);
+        }
+      }
     }
+
     // Update files in db
     await this.saveFiles(filesWithTags);
     // Remove tag from DB

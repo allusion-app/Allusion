@@ -51,12 +51,9 @@ export const SubLocationExclusion = (props: IRemovalProps<ClientSubLocation>) =>
 };
 
 export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
-  const { uiStore } = useStore();
+  const { uiStore, tagStore } = useStore();
   const { object } = props;
-  const tagsToRemove = Array.from(
-    object.isSelected ? uiStore.tagSelection : object.getSubTree(),
-    (t) => <Tag key={t.id} text={t.name} color={t.viewColor} />,
-  );
+  const tagsToRemove = Array.from(object.isSelected ? uiStore.tagSelection : object.getSubTree());
 
   const text = `Are you sure you want to delete the tag "${object.name}"?`;
 
@@ -69,14 +66,16 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
         tagsToRemove.length > 0 && (
           <div id="tag-remove-overview">
             <p>Selected Tags</p>
-            {tagsToRemove}
+            {tagsToRemove.map((t) => (
+              <Tag key={t.id} text={t.name} color={t.viewColor} />
+            ))}
           </div>
         )
       }
       onCancel={props.onClose}
       onConfirm={() => {
         props.onClose();
-        object.isSelected ? uiStore.removeSelectedTags() : props.object.delete();
+        tagStore.deleteTags(tagsToRemove);
       }}
     />
   );

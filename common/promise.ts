@@ -1,3 +1,5 @@
+export type CancellablePromise<T> = Promise<T> & { cancel: () => void };
+
 /**
  * Like Promise.all, but runs batches of N promises in sequence
  * @param batchSize The amount of promises in a batch

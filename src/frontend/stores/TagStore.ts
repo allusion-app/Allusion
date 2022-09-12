@@ -14,29 +14,29 @@ import { ClientFile } from 'src/entities/File';
  * Based on https://mobx.js.org/best/store.html
  */
 class TagStore {
-  private readonly backend: IDataStorage;
-  private readonly rootStore: RootStore;
+  readonly #backend: IDataStorage;
+  readonly #rootStore: RootStore;
 
   /** A lookup map to speedup finding entities */
   private readonly tagGraph = observable(new Map<ID, ClientTag>());
 
   constructor(backend: IDataStorage, rootStore: RootStore) {
-    this.backend = backend;
-    this.rootStore = rootStore;
+    this.#backend = backend;
+    this.#rootStore = rootStore;
 
     makeObservable(this);
   }
 
   async init() {
     try {
-      const fetchedTags = await this.backend.fetchTags();
+      const fetchedTags = await this.#backend.fetchTags();
       this.createTagGraph(fetchedTags);
     } catch (err) {
       console.log('Could not load tags', err);
     }
   }
 
-  @action.bound initializeFileCounts(files: ClientFile[]): void {
+  @action.bound initializeFileCounts(files: readonly ClientFile[]): void {
     for (const file of files) {
       for (const fileTag of file.tags) {
         fileTag.incrementFileCount();
@@ -65,6 +65,16 @@ class TagStore {
     return Array.from(list(this.root.subTags));
   }
 
+  @computed get hiddenTagIDs(): Set<ID> {
+    const hiddenTagIDs = new Set<ID>();
+    for (const tag of this.tagList) {
+      if (tag.isHidden) {
+        hiddenTagIDs.add(tag.id);
+      }
+    }
+    return hiddenTagIDs;
+  }
+
   @computed get count(): number {
     return this.tagList.length;
   }
@@ -79,11 +89,11 @@ class TagStore {
   }
 
   @action isSelected(tag: ClientTag): boolean {
-    return this.rootStore.uiStore.tagSelection.has(tag);
+    return this.#rootStore.uiStore.tagSelection.has(tag);
   }
 
   isSearched(tag: ClientTag): boolean {
-    return this.rootStore.uiStore.searchCriteriaList.some(
+    return this.#rootStore.uiStore.searchCriteriaList.some(
       (c) => c instanceof ClientTagSearchCriteria && c.value === tag.id,
     );
   }
@@ -94,7 +104,7 @@ class TagStore {
     this.tagGraph.set(tag.id, tag);
     tag.setParent(parent);
     parent.subTags.push(tag);
-    await this.backend.createTag(tag.serialize());
+    await this.#backend.createTag(tag.serialize());
     return tag;
   }
 
@@ -102,43 +112,22 @@ class TagStore {
     return this.tagList.find((t) => t.name === name);
   }
 
-  @action.bound async delete(tag: ClientTag) {
-    const {
-      rootStore: { uiStore, fileStore },
-      tagGraph,
-    } = this;
-    const ids: ID[] = [];
-    tag.parent.subTags.remove(tag);
-    for (const t of tag.getSubTree()) {
-      t.dispose();
-      tagGraph.delete(t.id);
-      uiStore.deselectTag(t);
-      ids.push(t.id);
-    }
-    await this.backend.removeTags(ids);
-    fileStore.refetch();
-  }
-
   @action.bound async deleteTags(tags: ClientTag[]) {
-    const {
-      rootStore: { uiStore, fileStore },
-      tagGraph,
-    } = this;
     const ids: ID[] = [];
-    const remove = action((tag: ClientTag): ID[] => {
+    const remove = action((tag: ClientTag) => {
       tag.parent.subTags.remove(tag);
       for (const t of tag.getSubTree()) {
         t.dispose();
-        tagGraph.delete(t.id);
-        uiStore.deselectTag(t);
+        this.tagGraph.delete(t.id);
+        this.#rootStore.uiStore.deselectTag(t);
         ids.push(t.id);
       }
       return ids.splice(0, ids.length);
     });
     for (const tag of tags) {
-      await this.backend.removeTags(remove(tag));
+      await this.#backend.removeTags(remove(tag));
     }
-    fileStore.refetch();
+    this.#rootStore.refetch();
   }
 
   @action.bound async merge(tagToBeRemoved: ClientTag, tagToMergeWith: ClientTag) {
@@ -146,19 +135,15 @@ class TagStore {
     if (tagToBeRemoved.subTags.length > 0) {
       throw new Error('Merging a tag with sub-tags is currently not supported.');
     }
-    this.rootStore.uiStore.deselectTag(tagToBeRemoved);
+    this.#rootStore.uiStore.deselectTag(tagToBeRemoved);
     this.tagGraph.delete(tagToBeRemoved.id);
     tagToBeRemoved.parent.subTags.remove(tagToBeRemoved);
-    await this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id);
-    this.rootStore.fileStore.refetch();
-  }
-
-  @action.bound refetchFiles() {
-    this.rootStore.fileStore.refetch();
+    await this.#backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id);
+    this.#rootStore.refetch();
   }
 
   save(tag: TagDTO) {
-    this.backend.saveTag(tag);
+    this.#backend.saveTag(tag);
   }
 
   @action private createTagGraph(backendTags: TagDTO[]) {

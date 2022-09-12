@@ -105,7 +105,7 @@ export const useFileDropHandling = (
   expansion: IExpansionState,
   setExpansion: (s: IExpansionState) => void,
 ) => {
-  const { fileStore, locationStore } = useStore();
+  const rootStore = useStore();
   // Don't expand immediately, only after hovering over it for a second or so
   const [expandTimeoutId, setExpandTimeoutId] = useState<number>();
   const expandDelayed = useCallback(() => {
@@ -136,6 +136,7 @@ export const useFileDropHandling = (
 
   const handleDrop = useCallback(
     async (event: React.DragEvent<HTMLDivElement>) => {
+      const { fileStore, locationStore } = rootStore;
       event.currentTarget.dataset[DnDAttribute.Target] = 'false';
 
       if (isAcceptableType(event)) {
@@ -152,7 +153,7 @@ export const useFileDropHandling = (
               throw new Error('Location not found for path ' + fullPath);
             }
             await handleMove(fileStore, matches, loc, fullPath);
-            setTimeout(() => fileStore.refetch(), 500);
+            setTimeout(() => rootStore.refetch(), 500);
           } else {
             // Otherwise it's an external file (e.g. from the web or a folder not set up as a Location in Allusion)
             // -> download it and "copy" it to the target folder
@@ -169,7 +170,7 @@ export const useFileDropHandling = (
         AppToaster.show({ message: 'File type not supported :(', timeout: 4000 });
       }
     },
-    [fullPath],
+    [fullPath, rootStore],
   );
 
   const handleDragLeaveWrapper = useCallback(

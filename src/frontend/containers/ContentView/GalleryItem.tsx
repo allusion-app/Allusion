@@ -31,7 +31,8 @@ export const MasonryCell = observer(
     forceNoThumbnail,
     transform: [width, height, top, left],
   }: MasonryItemProps) => {
-    const { uiStore, fileStore } = useStore();
+    const rootStore = useStore();
+    const { uiStore } = rootStore;
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
     const eventManager = useMemo(() => new CommandDispatcher(file), [file]);
 
@@ -51,14 +52,14 @@ export const MasonryCell = observer(
         >
           <Thumbnail mounted={mounted} file={file} forceNoThumbnail={forceNoThumbnail} />
         </div>
-        {file.isBroken === true && !fileStore.showsMissingContent && (
+        {file.isBroken === true && !rootStore.showsMissingContent && (
           <IconButton
             className="thumbnail-broken-overlay"
             icon={IconSet.WARNING_BROKEN_LINK}
-            onClick={async (e) => {
+            onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
-              await fileStore.fetchMissingFiles();
+              rootStore.showMissingFiles();
             }}
             text="This image could not be found. Open the recovery view."
           />

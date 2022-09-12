@@ -26,7 +26,7 @@ const OutlinerToggle = observer(() => {
 });
 
 const PrimaryCommands = observer(() => {
-  const { fileStore } = useStore();
+  const rootStore = useStore();
 
   return (
     <>
@@ -36,7 +36,7 @@ const PrimaryCommands = observer(() => {
       <Searchbar />
 
       {/* TODO: Put back tag button (or just the T hotkey) */}
-      {fileStore.showsMissingContent ? (
+      {rootStore.showsMissingContent ? (
         // Only show option to remove selected files in toolbar when viewing missing files */}
         <RemoveFilesPopover />
       ) : (

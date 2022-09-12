@@ -203,7 +203,8 @@ const RecoveryActions = observer(
 );
 
 const LocationRecoveryDialog = () => {
-  const { uiStore, locationStore, fileStore } = useStore();
+  const rootStore = useStore();
+  const { uiStore, locationStore } = rootStore;
   const { isLocationRecoveryOpen } = uiStore;
 
   const [match, setMatch] = useState<IMatch>();
@@ -248,12 +249,12 @@ const LocationRecoveryDialog = () => {
     const exists = await fse.pathExists(location.path);
 
     if (exists) {
-      uiStore.closeLocationRecovery();
+      rootStore.uiStore.closeLocationRecovery();
       location.setBroken(false);
       if (!location.isInitialized) {
-        locationStore.initLocation(location);
+        rootStore.locationStore.initLocation(location);
       } else {
-        fileStore.refetch();
+        rootStore.refetch();
       }
       AppToaster.show({ message: `Re-discovered ${location.path}!`, timeout: 5000 });
     } else {

@@ -126,38 +126,35 @@ const Layout = ({ contentRect }: LayoutProps) => {
     return null;
   }
 
-  let overviewElem: React.ReactNode = undefined;
   switch (uiStore.method) {
     case ViewMethod.Grid:
     case ViewMethod.MasonryVertical:
     case ViewMethod.MasonryHorizontal:
-      overviewElem = (
-        <MasonryRenderer
-          contentRect={contentRect}
-          lastSelectionIndex={lastSelectionIndex}
-          select={handleFileSelect}
-        />
+      return (
+        <>
+          <MasonryRenderer
+            contentRect={contentRect}
+            lastSelectionIndex={lastSelectionIndex}
+            select={handleFileSelect}
+          />
+          {delayedSlideMode && uiStore.firstFileInView && <SlideMode contentRect={contentRect} />}
+        </>
       );
-      break;
     case ViewMethod.List:
-      overviewElem = (
-        <ListGallery
-          contentRect={contentRect}
-          select={handleFileSelect}
-          lastSelectionIndex={lastSelectionIndex}
-        />
+      return (
+        <>
+          <ListGallery
+            contentRect={contentRect}
+            select={handleFileSelect}
+            lastSelectionIndex={lastSelectionIndex}
+          />
+          {delayedSlideMode && uiStore.firstFileInView && <SlideMode contentRect={contentRect} />}
+        </>
       );
-      break;
     default:
-      overviewElem = 'unknown view method';
+      const exhaustiveCheck: never = uiStore.method;
+      return <>Unknown view method {exhaustiveCheck}.</>;
   }
-
-  return (
-    <>
-      {overviewElem}
-      {delayedSlideMode && uiStore.firstFileInView && <SlideMode contentRect={contentRect} />}
-    </>
-  );
 };
 
 export default observer(Layout);

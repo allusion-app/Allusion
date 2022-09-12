@@ -1,3 +1,5 @@
+import { CancellablePromise } from './promise';
+
 /**
  * Performs a single promise, but retries when it fails for a specified amount of time.
  * Timeout is doubled after every failed retry
@@ -16,7 +18,7 @@ export async function promiseRetry<T>(
 }
 
 export function debounce<F extends (...args: any) => any>(func: F, wait: number = 300): F {
-  let timeoutID: number;
+  let timeoutID: ReturnType<typeof setTimeout>;
 
   if (!Number.isInteger(wait)) {
     console.log(' Called debounce with an invalid number');
@@ -27,7 +29,7 @@ export function debounce<F extends (...args: any) => any>(func: F, wait: number 
   return function (this: any, ...args: any[]) {
     clearTimeout(timeoutID);
 
-    timeoutID = setTimeout(() => func.apply(this, args), wait) as unknown as number;
+    timeoutID = setTimeout(() => func.apply(this, args), wait);
   } as any as F;
 }
 
@@ -73,13 +75,39 @@ export function debouncedThrottle<F extends (...args: any) => any>(fn: F, wait =
   };
 }
 
-export function timeoutPromise<T>(timeMS: number, promise: Promise<T>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    promise.then(resolve, reject);
-    setTimeout(reject, timeMS);
-  });
+export async function withTimeout<T>(ms: number, promise: Promise<T>): Promise<Awaited<T>> {
+  const timer = sleep(ms);
+  try {
+    return await Promise.race([
+      promise,
+      timer.then(() => {
+        throw new Error('Promise timed out.');
+      }),
+    ]);
+  } finally {
+    timer.cancel();
+  }
 }
 
-export function timeout<T>(timeMS: number): Promise<T> {
-  return new Promise((resolve) => setTimeout(resolve, timeMS));
+export function sleep(ms: number): CancellablePromise<void> {
+  let cancel = () => {};
+  const promise = new Promise<void>((resolve) => {
+    let timeout: ReturnType<typeof setTimeout> | undefined = setTimeout(() => {
+      if (timeout !== undefined) {
+        resolve();
+        timeout = undefined;
+      }
+    }, ms);
+    cancel = () => {
+      if (timeout !== undefined) {
+        clearTimeout(timeout);
+        timeout = undefined;
+        resolve();
+      }
+    };
+  });
+
+  Object.defineProperty(promise, 'cancel', { value: cancel });
+
+  return promise as CancellablePromise<void>;
 }

@@ -58,3 +58,32 @@ export function notEmpty<TValue>(value: TValue): value is NonNullable<TValue> {
 export function swap<T>(array: Array<T>, x: number, y: number): void {
   [array[x], array[y]] = [array[y], array[x]];
 }
+
+export function* map<T, U>(
+  iterable: Iterable<T>,
+  transform: (value: T) => U,
+): Generator<U, void, void> {
+  for (const item of iterable) {
+    yield transform(item);
+  }
+}
+
+export function* chunks<T>(iterable: Iterable<T>, chunkSize: number): Generator<T[], void, void> {
+  const chunk: T[] = [];
+  const iter = iterable[Symbol.iterator]();
+  let next = iter.next();
+
+  while (next.done !== true) {
+    let i = 0;
+
+    while (i < chunkSize && next.done !== true) {
+      chunk.push(next.value);
+      next = iter.next();
+      i += 1;
+    }
+
+    yield chunk;
+
+    chunk.length = 0;
+  }
+}

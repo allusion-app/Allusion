@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { observer } from 'mobx-react-lite';
+import { autorun } from 'mobx';
 
 import { useStore } from './contexts/StoreContext';
 
@@ -16,8 +17,6 @@ const PreviewApp = observer(() => {
   // Listen to responses of Web Workers
   useWorkerListener();
 
-  useEffect(() => uiStore.enableSlideMode(), [uiStore]);
-
   const handleLeftButton = useCallback(
     () => uiStore.setFirstItem(Math.max(0, uiStore.firstItem - 1)),
     [uiStore],
@@ -31,9 +30,25 @@ const PreviewApp = observer(() => {
   // disable fade-in on initalization (when file list changes)
   const [isInitializing, setIsInitializing] = useState(true);
   useEffect(() => {
-    setIsInitializing(true);
-    setTimeout(() => setIsInitializing(false), 1000);
-  }, [fileStore.fileListLastModified]);
+    let timeoutID: ReturnType<typeof setTimeout> | undefined = undefined;
+    const dispose = autorun(() => {
+      fileStore.index.observe();
+
+      setIsInitializing(true);
+      timeoutID = setTimeout(() => {
+        if (timeoutID !== undefined) {
+          timeoutID = undefined;
+          setIsInitializing(false);
+        }
+      }, 1000);
+    });
+
+    return () => {
+      dispose();
+      clearTimeout(timeoutID as unknown as number | undefined);
+      timeoutID = undefined;
+    };
+  }, [fileStore]);
 
   return (
     <div

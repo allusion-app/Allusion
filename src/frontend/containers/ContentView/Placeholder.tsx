@@ -1,26 +1,29 @@
 import React, { useEffect, useState } from 'react';
+import { flow } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import LOGO_FC from 'resources/logo/svg/full-color/allusion-logomark-fc.svg';
+import { sleep } from 'common/timeout';
 import { IS_PREVIEW_WINDOW } from 'common/window';
-
 import { useStore } from '../../contexts/StoreContext';
+import { IconSet, Button, ButtonGroup, SVG } from 'widgets';
+import { RendererMessenger } from 'src/ipc/renderer';
 
 const Placeholder = observer(() => {
-  const { fileStore, tagStore } = useStore();
+  const rootStore = useStore();
 
   if (IS_PREVIEW_WINDOW) {
     return <PreviewWindowPlaceholder />;
   }
-  if (fileStore.showsAllContent && tagStore.isEmpty) {
-    // No tags exist, and no images added: Assuming it's a new user -> Show a welcome screen
+  if (rootStore.locationStore.locationList.length === 0 && rootStore.tagStore.isEmpty) {
+    // No tags exist, and no images added: Assuming it's a new user, show a welcome screen.
     return <Welcome />;
-  } else if (fileStore.showsAllContent) {
+  } else if (rootStore.showsAllContent) {
     return <NoContentFound />;
-  } else if (fileStore.showsQueryContent) {
+  } else if (rootStore.showsQueryContent) {
     return <NoQueryContent />;
-  } else if (fileStore.showsUntaggedContent) {
+  } else if (rootStore.showsUntaggedContent) {
     return <NoUntaggedContent />;
-  } else if (fileStore.showsMissingContent) {
+  } else if (rootStore.showsMissingContent) {
     return <NoMissingContent />;
   } else {
     return <BugReport />;
@@ -29,48 +32,45 @@ const Placeholder = observer(() => {
 
 export default Placeholder;
 
-import { IconSet, Button, ButtonGroup, SVG } from 'widgets';
-import { RendererMessenger } from 'src/ipc/renderer';
-import useMountState from 'src/frontend/hooks/useMountState';
+const PreviewWindowPlaceholder = () => {
+  const [placeholder, setPlaceholder] = useState<JSX.Element | null>(null);
 
-const PreviewWindowPlaceholder = observer(() => {
-  const { fileStore } = useStore();
-  const [isLoading, setIsLoading] = useState(true);
-  const [, isMounted] = useMountState();
   useEffect(() => {
-    setIsLoading(true);
-    setTimeout(() => {
-      if (isMounted.current) {
-        setIsLoading(false);
-      }
-    }, 1000);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fileStore.fileListLastModified]);
+    // FIXME: Probably a React 18 feature could solve this more elgantly.
+    const timeout = flow(function* () {
+      setPlaceholder(
+        <ContentPlaceholder title="Loading..." icon={<SVG src={LOGO_FC} />}>
+          {IconSet.LOADING}
+        </ContentPlaceholder>,
+      );
 
-  if (isLoading) {
-    return (
-      <ContentPlaceholder title="Loading..." icon={<SVG src={LOGO_FC} />}>
-        {IconSet.LOADING}
-      </ContentPlaceholder>
-    );
-  }
+      yield sleep(10000);
 
-  // There should always be images to preview.
-  // If the placeholder is shown, something went wrong (probably the DB of the preview window is out of sync with the main window)
-  return (
-    <ContentPlaceholder title="That's not supposed to happen..." icon={<SVG src={LOGO_FC} />}>
-      <p>Something went wrong while previewing the selected images</p>
+      // There should always be images to preview.
+      // If the placeholder is shown, something went wrong (probably the DB of the preview window is out of sync with the main window)
+      setPlaceholder(
+        <ContentPlaceholder title="That's not supposed to happen..." icon={<SVG src={LOGO_FC} />}>
+          <p>Something went wrong while previewing the selected images</p>
 
-      <div className="divider" />
+          <div className="divider" />
 
-      <Button
-        styling="outlined"
-        text="Reload Allusion"
-        onClick={() => RendererMessenger.reload()}
-      />
-    </ContentPlaceholder>
-  );
-});
+          <Button
+            styling="outlined"
+            text="Reload Allusion"
+            onClick={() => RendererMessenger.reload()}
+          />
+        </ContentPlaceholder>,
+      );
+    })();
+    timeout.catch(() => {});
+
+    return () => {
+      timeout.cancel();
+    };
+  }, []);
+
+  return placeholder;
+};
 
 const Welcome = () => {
   const { uiStore } = useStore();
@@ -112,7 +112,7 @@ const NoContentFound = () => {
 };
 
 const NoQueryContent = () => {
-  const { fileStore } = useStore();
+  const rootStore = useStore();
   return (
     <ContentPlaceholder title="No images found" icon={IconSet.SEARCH}>
       <p>Try searching for something else.</p>
@@ -121,13 +121,13 @@ const NoQueryContent = () => {
         <Button
           text="All images"
           icon={IconSet.MEDIA}
-          onClick={fileStore.fetchAllFiles}
+          onClick={rootStore.showAllFiles}
           styling="outlined"
         />
         <Button
           text="Untagged"
           icon={IconSet.TAG_BLANCO}
-          onClick={fileStore.fetchUntaggedFiles}
+          onClick={rootStore.showUntaggedFiles}
           styling="outlined"
         />
       </ButtonGroup>
@@ -136,14 +136,14 @@ const NoQueryContent = () => {
 };
 
 const NoUntaggedContent = () => {
-  const { fileStore } = useStore();
+  const rootStore = useStore();
   return (
     <ContentPlaceholder title="No untagged images" icon={IconSet.TAG}>
       <p>All images have been tagged. Nice work!</p>
       <Button
         text="All Images"
         icon={IconSet.MEDIA}
-        onClick={fileStore.fetchAllFiles}
+        onClick={rootStore.showAllFiles}
         styling="outlined"
       />
     </ContentPlaceholder>
@@ -151,7 +151,7 @@ const NoUntaggedContent = () => {
 };
 
 const NoMissingContent = () => {
-  const { fileStore } = useStore();
+  const rootStore = useStore();
   return (
     <ContentPlaceholder title="No missing images" icon={IconSet.WARNING_BROKEN_LINK}>
       <p>Try searching for something else.</p>
@@ -159,13 +159,13 @@ const NoMissingContent = () => {
         <Button
           text="All images"
           icon={IconSet.MEDIA}
-          onClick={fileStore.fetchAllFiles}
+          onClick={rootStore.showAllFiles}
           styling="outlined"
         />
         <Button
           text="Untagged"
           icon={IconSet.TAG_BLANCO}
-          onClick={fileStore.fetchUntaggedFiles}
+          onClick={rootStore.showUntaggedFiles}
           styling="outlined"
         />
       </ButtonGroup>
@@ -184,7 +184,7 @@ const BugReport = () => {
 interface IContentPlaceholder {
   icon: JSX.Element;
   title: string;
-  children: React.ReactNode | React.ReactNodeArray;
+  children: React.ReactNode | React.ReactNode[];
 }
 
 const ContentPlaceholder = (props: IContentPlaceholder) => {

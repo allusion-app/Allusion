@@ -11,7 +11,7 @@ import {
   SearchDnDProvider,
   useSearchDnD,
 } from 'src/frontend/contexts/TagDnDContext';
-import { useAutorun } from 'src/frontend/hooks/mobx';
+import { useAction, useAutorun } from 'src/frontend/hooks/mobx';
 import { IconSet } from 'widgets/Icons';
 import { Menu, MenuItem, useContextMenu } from 'widgets/menus';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
@@ -369,7 +369,7 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
   const [editableSearch, setEditableSearch] = useState<ClientFileSearchItem>();
   const [deletableSearch, setDeletableSearch] = useState<ClientFileSearchItem>();
 
-  const saveCurrentSearch = async () => {
+  const saveCurrentSearch = useAction(async () => {
     const savedSearch = await searchStore.create(
       new ClientFileSearchItem(
         generateId(),
@@ -381,7 +381,7 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
       ),
     );
     setEditableSearch(savedSearch);
-  };
+  });
 
   const data = useRef(observable({ source: undefined }));
 

@@ -12,7 +12,7 @@ import { findViewportEdge, Layouter } from './layout-helpers';
 interface IRendererProps {
   containerHeight: number;
   containerWidth: number;
-  images: ClientFile[];
+  images: readonly ClientFile[];
   layout: Layouter;
   className?: string;
   /** Render images outside of the viewport within this margin (pixels) */
