@@ -820,7 +820,7 @@ class UiStore {
         if (this.isRememberSearchEnabled) {
           // If remember search criteria, restore the search criteria list...
           const serializedCriteriaList: SearchCriteria[] =
-            // BACKWARD_COMPATIBILITY: searchCriteriaList used to be serialized to a string
+            // BACKWARDS_COMPATIBILITY: searchCriteriaList used to be serialized to a string
             typeof prefs.searchCriteriaList === 'string'
               ? JSON.parse(prefs.searchCriteriaList ?? '[]')
               : prefs.searchCriteriaList ?? [];

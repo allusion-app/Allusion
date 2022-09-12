@@ -57,7 +57,6 @@ class FileStore {
     this.rootStore = rootStore;
     makeObservable(this);
 
-    // Store preferences immediately when anything is changed
     this.debouncedRefetch = debounce(this.refetch, 200).bind(this);
     this.debouncedSaveFilesToSave = debounce(this.saveFilesToSave, 100).bind(this);
   }
@@ -259,7 +258,6 @@ class FileStore {
       const { thumbnailDirectory } = this.rootStore.uiStore; // TODO: make a config store for this?
       const oldThumbnailPath = file.thumbnailPath.replace('?v=1', '');
       const newThumbPath = getThumbnailPath(newData.absolutePath, thumbnailDirectory);
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
       fse.move(oldThumbnailPath, newThumbPath).catch(() => {});
 
       const newClientFile = new ClientFile(this, newIFile);
@@ -502,7 +500,8 @@ class FileStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        this.setOrderDirection(prefs.orderDirection || prefs.fileOrder); // orderDirection used to be called fileOrder, needed for backwards compatibility
+        // BACKWARDS_COMPATIBILITY: orderDirection used to be called fileOrder
+        this.setOrderDirection(prefs.orderDirection ?? prefs.fileOrder);
         this.setOrderBy(prefs.orderBy);
       } catch (e) {
         console.error('Cannot parse persistent preferences:', FILE_STORAGE_KEY, e);
