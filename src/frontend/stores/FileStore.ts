@@ -24,10 +24,9 @@ class FileStore {
   private readonly backend: IDataStorage;
   private readonly rootStore: RootStore;
 
+  readonly index = new IndexMap<ID, ClientFile>();
   private readonly filesToSave = new Map<ID, FileDTO>();
   readonly #missingFiles = observable.set<ID>(new Set());
-
-  readonly index = new IndexMap<ID, ClientFile>();
 
   @observable orderDirection = OrderDirection.Desc;
   @observable orderBy: OrderBy<FileDTO> = 'dateAdded';
