@@ -1,4 +1,4 @@
-import { action, autorun, flow, isFlowCancellationError } from 'mobx';
+import { action, autorun, flow } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -84,30 +84,54 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Initialize on mount
+  useEffect(() => {
+    const initTask = flow(function* initialize() {
+      const { fileStore, uiStore } = rootStore;
+
+      yield* worker.initialize(fileStore.fileList.length);
+
+      try {
+        const containerHeight = yield* worker.compute(
+          fileStore.fileList,
+          containerWidth,
+          ViewMethodLayoutDict[uiStore.method as SupportedViewMethod],
+          thumbnailSize.get(),
+        );
+        setContainerHeight(containerHeight);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+
+    return () => {
+      initTask.catch(() => {});
+      initTask.cancel();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Compute new layout when content changes (new fileList, e.g. sorting, searching)
   useEffect(() => {
-    console.debug('Masonry: Items changed. Computing new layout!');
     let layoutTask: CancellablePromise<void> | undefined = undefined;
 
     const dispose = autorun(() => {
       rootStore.fileStore.index.observe();
 
-      if (worker.isInitialized && layoutTask !== undefined) {
-        layoutTask.cancel();
+      if (!worker.isInitialized) {
+        return;
       }
+
+      layoutTask?.cancel();
       layoutTask = flow(function* compute() {
-        const {
-          fileStore: { fileList },
-          uiStore: { method },
-        } = rootStore;
+        console.debug('Masonry: Items changed. Computing new layout!');
+
+        const { fileStore, uiStore } = rootStore;
         try {
-          if (!worker.isInitialized) {
-            yield* worker.initialize(fileList.length);
-          }
           const containerHeight = yield* worker.compute(
-            fileList,
+            fileStore.fileList,
             containerWidth,
-            ViewMethodLayoutDict[method as SupportedViewMethod],
+            ViewMethodLayoutDict[uiStore.method as SupportedViewMethod],
             thumbnailSize.get(),
           );
           setContainerHeight(containerHeight);
@@ -116,13 +140,7 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
           console.error(e);
         }
       })();
-      layoutTask.catch((error) => {
-        if (isFlowCancellationError(error)) {
-          console.debug('Cancelled computing layout.');
-        } else {
-          throw error;
-        }
-      });
+      layoutTask.catch(() => console.debug('Cancelled computing layout.'));
     });
 
     return () => {
@@ -131,18 +149,18 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
         layoutTask.cancel();
       }
     };
-  }, [containerWidth, thumbnailSize, rootStore]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [containerWidth]);
 
   // Re-compute when the environment changes (container width, thumbnail size, view method)
   useEffect(() => {
-    console.debug('Masonry: Environment changed. Recomputing layout!');
     let layoutTask: CancellablePromise<void> | undefined = undefined;
 
     const dispose = autorun(() => {
       const viewMethod = rootStore.uiStore.method as SupportedViewMethod;
       const size = thumbnailSize.get();
 
-      if (!worker.isInitialized || containerWidth < size) {
+      if (!worker.isInitialized) {
         return;
       }
 
@@ -150,7 +168,9 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
       layoutTask = flow(function* recompute() {
         // Debounce is not needed due to performance, but images are sometimes repeatedly swapping columns every
         // recomputation, which looks awful.
-        yield sleep(150);
+        yield sleep(100);
+
+        console.debug('Masonry: Environment changed. Recomputing layout!');
 
         try {
           const containerHeight = yield* worker.recompute(
@@ -164,20 +184,15 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
           console.error(e);
         }
       })();
-      layoutTask.catch((error) => {
-        if (isFlowCancellationError(error)) {
-          console.debug('Cancelled re-computing layout.');
-        } else {
-          throw error;
-        }
-      });
+      layoutTask.catch(() => console.debug('Cancelled re-computing layout.'));
     });
 
     return () => {
       dispose();
       layoutTask?.cancel();
     };
-  }, [containerWidth, thumbnailSize, rootStore]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [containerWidth]);
 
   return !worker.isInitialized ? (
     <></>

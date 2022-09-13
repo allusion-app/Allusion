@@ -27,12 +27,12 @@ export class MasonryWorkerAdapter implements Layouter {
 
     console.debug('initializing masonry worker...');
     const wasm: InitOutput = yield init();
-    this.memory = wasm.memory;
 
     const worker = new Worker(new URL('wasm/packages/masonry/worker.js', import.meta.url), {
       type: 'module',
     });
-    worker.postMessage(this.memory);
+    worker.postMessage(wasm.memory);
+    this.memory = wasm.memory;
     this.worker = new MasonryWorker(imageCount);
     this.imageCount = imageCount;
   }
