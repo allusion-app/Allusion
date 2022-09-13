@@ -116,7 +116,7 @@ class UiStore {
   static MIN_OUTLINER_WIDTH = 192; // default of 12 rem
   static MIN_INSPECTOR_WIDTH = 288; // default of 18 rem
 
-  readonly #rootStore: RootStore;
+  private readonly rootStore: RootStore;
 
   // Theme
   @observable theme: 'light' | 'dark' = 'dark';
@@ -170,7 +170,7 @@ class UiStore {
   @observable readonly hotkeyMap: IHotkeyMap = observable(defaultHotkeyMap);
 
   constructor(rootStore: RootStore) {
-    this.#rootStore = rootStore;
+    this.rootStore = rootStore;
     makeObservable(this);
   }
 
@@ -220,7 +220,7 @@ class UiStore {
   }
 
   @action.bound setFirstItem(index: number = 0) {
-    if (isFinite(index) && index < this.#rootStore.fileStore.fileList.length) {
+    if (isFinite(index) && index < this.rootStore.fileStore.fileList.length) {
       this.firstItem = index;
     }
   }
@@ -442,7 +442,7 @@ class UiStore {
       this.clearFileSelection();
     }
     this.fileSelection.add(file);
-    this.setFirstItem(this.#rootStore.fileStore.getIndex(file.id));
+    this.setFirstItem(this.rootStore.fileStore.getIndex(file.id));
   }
 
   @action.bound deselectFile(file: ClientFile) {
@@ -465,12 +465,12 @@ class UiStore {
       this.fileSelection.clear();
     }
     for (let i = start; i <= end; i++) {
-      this.fileSelection.add(this.#rootStore.fileStore.fileList[i]);
+      this.fileSelection.add(this.rootStore.fileStore.fileList[i]);
     }
   }
 
   @action.bound selectAllFiles() {
-    this.fileSelection.replace(this.#rootStore.fileStore.fileList);
+    this.fileSelection.replace(this.rootStore.fileStore.fileList);
   }
 
   @action.bound clearFileSelection() {
@@ -498,7 +498,7 @@ class UiStore {
 
   /** Selects a range of tags, where indices correspond to the flattened tag list. */
   @action.bound selectTagRange(start: number, end: number, additive?: boolean) {
-    const tagTreeList = this.#rootStore.tagStore.tagList;
+    const tagTreeList = this.rootStore.tagStore.tagList;
     if (!additive) {
       this.tagSelection.replace(tagTreeList.slice(start, end + 1));
       return;
@@ -509,7 +509,7 @@ class UiStore {
   }
 
   @action.bound selectAllTags() {
-    this.tagSelection.replace(this.#rootStore.tagStore.tagList);
+    this.tagSelection.replace(this.rootStore.tagStore.tagList);
   }
 
   @action.bound clearTagSelection() {
@@ -518,7 +518,7 @@ class UiStore {
 
   @action.bound async removeSelectedTags() {
     const ctx = this.getTagContextItems();
-    return this.#rootStore.tagStore.deleteTags(ctx);
+    return this.rootStore.tagStore.deleteTags(ctx);
   }
 
   @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
@@ -538,7 +538,7 @@ class UiStore {
    * but can be easily found by getting the tags from each collection.
    */
   @action.bound getTagContextItems(activeItemId?: ID) {
-    const { tagStore } = this.#rootStore;
+    const { tagStore } = this.rootStore;
 
     // If no id was given, the context is the tag selection. Else, it might be a single tag/collection
     let isContextTheSelection = activeItemId === undefined;
@@ -569,7 +569,7 @@ class UiStore {
    * @param targetId Where to move the selection to
    */
   @action.bound moveSelectedTagItems(id: ID, pos = 0) {
-    const { tagStore } = this.#rootStore;
+    const { tagStore } = this.rootStore;
 
     const target = tagStore.get(id);
     if (!target) {
@@ -609,7 +609,7 @@ class UiStore {
     // With control, add or remove the criteria based on whether they're already being searched with
     const existingMatchingCriterias = queries.map((crit) =>
       this.searchCriteriaList.find((other) =>
-        deepEqual(other.serialize(this.#rootStore), crit.serialize(this.#rootStore)),
+        deepEqual(other.serialize(this.rootStore), crit.serialize(this.rootStore)),
       ),
     );
     if (existingMatchingCriterias.every(notEmpty)) {
@@ -853,7 +853,7 @@ class UiStore {
       isSlideMode: this.isSlideMode,
       firstItem: this.firstItem,
       searchMatchAny: this.searchMatchAny,
-      searchCriteriaList: this.searchCriteriaList.map((c) => c.serialize(this.#rootStore)),
+      searchCriteriaList: this.searchCriteriaList.map((c) => c.serialize(this.rootStore)),
     };
     return preferences;
   }
@@ -881,8 +881,8 @@ class UiStore {
 
   /** Return {@link UiStore.firstItem}: first item visible in viewport, and the current item in SlideMode */
   @computed get firstFileInView(): ClientFile | undefined {
-    return this.firstItem < this.#rootStore.fileStore.fileList.length
-      ? this.#rootStore.fileStore.fileList[this.firstItem]
+    return this.firstItem < this.rootStore.fileStore.fileList.length
+      ? this.rootStore.fileStore.fileList[this.firstItem]
       : undefined;
   }
 

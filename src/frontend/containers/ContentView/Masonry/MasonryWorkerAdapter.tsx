@@ -3,11 +3,6 @@ import { ClientFile } from 'src/entities/File';
 import { default as init, MasonryWorker, MasonryType, InitOutput } from 'wasm/packages/masonry';
 import { ITransform, Layouter } from './layout-helpers';
 
-export interface MasonryOptions {
-  type: MasonryType;
-  size: number;
-}
-
 export const MASONRY_PADDING = 8;
 
 export class MasonryWorkerAdapter implements Layouter {

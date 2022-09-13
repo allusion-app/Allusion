@@ -21,10 +21,10 @@ export const FILE_STORAGE_KEY = 'Allusion_File';
 type PersistentPreferenceFields = 'orderDirection' | 'orderBy';
 
 class FileStore {
-  readonly #backend: IDataStorage;
-  readonly #rootStore: RootStore;
+  private readonly backend: IDataStorage;
+  private readonly rootStore: RootStore;
 
-  readonly #filesToSave = new Map<ID, FileDTO>();
+  private readonly filesToSave = new Map<ID, FileDTO>();
   readonly #missingFiles = observable.set<ID>(new Set());
 
   readonly index = new IndexMap<ID, ClientFile>();
@@ -37,12 +37,12 @@ class FileStore {
   debouncedSaveFilesToSave: () => Promise<void>;
 
   constructor(backend: IDataStorage, rootStore: RootStore) {
-    this.#backend = backend;
-    this.#rootStore = rootStore;
+    this.backend = backend;
+    this.rootStore = rootStore;
     makeObservable(this);
 
     // Defer updating files to avoid multiple small writes to the database.
-    this.debouncedSaveFilesToSave = debounce(this.#saveFilesToSave, 100).bind(this);
+    this.debouncedSaveFilesToSave = debounce(this.saveFilesToSave, 100).bind(this);
   }
 
   get fileList(): readonly ClientFile[] {
@@ -70,13 +70,13 @@ class FileStore {
         const absolutePath = file.absolutePath;
 
         try {
-          const tagsNameHierarchies = await this.#rootStore.exifTool.readTags(absolutePath);
+          const tagsNameHierarchies = await this.rootStore.exifTool.readTags(absolutePath);
 
           // Now that we know the tag names in file metadata, add them to the files in Allusion
           // Main idea: Find matching tag with same name, otherwise, insert new
           //   for now, just match by the name at the bottom of the hierarchy
 
-          const { tagStore } = this.#rootStore;
+          const { tagStore } = this.rootStore;
           for (const tagHierarchy of tagsNameHierarchies) {
             const match = tagStore.findByName(tagHierarchy[tagHierarchy.length - 1]);
             if (match) {
@@ -148,7 +148,7 @@ class FileStore {
 
         const { absolutePath, tagHierarchy } = tagFilePairs[i];
         try {
-          await this.#rootStore.exifTool.writeTags(absolutePath, tagHierarchy);
+          await this.rootStore.exifTool.writeTags(absolutePath, tagHierarchy);
         } catch (e) {
           console.error('Could not write tags to', absolutePath, tagHierarchy, e);
         }
@@ -191,7 +191,7 @@ class FileStore {
    */
   @action.bound hideFile(file: ClientFile) {
     file.setBroken(true);
-    this.#rootStore.uiStore.deselectFile(file);
+    this.rootStore.uiStore.deselectFile(file);
     this.#missingFiles.add(file.id);
     if (file.tags.size === 0) {
       this.decrementNumUntaggedFiles();
@@ -206,7 +206,7 @@ class FileStore {
       const newIFile = mergeMovedFile(file.serialize(), newData);
 
       // Move thumbnail
-      const { thumbnailDirectory } = this.#rootStore.uiStore; // TODO: make a config store for this?
+      const { thumbnailDirectory } = this.rootStore.uiStore; // TODO: make a config store for this?
       const oldThumbnailPath = file.thumbnailPath.replace('?v=1', '');
       const newThumbPath = getThumbnailPath(newData.absolutePath, thumbnailDirectory);
       fse.move(oldThumbnailPath, newThumbPath).catch(() => {});
@@ -230,7 +230,7 @@ class FileStore {
         // Remove from backend
         // Deleting non-exiting keys should not throw an error!
         const fileIDs = files.map((f) => f.id);
-        await this.#backend.removeFiles(fileIDs);
+        await this.backend.removeFiles(fileIDs);
 
         // Remove files from stores
         const removedFileIDs = new Set(fileIDs);
@@ -239,7 +239,7 @@ class FileStore {
 
       for (const file of removedFiles) {
         file.dispose();
-        this.#rootStore.uiStore.deselectFile(file);
+        this.rootStore.uiStore.deselectFile(file);
         this.removeThumbnail(file.absolutePath);
       }
     } catch (err) {
@@ -250,9 +250,9 @@ class FileStore {
   @action async deleteFilesByExtension(ext: IMG_EXTENSIONS_TYPE): Promise<void> {
     try {
       const crit = new ClientStringSearchCriteria('extension', ext, 'equals');
-      const files = await this.#backend.searchFiles(crit.toCondition(), 'id', OrderDirection.Asc);
+      const files = await this.backend.searchFiles(crit.toCondition(), 'id', OrderDirection.Asc);
       console.log('Files to delete', ext, files);
-      await this.#backend.removeFiles(files.map((f) => f.id));
+      await this.backend.removeFiles(files.map((f) => f.id));
 
       for (const file of files) {
         this.removeThumbnail(file.absolutePath);
@@ -264,11 +264,11 @@ class FileStore {
 
   *fetchAllFiles(): Generator<unknown, void, any> {
     try {
-      const fetchedFiles: FileDTO[] = yield this.#backend.fetchFiles(
+      const fetchedFiles: FileDTO[] = yield this.backend.fetchFiles(
         this.orderBy,
         this.orderDirection,
       );
-      yield* this.#updateFromBackend(fetchedFiles);
+      yield* this.updateFromBackend(fetchedFiles);
     } catch (err) {
       console.error('Could not load all files', err);
     }
@@ -279,7 +279,7 @@ class FileStore {
       const { orderBy, orderDirection } = this;
 
       // Fetch all files, then check their existence and only show the missing ones
-      const backendFiles: FileDTO[] = yield this.#backend.fetchFiles(orderBy, orderDirection);
+      const backendFiles: FileDTO[] = yield this.backend.fetchFiles(orderBy, orderDirection);
 
       // For every new file coming in, either re-use the existing client file if it exists,
       // or construct a new client file
@@ -288,7 +288,7 @@ class FileStore {
       yield* this.#checkFileExistences();
 
       this.index.retain((file) => file.isBroken === true);
-      this.#cleanFileSelection();
+      this.cleanFileSelection();
 
       AppToaster.show(
         {
@@ -308,13 +308,13 @@ class FileStore {
     matchAny: boolean,
   ): Generator<unknown, void, any> {
     try {
-      const fetchedFiles: FileDTO[] = yield this.#backend.searchFiles(
+      const fetchedFiles: FileDTO[] = yield this.backend.searchFiles(
         criterias,
         this.orderBy,
         this.orderDirection,
         matchAny,
       );
-      yield* this.#updateFromBackend(fetchedFiles);
+      yield* this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on criteria', e);
     }
@@ -322,8 +322,8 @@ class FileStore {
 
   *fetchFilesByIDs(files: ID[]): Generator<unknown, void, any> {
     try {
-      const fetchedFiles: FileDTO[] = yield this.#backend.fetchFilesByID(files);
-      yield* this.#updateFromBackend(fetchedFiles);
+      const fetchedFiles: FileDTO[] = yield this.backend.fetchFilesByID(files);
+      yield* this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on IDs', e);
     }
@@ -356,7 +356,7 @@ class FileStore {
   getTags(ids: ID[]): Set<ClientTag> {
     const tags = new Set<ClientTag>();
     for (const id of ids) {
-      const tag = this.#rootStore.tagStore.get(id);
+      const tag = this.rootStore.tagStore.get(id);
       if (tag !== undefined) {
         tags.add(tag);
       }
@@ -365,7 +365,7 @@ class FileStore {
   }
 
   getLocation(location: ID): ClientLocation {
-    const loc = this.#rootStore.locationStore.get(location);
+    const loc = this.rootStore.locationStore.get(location);
     if (!loc) {
       throw new Error(
         `Location of file was not found! This should never happen! Location ${location}`,
@@ -380,14 +380,14 @@ class FileStore {
     // Save files in bulk so saving many files at once is faster.
     // Each file will call this save() method individually after detecting a change on its observable fields,
     // these can be batched by collecting the changes and debouncing the save operation
-    this.#filesToSave.set(file.id, file);
+    this.filesToSave.set(file.id, file);
     this.debouncedSaveFilesToSave();
   }
 
-  async #saveFilesToSave() {
-    const updatedFiles = Array.from(this.#filesToSave.values());
-    this.#filesToSave.clear();
-    await this.#backend.saveFiles(updatedFiles);
+  private async saveFilesToSave() {
+    const updatedFiles = Array.from(this.filesToSave.values());
+    this.filesToSave.clear();
+    await this.backend.saveFiles(updatedFiles);
   }
 
   @action recoverPersistentPreferences() {
@@ -422,7 +422,7 @@ class FileStore {
   }
 
   @action private async removeThumbnail(path: string) {
-    const thumbnailPath = getThumbnailPath(path, this.#rootStore.uiStore.thumbnailDirectory);
+    const thumbnailPath = getThumbnailPath(path, this.rootStore.uiStore.thumbnailDirectory);
     try {
       if (await fse.pathExists(thumbnailPath)) {
         return fse.remove(thumbnailPath);
@@ -433,8 +433,8 @@ class FileStore {
     }
   }
 
-  *#updateFromBackend(backendFiles: FileDTO[]): Generator<unknown, void, any> {
-    const { uiStore, tagStore } = this.#rootStore;
+  private *updateFromBackend(backendFiles: FileDTO[]): Generator<unknown, void, any> {
+    const { uiStore, tagStore } = this.rootStore;
 
     if (backendFiles.length === 0) {
       uiStore.clearFileSelection();
@@ -452,7 +452,7 @@ class FileStore {
     // For every new file coming in, either re-use the existing client file if it exists,
     // or construct a new client file
     this.#mergeFilesFromBackend(backendFiles);
-    this.#cleanFileSelection();
+    this.cleanFileSelection();
 
     yield* this.#checkFileExistences();
   }
@@ -489,8 +489,8 @@ class FileStore {
   }
 
   /** Remove files from selection that are not in the file list anymore */
-  #cleanFileSelection() {
-    const { fileSelection } = this.#rootStore.uiStore;
+  private cleanFileSelection() {
+    const { fileSelection } = this.rootStore.uiStore;
     for (const file of fileSelection) {
       if (!this.index.has(file.id)) {
         fileSelection.delete(file);
@@ -506,7 +506,7 @@ class FileStore {
    * @param backendFiles The query results from the backend.
    */
   #mergeFilesFromBackend(backendFiles: FileDTO[]): void {
-    const rootStore = this.#rootStore;
+    const rootStore = this.rootStore;
 
     const mergeFile = (backendFile: FileDTO) => (existingFile: ClientFile | undefined) => {
       // Might already exist!
@@ -531,19 +531,15 @@ class FileStore {
         const file = new ClientFile(this, backendFile);
         // Initialize the thumbnail path so the image can be loaded immediately when it mounts.
         // To ensure the thumbnail actually exists, the `ensureThumbnail` function should be called
-        file.thumbnailPath = this.#rootStore.imageLoader.needsThumbnail(backendFile)
-          ? getThumbnailPath(backendFile.absolutePath, this.#rootStore.uiStore.thumbnailDirectory)
+        file.thumbnailPath = this.rootStore.imageLoader.needsThumbnail(backendFile)
+          ? getThumbnailPath(backendFile.absolutePath, this.rootStore.uiStore.thumbnailDirectory)
           : backendFile.absolutePath;
         return file;
       }
     };
 
     const disposedFiles = this.index.insertSort(
-      (function* () {
-        for (const backendFile of backendFiles) {
-          yield [backendFile.id, mergeFile(backendFile)];
-        }
-      })(),
+      map(backendFiles, (backendFile) => [backendFile.id, mergeFile(backendFile)]),
     );
 
     // Dispose of files that are not re-used to get rid of MobX observers.
@@ -554,7 +550,7 @@ class FileStore {
 
   /** Initializes the total and untagged file counters by querying the database with count operations */
   async refetchFileCounts(): Promise<void> {
-    const [numTotalFiles, numUntaggedFiles] = await this.#backend.countFiles();
+    const [numTotalFiles, numUntaggedFiles] = await this.backend.countFiles();
     runInAction(() => {
       this.numUntaggedFiles = numUntaggedFiles;
       this.numTotalFiles = numTotalFiles;

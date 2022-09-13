@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { flow, isFlowCancellationError } from 'mobx';
+import { flow } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import LOGO_FC from 'resources/logo/svg/full-color/allusion-logomark-fc.svg';
 import { sleep } from 'common/timeout';
@@ -36,7 +36,6 @@ const PreviewWindowPlaceholder = () => {
   const [placeholder, setPlaceholder] = useState<JSX.Element | null>(null);
 
   useEffect(() => {
-    // FIXME: Probably a React 18 feature could solve this more elgantly.
     const timeout = flow(function* () {
       setPlaceholder(
         <ContentPlaceholder title="Loading..." icon={<SVG src={LOGO_FC} />}>
@@ -62,13 +61,9 @@ const PreviewWindowPlaceholder = () => {
         </ContentPlaceholder>,
       );
     })();
-    timeout.catch((error) => {
-      if (!isFlowCancellationError(error)) {
-        throw error;
-      }
-    });
 
     return () => {
+      timeout.catch(() => {});
       timeout.cancel();
     };
   }, []);

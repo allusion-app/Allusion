@@ -89,9 +89,8 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
     const initTask = flow(function* initialize() {
       const { fileStore, uiStore } = rootStore;
 
-      yield* worker.initialize(fileStore.fileList.length);
-
       try {
+        yield* worker.initialize(fileStore.fileList.length);
         const containerHeight = yield* worker.compute(
           fileStore.fileList,
           containerWidth,

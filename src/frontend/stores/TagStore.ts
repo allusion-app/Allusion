@@ -14,22 +14,22 @@ import { ClientFile } from 'src/entities/File';
  * Based on https://mobx.js.org/best/store.html
  */
 class TagStore {
-  readonly #backend: IDataStorage;
-  readonly #rootStore: RootStore;
+  private readonly backend: IDataStorage;
+  private readonly rootStore: RootStore;
 
   /** A lookup map to speedup finding entities */
   private readonly tagGraph = observable(new Map<ID, ClientTag>());
 
   constructor(backend: IDataStorage, rootStore: RootStore) {
-    this.#backend = backend;
-    this.#rootStore = rootStore;
+    this.backend = backend;
+    this.rootStore = rootStore;
 
     makeObservable(this);
   }
 
   async init() {
     try {
-      const fetchedTags = await this.#backend.fetchTags();
+      const fetchedTags = await this.backend.fetchTags();
       this.createTagGraph(fetchedTags);
     } catch (err) {
       console.log('Could not load tags', err);
@@ -89,11 +89,11 @@ class TagStore {
   }
 
   @action isSelected(tag: ClientTag): boolean {
-    return this.#rootStore.uiStore.tagSelection.has(tag);
+    return this.rootStore.uiStore.tagSelection.has(tag);
   }
 
   isSearched(tag: ClientTag): boolean {
-    return this.#rootStore.uiStore.searchCriteriaList.some(
+    return this.rootStore.uiStore.searchCriteriaList.some(
       (c) => c instanceof ClientTagSearchCriteria && c.value === tag.id,
     );
   }
@@ -104,7 +104,7 @@ class TagStore {
     this.tagGraph.set(tag.id, tag);
     tag.setParent(parent);
     parent.subTags.push(tag);
-    await this.#backend.createTag(tag.serialize());
+    await this.backend.createTag(tag.serialize());
     return tag;
   }
 
@@ -119,15 +119,15 @@ class TagStore {
       for (const t of tag.getSubTree()) {
         t.dispose();
         this.tagGraph.delete(t.id);
-        this.#rootStore.uiStore.deselectTag(t);
+        this.rootStore.uiStore.deselectTag(t);
         ids.push(t.id);
       }
       return ids.splice(0, ids.length);
     });
     for (const tag of tags) {
-      await this.#backend.removeTags(remove(tag));
+      await this.backend.removeTags(remove(tag));
     }
-    this.#rootStore.refetch();
+    this.rootStore.refetch();
   }
 
   @action.bound async merge(tagToBeRemoved: ClientTag, tagToMergeWith: ClientTag) {
@@ -135,15 +135,15 @@ class TagStore {
     if (tagToBeRemoved.subTags.length > 0) {
       throw new Error('Merging a tag with sub-tags is currently not supported.');
     }
-    this.#rootStore.uiStore.deselectTag(tagToBeRemoved);
+    this.rootStore.uiStore.deselectTag(tagToBeRemoved);
     this.tagGraph.delete(tagToBeRemoved.id);
     tagToBeRemoved.parent.subTags.remove(tagToBeRemoved);
-    await this.#backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id);
-    this.#rootStore.refetch();
+    await this.backend.mergeTags(tagToBeRemoved.id, tagToMergeWith.id);
+    this.rootStore.refetch();
   }
 
   save(tag: TagDTO) {
-    this.#backend.saveTag(tag);
+    this.backend.saveTag(tag);
   }
 
   @action private createTagGraph(backendTags: TagDTO[]) {
