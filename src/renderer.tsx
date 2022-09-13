@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { autorun, flow, reaction, runInAction } from 'mobx';
+import { autorun, flow, isFlowCancellationError, reaction, runInAction } from 'mobx';
 
 // Import the styles here to let Webpack know to include them
 // in the HTML file
@@ -205,9 +205,13 @@ async function setupMainApp(backend: Backend): Promise<[RootStore, () => JSX.Ele
     ([showsMissingContent, conditions, matchAny]) => {
       runningTask?.cancel();
       runningTask = fetchTask(showsMissingContent, conditions, matchAny);
-      runningTask.catch(() =>
-        console.debug('Cancelled fetch request:', { showsMissingContent, conditions, matchAny }),
-      );
+      runningTask.catch((error) => {
+        if (isFlowCancellationError(error)) {
+          console.debug('Cancelled fetch request:', { showsMissingContent, conditions, matchAny });
+        } else {
+          throw error;
+        }
+      });
     },
   );
 

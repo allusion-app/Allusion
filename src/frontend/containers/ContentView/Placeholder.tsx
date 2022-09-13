@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { flow } from 'mobx';
+import { flow, isFlowCancellationError } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import LOGO_FC from 'resources/logo/svg/full-color/allusion-logomark-fc.svg';
 import { sleep } from 'common/timeout';
@@ -62,7 +62,11 @@ const PreviewWindowPlaceholder = () => {
         </ContentPlaceholder>,
       );
     })();
-    timeout.catch(() => {});
+    timeout.catch((error) => {
+      if (!isFlowCancellationError(error)) {
+        throw error;
+      }
+    });
 
     return () => {
       timeout.cancel();

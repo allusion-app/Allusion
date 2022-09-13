@@ -1,4 +1,4 @@
-import { action, autorun, flow } from 'mobx';
+import { action, autorun, flow, isFlowCancellationError } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -116,7 +116,13 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
           console.error(e);
         }
       })();
-      layoutTask.catch(() => console.debug('Cancelled initializing worker.'));
+      layoutTask.catch((error) => {
+        if (isFlowCancellationError(error)) {
+          console.debug('Cancelled computing layout.');
+        } else {
+          throw error;
+        }
+      });
     });
 
     return () => {
@@ -158,7 +164,13 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
           console.error(e);
         }
       })();
-      layoutTask.catch(() => console.debug('Cancelled re-computing layout.'));
+      layoutTask.catch((error) => {
+        if (isFlowCancellationError(error)) {
+          console.debug('Cancelled re-computing layout.');
+        } else {
+          throw error;
+        }
+      });
     });
 
     return () => {

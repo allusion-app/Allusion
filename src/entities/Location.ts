@@ -164,7 +164,7 @@ export class ClientLocation {
 
   async delete(): Promise<void> {
     this.worker?.cancel();
-    await this.drop();
+    await this.worker?.close();
     return this.store.delete(this);
   }
 
@@ -223,11 +223,6 @@ export class ClientLocation {
 
   @action.bound setIndex(index: number): void {
     this.index = index;
-  }
-
-  /** Cleanup resources */
-  async drop(): Promise<void> {
-    return this.worker?.close();
   }
 
   async refreshSublocations(): Promise<void> {
