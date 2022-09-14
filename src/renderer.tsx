@@ -3,25 +3,20 @@
 // All of the Node.js APIs are available in this process.
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { observe, runInAction } from 'mobx';
-
+import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
+import { promiseRetry } from 'common/timeout';
+import Backend from './backend/backend';
+import App from './frontend/App';
+import Overlay from './frontend/Overlay';
+import PreviewApp from './frontend/Preview';
+import StoreProvider from './frontend/contexts/StoreContext';
+import RootStore from './frontend/stores/RootStore';
+import { RendererMessenger } from 'src/ipc/renderer';
 // Import the styles here to let Webpack know to include them
 // in the HTML file
 import './style.scss';
-
-import { RendererMessenger } from 'src/ipc/renderer';
-
-import Backend from './backend/backend';
-
-import StoreProvider from './frontend/contexts/StoreContext';
-import RootStore from './frontend/stores/RootStore';
-
-import App from './frontend/App';
-import PreviewApp from './frontend/Preview';
-import Overlay from './frontend/Overlay';
-import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
-import { promiseRetry } from '../common/timeout';
 
 const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
 
@@ -133,12 +128,18 @@ window.addEventListener('beforeunload', () => {
 
 // Render our react components in the div with id 'app' in the html file
 // The Provider component provides the state management for the application
-ReactDOM.render(
+const container = document.getElementById('app');
+
+if (container === null) {
+  throw new Error('Unable to create user interface.');
+}
+
+const root = createRoot(container);
+root.render(
   <StoreProvider value={rootStore}>
     {IS_PREVIEW_WINDOW ? <PreviewApp /> : <App />}
     <Overlay />
   </StoreProvider>,
-  document.getElementById('app'),
 );
 
 // -------------------------------------------
