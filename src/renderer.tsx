@@ -3,36 +3,34 @@
 // All of the Node.js APIs are available in this process.
 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import {createRoot} from 'react-dom/client';
 import { autorun, reaction, runInAction } from 'mobx';
-
-// Import the styles here to let Webpack know to include them
-// in the HTML file
-import './style.scss';
-
-import { RendererMessenger } from 'src/ipc/renderer';
-
+import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
+import { promiseRetry } from 'common/timeout';
 import Backend from './backend/backend';
-
+import App from './frontend/App';
+import Overlay from './frontend/Overlay';
+import PreviewApp from './frontend/Preview';
+import SplashScreen from './frontend/containers/SplashScreen';
 import StoreProvider from './frontend/contexts/StoreContext';
 import RootStore from './frontend/stores/RootStore';
 import { FILE_STORAGE_KEY } from './frontend/stores/FileStore';
 import { PREFERENCES_STORAGE_KEY } from './frontend/stores/UiStore';
-import App from './frontend/App';
-import PreviewApp from './frontend/Preview';
-import Overlay from './frontend/Overlay';
-import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
-import { promiseRetry } from '../common/timeout';
-import SplashScreen from './frontend/containers/SplashScreen';
+import { RendererMessenger } from 'src/ipc/renderer';
+// Import the styles here to let Webpack know to include them
+// in the HTML file
+import './style.scss';
 
 (async function main(): Promise<void> {
   const container = document.getElementById('app');
 
   if (container === null) {
-    throw new Error();
+    throw new Error('Unable to create user interface.');
   }
 
-  ReactDOM.render(<SplashScreen />, container);
+  const root = createRoot(container);
+
+  root.render(<SplashScreen />);
 
   // Initialize the backend for the App, that serves as an API to the front-end
   const backend = await Backend.init();
@@ -51,12 +49,11 @@ import SplashScreen from './frontend/containers/SplashScreen';
 
   // Render our react components in the div with id 'app' in the html file
   // The Provider component provides the state management for the application
-  ReactDOM.render(
+  root.render(
     <StoreProvider value={rootStore}>
       <Component />
       <Overlay />
     </StoreProvider>,
-    container,
   );
 
   window.addEventListener('beforeunload', () => {

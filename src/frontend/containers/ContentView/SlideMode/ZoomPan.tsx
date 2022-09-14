@@ -3,24 +3,24 @@
  * MIT license, see LICENSE file
  */
 
-import React from 'react';
-import { clamp } from 'common/core';
+import React, { CSSProperties } from 'react';
 
+import { clamp } from 'common/core';
 import {
+  createTransform,
+  createVec2,
+  Dimension,
+  getAutofitScale,
+  getConstrainedScale,
+  getImageOverflow,
   getPinchLength,
   getPinchMidpoint,
   getRelativePosition,
   isEqualDimension,
   isEqualTransform,
-  getAutofitScale,
-  tryPreventDefault,
-  getImageOverflow,
-  Dimension,
-  Vec2,
   Transform,
-  createTransform,
-  getConstrainedScale,
-  createVec2,
+  tryPreventDefault,
+  Vec2,
 } from './utils';
 
 const OVERZOOM_TOLERANCE = 0.05;
@@ -30,7 +30,9 @@ const ANIMATION_SPEED = 0.1;
 export type SlideTransform = Transform;
 
 export interface ZoomPanProps {
-  children: React.ReactElement<HTMLImageElement>;
+  children: (
+    props: React.ImgHTMLAttributes<HTMLImageElement>,
+  ) => React.ReactElement<HTMLImageElement>;
   initialScale: number | 'auto';
   minScale: number;
   maxScale: number;
@@ -68,7 +70,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
   }
 
   //event handlers
-  handlePointerDown = (event: PointerEvent) => {
+  handlePointerDown = (event: React.PointerEvent) => {
     // Only apply panning and pinching to left mouse button/touch or pen contact
     if (event.button !== 0) {
       return;
@@ -97,7 +99,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     }
   };
 
-  handlePointerMove = (event: PointerEvent) => {
+  handlePointerMove = (event: React.PointerEvent) => {
     // Only apply panning and pinching to left mouse button/touch or pen contact
     if (event.buttons !== 1 || event.button > 0) {
       return;
@@ -116,7 +118,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     }
   };
 
-  handlePointerUp = (event: PointerEvent) => {
+  handlePointerUp = (event: React.PointerEvent) => {
     const pointers = this.activePointers;
 
     // Remove pointer from active pointers list
@@ -147,7 +149,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     }
   };
 
-  handleMouseWheel = (event: WheelEvent) => {
+  handleMouseWheel = (event: React.WheelEvent) => {
     this.stopAnimation();
     const { scale } = this.state;
     const point = getRelativePosition(createVec2(event.clientX, event.clientY), this.container);
@@ -283,7 +285,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
           touchAction: browserPanActions(this.state, this.props),
         }}
       >
-        {React.cloneElement(this.props.children, {
+        {this.props.children({
           onPointerDown: this.handlePointerDown,
           onPointerMove: this.handlePointerMove,
           onPointerUp: this.handlePointerUp,
@@ -479,7 +481,7 @@ export const CONTAINER_DEFAULT_STYLE = {
   margin: 'auto',
 };
 
-function imageStyle({ top, left, scale }: ZoomPanState) {
+function imageStyle({ top, left, scale }: ZoomPanState): CSSProperties {
   return {
     transform: `translate3d(${left}px, ${top}px, 0) scale(${scale})`,
   };

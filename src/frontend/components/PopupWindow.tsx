@@ -3,17 +3,18 @@ import ReactDOM from 'react-dom';
 import Overlay from '../Overlay';
 
 const PLATFORM = process.platform;
-interface IPopupWindowProps {
+type PopupWindowProps = {
+  children: React.ReactNode;
   onClose: () => void;
   windowName: string;
   closeOnEscape?: boolean;
   additionalCloseKey?: string;
-}
+};
 
 /**
  * Creates a new external browser window, that renders whatever you pass as children
  */
-const PopupWindow: React.FC<IPopupWindowProps> = (props) => {
+const PopupWindow: React.FC<PopupWindowProps> = (props) => {
   const [containerEl] = useState(document.createElement('div'));
   const [win, setWin] = useState<Window>();
 
