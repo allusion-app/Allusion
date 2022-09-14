@@ -250,7 +250,7 @@ async function setupPreviewApp(backend: Backend): Promise<[RootStore, () => JSX.
         const firstItem = activeImgId !== undefined ? fileStore.getIndex(activeImgId) ?? 0 : 0;
         uiStore.setFirstItem(firstItem);
 
-        // Does this release the memory?
+        // FIXME: Does this release the memory?
         if (executor !== undefined) {
           executor();
           executor = undefined;

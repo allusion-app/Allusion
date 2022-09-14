@@ -9,7 +9,7 @@ import { debouncedThrottle } from 'common/timeout';
 import { MasonryCell } from '../GalleryItem';
 import { findViewportEdge, Layouter } from './layout-helpers';
 
-interface IRendererProps {
+type RendererProps = {
   containerHeight: number;
   containerWidth: number;
   images: readonly ClientFile[];
@@ -21,7 +21,7 @@ interface IRendererProps {
   padding?: number;
   /** The index of the currently selected image, or the "last selected" image when a range is selected */
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
-}
+};
 
 /**
  * This is the virtualized renderer: it only renders the items in the viewport.
@@ -38,7 +38,7 @@ const VirtualizedRenderer = observer(
     lastSelectionIndex,
     layoutUpdateDate,
     padding,
-  }: IRendererProps) => {
+  }: RendererProps) => {
     const { uiStore, fileStore } = useStore();
     const [, isMountedRef] = useMountState();
     const wrapperRef = useRef<HTMLDivElement>(null);

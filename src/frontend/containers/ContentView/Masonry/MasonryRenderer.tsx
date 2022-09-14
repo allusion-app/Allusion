@@ -12,16 +12,19 @@ import { MasonryWorkerAdapter, MASONRY_PADDING } from './MasonryWorkerAdapter';
 import VirtualizedRenderer from './VirtualizedRenderer';
 import { useComputed } from 'src/frontend/hooks/mobx';
 
-type SupportedViewMethod =
-  | ViewMethod.MasonryVertical
-  | ViewMethod.MasonryHorizontal
-  | ViewMethod.Grid;
+function toMasonryType(viewMethod: ViewMethod): MasonryType {
+  switch (viewMethod) {
+    case ViewMethod.MasonryVertical:
+      return MasonryType.Vertical;
 
-const ViewMethodLayoutDict: Record<SupportedViewMethod, MasonryType> = {
-  [ViewMethod.MasonryVertical]: MasonryType.Vertical,
-  [ViewMethod.MasonryHorizontal]: MasonryType.Horizontal,
-  [ViewMethod.Grid]: MasonryType.Grid,
-};
+    case ViewMethod.MasonryHorizontal:
+      return MasonryType.Horizontal;
+
+    case ViewMethod.Grid:
+    default:
+      return MasonryType.Grid;
+  }
+}
 
 const SCROLL_BAR_WIDTH = 8;
 
@@ -85,11 +88,11 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
   }, []);
 
   useEffect(() => {
+    const { fileStore } = rootStore;
+
     // Initialize on mount
     if (!worker.isInitialized) {
       const initTask = flow(function* initialize() {
-        const { fileStore } = rootStore;
-
         try {
           yield* worker.initialize(fileStore.fileList.length);
           setLayoutTimestamp(new Date());
@@ -106,7 +109,7 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
       // Compute new layout when content changes (new fileList, e.g. sorting, searching)
       return autorun(() => {
         console.debug('Masonry: Items changed!');
-        worker.updateContent(rootStore.fileStore.fileList);
+        worker.updateContent(fileStore.fileList);
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -122,7 +125,7 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
 
     const dispose = autorun(() => {
       rootStore.fileStore.index.observe();
-      const viewMethod = rootStore.uiStore.method as SupportedViewMethod;
+      const masonryType = toMasonryType(rootStore.uiStore.method);
       const size = thumbnailSize.get();
 
       layoutTask?.cancel();
@@ -134,11 +137,7 @@ const MasonryRenderer = observer(({ contentRect, select, lastSelectionIndex }: G
         console.debug('Masonry: Environment changed. Recomputing layout!');
 
         try {
-          const containerHeight = yield* worker.compute(
-            containerWidth,
-            ViewMethodLayoutDict[viewMethod],
-            size,
-          );
+          const containerHeight = yield* worker.compute(containerWidth, masonryType, size);
           setContainerHeight(containerHeight);
           setLayoutTimestamp(new Date());
         } catch (e) {
