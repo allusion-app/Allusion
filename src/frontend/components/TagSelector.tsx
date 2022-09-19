@@ -207,7 +207,10 @@ interface SuggestedTagsListProps {
 }
 
 const SuggestedTagsList = observer(
-  (props: SuggestedTagsListProps, ref: ForwardedRef<HTMLDivElement>) => {
+  React.forwardRef(function TagsList(
+    props: SuggestedTagsListProps,
+    ref: ForwardedRef<HTMLDivElement>,
+  ) {
     const { id, query, selection, toggleSelection, resetTextBox, renderCreateOption } = props;
     const { tagStore } = useStore();
 
@@ -241,8 +244,7 @@ const SuggestedTagsList = observer(
         {suggestions.length === 0 && renderCreateOption?.(query, resetTextBox)}
       </Grid>
     );
-  },
-  { forwardRef: true },
+  }),
 );
 
 interface TagOptionProps {

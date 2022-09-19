@@ -122,7 +122,7 @@ const ListGallery = observer(({ contentRect, select, lastSelectionIndex }: Galle
 export default ListGallery;
 
 const Table = observer(
-  ({ children, ...props }: any, ref: ForwardedRef<HTMLDivElement>) => {
+  React.forwardRef(function Table({ children, ...props }: any, ref: ForwardedRef<HTMLDivElement>) {
     const { fileStore } = useStore();
     return (
       <div ref={ref} id="list" role="grid" aria-rowcount={fileStore.fileList.length} {...props}>
@@ -130,8 +130,7 @@ const Table = observer(
         {children}
       </div>
     );
-  },
-  { forwardRef: true },
+  }),
 );
 
 const Body = forwardRef(function Body(
