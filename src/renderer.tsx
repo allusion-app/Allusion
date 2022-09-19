@@ -3,7 +3,7 @@
 // All of the Node.js APIs are available in this process.
 
 import React from 'react';
-import {createRoot} from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 import { autorun, reaction, runInAction } from 'mobx';
 import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
 import { promiseRetry } from 'common/timeout';
