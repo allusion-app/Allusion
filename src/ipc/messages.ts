@@ -10,7 +10,6 @@ export type SYSTEM_PATHS =
   | 'home'
   | 'appData'
   | 'userData'
-  | 'cache'
   | 'temp'
   | 'exe'
   | 'module'

@@ -278,7 +278,15 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
         transitionEnd={transitionEnd}
         onClose={onClose}
       >
-        <img src={encodeFilePath(src)} width={dimension[0]} height={dimension[1]} alt="" />
+        {(props) => (
+          <img
+            {...props}
+            src={encodeFilePath(src)}
+            width={dimension[0]}
+            height={dimension[1]}
+            alt=""
+          />
+        )}
       </ZoomPan>
     );
   }

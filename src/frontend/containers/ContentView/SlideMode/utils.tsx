@@ -73,7 +73,7 @@ export const getAutofitScale = (
   return Math.min(containerWidth / imageWidth, containerHeight / imageHeight, 1);
 };
 
-export const tryPreventDefault = (event: Event) => {
+export const tryPreventDefault = (event: { cancelable: boolean; preventDefault: () => void }) => {
   if (event.cancelable) {
     event.preventDefault();
   }
