@@ -72,15 +72,15 @@ export class ClientTag {
 
   /** Returns this tag and all of its sub-tags ordered depth-first */
   @action getSubTree(): Generator<ClientTag> {
-    function* tree(tag: ClientTag, iteration: number): Generator<ClientTag> {
-      if (iteration > MAX_TAG_DEPTH) {
+    function* tree(tag: ClientTag, depth: number): Generator<ClientTag> {
+      if (depth > MAX_TAG_DEPTH) {
         console.error('Subtree has too many tags. Is there a cycle in the tag tree?', tag);
         return;
       }
 
       yield tag;
       for (const subTag of tag.subTags) {
-        yield* tree(subTag, iteration + 1);
+        yield* tree(subTag, depth + 1);
       }
     }
     return tree(this, 0);
@@ -88,12 +88,12 @@ export class ClientTag {
 
   /** Returns this tag and all its ancestors (excluding root tag). */
   @action getAncestors(): Generator<ClientTag> {
-    function* ancestors(tag: ClientTag, iteration: number): Generator<ClientTag> {
-      if (iteration > MAX_TAG_DEPTH) {
+    function* ancestors(tag: ClientTag, depth: number): Generator<ClientTag> {
+      if (depth > MAX_TAG_DEPTH) {
         console.error('Tag has too many ancestors. Is there a cycle in the tag tree?', tag);
       } else if (tag.id !== ROOT_TAG_ID) {
         yield tag;
-        yield* ancestors(tag.parent, iteration + 1);
+        yield* ancestors(tag.parent, depth + 1);
       }
     }
     return ancestors(this, 0);
