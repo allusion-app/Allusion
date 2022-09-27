@@ -12,7 +12,7 @@ import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDLocationType, useLocationDnD } from 'src/frontend/contexts/TagDnDContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import LocationStore from 'src/frontend/stores/LocationStore';
-import { triggerContextMenuEvent, emptyFunction } from '../utils';
+import { triggerContextMenuEvent } from '../utils';
 import { RendererMessenger } from 'src/ipc/renderer';
 import { IconSet, Tree } from 'widgets';
 import { Menu, MenuDivider, MenuItem, Toolbar, ToolbarButton, useContextMenu } from 'widgets/menus';
@@ -461,7 +461,7 @@ const LocationsTree = ({ onDelete, onExclude }: ILocationTreeProps) => {
         nodeData,
         treeData,
         isExpanded,
-        emptyFunction,
+        () => {},
         toggleExpansion,
         customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(pathCriteria(path))),
       ),
@@ -494,7 +494,6 @@ const LocationsTree = ({ onDelete, onExclude }: ILocationTreeProps) => {
       treeData={treeData}
       toggleExpansion={toggleExpansion}
       onBranchKeyDown={handleBranchKeyDown}
-      onLeafKeyDown={emptyFunction}
     />
   );
 };

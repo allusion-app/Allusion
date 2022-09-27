@@ -29,7 +29,6 @@ export const useContextMenu = () => {
 
 type ContextMenuActions = (x: number, y: number, menu: React.ReactElement<MenuProps>) => void;
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
 const ContextMenuContext = React.createContext<ContextMenuActions>(() => {});
 
 const ContextMenuProvider = ContextMenuContext.Provider;

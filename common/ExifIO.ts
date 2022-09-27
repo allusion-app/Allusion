@@ -42,7 +42,6 @@
 // finds:
 // - automatically update Subject/Keywords when updating HierarchicalSubject: https://exiftool.org/forum/index.php?topic=9208.0
 // Update: only doing an export/import for all images for now, not real-time updates
-import { Awaited } from './core';
 import fse from 'fs-extra';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import exiftool from 'node-exiftool';

@@ -33,7 +33,9 @@
     "curly": "error",
     "no-extra-boolean-cast": "error",
     "@typescript-eslint/no-unnecessary-condition": "warn",
-    "@typescript-eslint/prefer-string-starts-ends-with": "error"
+    "@typescript-eslint/prefer-string-starts-ends-with": "error",
+    "no-empty-function": "off",
+    "@typescript-eslint/no-empty-function": "off"
   },
   "overrides": [
     {

@@ -3,7 +3,7 @@
   height: var(--window-titlebar-height);
   width: 100%;
   display: flex;
-
+  line-height: initial;
   background-color: var(--titlebar-background-color);
   color: var(--titlebar-color);
   &.inactive {

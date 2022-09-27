@@ -1,16 +1,14 @@
 import { shell } from 'electron';
 import fse from 'fs-extra';
-import { action, computed, makeObservable, observable, observe } from 'mobx';
+import { action, computed, makeObservable, observable } from 'mobx';
 import { ClientFile } from 'src/entities/File';
 import { ID } from 'src/api/id';
 import { ClientFileSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { SearchCriteria } from 'src/api/search-criteria';
 import { ClientTag } from 'src/entities/Tag';
 import { RendererMessenger } from 'src/ipc/renderer';
-import { IS_PREVIEW_WINDOW } from 'common/window';
 import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { clamp, notEmpty } from 'common/core';
-import { debounce } from 'common/timeout';
 import RootStore from './RootStore';
 import { maxNumberOfExternalFilesBeforeWarning } from 'common/config';
 
@@ -22,7 +20,7 @@ export const enum ViewMethod {
 }
 export type ThumbnailSize = 'small' | 'medium' | 'large' | number;
 type ThumbnailShape = 'square' | 'letterbox';
-const PREFERENCES_STORAGE_KEY = 'preferences';
+export const PREFERENCES_STORAGE_KEY = 'preferences';
 
 export interface IHotkeyMap {
   // Outerliner actions
@@ -93,26 +91,26 @@ export const defaultHotkeyMap: IHotkeyMap = {
  */
 
 /** These fields are stored and recovered when the application opens up */
-const PersistentPreferenceFields: Array<keyof UiStore> = [
-  'theme',
-  'isOutlinerOpen',
-  'isInspectorOpen',
-  'thumbnailDirectory',
-  'importDirectory',
-  'method',
-  'thumbnailSize',
-  'thumbnailShape',
-  'hotkeyMap',
-  'isThumbnailTagOverlayEnabled',
-  'isThumbnailFilenameOverlayEnabled',
-  'outlinerWidth',
-  'inspectorWidth',
-  'isRememberSearchEnabled',
+type PersistentPreferenceFields =
+  | 'theme'
+  | 'isOutlinerOpen'
+  | 'isInspectorOpen'
+  | 'thumbnailDirectory'
+  | 'importDirectory'
+  | 'method'
+  | 'thumbnailSize'
+  | 'thumbnailShape'
+  | 'hotkeyMap'
+  | 'isThumbnailTagOverlayEnabled'
+  | 'isThumbnailFilenameOverlayEnabled'
+  | 'outlinerWidth'
+  | 'inspectorWidth'
+  | 'isRememberSearchEnabled'
   // the following are only restored when isRememberSearchEnabled is enabled
-  'isSlideMode',
-  'firstItem',
-  'searchMatchAny',
-];
+  | 'isSlideMode'
+  | 'firstItem'
+  | 'searchMatchAny'
+  | 'searchCriteriaList';
 
 class UiStore {
   static MIN_OUTLINER_WIDTH = 192; // default of 12 rem
@@ -120,12 +118,8 @@ class UiStore {
 
   private readonly rootStore: RootStore;
 
-  @observable isInitialized = false;
-
   // Theme
   @observable theme: 'light' | 'dark' = 'dark';
-
-  @observable windowTitle = 'Allusion';
 
   // UI
   @observable isOutlinerOpen: boolean = true;
@@ -174,25 +168,9 @@ class UiStore {
 
   @observable readonly hotkeyMap: IHotkeyMap = observable(defaultHotkeyMap);
 
-  private debouncedStorePersistentPreferences: () => void;
-
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
     makeObservable(this);
-
-    // Store preferences immediately when anything is changed
-    this.debouncedStorePersistentPreferences = debounce(this.storePersistentPreferences, 200).bind(
-      this,
-    );
-    if (!IS_PREVIEW_WINDOW) {
-      PersistentPreferenceFields.forEach((f) =>
-        observe(this, f, this.debouncedStorePersistentPreferences),
-      );
-    }
-  }
-
-  @action.bound init() {
-    this.isInitialized = true;
   }
 
   /////////////////// UI Actions ///////////////////
@@ -236,19 +214,9 @@ class UiStore {
     this.setThumbnailShape('letterbox');
   }
 
-  @action updateWindowTitle() {
-    if (this.isSlideMode && this.rootStore.fileStore.fileList.length > 0) {
-      const activeFile = this.rootStore.fileStore.fileList[this.firstItem];
-      this.windowTitle = `${activeFile.filename}.${activeFile.extension} - Allusion`;
-    } else {
-      this.windowTitle = 'Allusion';
-    }
-  }
-
   @action.bound setFirstItem(index: number = 0) {
     if (isFinite(index) && index < this.rootStore.fileStore.fileList.length) {
       this.firstItem = index;
-      this.updateWindowTitle();
     }
   }
 
@@ -274,17 +242,14 @@ class UiStore {
 
   @action.bound enableSlideMode() {
     this.isSlideMode = true;
-    this.updateWindowTitle();
   }
 
   @action.bound disableSlideMode() {
     this.isSlideMode = false;
-    this.updateWindowTitle();
   }
 
   @action.bound toggleSlideMode() {
     this.isSlideMode = !this.isSlideMode;
-    this.updateWindowTitle();
   }
 
   /** This does not actually set the window to full-screen, just for bookkeeping! Use RendererMessenger instead */
@@ -627,12 +592,10 @@ class UiStore {
   @action.bound addSearchCriteria(query: Exclude<ClientFileSearchCriteria, 'key'>) {
     this.searchCriteriaList.push(query);
     this.viewQueryContent();
-    query.observe(this.debouncedStorePersistentPreferences);
   }
 
   @action.bound addSearchCriterias(queries: Exclude<ClientFileSearchCriteria[], 'key'>) {
     this.searchCriteriaList.push(...queries);
-    queries.forEach((query) => query.observe(this.debouncedStorePersistentPreferences));
     this.viewQueryContent();
   }
 
@@ -682,8 +645,6 @@ class UiStore {
 
     this.searchCriteriaList.replace(queries);
 
-    queries.forEach((query) => query.observe(this.debouncedStorePersistentPreferences));
-
     if (this.searchCriteriaList.length > 0) {
       this.viewQueryContent();
     } else {
@@ -708,7 +669,6 @@ class UiStore {
       this.tagSelection,
       (tag) => new ClientTagSearchCriteria('tags', tag.id),
     );
-    newCrits.forEach((crit) => crit.observe(this.debouncedStorePersistentPreferences));
     this.addSearchCriterias(newCrits);
     this.clearTagSelection();
   }
@@ -728,7 +688,6 @@ class UiStore {
     if (index !== -1) {
       this.searchCriteriaList[index].dispose();
       this.searchCriteriaList[index] = crit;
-      crit.observe(this.debouncedStorePersistentPreferences);
       this.viewQueryContent();
     }
   }
@@ -741,9 +700,6 @@ class UiStore {
 
   @action.bound remapHotkey(action: keyof IHotkeyMap, combo: string) {
     this.hotkeyMap[action] = combo;
-    // can't rely on the observer PersistentPreferenceFields, since it's an object
-    // Would be neater with a deepObserve, but this works as well:
-    this.storePersistentPreferences();
   }
 
   @action.bound processGlobalShortCuts(e: KeyboardEvent) {
@@ -863,14 +819,15 @@ class UiStore {
         this.isRememberSearchEnabled = Boolean(prefs.isRememberSearchEnabled);
         if (this.isRememberSearchEnabled) {
           // If remember search criteria, restore the search criteria list...
-          const serializedCriteriaList: SearchCriteria[] = JSON.parse(
-            prefs.searchCriteriaList || '[]',
-          );
+          const serializedCriteriaList: SearchCriteria[] =
+            // BACKWARDS_COMPATIBILITY: searchCriteriaList used to be serialized to a string
+            typeof prefs.searchCriteriaList === 'string'
+              ? JSON.parse(prefs.searchCriteriaList ?? '[]')
+              : prefs.searchCriteriaList ?? [];
           const newCrits = serializedCriteriaList.map((c) =>
             ClientFileSearchCriteria.deserialize(c),
           );
           this.searchCriteriaList.push(...newCrits);
-          newCrits.forEach((crit) => crit.observe(this.debouncedStorePersistentPreferences));
 
           // and other content-related options. So it's just like you never closed Allusion!
           this.firstItem = prefs.firstItem;
@@ -894,18 +851,28 @@ class UiStore {
     }
   }
 
-  @action storePersistentPreferences() {
-    const prefs: any = {};
-    for (const field of PersistentPreferenceFields) {
-      prefs[field] = this[field];
-    }
-
-    // searchCriteriaList can't be observed; do it manually
-    prefs['searchCriteriaList'] = JSON.stringify(
-      this.searchCriteriaList.map((c) => c.serialize(this.rootStore)),
-    );
-
-    localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(prefs));
+  getPersistentPreferences(): Partial<Record<keyof UiStore, unknown>> {
+    const preferences: Record<PersistentPreferenceFields, unknown> = {
+      theme: this.theme,
+      isOutlinerOpen: this.isOutlinerOpen,
+      isInspectorOpen: this.isInspectorOpen,
+      thumbnailDirectory: this.thumbnailDirectory,
+      importDirectory: this.importDirectory,
+      method: this.method,
+      thumbnailSize: this.thumbnailSize,
+      thumbnailShape: this.thumbnailShape,
+      hotkeyMap: { ...this.hotkeyMap },
+      isThumbnailFilenameOverlayEnabled: this.isThumbnailFilenameOverlayEnabled,
+      isThumbnailTagOverlayEnabled: this.isThumbnailTagOverlayEnabled,
+      outlinerWidth: this.outlinerWidth,
+      inspectorWidth: this.inspectorWidth,
+      isRememberSearchEnabled: this.isRememberSearchEnabled,
+      isSlideMode: this.isSlideMode,
+      firstItem: this.firstItem,
+      searchMatchAny: this.searchMatchAny,
+      searchCriteriaList: this.searchCriteriaList.map((c) => c.serialize(this.rootStore)),
+    };
+    return preferences;
   }
 
   clearPersistentPreferences() {
