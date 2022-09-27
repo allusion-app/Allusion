@@ -17,11 +17,9 @@ type CustomThemeContextType = {
 
 const CustomThemeContext = React.createContext<CustomThemeContextType>({
   theme: '',
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   setTheme: () => {},
   themeDir: '',
   options: [],
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   refresh: () => {},
 });
 
