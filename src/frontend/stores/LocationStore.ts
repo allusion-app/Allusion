@@ -63,7 +63,7 @@ class LocationStore {
     }
 
     // Get dirs from backend
-    const dirs = await this.backend.fetchLocations('dateAdded', OrderDirection.Asc);
+    const dirs = await this.backend.fetchLocations();
 
     // backwards compatibility
     dirs.sort((a, b) =>

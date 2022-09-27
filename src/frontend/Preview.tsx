@@ -9,7 +9,6 @@ import { IconSet, Toggle } from 'widgets';
 import { ContextMenuLayer, Toolbar, ToolbarButton } from 'widgets/menus';
 
 import { useWorkerListener } from './image/ThumbnailGeneration';
-import SplashScreen from './containers/SplashScreen';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -35,10 +34,6 @@ const PreviewApp = observer(() => {
     setIsInitializing(true);
     setTimeout(() => setIsInitializing(false), 1000);
   }, [fileStore.fileListLastModified]);
-
-  if (!uiStore.isInitialized) {
-    return <SplashScreen />;
-  }
 
   return (
     <div

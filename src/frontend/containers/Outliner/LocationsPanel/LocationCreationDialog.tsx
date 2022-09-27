@@ -89,9 +89,6 @@ const Location = observer(({ nodeData }: { nodeData: ClientLocation; treeData: I
   );
 });
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const emptyFunction = () => {};
-
 const SubLocationInclusionTree = ({ location }: { location: ClientLocation }) => {
   const [expansion, setExpansion] = useState<IExpansionState>({ [location.id]: true });
   const treeData: ITreeData = useMemo<ITreeData>(
@@ -122,8 +119,6 @@ const SubLocationInclusionTree = ({ location }: { location: ClientLocation }) =>
       children={branches}
       treeData={treeData}
       toggleExpansion={toggleExpansion}
-      onBranchKeyDown={emptyFunction}
-      onLeafKeyDown={emptyFunction}
     />
   );
 };

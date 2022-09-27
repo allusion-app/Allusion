@@ -133,7 +133,7 @@ const Appearance = observer(() => {
 });
 
 const Zoom = () => {
-  const [localZoomFactor, setLocalZoomFactor] = useState(RendererMessenger.getZoomFactor());
+  const [localZoomFactor, setLocalZoomFactor] = useState(() => RendererMessenger.getZoomFactor());
 
   useEffect(() => {
     RendererMessenger.setZoomFactor(localZoomFactor);
@@ -508,7 +508,7 @@ const BackgroundProcesses = observer(() => {
     }
   };
 
-  const [isRunInBackground, setRunInBackground] = useState(
+  const [isRunInBackground, setRunInBackground] = useState(() =>
     RendererMessenger.isRunningInBackground(),
   );
   const toggleRunInBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -516,7 +516,9 @@ const BackgroundProcesses = observer(() => {
     RendererMessenger.setRunInBackground({ isRunInBackground: e.target.checked });
   };
 
-  const [isClipEnabled, setClipServerEnabled] = useState(RendererMessenger.isClipServerEnabled());
+  const [isClipEnabled, setClipServerEnabled] = useState(() =>
+    RendererMessenger.isClipServerEnabled(),
+  );
   const toggleClipServer = (e: React.ChangeEvent<HTMLInputElement>) => {
     setClipServerEnabled(e.target.checked);
     RendererMessenger.setClipServerEnabled({ isClipServerRunning: e.target.checked });
@@ -598,7 +600,7 @@ const Shortcuts = observer(() => {
 const StartUpBehavior = observer(() => {
   const { uiStore } = useStore();
 
-  const [isAutoUpdateEnabled, setAutoUpdateEnabled] = useState(
+  const [isAutoUpdateEnabled, setAutoUpdateEnabled] = useState(() =>
     RendererMessenger.isCheckUpdatesOnStartupEnabled(),
   );
 

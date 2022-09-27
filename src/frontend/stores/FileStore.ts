@@ -1,5 +1,5 @@
 import fse from 'fs-extra';
-import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
+import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 import { IDataStorage } from 'src/api/data-storage';
 import { ConditionDTO, OrderBy, OrderDirection } from 'src/api/data-storage-search';
 import { ClientFile, mergeMovedFile } from 'src/entities/File';
@@ -14,10 +14,10 @@ import { getThumbnailPath } from 'common/fs';
 import { promiseAllLimit } from 'common/promise';
 import RootStore from './RootStore';
 
-const FILE_STORAGE_KEY = 'Allusion_File';
+export const FILE_STORAGE_KEY = 'Allusion_File';
 
 /** These fields are stored and recovered when the application opens up */
-const PersistentPreferenceFields: Array<keyof FileStore> = ['orderDirection', 'orderBy'];
+type PersistentPreferenceFields = 'orderDirection' | 'orderBy';
 
 const enum Content {
   All,
@@ -57,11 +57,8 @@ class FileStore {
     this.rootStore = rootStore;
     makeObservable(this);
 
-    // Store preferences immediately when anything is changed
-    const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
     this.debouncedRefetch = debounce(this.refetch, 200).bind(this);
     this.debouncedSaveFilesToSave = debounce(this.saveFilesToSave, 100).bind(this);
-    PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
   }
 
   @action.bound async readTagsFromFiles() {
@@ -261,7 +258,6 @@ class FileStore {
       const { thumbnailDirectory } = this.rootStore.uiStore; // TODO: make a config store for this?
       const oldThumbnailPath = file.thumbnailPath.replace('?v=1', '');
       const newThumbPath = getThumbnailPath(newData.absolutePath, thumbnailDirectory);
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
       fse.move(oldThumbnailPath, newThumbPath).catch(() => {});
 
       const newClientFile = new ClientFile(this, newIFile);
@@ -504,7 +500,8 @@ class FileStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        this.setOrderDirection(prefs.orderDirection || prefs.fileOrder); // orderDirection used to be called fileOrder, needed for backwards compatibility
+        // BACKWARDS_COMPATIBILITY: orderDirection used to be called fileOrder
+        this.setOrderDirection(prefs.orderDirection ?? prefs.fileOrder);
         this.setOrderBy(prefs.orderBy);
       } catch (e) {
         console.error('Cannot parse persistent preferences:', FILE_STORAGE_KEY, e);
@@ -512,12 +509,12 @@ class FileStore {
     }
   }
 
-  @action storePersistentPreferences() {
-    const prefs: any = {};
-    for (const field of PersistentPreferenceFields) {
-      prefs[field] = this[field];
-    }
-    localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(prefs));
+  getPersistentPreferences(): Partial<Record<keyof FileStore, unknown>> {
+    const preferences: Record<PersistentPreferenceFields, unknown> = {
+      orderBy: this.orderBy,
+      orderDirection: this.orderDirection,
+    };
+    return preferences;
   }
 
   clearPersistentPreferences() {

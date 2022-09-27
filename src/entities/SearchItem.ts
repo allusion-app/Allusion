@@ -43,7 +43,7 @@ export class ClientFileSearchItem {
     this.index = newIndex;
   }
 
-  @action.bound serialize(rootStore: RootStore): FileSearchDTO {
+  serialize(rootStore: RootStore): FileSearchDTO {
     return {
       id: this.id,
       name: this.name,
