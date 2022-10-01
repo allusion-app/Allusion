@@ -1,20 +1,20 @@
+import { getThumbnailPath } from 'common/fs';
+import { promiseAllLimit } from 'common/promise';
+import fse from 'fs-extra';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
 import { IDataStorage } from 'src/api/data-storage';
 import { OrderDirection } from 'src/api/data-storage-search';
-import ExifIO from 'common/ExifIO';
-import { getMetaData, mergeMovedFile } from 'src/entities/File';
 import { FileDTO, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/file';
 import { generateId, ID } from 'src/api/id';
-import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { LocationDTO } from 'src/api/location';
+import { getMetaData, mergeMovedFile } from 'src/entities/File';
+import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/ipc/renderer';
-import { getThumbnailPath } from 'common/fs';
-import { promiseAllLimit } from 'common/promise';
+import ImageLoader from '../image/ImageLoader';
 import RootStore from './RootStore';
-import fse from 'fs-extra';
 
 const PREFERENCES_STORAGE_KEY = 'location-store-preferences';
 type Preferences = { extensions: IMG_EXTENSIONS_TYPE[] };
@@ -168,7 +168,7 @@ class LocationStore {
       // Find all files that have been created (those on disk but not in DB)
       const createdPaths = diskFiles.filter((f) => !dbFilesPathSet.has(f.absolutePath));
       const createdFiles = await Promise.all(
-        createdPaths.map((path) => pathToIFile(path, location, this.rootStore.exifTool)),
+        createdPaths.map((path) => pathToIFile(path, location, this.rootStore.imageLoader)),
       );
 
       // Find all files of this location that have been removed (those in DB but not on disk anymore)
@@ -281,7 +281,7 @@ class LocationStore {
           const newFile: FileDTO = {
             ...dbFile,
             // Recreate metadata which checks the resolution of the image
-            ...(await getMetaData(diskFile, this.rootStore.exifTool)),
+            ...(await getMetaData(diskFile, this.rootStore.imageLoader)),
             dateLastIndexed: new Date(),
           };
 
@@ -412,7 +412,7 @@ class LocationStore {
     // TODO: Should make N configurable, or determine based on the system/disk performance
     const N = 50;
     const files = await promiseAllLimit(
-      filePaths.map((path) => () => pathToIFile(path, location, this.rootStore.exifTool)),
+      filePaths.map((path) => () => pathToIFile(path, location, this.rootStore.imageLoader)),
       N,
       showProgressToaster,
       () => isCancelled,
@@ -459,7 +459,7 @@ class LocationStore {
     const fileStore = this.rootStore.fileStore;
 
     // Gather file data
-    const file = await pathToIFile(fileStats, location, this.rootStore.exifTool);
+    const file = await pathToIFile(fileStats, location, this.rootStore.imageLoader);
 
     // Check if file is being moved/renamed (which is detected as a "add" event followed by "remove" event)
     const match = runInAction(() => fileStore.fileList.find((f) => f.ino === fileStats.ino));
@@ -550,7 +550,7 @@ export type FileStats = {
 export async function pathToIFile(
   stats: FileStats,
   loc: ClientLocation,
-  exifIO: ExifIO,
+  imageLoader: ImageLoader,
 ): Promise<FileDTO> {
   const now = new Date();
   return {
@@ -563,7 +563,7 @@ export async function pathToIFile(
     dateAdded: now,
     dateModified: now,
     dateLastIndexed: now,
-    ...(await getMetaData(stats, exifIO)),
+    ...(await getMetaData(stats, imageLoader)),
   };
 }
 

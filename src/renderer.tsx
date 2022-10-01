@@ -2,26 +2,27 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
+import { IS_DEV } from 'common/process';
+import { promiseRetry } from 'common/timeout';
+import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
+import { autorun, reaction, runInAction } from 'mobx';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { autorun, reaction, runInAction } from 'mobx';
-import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
-import { promiseRetry } from 'common/timeout';
+import { RendererMessenger } from 'src/ipc/renderer';
 import Backend from './backend/backend';
 import App from './frontend/App';
-import Overlay from './frontend/Overlay';
-import PreviewApp from './frontend/Preview';
 import SplashScreen from './frontend/containers/SplashScreen';
 import StoreProvider from './frontend/contexts/StoreContext';
-import RootStore from './frontend/stores/RootStore';
+import Overlay from './frontend/Overlay';
+import PreviewApp from './frontend/Preview';
 import { FILE_STORAGE_KEY } from './frontend/stores/FileStore';
+import RootStore from './frontend/stores/RootStore';
 import { PREFERENCES_STORAGE_KEY } from './frontend/stores/UiStore';
-import { RendererMessenger } from 'src/ipc/renderer';
 // Import the styles here to let Webpack know to include them
 // in the HTML file
 import './style.scss';
 
-(async function main(): Promise<void> {
+async function main(): Promise<void> {
   const container = document.getElementById('app');
 
   if (container === null) {
@@ -109,7 +110,7 @@ import './style.scss';
       throw new Error('Could not find image to set tags for ' + filePath);
     }
   }
-})();
+}
 
 async function setupMainApp(backend: Backend): Promise<[RootStore, () => JSX.Element]> {
   const [rootStore] = await Promise.all([RootStore.main(backend), backend.setupBackup()]);
@@ -203,3 +204,15 @@ async function setupPreviewApp(backend: Backend): Promise<[RootStore, () => JSX.
   });
   return [rootStore, PreviewApp];
 }
+
+main()
+  .then(() => console.info('Successfully initialized Allusion!'))
+  .catch((err) => {
+    console.error('Could not initialize Allusion!', err);
+    window.alert('An error has occurred, check the console for more details');
+
+    // In dev mode, the console is already automatically opened: only open in non-dev mode here
+    if (!IS_DEV) {
+      RendererMessenger.toggleDevTools();
+    }
+  });

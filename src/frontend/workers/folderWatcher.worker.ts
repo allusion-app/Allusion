@@ -27,7 +27,7 @@ export class FolderWatcherWorker {
   async watch(directory: string, extensions: IMG_EXTENSIONS_TYPE[]) {
     this.isCancelled = false;
 
-    // Replace backslash with forward slash, recommendeded by chokidar
+    // Replace backslash with forward slash, recommended by chokidar
     // See docs for the .watch method: https://github.com/paulmillr/chokidar#api
     directory = directory.replace(/\\/g, '/');
 
