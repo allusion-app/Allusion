@@ -103,6 +103,13 @@ const Appearance = observer(() => {
             onChange={uiStore.toggleThumbnailFilenameOverlay}
           />
         </fieldset>
+        <fieldset>
+          <legend>Show resolution on thumbnail</legend>
+          <Toggle
+            checked={uiStore.isThumbnailResolutionOverlayEnabled}
+            onChange={uiStore.toggleThumbnailResolutionOverlay}
+          />
+        </fieldset>
       </div>
 
       <br />

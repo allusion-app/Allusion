@@ -58,6 +58,12 @@ export const KeySelector = forwardRef(function KeySelector(
       <option key="size" value="size">
         File Size (MB)
       </option>
+      <option key="width" value="width">
+        Width
+      </option>
+      <option key="height" value="height">
+        Height
+      </option>
       <option key="dateAdded" value="dateAdded">
         Date Added
       </option>
@@ -100,8 +106,8 @@ export const ValueInput = ({ labelledby, keyValue, value, dispatch }: FieldInput
     return <TagInput labelledby={labelledby} value={value as TagValue} dispatch={dispatch} />;
   } else if (keyValue === 'extension') {
     return <ExtensionInput labelledby={labelledby} value={value as string} dispatch={dispatch} />;
-  } else if (keyValue === 'size') {
-    return <SizeInput labelledby={labelledby} value={value as number} dispatch={dispatch} />;
+  } else if (['size', 'width', 'height'].includes(keyValue)) {
+    return <NumberInput labelledby={labelledby} value={value as number} dispatch={dispatch} />;
   } else if (keyValue === 'dateAdded') {
     return <DateAddedInput labelledby={labelledby} value={value as Date} dispatch={dispatch} />;
   }
@@ -250,7 +256,7 @@ const ExtensionInput = ({ labelledby, value, dispatch }: ValueInput<string>) => 
   </select>
 );
 
-const SizeInput = ({ value, labelledby, dispatch }: ValueInput<number>) => {
+const NumberInput = ({ value, labelledby, dispatch }: ValueInput<number>) => {
   return (
     <input
       aria-labelledby={labelledby}
@@ -286,7 +292,7 @@ const DateAddedInput = ({ value, labelledby, dispatch }: ValueInput<Date>) => {
 };
 
 function getOperatorOptions(key: Key) {
-  if (key === 'dateAdded' || key === 'size') {
+  if (['dateAdded', 'size', 'width', 'height'].includes(key)) {
     return NumberOperators.map((op) => toOperatorOption(op, NumberOperatorSymbols));
   } else if (key === 'extension') {
     return BinaryOperators.map((op) => toOperatorOption(op));

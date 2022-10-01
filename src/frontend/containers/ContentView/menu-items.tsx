@@ -2,12 +2,20 @@ import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { ClientFile } from 'src/entities/File';
+import {
+  ClientDateSearchCriteria,
+  ClientFileSearchCriteria,
+  ClientNumberSearchCriteria,
+  ClientStringSearchCriteria,
+  ClientTagSearchCriteria,
+} from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet } from 'widgets';
-import { MenuItem } from 'widgets/menus';
+import { MenuItem, MenuSubItem } from 'widgets/menus';
 import { LocationTreeItemRevealer } from '../Outliner/LocationsPanel';
 import { TagsTreeItemRevealer } from '../Outliner/TagsPanel/TagsTree';
+import SysPath from 'path';
 
 export const MissingFileMenuItems = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -25,7 +33,7 @@ export const MissingFileMenuItems = observer(() => {
 });
 
 export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
-  const { uiStore } = useStore();
+  const { uiStore, locationStore } = useStore();
 
   const handleViewFullSize = () => {
     uiStore.selectFile(file, true);
@@ -38,6 +46,18 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
     uiStore.openPreviewWindow();
   };
 
+  const handleSearchSimilar = (
+    e: React.MouseEvent,
+    crit: ClientFileSearchCriteria | ClientFileSearchCriteria[],
+  ) => {
+    const crits = Array.isArray(crit) ? crit : [crit];
+    if (e.ctrlKey) {
+      uiStore.addSearchCriterias(crits);
+    } else {
+      uiStore.replaceSearchCriterias(crits);
+    }
+  };
+
   return (
     <>
       <MenuItem onClick={handleViewFullSize} text="View at Full Size" icon={IconSet.SEARCH} />
@@ -46,13 +66,96 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
         text="Open In Preview Window"
         icon={IconSet.PREVIEW}
       />
-      {/* Request: "Open path in Location hierarchy" */}
-      {/* IDEA: "View similar images" > ["Same tags", "Same directory", ("Same size/resolution/colors?)")] */}
       <MenuItem
         onClick={uiStore.openToolbarTagPopover}
         text="Open Tag Selector"
         icon={IconSet.TAG}
       />
+      <MenuSubItem text="Search Similar Images..." icon={IconSet.MORE}>
+        <MenuItem
+          onClick={(e) =>
+            handleSearchSimilar(
+              e,
+              file.tags.toJSON().map((t) => new ClientTagSearchCriteria('tags', t.id, 'contains')),
+            )
+          }
+          text="Same Tags"
+          icon={IconSet.TAG}
+        />
+        <MenuItem
+          onClick={(e) =>
+            handleSearchSimilar(
+              e,
+              new ClientStringSearchCriteria(
+                'absolutePath',
+                SysPath.dirname(file.absolutePath) + SysPath.sep,
+                'startsWith',
+              ),
+            )
+          }
+          text="Same Directory"
+          icon={IconSet.FOLDER_CLOSE}
+        />
+        <MenuItem
+          onClick={(e) =>
+            handleSearchSimilar(
+              e,
+              new ClientStringSearchCriteria(
+                'absolutePath',
+                locationStore.get(file.locationId)!.path + SysPath.sep,
+                'startsWith',
+              ),
+            )
+          }
+          text="Same Location"
+        />
+        <MenuItem
+          onClick={(e) =>
+            handleSearchSimilar(
+              e,
+              new ClientStringSearchCriteria('extension', file.extension, 'equals'),
+            )
+          }
+          text="Same File Type"
+          icon={IconSet.FILTER_FILE_TYPE}
+        />
+        <MenuItem
+          onClick={(e) =>
+            handleSearchSimilar(e, [
+              new ClientNumberSearchCriteria('width', file.width, 'equals'),
+              new ClientNumberSearchCriteria('height', file.height, 'equals'),
+            ])
+          }
+          text="Same Resolution"
+          icon={IconSet.ARROW_RIGHT}
+        />
+        <MenuItem
+          onClick={(e) =>
+            handleSearchSimilar(e, new ClientNumberSearchCriteria('size', file.size, 'equals'))
+          }
+          text="Same File Size"
+          icon={IconSet.FILTER_FILTER_DOWN}
+        />
+        <MenuItem
+          onClick={(e) =>
+            handleSearchSimilar(
+              e,
+              new ClientDateSearchCriteria('dateCreated', file.dateCreated, 'equals'),
+            )
+          }
+          text="Same Creation Date"
+          icon={IconSet.FILTER_DATE}
+        />
+        <MenuItem
+          onClick={(e) =>
+            handleSearchSimilar(
+              e,
+              new ClientDateSearchCriteria('dateModified', file.dateModified, 'equals'),
+            )
+          }
+          text="Same Modification Date"
+        />
+      </MenuSubItem>
     </>
   );
 };

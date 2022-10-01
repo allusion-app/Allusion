@@ -100,7 +100,9 @@ const Content = observer(() => {
       id="gallery-content"
       className={isMaximized ? '' : 'unmaximized'}
       tabIndex={-1}
-      data-show-filename={uiStore.isThumbnailFilenameOverlayEnabled}
+      data-show-overlay={
+        uiStore.isThumbnailFilenameOverlayEnabled || uiStore.isThumbnailResolutionOverlayEnabled
+      }
       data-selected-file-dropping={isDroppingTagOnSelection}
       onContextMenu={handleContextMenu}
       // Clear selection when clicking on the background, unless in slide mode: always needs an active image
