@@ -869,6 +869,7 @@ class UiStore {
       hotkeyMap: { ...this.hotkeyMap },
       isThumbnailFilenameOverlayEnabled: this.isThumbnailFilenameOverlayEnabled,
       isThumbnailTagOverlayEnabled: this.isThumbnailTagOverlayEnabled,
+      isThumbnailResolutionOverlayEnabled: this.isThumbnailResolutionOverlayEnabled,
       outlinerWidth: this.outlinerWidth,
       inspectorWidth: this.inspectorWidth,
       isRememberSearchEnabled: this.isRememberSearchEnabled,
