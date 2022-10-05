@@ -17,7 +17,7 @@ interface ITreeData {
 }
 
 const isExpanded = (nodeData: ClientLocation | ClientSubLocation, treeData: ITreeData) =>
-  treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.path];
+  !!treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.path];
 
 const toggleExpansion = (nodeData: ClientLocation | ClientSubLocation, treeData: ITreeData) => {
   const { expansion, setExpansion } = treeData;

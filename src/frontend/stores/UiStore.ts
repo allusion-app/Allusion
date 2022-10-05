@@ -23,7 +23,7 @@ type ThumbnailShape = 'square' | 'letterbox';
 export const PREFERENCES_STORAGE_KEY = 'preferences';
 
 export interface IHotkeyMap {
-  // Outerliner actions
+  // Outliner actions
   toggleOutliner: string;
   replaceQuery: string;
 

@@ -90,7 +90,7 @@ const toggleExpansion = (nodeData: ClientLocation | ClientSubLocation, treeData:
 };
 
 const isExpanded = (nodeData: ClientLocation | ClientSubLocation, treeData: ITreeData) =>
-  treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.path];
+  !!treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.path];
 
 /** Add an additional / or \ in order to enforce files only in the specific directory are found, not in those starting with same name */
 const pathAsSearchPath = (path: string) => `${path}${SysPath.sep}`;

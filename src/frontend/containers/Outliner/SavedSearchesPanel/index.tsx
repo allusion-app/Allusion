@@ -44,7 +44,7 @@ const toggleExpansion = (nodeData: ClientFileSearchItem, treeData: ITreeData) =>
 };
 
 const isExpanded = (nodeData: ClientFileSearchItem, treeData: ITreeData) =>
-  treeData.expansion[nodeData.id];
+  !!treeData.expansion[nodeData.id];
 
 const customKeys = (
   search: (crits: ClientFileSearchCriteria[], searchMatchAny: boolean) => void,

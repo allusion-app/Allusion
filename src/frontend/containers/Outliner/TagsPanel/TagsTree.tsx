@@ -356,7 +356,7 @@ const TagItemLabel: TreeLabel = ({
 const isSelected = (nodeData: ClientTag): boolean => nodeData.isSelected;
 
 const isExpanded = (nodeData: ClientTag, treeData: ITreeData): boolean =>
-  treeData.state.expansion[nodeData.id];
+  !!treeData.state.expansion[nodeData.id];
 
 const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
   treeData.dispatch(Factory.toggleNode(nodeData.id));
