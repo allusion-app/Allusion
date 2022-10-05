@@ -1,13 +1,13 @@
+import { camelCaseToSpaced } from 'common/fmt';
 import { action } from 'mobx';
 import React, { ForwardedRef, forwardRef, useState } from 'react';
+import { NumberOperators, StringOperators } from 'src/api/data-storage-search';
 import { IMG_EXTENSIONS } from 'src/api/file';
-import { NumberOperators, StringOperatorType } from 'src/api/data-storage-search';
 import { BinaryOperators, TagOperators } from 'src/api/search-criteria';
 import { NumberOperatorSymbols, StringOperatorLabels } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { camelCaseToSpaced } from 'common/fmt';
 import { Criteria, defaultQuery, Key, Operator, TagValue, Value } from './data';
 
 type SetCriteria = (fn: (criteria: Criteria) => Criteria) => void;
@@ -297,17 +297,7 @@ function getOperatorOptions(key: Key) {
   } else if (key === 'extension') {
     return BinaryOperators.map((op) => toOperatorOption(op));
   } else if (key === 'name' || key === 'absolutePath') {
-    // For performance reasons, we added some extra non-ignoreCase options,
-    // but these aren't really needed by the user, so hide them to avoid clutter:
-    const shownStringOperators: StringOperatorType[] = [
-      'equalsIgnoreCase',
-      'notEqual',
-      'contains',
-      'notContains',
-      'startsWithIgnoreCase',
-      'notStartsWith',
-    ];
-    return shownStringOperators.map((op) => toOperatorOption(op, StringOperatorLabels));
+    return StringOperators.map((op) => toOperatorOption(op, StringOperatorLabels));
   } else if (key === 'tags') {
     return TagOperators.map((op) => toOperatorOption(op));
   }

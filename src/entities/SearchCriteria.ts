@@ -41,11 +41,11 @@ export const NumberOperatorSymbols: Record<NumberOperatorType, string> = {
 };
 
 export const StringOperatorLabels: Record<StringOperatorType, string> = {
-  equalsIgnoreCase: 'Equals',
-  equals: 'Equals', // not available as dropdown option to user to avoid clutter
+  equals: 'Equals',
+  equalsIgnoreCase: 'Equals (case insensitive)',
   notEqual: 'Not Equal',
-  startsWithIgnoreCase: 'Starts With',
-  startsWith: 'Starts With', // not available as dropdown option to user to avoid clutter
+  startsWith: 'Starts With',
+  startsWithIgnoreCase: 'Starts With (case insensitive)',
   notStartsWith: 'Not Starts With',
   contains: 'Contains',
   notContains: 'Not Contains',
