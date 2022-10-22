@@ -6,8 +6,8 @@ class ExrLoader implements Loader {
     await init(new URL('wasm/packages/exr/exr_decoder_bg.wasm', import.meta.url));
   }
 
-  decode(buffer: Buffer): ImageData {
-    return decode(buffer);
+  decode(buffer: Buffer): Promise<ImageData> {
+    return Promise.resolve(decode(buffer));
   }
 }
 

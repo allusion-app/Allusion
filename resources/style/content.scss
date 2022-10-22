@@ -462,7 +462,7 @@
       height: inherit;
     }
 
-    // Note: this feature has an ugly exception, when filename is also shown. See the #gallery-item[data-show-filename] rule below
+    // Note: this feature has an ugly exception, when filename is also shown. See the #gallery-item[data-show-overlay] rule below
     &:hover .thumbnail-tags {
       max-height: 100%;
       overflow-y: overlay; // overlay scrollbar so it doesn't push tags away
@@ -496,8 +496,11 @@
       }
     }
 
-    .thumbnail-filename {
-      display: block;
+    .thumbnail-overlay {
+      display: flex;
+      justify-content: space-between;
+      column-gap: 0.25em;
+
       background-color: rgba(0, 0, 0, 0.5);
       color: rgb(
         200,
@@ -510,18 +513,33 @@
       bottom: 0;
       padding: 0.25rem;
 
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-
       opacity: 0.75;
       transition: opacity 0.25s $pt-transition-cubic2, background-color 0.25s $pt-transition-cubic2;
+
+      // Resolution is always visible if enabled by truncating the filename
+      > :first-child {
+        white-space: nowrap;
+        overflow: hidden visible;
+        text-overflow: ellipsis;
+        
+        // Only here to avoid vertical scrollbar due to overflow-x: hidden
+        // It won't take up more than 1 line due to no-wrap
+        height: 2em; 
+      }
     }
 
     &:hover {
-      .thumbnail-filename {
+      .thumbnail-overlay {
         opacity: 1;
         background-color: rgba(0, 0, 0, 0.75);
+
+        &:hover {
+          // Expand filename on hover if it was truncated
+          > :first-child {
+            overflow: inherit;
+            text-overflow: inherit;
+          }
+        }
       }
     }
   }
@@ -535,7 +553,7 @@
 
 // Exception when both showing filename and tags in thumbnail overlay:
 // move the tags up by the height of the filename element (23.59px)
-#gallery-content[data-show-filename='true'] .masonry {
+#gallery-content[data-show-overlay='true'] .masonry {
   [data-masonrycell] {
     &:hover .thumbnail-tags {
       max-height: calc(100% - 1.5em - 0.25rem);

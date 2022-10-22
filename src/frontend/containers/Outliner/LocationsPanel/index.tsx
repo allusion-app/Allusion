@@ -3,7 +3,6 @@ import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { IFile } from 'src/entities/File';
 import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
 import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
 import { LocationRemoval, SubLocationExclusion } from 'src/frontend/components/RemovalAlert';
@@ -13,8 +12,8 @@ import { useStore } from 'src/frontend/contexts/StoreContext';
 import { DnDLocationType, useLocationDnD } from 'src/frontend/contexts/TagDnDContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
 import LocationStore from 'src/frontend/stores/LocationStore';
-import { triggerContextMenuEvent, emptyFunction } from '../utils';
-import { RendererMessenger } from 'src/Messaging';
+import { triggerContextMenuEvent } from '../utils';
+import { RendererMessenger } from 'src/ipc/renderer';
 import { IconSet, Tree } from 'widgets';
 import { Menu, MenuDivider, MenuItem, Toolbar, ToolbarButton, useContextMenu } from 'widgets/menus';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
@@ -91,13 +90,13 @@ const toggleExpansion = (nodeData: ClientLocation | ClientSubLocation, treeData:
 };
 
 const isExpanded = (nodeData: ClientLocation | ClientSubLocation, treeData: ITreeData) =>
-  treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.path];
+  !!treeData.expansion[nodeData instanceof ClientLocation ? nodeData.id : nodeData.path];
 
 /** Add an additional / or \ in order to enforce files only in the specific directory are found, not in those starting with same name */
 const pathAsSearchPath = (path: string) => `${path}${SysPath.sep}`;
 
 const pathCriteria = (path: string) =>
-  new ClientStringSearchCriteria<IFile>('absolutePath', pathAsSearchPath(path), 'startsWith');
+  new ClientStringSearchCriteria('absolutePath', pathAsSearchPath(path), 'startsWith');
 
 const customKeys = (
   search: (path: string) => void,
@@ -462,7 +461,7 @@ const LocationsTree = ({ onDelete, onExclude }: ILocationTreeProps) => {
         nodeData,
         treeData,
         isExpanded,
-        emptyFunction,
+        () => {},
         toggleExpansion,
         customKeys.bind(null, (path: string) => uiStore.replaceSearchCriteria(pathCriteria(path))),
       ),
@@ -495,7 +494,6 @@ const LocationsTree = ({ onDelete, onExclude }: ILocationTreeProps) => {
       treeData={treeData}
       toggleExpansion={toggleExpansion}
       onBranchKeyDown={handleBranchKeyDown}
-      onLeafKeyDown={emptyFunction}
     />
   );
 };

@@ -1,7 +1,7 @@
 import { action, makeObservable, observable } from 'mobx';
-import Backend from 'src/backend/Backend';
-import { generateId, ID } from 'src/entities/ID';
-import { ClientBaseCriteria } from 'src/entities/SearchCriteria';
+import { IDataStorage } from 'src/api/data-storage';
+import { generateId, ID } from 'src/api/id';
+import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import RootStore from './RootStore';
 
@@ -9,13 +9,13 @@ import RootStore from './RootStore';
  * Based on https://mobx.js.org/best/store.html
  */
 class SearchStore {
-  private readonly backend: Backend;
+  private readonly backend: IDataStorage;
   private readonly rootStore: RootStore;
 
   /** A lookup map to speedup finding entities */
   readonly searchList = observable<ClientFileSearchItem>([]);
 
-  constructor(backend: Backend, rootStore: RootStore) {
+  constructor(backend: IDataStorage, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
 
@@ -51,7 +51,7 @@ class SearchStore {
   @action.bound async remove(search: ClientFileSearchItem) {
     // Do we need to dispose anything? There is no save handler, observable properties should be disposed automatically I believe
     this.searchList.remove(search);
-    await this.backend.removeSearch(search.serialize(this.rootStore));
+    await this.backend.removeSearch(search.id);
   }
 
   @action.bound async duplicate(search: ClientFileSearchItem) {
@@ -72,7 +72,7 @@ class SearchStore {
     search.setMatchAny(this.rootStore.uiStore.searchMatchAny);
     search.setCriteria(
       this.rootStore.uiStore.searchCriteriaList.map((c) =>
-        ClientBaseCriteria.deserialize(c.serialize(this.rootStore)),
+        ClientFileSearchCriteria.deserialize(c.serialize(this.rootStore)),
       ),
     );
   }

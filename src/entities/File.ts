@@ -7,34 +7,12 @@ import {
   reaction,
 } from 'mobx';
 import Path from 'path';
-import ExifIO from 'common/ExifIO';
+import ImageLoader from 'src/frontend/image/ImageLoader';
 import FileStore from 'src/frontend/stores/FileStore';
 import { FileStats } from 'src/frontend/stores/LocationStore';
-import { ID, IResource, ISerializable } from './ID';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from '../api/file';
+import { ID } from '../api/id';
 import { ClientTag } from './Tag';
-
-export const IMG_EXTENSIONS = [
-  'gif',
-  'png',
-  'apng', // animated png
-  'jpg',
-  'jpeg',
-  'jfif',
-  'webp',
-  'tif',
-  'tiff',
-  'bmp',
-  'svg',
-  'psd', // Photoshop
-  'kra', // Krita
-  // 'xcf', // Gimp
-  'exr', // OpenEXR
-  // 'raw', there are many RAW file extensions :( https://fileinfo.com/filetypes/camera_raw
-  // 'avif',
-  // 'heic', // not supported by Sharp out of the box https://github.com/lovell/sharp/issues/2871
-  // TODO: 'blend', raw, etc.?
-] as const;
-export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
 
 /** Retrieved file meta data information */
 interface IMetaData {
@@ -50,32 +28,12 @@ interface IMetaData {
   dateCreated: Date;
 }
 
-/* A File as it is represented in the Database */
-export interface IFile extends IMetaData, IResource {
-  /** Identifier for a file that persists after renaming/moving (retrieved from fs.Stats.ino) */
-  ino: string;
-  locationId: ID;
-  /** Path relative to Location */
-  relativePath: string;
-  absolutePath: string;
-  tags: ID[];
-  /** When the file was imported into Allusion */
-  dateAdded: Date;
-  /** When the file was modified in Allusion, not related to OS modified date */
-  dateModified: Date;
-  /**
-   * When the file was last indexed in Allusion: concerning the metadata and thumbnail.
-   * If the system's modified date of the file exceeds this date, those properties should be re-initialized
-   **/
-  dateLastIndexed: Date;
-}
-
 /**
  * A File as it is stored in the Client.
  * It is stored in a MobX store, which can observe changed made to it and subsequently
  * update the entity in the backend.
  */
-export class ClientFile implements ISerializable<IFile> {
+export class ClientFile {
   private store: FileStore;
   private saveHandler: IReactionDisposer;
   private autoSave: boolean = true;
@@ -103,7 +61,7 @@ export class ClientFile implements ISerializable<IFile> {
   // Is undefined until existence check has been completed
   @observable isBroken?: boolean;
 
-  constructor(store: FileStore, fileProps: IFile) {
+  constructor(store: FileStore, fileProps: FileDTO) {
     this.store = store;
 
     this.ino = fileProps.ino;
@@ -189,7 +147,7 @@ export class ClientFile implements ISerializable<IFile> {
     this.tags.replace(tags);
   }
 
-  serialize(): IFile {
+  serialize(): FileDTO {
     return {
       id: this.id,
       ino: this.ino,
@@ -221,9 +179,9 @@ export function getExtension(filepath: string): IMG_EXTENSIONS_TYPE {
 }
 
 /** Should be called when after constructing a file before sending it to the backend. */
-export async function getMetaData(stats: FileStats, exifIO: ExifIO): Promise<IMetaData> {
+export async function getMetaData(stats: FileStats, imageLoader: ImageLoader): Promise<IMetaData> {
   const path = stats.absolutePath;
-  const dimensions = await exifIO.getDimensions(path);
+  const dimensions = await imageLoader.getImageResolution(stats.absolutePath);
 
   return {
     name: Path.basename(path),
@@ -236,7 +194,7 @@ export async function getMetaData(stats: FileStats, exifIO: ExifIO): Promise<IMe
 }
 
 /** Merges an existing IFile file with a newly detected IFile: only the paths of the oldFile will be updated  */
-export function mergeMovedFile(oldFile: IFile, newFile: IFile): IFile {
+export function mergeMovedFile(oldFile: FileDTO, newFile: FileDTO): FileDTO {
   return {
     ...oldFile,
     ino: newFile.ino,

@@ -2,7 +2,7 @@ import fse from 'fs-extra';
 import path from 'path';
 import { debounce } from 'common/timeout';
 
-import Backend from './Backend';
+import Backend from './backend';
 import { NUM_AUTO_BACKUPS, AUTO_BACKUP_TIMEOUT } from './config';
 
 /** Returns the date at 00:00 today */
@@ -74,7 +74,7 @@ export default class BackupScheduler {
     this.lastBackupIndex = (this.lastBackupIndex + 1) % NUM_AUTO_BACKUPS;
 
     try {
-      await this.backend.backupDatabaseToFile(filePath);
+      await this.backend.backupToFile(filePath);
       console.log('Created automatic backup', filePath);
 
       // Check for daily backup

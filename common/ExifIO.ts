@@ -42,7 +42,6 @@
 // finds:
 // - automatically update Subject/Keywords when updating HierarchicalSubject: https://exiftool.org/forum/index.php?topic=9208.0
 // Update: only doing an export/import for all images for now, not real-time updates
-import { Awaited } from './core';
 import fse from 'fs-extra';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import exiftool from 'node-exiftool';
@@ -305,6 +304,11 @@ class ExifIO {
   //   }
   // }
 
+  /**
+   * Extracts the width and height resolution of an image file from its exif data.
+   * @param filepath The file to read the resolution from
+   * @returns The width and height of the image, or width and height as 0 if the resolution could not be determined.
+   */
   async getDimensions(filepath: string): Promise<{ width: number; height: number }> {
     let metadata: Awaited<ReturnType<typeof ep.readMetadata>> | undefined = undefined;
     try {

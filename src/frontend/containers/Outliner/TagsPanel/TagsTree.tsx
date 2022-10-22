@@ -3,7 +3,8 @@ import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientTag, ROOT_TAG_ID } from 'src/entities/Tag';
+import { ClientTag } from 'src/entities/Tag';
+import { ROOT_TAG_ID } from 'src/api/tag';
 import { TagRemoval } from 'src/frontend/components/RemovalAlert';
 import { TagMerge } from 'src/frontend/containers/Outliner/TagsPanel/TagMerge';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -106,7 +107,7 @@ const toggleQuery = (nodeData: ClientTag, uiStore: UiStore) => {
   if (nodeData.isSearched) {
     // if it already exists, then remove it
     const alreadySearchedCrit = uiStore.searchCriteriaList.find((c) =>
-      (c as ClientTagSearchCriteria<any>).value?.includes(nodeData.id),
+      (c as ClientTagSearchCriteria).value?.includes(nodeData.id),
     );
     if (alreadySearchedCrit) {
       uiStore.replaceSearchCriterias(
@@ -127,7 +128,7 @@ const TagItem = observer((props: ITagItemProps) => {
 
   const show = useContextMenu();
   const handleContextMenu = useCallback(
-    (e) =>
+    (e: React.MouseEvent) =>
       show(
         e.clientX,
         e.clientY,
@@ -355,7 +356,7 @@ const TagItemLabel: TreeLabel = ({
 const isSelected = (nodeData: ClientTag): boolean => nodeData.isSelected;
 
 const isExpanded = (nodeData: ClientTag, treeData: ITreeData): boolean =>
-  treeData.state.expansion[nodeData.id];
+  !!treeData.state.expansion[nodeData.id];
 
 const toggleExpansion = (nodeData: ClientTag, treeData: ITreeData) =>
   treeData.dispatch(Factory.toggleNode(nodeData.id));

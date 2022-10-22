@@ -1,15 +1,12 @@
 import fse from 'fs-extra';
-import { action, computed, makeObservable, observable, observe, runInAction } from 'mobx';
-import Backend from 'src/backend/Backend';
-import { SearchOrder, OrderDirection } from 'src/backend/DBRepository';
-import { ClientFile, IFile, IMG_EXTENSIONS_TYPE, mergeMovedFile } from 'src/entities/File';
-import { ID } from 'src/entities/ID';
+import { action, computed, makeObservable, observable, runInAction } from 'mobx';
+import { IDataStorage } from 'src/api/data-storage';
+import { ConditionDTO, OrderBy, OrderDirection } from 'src/api/data-storage-search';
+import { ClientFile, mergeMovedFile } from 'src/entities/File';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/file';
+import { ID } from 'src/api/id';
 import { ClientLocation } from 'src/entities/Location';
-import {
-  ClientStringSearchCriteria,
-  ClientTagSearchCriteria,
-  SearchCriteria,
-} from 'src/entities/SearchCriteria';
+import { ClientStringSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { AppToaster } from '../components/Toaster';
 import { debounce } from 'common/timeout';
@@ -17,12 +14,10 @@ import { getThumbnailPath } from 'common/fs';
 import { promiseAllLimit } from 'common/promise';
 import RootStore from './RootStore';
 
-const FILE_STORAGE_KEY = 'Allusion_File';
+export const FILE_STORAGE_KEY = 'Allusion_File';
 
 /** These fields are stored and recovered when the application opens up */
-const PersistentPreferenceFields: Array<keyof FileStore> = ['orderDirection', 'orderBy'];
-
-export type FileOrder = SearchOrder<IFile>;
+type PersistentPreferenceFields = 'orderDirection' | 'orderBy';
 
 const enum Content {
   All,
@@ -32,7 +27,7 @@ const enum Content {
 }
 
 class FileStore {
-  private readonly backend: Backend;
+  private readonly backend: IDataStorage;
   private readonly rootStore: RootStore;
 
   readonly fileList = observable<ClientFile>([]);
@@ -44,12 +39,12 @@ class FileStore {
   /** A map of file ID to its index in the file list, for quick lookups by ID */
   private readonly index = new Map<ID, number>();
 
-  private filesToSave: Map<ID, IFile> = new Map();
+  private filesToSave: Map<ID, FileDTO> = new Map();
 
   /** The origin of the current files that are shown */
   @observable private content: Content = Content.All;
   @observable orderDirection: OrderDirection = OrderDirection.Desc;
-  @observable orderBy: FileOrder = 'dateAdded';
+  @observable orderBy: OrderBy<FileDTO> = 'dateAdded';
   @observable numTotalFiles = 0;
   @observable numUntaggedFiles = 0;
   @observable numMissingFiles = 0;
@@ -57,16 +52,13 @@ class FileStore {
   debouncedRefetch: () => void;
   debouncedSaveFilesToSave: () => Promise<void>;
 
-  constructor(backend: Backend, rootStore: RootStore) {
+  constructor(backend: IDataStorage, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
     makeObservable(this);
 
-    // Store preferences immediately when anything is changed
-    const debouncedPersist = debounce(this.storePersistentPreferences, 200).bind(this);
     this.debouncedRefetch = debounce(this.refetch, 200).bind(this);
     this.debouncedSaveFilesToSave = debounce(this.saveFilesToSave, 100).bind(this);
-    PersistentPreferenceFields.forEach((f) => observe(this, f, debouncedPersist));
   }
 
   @action.bound async readTagsFromFiles() {
@@ -211,7 +203,7 @@ class FileStore {
     this.refetch();
   }
 
-  @action.bound orderFilesBy(prop: FileOrder = 'dateAdded') {
+  @action.bound orderFilesBy(prop: OrderBy<FileDTO> = 'dateAdded') {
     this.setOrderBy(prop);
     this.refetch();
   }
@@ -255,7 +247,7 @@ class FileStore {
   }
 
   /** Replaces a file's data when it is moved or renamed */
-  @action.bound replaceMovedFile(file: ClientFile, newData: IFile) {
+  @action.bound replaceMovedFile(file: ClientFile, newData: FileDTO) {
     const index = this.index.get(file.id);
     if (index !== undefined) {
       file.dispose();
@@ -266,7 +258,6 @@ class FileStore {
       const { thumbnailDirectory } = this.rootStore.uiStore; // TODO: make a config store for this?
       const oldThumbnailPath = file.thumbnailPath.replace('?v=1', '');
       const newThumbPath = getThumbnailPath(newData.absolutePath, thumbnailDirectory);
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
       fse.move(oldThumbnailPath, newThumbPath).catch(() => {});
 
       const newClientFile = new ClientFile(this, newIFile);
@@ -303,7 +294,7 @@ class FileStore {
   @action async deleteFilesByExtension(ext: IMG_EXTENSIONS_TYPE): Promise<void> {
     try {
       const crit = new ClientStringSearchCriteria('extension', ext, 'equals');
-      const files = await this.backend.searchFiles(crit.serialize(), 'id', OrderDirection.Asc);
+      const files = await this.backend.searchFiles(crit.toCondition(), 'id', OrderDirection.Asc);
       console.log('Files to delete', ext, files);
       await this.backend.removeFiles(files.map((f) => f.id));
 
@@ -345,7 +336,7 @@ class FileStore {
       const criteria = new ClientTagSearchCriteria('tags');
       uiStore.searchCriteriaList.push(criteria);
       const fetchedFiles = await this.backend.searchFiles(
-        criteria.serialize(this.rootStore),
+        criteria.toCondition(this.rootStore),
         this.orderBy,
         this.orderDirection,
         uiStore.searchMatchAny,
@@ -422,15 +413,15 @@ class FileStore {
 
   @action.bound async fetchFilesByQuery() {
     const { uiStore } = this.rootStore;
-    const criteria = this.rootStore.uiStore.searchCriteriaList.map((c) =>
-      c.serialize(this.rootStore),
-    );
-    if (criteria.length === 0) {
+
+    if (uiStore.searchCriteriaList.length === 0) {
       return this.fetchAllFiles();
     }
+
+    const criterias = uiStore.searchCriteriaList.map((c) => c.toCondition(this.rootStore));
     try {
       const fetchedFiles = await this.backend.searchFiles(
-        criteria as [SearchCriteria<IFile>],
+        criterias as [ConditionDTO<FileDTO>, ...ConditionDTO<FileDTO>[]],
         this.orderBy,
         this.orderDirection,
         uiStore.searchMatchAny,
@@ -439,15 +430,6 @@ class FileStore {
       return this.updateFromBackend(fetchedFiles);
     } catch (e) {
       console.log('Could not find files based on criteria', e);
-    }
-  }
-
-  @action.bound async fetchFilesByIDs(files: ID[]) {
-    try {
-      const fetchedFiles = await this.backend.fetchFilesByID(files);
-      return this.updateFromBackend(fetchedFiles);
-    } catch (e) {
-      console.log('Could not find files based on IDs', e);
     }
   }
 
@@ -498,7 +480,7 @@ class FileStore {
     return loc;
   }
 
-  save(file: IFile) {
+  save(file: FileDTO) {
     file.dateModified = new Date();
 
     // Save files in bulk so saving many files at once is faster.
@@ -518,7 +500,8 @@ class FileStore {
     if (prefsString) {
       try {
         const prefs = JSON.parse(prefsString);
-        this.setOrderDirection(prefs.orderDirection || prefs.fileOrder); // orderDirection used to be called fileOrder, needed for backwards compatibility
+        // BACKWARDS_COMPATIBILITY: orderDirection used to be called fileOrder
+        this.setOrderDirection(prefs.orderDirection ?? prefs.fileOrder);
         this.setOrderBy(prefs.orderBy);
       } catch (e) {
         console.error('Cannot parse persistent preferences:', FILE_STORAGE_KEY, e);
@@ -526,12 +509,12 @@ class FileStore {
     }
   }
 
-  @action storePersistentPreferences() {
-    const prefs: any = {};
-    for (const field of PersistentPreferenceFields) {
-      prefs[field] = this[field];
-    }
-    localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(prefs));
+  getPersistentPreferences(): Partial<Record<keyof FileStore, unknown>> {
+    const preferences: Record<PersistentPreferenceFields, unknown> = {
+      orderBy: this.orderBy,
+      orderDirection: this.orderDirection,
+    };
+    return preferences;
   }
 
   clearPersistentPreferences() {
@@ -550,7 +533,7 @@ class FileStore {
     }
   }
 
-  @action async updateFromBackend(backendFiles: IFile[]): Promise<void> {
+  @action async updateFromBackend(backendFiles: FileDTO[]): Promise<void> {
     if (backendFiles.length === 0) {
       this.rootStore.uiStore.clearFileSelection();
       this.fileListLastModified = new Date();
@@ -618,7 +601,7 @@ class FileStore {
    * @param backendFiles
    * @returns A list of Client files, and a set of keys that was reused from the existing fileList
    */
-  @action private filesFromBackend(backendFiles: IFile[]): [ClientFile[], Set<ID>] {
+  @action private filesFromBackend(backendFiles: FileDTO[]): [ClientFile[], Set<ID>] {
     const reusedStatus = new Set<ID>();
 
     const clientFiles = backendFiles.map((f) => {
@@ -685,9 +668,7 @@ class FileStore {
 
   /** Initializes the total and untagged file counters by querying the database with count operations */
   async refetchFileCounts() {
-    const noTagsCriteria = new ClientTagSearchCriteria('tags').serialize(this.rootStore);
-    const numUntaggedFiles = await this.backend.countFiles(noTagsCriteria);
-    const numTotalFiles = await this.backend.countFiles();
+    const [numTotalFiles, numUntaggedFiles] = await this.backend.countFiles();
     runInAction(() => {
       this.numUntaggedFiles = numUntaggedFiles;
       this.numTotalFiles = numTotalFiles;
@@ -698,7 +679,7 @@ class FileStore {
     this.orderDirection = order;
   }
 
-  @action private setOrderBy(prop: FileOrder = 'dateAdded') {
+  @action private setOrderBy(prop: OrderBy<FileDTO> = 'dateAdded') {
     this.orderBy = prop;
   }
 

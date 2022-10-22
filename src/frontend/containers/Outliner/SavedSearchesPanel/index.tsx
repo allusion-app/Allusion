@@ -1,8 +1,8 @@
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { generateId } from 'src/entities/ID';
-import { CustomKeyDict, FileSearchCriteria } from 'src/entities/SearchCriteria';
+import { generateId } from 'src/api/id';
+import { CustomKeyDict, ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import { SavedSearchRemoval } from 'src/frontend/components/RemovalAlert';
 import { useStore } from 'src/frontend/contexts/StoreContext';
@@ -21,7 +21,7 @@ import Tree, { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
 import SearchItemDialog from '../../AdvancedSearch/SearchItemDialog';
 import { IExpansionState } from '../../types';
 import { createDragReorderHelper } from '../TreeItemDnD';
-import { emptyFunction, triggerContextMenuEvent } from '../utils';
+import { triggerContextMenuEvent } from '../utils';
 
 // Tooltip info
 const enum Tooltip {
@@ -44,12 +44,12 @@ const toggleExpansion = (nodeData: ClientFileSearchItem, treeData: ITreeData) =>
 };
 
 const isExpanded = (nodeData: ClientFileSearchItem, treeData: ITreeData) =>
-  treeData.expansion[nodeData.id];
+  !!treeData.expansion[nodeData.id];
 
 const customKeys = (
-  search: (crits: FileSearchCriteria[], searchMatchAny: boolean) => void,
+  search: (crits: ClientFileSearchCriteria[], searchMatchAny: boolean) => void,
   event: React.KeyboardEvent<HTMLLIElement>,
-  nodeData: ClientFileSearchItem | FileSearchCriteria,
+  nodeData: ClientFileSearchItem | ClientFileSearchCriteria,
   treeData: ITreeData,
 ) => {
   switch (event.key) {
@@ -250,7 +250,7 @@ const SearchItem = observer(
 );
 
 const SearchItemCriteria = observer(
-  ({ nodeData }: { nodeData: FileSearchCriteria; treeData: ITreeData }) => {
+  ({ nodeData }: { nodeData: ClientFileSearchCriteria; treeData: ITreeData }) => {
     const rootStore = useStore();
     const { uiStore } = rootStore;
 
@@ -319,7 +319,7 @@ const SavedSearchesList = ({ onDelete, onEdit, onDuplicate, onReplace }: ISearch
   const handleBranchKeyDown = useCallback(
     (
       event: React.KeyboardEvent<HTMLLIElement>,
-      nodeData: ClientFileSearchItem | FileSearchCriteria,
+      nodeData: ClientFileSearchItem | ClientFileSearchCriteria,
       treeData: ITreeData,
     ) =>
       createBranchOnKeyDown(
@@ -327,9 +327,9 @@ const SavedSearchesList = ({ onDelete, onEdit, onDuplicate, onReplace }: ISearch
         nodeData,
         treeData,
         isExpanded,
-        emptyFunction,
+        () => {},
         toggleExpansion,
-        customKeys.bind(null, (crits: FileSearchCriteria[], searchMatchAny: boolean) => {
+        customKeys.bind(null, (crits: ClientFileSearchCriteria[], searchMatchAny: boolean) => {
           uiStore.replaceSearchCriterias(crits);
           if (uiStore.searchMatchAny !== searchMatchAny) {
             uiStore.toggleSearchMatchAny();
@@ -356,7 +356,6 @@ const SavedSearchesList = ({ onDelete, onEdit, onDuplicate, onReplace }: ISearch
       treeData={treeData}
       toggleExpansion={toggleExpansion}
       onBranchKeyDown={handleBranchKeyDown}
-      onLeafKeyDown={emptyFunction}
     />
   );
 };

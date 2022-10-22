@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
-import { RendererMessenger, WindowSystemButtonPress } from 'src/Messaging';
+import { WindowSystemButtonPress } from 'src/ipc/messages';
+import { RendererMessenger } from 'src/ipc/renderer';
 import { IconSet } from 'widgets/Icons';
 import { useStore } from '../contexts/StoreContext';
 import { IS_MAC } from 'common/process';
@@ -8,8 +9,13 @@ import { IS_MAC } from 'common/process';
 const WindowsTitlebar = () => {
   const [isFocused, setIsFocused] = useState(true);
   useEffect(() => {
-    RendererMessenger.onFocus(() => setIsFocused(true));
-    RendererMessenger.onBlur(() => setIsFocused(false));
+    const removeFocusHandler = RendererMessenger.onFocus(() => setIsFocused(true));
+    const removeBlurHandler = RendererMessenger.onBlur(() => setIsFocused(false));
+
+    return () => {
+      removeFocusHandler();
+      removeBlurHandler();
+    };
   }, []);
 
   return (
@@ -26,12 +32,12 @@ const WindowsTitlebar = () => {
 const WindowTitlebar = observer(() => {
   // This is its own component to avoid rerendering the whole WindowsTitlebar
 
-  const { uiStore } = useStore();
+  const rootStore = useStore();
 
   /* Extra span needed for ellipsis; isn't compatible with display: flex */
   return (
     <span>
-      <span>{uiStore.windowTitle}</span>
+      <span>{rootStore.getWindowTitle()}</span>
     </span>
   );
 });
@@ -39,12 +45,15 @@ const WindowTitlebar = observer(() => {
 export default WindowsTitlebar;
 
 const WindowSystemButtons = () => {
-  const [isMaximized, setMaximized] = useState(RendererMessenger.isMaximized());
+  const [isMaximized, setMaximized] = useState(() => RendererMessenger.isMaximized());
   useEffect(() => {
-    const onMaximize = () => setMaximized(true);
-    const onUnmaximize = () => setMaximized(false);
-    RendererMessenger.onUnmaximize(onUnmaximize);
-    RendererMessenger.onMaximize(onMaximize);
+    const removeUnmaximizeHandler = RendererMessenger.onUnmaximize(() => setMaximized(false));
+    const removeMaximizeHandler = RendererMessenger.onMaximize(() => setMaximized(true));
+
+    return () => {
+      removeUnmaximizeHandler();
+      removeMaximizeHandler();
+    };
   }, []);
 
   return (

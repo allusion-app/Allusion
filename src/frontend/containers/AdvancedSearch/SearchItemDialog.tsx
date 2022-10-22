@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React, { useState, useRef, useCallback } from 'react';
-import { ID } from 'src/entities/ID';
+import { ID } from 'src/api/id';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';

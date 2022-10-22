@@ -1,5 +1,3 @@
-export type Awaited<T> = T extends PromiseLike<infer U> ? Awaited<U> : T;
-
 export function clamp(value: number, min: number, max: number): number {
   if (value > max) {
     return max;
@@ -46,7 +44,7 @@ export function retainArray<T>(array: T[], predicate: (element: T, index: number
       // Move retained element to the beginning of the hole (deleted elements). Doing so will
       // shift the hole to the end of the array.
       const holeSlot = i - deleteCount;
-      array.copyWithin(holeSlot, i, i + 1);
+      swap(array, holeSlot, i);
     }
     i += 1;
   }
@@ -55,4 +53,8 @@ export function retainArray<T>(array: T[], predicate: (element: T, index: number
 
 export function notEmpty<TValue>(value: TValue): value is NonNullable<TValue> {
   return value !== null && value !== undefined;
+}
+
+export function swap<T>(array: Array<T>, x: number, y: number): void {
+  [array[x], array[y]] = [array[y], array[x]];
 }

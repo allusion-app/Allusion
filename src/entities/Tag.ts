@@ -1,29 +1,17 @@
+import { MAX_TAG_DEPTH } from 'common/config';
 import { IReactionDisposer, observable, reaction, computed, action, makeObservable } from 'mobx';
 
 import TagStore from 'src/frontend/stores/TagStore';
 
-import { ID, IResource, ISerializable } from './ID';
-
-export const ROOT_TAG_ID = 'root';
-
-/* A Tag as it is represented in the Database */
-export interface ITag extends IResource {
-  id: ID;
-  name: string;
-  dateAdded: Date;
-  dateModified: Date;
-  color: string;
-  parentId: ID;
-  /** Whether any files with this tag should be hidden */
-  isHidden: boolean;
-}
+import { ID } from '../api/id';
+import { ROOT_TAG_ID, TagDTO } from '../api/tag';
 
 /**
  * A Tag as it is stored in the Client.
  * It is stored in a MobX store, which can observe changed made to it and subsequently
  * update the entity in the backend.
  */
-export class ClientTag implements ISerializable<ITag> {
+export class ClientTag {
   private store: TagStore;
   private saveHandler: IReactionDisposer;
 
@@ -87,24 +75,31 @@ export class ClientTag implements ISerializable<ITag> {
 
   /** Returns this tag and all of its sub-tags ordered depth-first */
   @action getSubTree(): Generator<ClientTag> {
-    function* tree(tag: ClientTag): Generator<ClientTag> {
+    function* tree(tag: ClientTag, depth: number): Generator<ClientTag> {
+      if (depth > MAX_TAG_DEPTH) {
+        console.error('Subtree has too many tags. Is there a cycle in the tag tree?', tag);
+        return;
+      }
+
       yield tag;
       for (const subTag of tag.subTags) {
-        yield* tree(subTag);
+        yield* tree(subTag, depth + 1);
       }
     }
-    return tree(this);
+    return tree(this, 0);
   }
 
   /** Returns this tag and all its ancestors (excluding root tag). */
   @action getAncestors(): Generator<ClientTag> {
-    function* ancestors(tag: ClientTag): Generator<ClientTag> {
-      if (tag.id !== ROOT_TAG_ID) {
+    function* ancestors(tag: ClientTag, depth: number): Generator<ClientTag> {
+      if (depth > MAX_TAG_DEPTH) {
+        console.error('Tag has too many ancestors. Is there a cycle in the tag tree?', tag);
+      } else if (tag.id !== ROOT_TAG_ID) {
         yield tag;
-        yield* ancestors(tag.parent);
+        yield* ancestors(tag.parent, depth + 1);
       }
     }
-    return ancestors(this);
+    return ancestors(this, 0);
   }
 
   /** Returns the tags up the hierarchy from this tag, excluding the root tag */
@@ -196,7 +191,7 @@ export class ClientTag implements ISerializable<ITag> {
     this.store.refetchFiles();
   }
 
-  serialize(): ITag {
+  serialize(): TagDTO {
     return {
       id: this.id,
       name: this.name,

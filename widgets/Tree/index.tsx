@@ -3,8 +3,6 @@ import React, { useEffect, useRef, useLayoutEffect, CSSProperties, useState } fr
 
 import './tree.scss';
 
-import { ID } from 'src/entities/ID';
-
 // --- Helper function for tree items ---
 
 const setTabFocus = (element: HTMLElement, preventScroll = true) => {
@@ -229,7 +227,7 @@ export const createBranchOnKeyDown = (
 /** Representation of Node Data */
 export interface INodeData {
   /** A unique key identifier used as the key value for React components */
-  id: ID;
+  id: string;
   /** Pointer to addionally related data */
   nodeData: any;
   /**
@@ -251,7 +249,7 @@ interface ITreeNode extends INodeData {
   size: number;
   pos: number;
   treeData: any;
-  onLeafKeyDown: KeyDownEventHandler;
+  onLeafKeyDown?: KeyDownEventHandler;
 }
 
 type ILeaf = ITreeNode;
@@ -262,7 +260,7 @@ interface IBranch extends ITreeNode {
   isExpanded: (nodeData: any, treeData: any) => boolean;
   toggleExpansion: (nodeData: any, treeData: any) => void;
   children: ITreeItem[];
-  onBranchKeyDown: KeyDownEventHandler;
+  onBranchKeyDown?: KeyDownEventHandler;
 }
 
 const TreeLeaf = ({
@@ -284,7 +282,7 @@ const TreeLeaf = ({
       aria-setsize={size}
       aria-posinset={pos}
       aria-selected={isSelected?.(nodeData, treeData)}
-      onKeyDown={(e) => onLeafKeyDown(e, nodeData, treeData)}
+      onKeyDown={(e) => onLeafKeyDown?.(e, nodeData, treeData)}
       role="treeitem"
       tabIndex={-1}
       data-id={encodeURIComponent(dataId)}
@@ -320,7 +318,7 @@ const TreeBranch = ({
   dataId,
 }: IBranch) => {
   const transition = useRef<HTMLDivElement | null>(null);
-  const expanded = isExpanded(nodeData, treeData) ?? false;
+  const expanded = isExpanded(nodeData, treeData);
   const [end, setEnd] = useState<number | undefined>(expanded ? undefined : overScan);
 
   // TODO: Try transitionrun/transitionstart instead on ul element.
@@ -345,7 +343,7 @@ const TreeBranch = ({
       aria-level={level}
       aria-setsize={size}
       aria-posinset={pos}
-      onKeyDown={(e) => onBranchKeyDown(e, nodeData, treeData)}
+      onKeyDown={(e) => onBranchKeyDown?.(e, nodeData, treeData)}
       data-id={encodeURIComponent(dataId)}
     >
       <div className="label">
@@ -424,9 +422,9 @@ export interface ITree {
   /** Toggles the expansion of a parent node */
   toggleExpansion: (nodeData: any, treeData: any) => void;
   /** `onKeyDown` Event Handler for branch nodes (see `createBranchOnKeyDown`) */
-  onLeafKeyDown: KeyDownEventHandler;
+  onLeafKeyDown?: KeyDownEventHandler;
   /** `onKeyDown` Event Handler for leaf nodes (see `createLeafOnKeyDown`) */
-  onBranchKeyDown: KeyDownEventHandler;
+  onBranchKeyDown?: KeyDownEventHandler;
   /**
    * Pointer to external data
    *

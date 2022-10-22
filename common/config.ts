@@ -13,6 +13,9 @@ export const firefoxExtensionUrl =
 
 export const RECURSIVE_DIR_WATCH_DEPTH = 16;
 
+/** No technical limitation, just for preventing infinite loops due to bugs */
+export const MAX_TAG_DEPTH = 32;
+
 export const thumbnailFormat = 'webp';
 
 const isRenderer = process.type === 'renderer';

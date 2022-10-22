@@ -7,10 +7,10 @@ import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
-import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/entities/File';
+import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/file';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import useCustomTheme from 'src/frontend/hooks/useCustomTheme';
-import { RendererMessenger } from 'src/Messaging';
+import { RendererMessenger } from 'src/ipc/renderer';
 import {
   Button,
   ButtonGroup,
@@ -103,6 +103,13 @@ const Appearance = observer(() => {
             onChange={uiStore.toggleThumbnailFilenameOverlay}
           />
         </fieldset>
+        <fieldset>
+          <legend>Show resolution on thumbnail</legend>
+          <Toggle
+            checked={uiStore.isThumbnailResolutionOverlayEnabled}
+            onChange={uiStore.toggleThumbnailResolutionOverlay}
+          />
+        </fieldset>
       </div>
 
       <br />
@@ -133,7 +140,7 @@ const Appearance = observer(() => {
 });
 
 const Zoom = () => {
-  const [localZoomFactor, setLocalZoomFactor] = useState(RendererMessenger.getZoomFactor());
+  const [localZoomFactor, setLocalZoomFactor] = useState(() => RendererMessenger.getZoomFactor());
 
   useEffect(() => {
     RendererMessenger.setZoomFactor(localZoomFactor);
@@ -218,10 +225,10 @@ const ImportExport = observer(() => {
       return;
     }
     try {
-      const backupStats = await rootStore.peekDatabaseFile(path);
+      const [numTags, numFiles] = await rootStore.peekDatabaseFile(path);
       setConfirmingFileImport({
         path,
-        info: `Backup contains ${backupStats.numTags} tags (currently ${tagStore.count}) and ${backupStats.numFiles} images (currently ${fileStore.numTotalFiles}).`,
+        info: `Backup contains ${numTags} tags (currently ${tagStore.count}) and ${numFiles} images (currently ${fileStore.numTotalFiles}).`,
       });
     } catch (e) {
       console.log(e);
@@ -384,11 +391,6 @@ const imageFormatInts: Partial<Record<IMG_EXTENSIONS_TYPE, ReactNode>> = {
       {IconSet.WARNING}
     </span>
   ),
-  psd: (
-    <span title="Only a low-resolution thumbnail will be available" className="info-icon">
-      {IconSet.INFO}
-    </span>
-  ),
 };
 
 const ImageFormatPicker = observer(() => {
@@ -508,7 +510,7 @@ const BackgroundProcesses = observer(() => {
     }
   };
 
-  const [isRunInBackground, setRunInBackground] = useState(
+  const [isRunInBackground, setRunInBackground] = useState(() =>
     RendererMessenger.isRunningInBackground(),
   );
   const toggleRunInBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -516,7 +518,9 @@ const BackgroundProcesses = observer(() => {
     RendererMessenger.setRunInBackground({ isRunInBackground: e.target.checked });
   };
 
-  const [isClipEnabled, setClipServerEnabled] = useState(RendererMessenger.isClipServerEnabled());
+  const [isClipEnabled, setClipServerEnabled] = useState(() =>
+    RendererMessenger.isClipServerEnabled(),
+  );
   const toggleClipServer = (e: React.ChangeEvent<HTMLInputElement>) => {
     setClipServerEnabled(e.target.checked);
     RendererMessenger.setClipServerEnabled({ isClipServerRunning: e.target.checked });
@@ -598,7 +602,7 @@ const Shortcuts = observer(() => {
 const StartUpBehavior = observer(() => {
   const { uiStore } = useStore();
 
-  const [isAutoUpdateEnabled, setAutoUpdateEnabled] = useState(
+  const [isAutoUpdateEnabled, setAutoUpdateEnabled] = useState(() =>
     RendererMessenger.isCheckUpdatesOnStartupEnabled(),
   );
 

@@ -6,29 +6,16 @@ import { retainArray } from 'common/core';
 import { AppToaster } from 'src/frontend/components/Toaster';
 import LocationStore, { FileStats } from 'src/frontend/stores/LocationStore';
 import { FolderWatcherWorker } from 'src/frontend/workers/folderWatcher.worker';
-import { RendererMessenger } from 'src/Messaging';
-import { IMG_EXTENSIONS_TYPE } from './File';
-import { ID, IResource, ISerializable } from './ID';
-
-export interface ILocation extends IResource {
-  id: ID;
-  path: string;
-  dateAdded: Date;
-  subLocations: ISubLocation[];
-  index: number;
-}
-
-export interface ISubLocation {
-  name: string;
-  isExcluded: boolean;
-  subLocations: ISubLocation[];
-}
+import { RendererMessenger } from 'src/ipc/renderer';
+import { IMG_EXTENSIONS_TYPE } from '../api/file';
+import { ID } from '../api/id';
+import { SubLocationDTO, LocationDTO } from '../api/location';
 
 /** Sorts alphanumerically, "natural" sort */
-const sort = (a: ISubLocation, b: ISubLocation) =>
+const sort = (a: SubLocationDTO, b: SubLocationDTO) =>
   a.name.localeCompare(b.name, undefined, { numeric: true });
 
-export class ClientSubLocation implements ISubLocation {
+export class ClientSubLocation {
   @observable
   name: string;
   @observable
@@ -40,7 +27,7 @@ export class ClientSubLocation implements ISubLocation {
     public path: string,
     name: string,
     excluded: boolean,
-    subLocations: ISubLocation[],
+    subLocations: SubLocationDTO[],
   ) {
     this.name = name;
     this.isExcluded = excluded;
@@ -69,7 +56,7 @@ export class ClientSubLocation implements ISubLocation {
   };
 
   @action.bound
-  serialize(): ISubLocation {
+  serialize(): SubLocationDTO {
     return {
       name: this.name.toString(),
       isExcluded: Boolean(this.isExcluded),
@@ -78,7 +65,7 @@ export class ClientSubLocation implements ISubLocation {
   }
 }
 
-export class ClientLocation implements ISerializable<ILocation> {
+export class ClientLocation {
   private store: LocationStore;
 
   worker?: Remote<FolderWatcherWorker>;
@@ -111,7 +98,7 @@ export class ClientLocation implements ISerializable<ILocation> {
     id: ID,
     path: string,
     dateAdded: Date,
-    subLocations: ISubLocation[],
+    subLocations: SubLocationDTO[],
     extensions: IMG_EXTENSIONS_TYPE[],
     index: number,
   ) {
@@ -226,7 +213,7 @@ export class ClientLocation implements ISerializable<ILocation> {
   }
 
   @action.bound
-  serialize(): ILocation {
+  serialize(): LocationDTO {
     return {
       id: this.id,
       path: this.path,

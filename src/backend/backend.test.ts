@@ -1,7 +1,7 @@
 // Mocks the DBRepository file with the one defined in the __mocks__ directory
-jest.mock('./DBRepository');
-jest.mock('./BackupScheduler');
-jest.mock('../Messaging', () => ({
+jest.mock('./db-repository');
+jest.mock('./backup-scheduler');
+jest.mock('../ipc/renderer', () => ({
   RendererMessenger: {
     getDefaultBackupDirectory() {
       return Promise.resolve('/tmp');
@@ -9,14 +9,12 @@ jest.mock('../Messaging', () => ({
   },
 }));
 
-import Backend from './Backend';
-import { ITag, ROOT_TAG_ID } from '../entities/Tag';
-import { IFile } from '../entities/File';
-import { OrderDirection } from './DBRepository';
+import Backend from './backend';
+import { TagDTO, ROOT_TAG_ID } from '../api/tag';
+import { FileDTO } from '../api/file';
+import { OrderDirection } from '../api/data-storage-search';
 
-let backend = new Backend();
-
-const mockTag: ITag = {
+const mockTag: TagDTO = {
   id: 'tag1',
   name: 'tag1 name',
   dateAdded: new Date(),
@@ -25,7 +23,7 @@ const mockTag: ITag = {
   isHidden: false,
 };
 
-const mockFile: IFile = {
+const mockFile: FileDTO = {
   absolutePath: 'c:/test file.jpg',
   relativePath: 'test file.jpg',
   locationId: 'Default location',
@@ -45,12 +43,8 @@ const mockFile: IFile = {
 
 describe('Backend', () => {
   describe('Tag API', () => {
-    beforeEach(async () => {
-      backend = new Backend();
-      await backend.init(true);
-    });
-
     it('should be able to fetch a tag after adding it', async () => {
+      const backend = await Backend.init();
       await backend.createTag({ ...mockTag });
       const dbTags = await backend.fetchTags();
       expect(dbTags).toHaveLength(2);
@@ -60,10 +54,11 @@ describe('Backend', () => {
 
     describe('removeTag', () => {
       it('should remove the tag from all files with that tag when removing that tag', async () => {
+        const backend = await Backend.init();
         await backend.createTag({ ...mockTag });
         await backend.createFile({ ...mockFile, id: '1', tags: [mockTag.id] });
         await backend.createFile({ ...mockFile, id: '2' });
-        await backend.removeTag(mockTag.id);
+        await backend.removeTags([mockTag.id]);
         const dbFiles = await backend.fetchFiles('id', OrderDirection.Desc);
         expect(dbFiles).toHaveLength(2);
         expect(dbFiles[0].tags).toHaveLength(0);
@@ -71,10 +66,11 @@ describe('Backend', () => {
       });
 
       it('should not remove other tags from the files of which a tag was deleted', async () => {
+        const backend = await Backend.init();
         await backend.createTag({ ...mockTag, id: 'tag1' });
         await backend.createTag({ ...mockTag, id: 'tag2' });
         await backend.createFile({ ...mockFile, id: '1', tags: ['tag1', 'tag2'] });
-        await backend.removeTag('tag1');
+        await backend.removeTags(['tag1']);
 
         const dbFiles = await backend.fetchFiles('id', OrderDirection.Desc);
 
@@ -87,6 +83,7 @@ describe('Backend', () => {
 
     describe('removeTags', () => {
       it('should remove only the tags that were deleted from the files that had them', async () => {
+        const backend = await Backend.init();
         await backend.createTag({ ...mockTag, id: 'tag1' });
         await backend.createTag({ ...mockTag, id: 'tag2' });
         await backend.createTag({ ...mockTag, id: 'tag3' });

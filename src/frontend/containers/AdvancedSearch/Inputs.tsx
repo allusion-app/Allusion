@@ -1,18 +1,13 @@
+import { camelCaseToSpaced } from 'common/fmt';
 import { action } from 'mobx';
 import React, { ForwardedRef, forwardRef, useState } from 'react';
-import { IMG_EXTENSIONS } from 'src/entities/File';
-import {
-  BinaryOperators,
-  NumberOperators,
-  NumberOperatorSymbols,
-  StringOperatorLabels,
-  StringOperatorType,
-  TagOperators,
-} from 'src/entities/SearchCriteria';
+import { NumberOperators, StringOperators } from 'src/api/data-storage-search';
+import { IMG_EXTENSIONS } from 'src/api/file';
+import { BinaryOperators, TagOperators } from 'src/api/search-criteria';
+import { NumberOperatorSymbols, StringOperatorLabels } from 'src/entities/SearchCriteria';
 import { ClientTag } from 'src/entities/Tag';
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useStore } from 'src/frontend/contexts/StoreContext';
-import { camelCaseToSpaced } from 'common/fmt';
 import { Criteria, defaultQuery, Key, Operator, TagValue, Value } from './data';
 
 type SetCriteria = (fn: (criteria: Criteria) => Criteria) => void;
@@ -63,6 +58,12 @@ export const KeySelector = forwardRef(function KeySelector(
       <option key="size" value="size">
         File Size (MB)
       </option>
+      <option key="width" value="width">
+        Width
+      </option>
+      <option key="height" value="height">
+        Height
+      </option>
       <option key="dateAdded" value="dateAdded">
         Date Added
       </option>
@@ -105,8 +106,8 @@ export const ValueInput = ({ labelledby, keyValue, value, dispatch }: FieldInput
     return <TagInput labelledby={labelledby} value={value as TagValue} dispatch={dispatch} />;
   } else if (keyValue === 'extension') {
     return <ExtensionInput labelledby={labelledby} value={value as string} dispatch={dispatch} />;
-  } else if (keyValue === 'size') {
-    return <SizeInput labelledby={labelledby} value={value as number} dispatch={dispatch} />;
+  } else if (['size', 'width', 'height'].includes(keyValue)) {
+    return <NumberInput labelledby={labelledby} value={value as number} dispatch={dispatch} />;
   } else if (keyValue === 'dateAdded') {
     return <DateAddedInput labelledby={labelledby} value={value as Date} dispatch={dispatch} />;
   }
@@ -255,7 +256,7 @@ const ExtensionInput = ({ labelledby, value, dispatch }: ValueInput<string>) => 
   </select>
 );
 
-const SizeInput = ({ value, labelledby, dispatch }: ValueInput<number>) => {
+const NumberInput = ({ value, labelledby, dispatch }: ValueInput<number>) => {
   return (
     <input
       aria-labelledby={labelledby}
@@ -291,22 +292,12 @@ const DateAddedInput = ({ value, labelledby, dispatch }: ValueInput<Date>) => {
 };
 
 function getOperatorOptions(key: Key) {
-  if (key === 'dateAdded' || key === 'size') {
+  if (['dateAdded', 'size', 'width', 'height'].includes(key)) {
     return NumberOperators.map((op) => toOperatorOption(op, NumberOperatorSymbols));
   } else if (key === 'extension') {
     return BinaryOperators.map((op) => toOperatorOption(op));
   } else if (key === 'name' || key === 'absolutePath') {
-    // For performance reasons, we added some extra non-ignoreCase options,
-    // but these aren't really needed by the user, so hide them to avoid clutter:
-    const shownStringOperators: StringOperatorType[] = [
-      'equalsIgnoreCase',
-      'notEqual',
-      'contains',
-      'notContains',
-      'startsWithIgnoreCase',
-      'notStartsWith',
-    ];
-    return shownStringOperators.map((op) => toOperatorOption(op, StringOperatorLabels));
+    return StringOperators.map((op) => toOperatorOption(op, StringOperatorLabels));
   } else if (key === 'tags') {
     return TagOperators.map((op) => toOperatorOption(op));
   }
