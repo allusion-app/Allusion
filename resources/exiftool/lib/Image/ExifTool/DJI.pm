@@ -11,11 +11,14 @@ package Image::ExifTool::DJI;
 
 use strict;
 use vars qw($VERSION);
+use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 use Image::ExifTool::XMP;
 use Image::ExifTool::GPS;
 
-$VERSION = '1.04';
+$VERSION = '1.06';
+
+sub ProcessDJIInfo($$$);
 
 my %convFloat2 = (
     PrintConv => 'sprintf("%+.2f", $val)',
@@ -42,6 +45,29 @@ my %convFloat2 = (
     0x09 => { Name => 'CameraPitch',Writable => 'float', %convFloat2 },
     0x0a => { Name => 'CameraYaw',  Writable => 'float', %convFloat2 },
     0x0b => { Name => 'CameraRoll', Writable => 'float', %convFloat2 },
+);
+
+# DJI debug maker notes
+%Image::ExifTool::DJI::Info = (
+    PROCESS_PROC => \&ProcessDJIInfo,
+    GROUPS => { 0 => 'MakerNotes', 2 => 'Camera' },
+    NOTES => 'Tags written by some DJI drones.',
+    VARS => { LONG_TAGS => 2 },
+    ae_dbg_info         => { Name => 'AEDebugInfo' },
+    ae_histogram_info   => { Name => 'AEHistogramInfo' },
+    ae_local_histogram  => { Name => 'AELocalHistogram' },
+    ae_liveview_histogram_info  => { Name => 'AELiveViewHistogramInfo' },
+    ae_liveview_local_histogram => { Name => 'AELiveViewLocalHistogram' },
+    awb_dbg_info        => { Name => 'AWBDebugInfo' },
+    af_dbg_info         => { Name => 'AFDebugInfo' },
+    hiso                => { Name => 'Histogram' },
+    xidiri              => { Name => 'Xidiri' },
+   'GimbalDegree(Y,P,R)'=> { Name => 'GimbalDegree' },
+   'FlightDegree(Y,P,R)'=> { Name => 'FlightDegree' },
+    adj_dbg_info        => { Name => 'ADJDebugInfo' },
+    sensor_id           => { Name => 'SensorID' },
+   'FlightSpeed(X,Y,Z)' => { Name => 'FlightSpeed' },
+    hyperlapse_dbg_info => { Name => 'HyperlapsDebugInfo' },
 );
 
 # thermal parameters in APP4 of DJI ZH20T images (ref forum11401)
@@ -134,6 +160,39 @@ my %convFloat2 = (
     },
 );
 
+#------------------------------------------------------------------------------
+# Process DJI infor (ref PH)
+# Inputs: 0) ExifTool ref, 1) dirInfo ref, 2) tag table ref
+# Returns: 1 on success
+sub ProcessDJIInfo($$$)
+{
+    my ($et, $dirInfo, $tagTbl) = @_;
+    my $dataPt = $$dirInfo{DataPt};
+    my $dirStart = $$dirInfo{DirStart} || 0;
+    my $dirLen = $$dirInfo{DirLen} || (length($$dataPt) - $dirStart);
+    if ($dirStart) {
+        my $buff = substr($$dataPt, $dirStart, $dirLen);
+        $dataPt = \$buff;
+    }
+    while ($$dataPt =~ /\G\[(.*?)\](?=(\[|$))/sg) {
+        my ($tag, $val) = split /:/, $1, 2;
+        next unless defined $tag and defined $val;
+        if ($val =~ /^([\x20-\x7f]+)\0*$/) {
+            $val = $1;
+        } else {
+            my $buff = $val;
+            $val = \$buff;
+        }
+        if (not $$tagTbl{$tag} and $tag=~ /^[-_a-zA-Z0-9]+$/) {
+            my $name = $tag;
+            $name =~ s/_([a-z])/_\U$1/g;
+            AddTagToTable($tagTbl, $tag, { Name => Image::ExifTool::MakeTagName($name) });
+        }
+        $et->HandleTag($tagTbl, $tag, $val);
+    }
+    return 1;
+}
+
 __END__
 
 =head1 NAME
@@ -151,7 +210,7 @@ the maker notes in images from some DJI Phantom drones.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2022, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

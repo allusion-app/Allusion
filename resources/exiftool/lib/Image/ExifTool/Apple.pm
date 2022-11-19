@@ -15,7 +15,7 @@ use vars qw($VERSION);
 use Image::ExifTool::Exif;
 use Image::ExifTool::PLIST;
 
-$VERSION = '1.05';
+$VERSION = '1.07';
 
 # Apple iPhone metadata (ref PH)
 %Image::ExifTool::Apple::Main = (
@@ -66,12 +66,21 @@ $VERSION = '1.05';
         Writable => 'string',
         Notes => 'unique ID for all images in a burst',
     },
-    # 0x000c - rational64s[2]: eg) "0.1640625 0.19921875"
+    0x000c => { # ref forum13710 (Neal Krawetz)
+        Name => 'FocusDistanceRange',
+        Writable => 'rational64s',
+        Count => 2,
+        PrintConv => q{
+            my @a = split ' ', $val;
+            sprintf('%.2f - %.2f m', $a[0] <= $a[1] ? @a : reverse @a);
+        },
+        PrintConvInv => '$val =~ s/ - //; $val =~ s/ ?m$//; $val',
+    },
     # 0x000d - int32s: 0,1,6,20,24,32,40
     # 0x000e - int32s: 0,1,4,12 (Orientation? 0=landscape? 4=portrait? ref 1)
     # 0x000f - int32s: 2,3
     # 0x0010 - int32s: 1
-    0x0011 => {
+    0x0011 => { # (if defined, there is a live photo associated with the video, #forum13565)
         Name => 'MediaGroupUUID', #NealKrawetz private communication
         # (changed in 12.19 from Name => 'ContentIdentifier', #forum8750)
         Writable => 'string',
@@ -82,6 +91,10 @@ $VERSION = '1.05';
         Writable => 'string',
     },
     # 0x0016 - string[29]: "AXZ6pMTOh2L+acSh4Kg630XCScoO\0"
+    0x0017 => { #forum13565 (only valid if MediaGroupUUID exists)
+        Name => 'LivePhotoVideoIndex',
+        Notes => 'divide by RunTimeScale to get time in seconds',
+    },
     # 0x0017 - int32s: 0,8192
     # 0x0019 - int32s: 0,2,128
     # 0x001a - string[6]: "q825s\0"
@@ -149,7 +162,7 @@ Apple maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2022, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

@@ -170,7 +170,7 @@ sub FormatIPTC($$$$$;$)
         } else {
             my $len = int(($1 || 0) / 8);
             if ($len == 1) {        # 1 byte
-                $$valPtr = chr($$valPtr);
+                $$valPtr = chr($$valPtr & 0xff);
             } elsif ($len == 2) {   # 2-byte integer
                 $$valPtr = pack('n', $$valPtr);
             } else {                # 4-byte integer
@@ -334,13 +334,9 @@ sub DoWriteIPTC($$$)
     # - improves speed
     # - avoids changing current MD5 digest unnecessarily
     # - avoids adding mandatory tags unless some other IPTC is changed
-    unless (exists $$et{EDIT_DIRS}{$$dirInfo{DirName}} or
+    return undef unless exists $$et{EDIT_DIRS}{$$dirInfo{DirName}} or
         # standard IPTC tags in other locations should be edited too (eg. AFCP_IPTC)
-        ($tagTablePtr eq \%Image::ExifTool::IPTC::Main and exists $$et{EDIT_DIRS}{IPTC}))
-    {
-        print $out "$$et{INDENT}  [nothing changed]\n" if $verbose;
-        return undef;
-    }
+        ($tagTablePtr eq \%Image::ExifTool::IPTC::Main and exists $$et{EDIT_DIRS}{IPTC});
     my $dataPt = $$dirInfo{DataPt};
     unless ($dataPt) {
         my $emptyData = '';
@@ -715,7 +711,7 @@ seldom-used routines.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2022, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

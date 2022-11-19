@@ -16,7 +16,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.28';
+$VERSION = '1.32';
 
 sub ProcessJpeg2000Box($$$);
 sub ProcessJUMD($$$);
@@ -42,8 +42,9 @@ my %jp2Map = (
    'UUID-IPTC'   => 'JP2',
    'UUID-EXIF'   => 'JP2',
    'UUID-XMP'    => 'JP2',
-  # jp2h         => 'JP2',  (not yet functional)
-  # ICC_Profile  => 'jp2h', (not yet functional)
+    jp2h         => 'JP2',
+    colr         => 'jp2h',
+    ICC_Profile  => 'colr',
     IFD1         => 'IFD0',
     EXIF         => 'IFD0', # to write EXIF as a block
     ExifIFD      => 'IFD0',
@@ -116,9 +117,6 @@ my %j2cMarker = (
     0x76 => 'NLT', # non-linearity point transformation
 );
 
-my %jumbfTypes = (
-);
-
 # JPEG 2000 "box" (ie. atom) names
 # Note: only tags with a defined "Format" are extracted
 %Image::ExifTool::Jpeg2000::Main = (
@@ -127,10 +125,13 @@ my %jumbfTypes = (
     WRITE_PROC => \&ProcessJpeg2000Box,
     PREFERRED => 1, # always add these tags when writing
     NOTES => q{
-        The tags below are extracted from JPEG 2000 images and the JUMBF metadata in
-        JPEG images.  Note that ExifTool currently writes only EXIF, IPTC and XMP
-        tags in Jpeg2000 images.
+        The tags below are found in JPEG 2000 images and the JUMBF metadata in JPEG
+        images, but not all of these are extracted.  Note that ExifTool currently
+        writes only EXIF, IPTC and XMP tags in Jpeg2000 images.
     },
+#
+# NOTE: ONLY TAGS WITH "Format" DEFINED ARE EXTRACTED!
+#
    'jP  ' => 'JP2Signature', # (ref 1)
    "jP\x1a\x1a" => 'JP2Signature', # (ref 2)
     prfl => 'Profile',
@@ -340,9 +341,19 @@ my %jumbfTypes = (
         },
         {
             Name => 'UUID-Signature',  # (seen in JUMB data of JPEG images)
+            # (may be able to remove this when JUMBF specification is finalized)
             Condition => '$$valPt=~/^casg\x00\x11\x00\x10\x80\x00\x00\xaa\x00\x38\x9b\x71/',
             Format => 'undef',
             ValueConv => 'substr($val,16)',
+        },
+        {
+            Name => 'UUID-C2PAClaimSignature',  # (seen in incorrectly-formatted JUMB data of JPEG images)
+            # (may be able to remove this when JUMBF specification is finalized)
+            Condition => '$$valPt=~/^c2cs\x00\x11\x00\x10\x80\x00\x00\xaa\x00\x38\x9b\x71/',
+            SubDirectory => {
+                TagTable => 'Image::ExifTool::CBOR::Main',
+                Start => '$valuePtr + 16',
+            },
         },
         {
             Name => 'UUID-Unknown',
@@ -386,10 +397,31 @@ my %jumbfTypes = (
         },
         SubDirectory => { TagTable => 'Image::ExifTool::JSON::Main' },
     },
+    cbor => {
+        Name => 'CBORData',
+        Flags => [ 'Binary', 'Protected' ],
+        SubDirectory => { TagTable => 'Image::ExifTool::CBOR::Main' },
+    },
+    bfdb => { # used in JUMBF (see  # (used when tag is renamed according to JUMDLabel)
+        Name => 'BinaryDataType',
+        Notes => 'JUMBF, MIME type and optional file name',
+        Format => 'undef',
+        # (ignore "toggles" byte and just extract MIME type and file name)
+        ValueConv => '$_=substr($val,1); s/\0+$//; s/\0/, /; $_',
+        JUMBF_Suffix => 'Type', # (used when tag is renamed according to JUMDLabel)
+    },
+    bidb => { # used in JUMBF
+        Name => 'BinaryData',
+        Notes => 'JUMBF',
+        Groups => { 2 => 'Preview' },
+        Format => 'undef',
+        Binary => 1,
+        JUMBF_Suffix => 'Data', # (used when tag is renamed according to JUMDLabel)
+    },
 #
 # stuff seen in JPEG XL images:
 #
-  # jbrd - JXL Brotli Compressed Data?
+  # jbrd - JPEG Bitstream Reconstruction Data (allows lossless conversion back to original JPG)
     jxlc => {
         Name => 'JXLCodestream',
         Format => 'undef',
@@ -529,11 +561,34 @@ my %jumbfTypes = (
 
 %Image::ExifTool::Jpeg2000::ColorSpec = (
     PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    WRITE_PROC => \&Image::ExifTool::WriteBinaryData, # (we don't actually call this)
     GROUPS => { 2 => 'Image' },
     FORMAT => 'int8s',
+    WRITABLE => 1,
+    # (Note: 'colr' is not a real group, but is used as a hack to write the
+    #  necessary colr box.  This hack necessitated another hack in TagInfoXML.pm
+    #  to avoid reporting this fake group in the XML output)
+    WRITE_GROUP => 'colr',
+    DATAMEMBER => [ 0 ],
+    IS_SUBDIR => [ 3 ],
+    NOTES => q{
+        The table below contains tags in the color specification (colr) box.  This
+        box may be rewritten by writing either ICC_Profile, ColorSpace or
+        ColorSpecData.  When writing, any existing colr boxes are replaced with the
+        newly created colr box.
+
+        B<NOTE>: Care must be taken when writing this color specification because
+        writing a specification that is incompatible with the image data may make
+        the image undisplayable.
+    },
     0 => {
         Name => 'ColorSpecMethod',
         RawConv => '$$self{ColorSpecMethod} = $val',
+        Protected => 1,
+        Notes => q{
+            default for writing is 2 when writing ICC_Profile, 1 when writing
+            ColorSpace, or 4 when writing ColorSpecData
+        },
         PrintConv => {
             1 => 'Enumerated',
             2 => 'Restricted ICC',
@@ -541,9 +596,15 @@ my %jumbfTypes = (
             4 => 'Vendor Color',
         },
     },
-    1 => 'ColorSpecPrecedence',
+    1 => {
+        Name => 'ColorSpecPrecedence',
+        Notes => 'default for writing is 0',
+        Protected => 1,
+    },
     2 => {
         Name => 'ColorSpecApproximation',
+        Notes => 'default for writing is 0',
+        Protected => 1,
         PrintConv => {
             0 => 'Not Specified',
             1 => 'Accurate',
@@ -568,6 +629,7 @@ my %jumbfTypes = (
             Name => 'ColorSpace',
             Condition => '$$self{ColorSpecMethod} == 1',
             Format => 'int32u',
+            Protected => 1,
             PrintConv => { # ref 15444-2 2002-05-15
                 0 => 'Bi-level',
                 1 => 'YCbCr(1)',
@@ -597,6 +659,8 @@ my %jumbfTypes = (
         {
             Name => 'ColorSpecData',
             Format => 'undef[$size-3]',
+            Writable => 'undef',
+            Protected => 1,
             Binary => 1,
         },
     ],
@@ -607,23 +671,33 @@ my %jumbfTypes = (
     PROCESS_PROC => \&ProcessJUMD,
     GROUPS => { 0 => 'JUMBF', 1 => 'JUMBF', 2 => 'Image' },
     NOTES => 'Information extracted from the JUMBF description box.',
-    type => {
-        Name => 'JUMBFType',
+    'type' => {
+        Name => 'JUMDType',
         ValueConv => 'unpack "H*", $val',
         PrintConv => q{
             my @a = $val =~ /^(\w{8})(\w{4})(\w{4})(\w{16})$/;
             return $val unless @a;
             my $ascii = pack 'H*', $a[0];
-            $a[0] = $ascii if $ascii =~ /^[a-zA-Z0-9]{4}$/;
+            $a[0] = "($ascii)" if $ascii =~ /^[a-zA-Z0-9]{4}$/;
             return join '-', @a;
         },
         # seen:
         # cacb/cast/caas/cacl/casg/json-00110010800000aa00389b71
         # 6579d6fbdba2446bb2ac1b82feeb89d1 - JPEG image
     },
-    label      => { Name => 'JUMBFLabel' },
-    id         => { Name => 'JUMBFID', Description => 'JUMBF ID' },
-    signature  => { Name => 'JUMBFSignature', PrintConv => 'unpack "H*", $val' },
+    'label' => { Name => 'JUMDLabel' },
+    'toggles' => {
+        Name => 'JUMDToggles',
+        Unknown => 1,
+        PrintConv => { BITMASK => {
+            0 => 'Requestable',
+            1 => 'Label',
+            2 => 'ID',
+            3 => 'Signature',
+        }},
+    },
+    'id'    => { Name => 'JUMDID', Description => 'JUMD ID' },
+    'sig'   => { Name => 'JUMDSignature', PrintConv => 'unpack "H*", $val' },
 );
 
 #------------------------------------------------------------------------------
@@ -669,6 +743,7 @@ sub ProcessJUMD($$$)
     $et->HandleTag($tagTablePtr, 'type', substr($$dataPt, $pos, 16));
     $pos += 16;
     my $flags = Get8u($dataPt, $pos++);
+    $et->HandleTag($tagTablePtr, 'toggles', $flags);
     if ($flags & 0x02) {    # label exists?
         pos($$dataPt) = $pos;
         $$dataPt =~ /\0/g or $et->Warn('Missing JUMD label terminator'), return 0;
@@ -679,6 +754,7 @@ sub ProcessJUMD($$$)
         if ($len) {
             $name =~ s/[^-_a-zA-Z0-9]([a-z])/\U$1/g; # capitalize characters after illegal characters
             $name =~ tr/-_a-zA-Z0-9//dc;    # remove other illegal characters
+            $name =~ s/__/_/;               # collapse double underlines
             $name = ucfirst $name;          # capitalize first letter
             $name = "Tag$name" if length($name) < 2; # must at least 2 characters long
             $$et{JUMBFLabel} = $name;
@@ -691,7 +767,7 @@ sub ProcessJUMD($$$)
     }
     if ($flags & 0x08) {    # signature exists?
         $pos + 32 > $end and $et->Warn('Missing JUMD signature'), return 0;
-        $et->HandleTag($tagTablePtr, 'signature', substr($$dataPt, $pos, 32));
+        $et->HandleTag($tagTablePtr, 'sig', substr($$dataPt, $pos, 32));
         $pos += 32;
     }
     $pos == $end or $et->Warn('Extra data in JUMD box'." $pos $end", 1);
@@ -775,6 +851,48 @@ sub CreateNewBoxes($$)
 }
 
 #------------------------------------------------------------------------------
+# Create Color Specification Box
+# Inputs: 0) ExifTool object ref, 1) Output file or scalar ref
+# Returns: 1 on success
+sub CreateColorSpec($$)
+{
+    my ($et, $outfile) = @_;
+    my $meth   = $et->GetNewValue('Jpeg2000:ColorSpecMethod');
+    my $prec   = $et->GetNewValue('Jpeg2000:ColorSpecPrecedence') || 0;
+    my $approx = $et->GetNewValue('Jpeg2000:ColorSpecApproximation') || 0;
+    my $icc    = $et->GetNewValue('ICC_Profile');
+    my $space  = $et->GetNewValue('Jpeg2000:ColorSpace');
+    my $cdata  = $et->GetNewValue('Jpeg2000:ColorSpecData');
+    unless ($meth) {
+        if ($icc) {
+            $meth = 2;
+        } elsif (defined $space) {
+            $meth = 1;
+        } elsif (defined $cdata) {
+            $meth = 4;
+        } else {
+            $et->Warn('Color space not defined'), return 0;
+        }
+    }
+    if ($meth eq '1') {
+        defined $space or $et->Warn('Must specify ColorSpace'), return 0;
+        $cdata = pack('N', $space);
+    } elsif ($meth eq '2' or $meth eq '3') {
+        defined $icc or $et->Warn('Must specify ICC_Profile'), return 0;
+        $cdata = $icc;
+    } elsif ($meth eq '4') {
+        defined $cdata or $et->Warn('Must specify ColorSpecData'), return 0;
+    } else {
+        $et->Warn('Unknown ColorSpecMethod'), return 0;
+    }
+    my $boxhdr = pack('N', length($cdata) + 11) . 'colr';
+    Write($outfile, $boxhdr, pack('CCC',$meth,$prec,$approx), $cdata) or return 0;
+    ++$$et{CHANGED};
+    $et->VPrint(1, "    + Jpeg2000:ColorSpec\n");
+    return 1;
+}
+
+#------------------------------------------------------------------------------
 # Process JPEG 2000 box
 # Inputs: 0) ExifTool object reference, 1) dirInfo reference, 2) Pointer to tag table
 # Returns: 1 on success when reading, or -1 on write error
@@ -791,7 +909,7 @@ sub ProcessJpeg2000Box($$$)
     my $raf = $$dirInfo{RAF};
     my $outfile = $$dirInfo{OutFile};
     my $dirEnd = $dirStart + $dirLen;
-    my ($err, $outBuff, $verbose);
+    my ($err, $outBuff, $verbose, $doColour);
 
     if ($outfile) {
         unless ($raf) {
@@ -799,13 +917,19 @@ sub ProcessJpeg2000Box($$$)
             $outBuff = '';
             $outfile = \$outBuff;
         }
+        # determine if we will be writing colr box
+        if ($$dirInfo{DirName} and $$dirInfo{DirName} eq 'JP2Header') {
+            $doColour = 2 if defined $et->GetNewValue('ColorSpecMethod') or $et->GetNewValue('ICC_Profile') or
+                             defined $et->GetNewValue('ColorSpecPrecedence') or defined $et->GetNewValue('ColorSpace') or
+                             defined $et->GetNewValue('ColorSpecApproximation') or defined $et->GetNewValue('ColorSpecData');
+        }
     } else {
         # (must not set verbose flag when writing!)
         $verbose = $$et{OPTIONS}{Verbose};
         $et->VerboseDir($$dirInfo{DirName}) if $verbose;
     }
     # loop through all contained boxes
-    my ($pos, $boxLen);
+    my ($pos, $boxLen, $lastBox);
     for ($pos=$dirStart; ; $pos+=$boxLen) {
         my ($boxID, $buff, $valuePtr);
         my $hdrLen = 8;     # the box header length
@@ -814,9 +938,7 @@ sub ProcessJpeg2000Box($$$)
             my $n = $raf->Read($buff,$hdrLen);
             unless ($n == $hdrLen) {
                 $n and $err = '', last;
-                if ($outfile) {
-                    CreateNewBoxes($et, $outfile) or $err = 1;
-                }
+                CreateNewBoxes($et, $outfile) or $err = 1 if $outfile;
                 last;
             }
             $dataPt = \$buff;
@@ -828,6 +950,17 @@ sub ProcessJpeg2000Box($$$)
         }
         $boxLen = unpack("x$pos N",$$dataPt);   # (length includes header and data)
         $boxID = substr($$dataPt, $pos+4, 4);
+        # remove old colr boxes if necessary
+        if ($doColour and $boxID eq 'colr') {
+            if ($doColour == 1) { # did we successfully write the new colr box?
+                $et->VPrint(1,"    - Jpeg2000:ColorSpec\n");
+                ++$$et{CHANGED};
+                next;
+            }
+            $et->Warn('Out-of-order colr box encountered');
+            undef $doColour;
+        }
+        $lastBox = $boxID;
         $pos += $hdrLen;                # move to end of box header
         if ($boxLen == 1) {
             # box header contains an additional 8-byte integer for length
@@ -921,6 +1054,14 @@ sub ProcessJpeg2000Box($$$)
                 }
             }
         }
+        # create new tag for JUMBF data values with name corresponding to JUMBFLabel
+        if ($tagInfo and $$et{JUMBFLabel} and (not $$tagInfo{SubDirectory} or $$tagInfo{BlockExtract})) {
+            $tagInfo = { %$tagInfo, Name => $$et{JUMBFLabel} . ($$tagInfo{JUMBF_Suffix} || '') };
+            delete $$tagInfo{Description};
+            AddTagToTable($tagTablePtr, '_JUMBF_' . $$et{JUMBFLabel}, $tagInfo);
+            delete $$tagInfo{Protected}; # (must do this so -j -b returns JUMBF binary data)
+            $$tagInfo{TagID} = $boxID;
+        }
         if ($verbose) {
             $et->VerboseInfo($boxID, $tagInfo,
                 Table  => $tagTablePtr,
@@ -930,13 +1071,6 @@ sub ProcessJpeg2000Box($$$)
                 Addr   => $valuePtr + $dataPos + $base,
             );
             next unless $tagInfo;
-        }
-        # create new tag for JUMBF data values with name corresponding to JUMBFLabel
-        if ($$et{JUMBFLabel} and (not $$tagInfo{SubDirectory} or $$tagInfo{BlockExtract})) {
-            $tagInfo = { %$tagInfo, Name => $$et{JUMBFLabel} };
-            AddTagToTable($tagTablePtr, '_JUMBF_' . $$et{JUMBFLabel}, $tagInfo);
-            delete $$tagInfo{Protected}; # (must do this so -j -b returns JUMBF binary data)
-            $$tagInfo{TagID} = $boxID;
         }
         if ($$tagInfo{SubDirectory}) {
             my $subdir = $$tagInfo{SubDirectory};
@@ -965,8 +1099,10 @@ sub ProcessJpeg2000Box($$$)
                 # remove this directory from our create list
                 delete $$et{AddJp2Dirs}{$$tagInfo{Name}};
                 my $newdir;
-                # only edit writable UUID and Exif boxes
-                if ($uuid or $boxID eq 'Exif' or ($boxID eq 'xml ' and $$et{IsJXL})) {
+                # only edit writable UUID, Exif and jp2h boxes
+                if ($uuid or $boxID eq 'Exif' or ($boxID eq 'xml ' and $$et{IsJXL}) or
+                    ($boxID eq 'jp2h' and $$et{EDIT_DIRS}{jp2h}))
+                {
                     $newdir = $et->WriteDirectory(\%subdirInfo, $subTable, $$subdir{WriteProc});
                     next if defined $newdir and not length $newdir; # next if deleting the box
                 } elsif (defined $uuid) {
@@ -978,6 +1114,11 @@ sub ProcessJpeg2000Box($$$)
                 my $boxhdr = pack('N', length($newdir) + 8 + $prefixLen) . $boxID;
                 $boxhdr .= substr($$dataPt, $valuePtr, $prefixLen) if $prefixLen;
                 Write($outfile, $boxhdr, $newdir) or $err = 1;
+                # write new colr box immediately after ihdr
+                if ($doColour and $boxID eq 'ihdr') {
+                    # (shouldn't be multiple ihdr boxes, but just in case, write only 1)
+                    $doColour = $doColour==2 ? CreateColorSpec($et, $outfile) : 0;
+                }
             } else {
                 # extract as a block if specified
                 $subdirInfo{BlockInfo} = $tagInfo if $$tagInfo{BlockExtract};
@@ -1024,16 +1165,18 @@ sub GetBits($$)
 {
     my ($a, $n) = @_;
     my $v = 0;
+    my $bit = 1;
     my $i;
     while ($n--) {
         for ($i=0; $i<@$a; ++$i) {
-            my $set = $$a[$i] & 0x80000000;
-            $$a[$i] <<= 1;
+            # consume bits LSB first
+            my $set = $$a[$i] & 1;
+            $$a[$i] >>= 1;
             if ($i) {
-                $$a[$i-1] |= 1 if $set;
+                $$a[$i-1] |= 0x80 if $set;
             } else {
-                $v <<= 1;
-                $v |= 1 if $set;
+                $v |= $bit if $set;
+                $bit <<= 1;
             }
         }
     }
@@ -1043,6 +1186,7 @@ sub GetBits($$)
 #------------------------------------------------------------------------------
 # Extract parameters from JPEG XL codestream [unverified!]
 # Inputs: 0) ExifTool ref, 1) codestream ref
+# Returns: 1
 sub ProcessJXLCodestream($$)
 {
     my ($et, $dataPt) = @_;
@@ -1051,11 +1195,7 @@ sub ProcessJXLCodestream($$)
         my $tmp = $$dataPt . ("\0" x 14);
         $dataPt = \$tmp;
     }
-    # Note: I have a test ISO BMFF JXL image with EXIF that shows y=130, x=200
-    # but the codestream decodes as y=128, x=254, so I'm not sure this is correct...
-    # 200x130 image should be (binary) 0 00 010000001 000 00 011000111
-    # JXL codestream is                0 00 010000000 010 (01000111010000001)
-    my @a = unpack 'x2N3', $$dataPt;
+    my @a = unpack 'x2C12', $$dataPt;
     my ($x, $y);
     my $small = GetBits(\@a, 1);
     if ($small) {
@@ -1076,6 +1216,7 @@ sub ProcessJXLCodestream($$)
     }
     $et->FoundTag(ImageWidth => $x);
     $et->FoundTag(ImageHeight => $y);
+    return 1;
 }
 
 #------------------------------------------------------------------------------
@@ -1094,16 +1235,8 @@ sub ProcessJP2($$)
     return 0 unless $raf->Read($hdr,12) == 12;
     unless ($hdr eq "\0\0\0\x0cjP  \x0d\x0a\x87\x0a" or     # (ref 1)
             $hdr eq "\0\0\0\x0cjP\x1a\x1a\x0d\x0a\x87\x0a" or # (ref 2)
-            ($hdr eq "\0\0\0\x0cJXL \x0d\x0a\x87\x0a" and $$et{IsJXL} = 1)) # (JPEG XL)
+            $$et{IsJXL})
     {
-        if ($hdr =~ /^\xff\x0a/) {
-            $outfile and $et->Error('Writing of JPEG XL codestream files is not yet supported'), return 0;
-            # JPEG XL codestream
-            $et->SetFileType('JXC',undef,'JXL'); # (PH invention)
-            $et->Warn('JPEG XL codestream support is currently experimental',1);
-            ProcessJXLCodestream($et, \$hdr);
-            return 1;
-        }
         return 0 unless $hdr =~ /^\xff\x4f\xff\x51\0/;  # check for JP2 codestream format
         if ($outfile) {
             $et->Error('Writing of J2C files is not yet supported');
@@ -1117,7 +1250,6 @@ sub ProcessJP2($$)
         $raf->Seek(0,0);
         return $et->ProcessJPEG($dirInfo);    # decode with JPEG processor
     }
-    $et->Warn('JPEG XL support is currently experimental',1) if $$et{IsJXL};
     if ($outfile) {
         Write($outfile, $hdr) or return -1;
         if ($$et{IsJXL}) {
@@ -1154,11 +1286,54 @@ sub ProcessJP2($$)
 #------------------------------------------------------------------------------
 # Read meta information from a JPEG XL image
 # Inputs: 0) ExifTool object reference, 1) dirInfo reference
-# Returns: 1 on success, 0 if this wasn't a valid JPEG XL file
+# Returns: 1 on success, 0 if this wasn't a valid JPEG XL file, -1 on write error
 sub ProcessJXL($$)
 {
     my ($et, $dirInfo) = @_;
-    return ProcessJP2($et, $dirInfo);
+    my $raf = $$dirInfo{RAF};
+    my $outfile = $$dirInfo{OutFile};
+    my ($hdr, $buff);
+
+    return 0 unless $raf->Read($hdr,12) == 12;
+    if ($hdr eq "\0\0\0\x0cJXL \x0d\x0a\x87\x0a") {
+        # JPEG XL in ISO BMFF container
+        $$et{IsJXL} = 1;
+    } elsif ($hdr =~ /^\xff\x0a/) {
+        # JPEG XL codestream
+        if ($outfile) {
+            if ($$et{OPTIONS}{IgnoreMinorErrors}) {
+                $et->Warn('Wrapped JXL codestream in ISO BMFF container');
+            } else {
+                $et->Error('Will wrap JXL codestream in ISO BMFF container for writing',1);
+                return 0;
+            }
+            $$et{IsJXL} = 2;
+            my $buff = "\0\0\0\x0cJXL \x0d\x0a\x87\x0a\0\0\0\x14ftypjxl \0\0\0\0jxl ";
+            # add metadata to empty ISO BMFF container
+            $$dirInfo{RAF} = new File::RandomAccess(\$buff);
+        } else {
+            $et->SetFileType('JXL Codestream','image/jxl', 'jxl');
+            return ProcessJXLCodestream($et, \$hdr);
+        }
+    } else {
+        return 0;
+    }
+    $raf->Seek(0,0) or $et->Error('Seek error'), return 0;
+
+    my $success = ProcessJP2($et, $dirInfo);
+
+    if ($outfile and $success > 0 and $$et{IsJXL} == 2) {
+        # attach the JXL codestream box to the ISO BMFF file
+        $raf->Seek(0,2) or return -1;
+        my $size = $raf->Tell();
+        $raf->Seek(0,0) or return -1;
+        SetByteOrder('MM');
+        Write($outfile, Set32u($size + 8), 'jxlc') or return -1;
+        while ($raf->Read($buff, 65536)) {
+            Write($outfile, $buff) or return -1;
+        }
+    }
+    return $success;
 }
 
 1;  # end
@@ -1180,7 +1355,7 @@ files.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2022, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

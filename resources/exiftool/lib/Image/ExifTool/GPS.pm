@@ -12,7 +12,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.53';
+$VERSION = '1.54';
 
 my %coordConv = (
     ValueConv    => 'Image::ExifTool::GPS::ToDegrees($val)',
@@ -137,22 +137,26 @@ my %coordConv = (
             my ($v, $et) = @_;
             $v = $et->TimeNow() if lc($v) eq 'now';
             my @tz;
-            if ($v =~ s/([-+])(.*)//s) {    # remove timezone
+            if ($v =~ s/([-+])(\d{1,2}):?(\d{2})\s*(DST)?$//i) {    # remove timezone
                 my $s = $1 eq '-' ? 1 : -1; # opposite sign to convert back to UTC
                 my $t = $2;
-                @tz = ($s*$1, $s*$2) if $t =~ /^(\d{2}):?(\d{2})\s*$/;
+                @tz = ($s*$2, $s*$3);
             }
-            my @a = ($v =~ /((?=\d|\.\d)\d*(?:\.\d*)?)/g);
-            push @a, '00' while @a < 3;
+            # (note: we must allow '.' as a time separator, eg. '10.30.00', with is tricky due to decimal seconds)
+            # YYYYmmddHHMMSS[.ss] format
+            my @a = ($v =~ /^[^\d]*\d{4}[^\d]*\d{1,2}[^\d]*\d{1,2}[^\d]*(\d{1,2})[^\d]*(\d{2})[^\d]*(\d{2}(?:\.\d+)?)[^\d]*$/);
+            # HHMMSS[.ss] format
+            @a or @a = ($v =~ /^[^\d]*(\d{1,2})[^\d]*(\d{2})[^\d]*(\d{2}(?:\.\d+)?)[^\d]*$/);
+            @a or warn('Invalid time (use HH:MM:SS[.ss][+/-HH:MM|Z])'), return undef;
             if (@tz) {
                 # adjust to UTC
-                $a[-2] += $tz[1];
-                $a[-3] += $tz[0];
-                while ($a[-2] >= 60) { $a[-2] -= 60; ++$a[-3] }
-                while ($a[-2] < 0)   { $a[-2] += 60; --$a[-3] }
-                $a[-3] = ($a[-3] + 24) % 24;
+                $a[1] += $tz[1];
+                $a[0] += $tz[0];
+                while ($a[1] >= 60) { $a[1] -= 60; ++$a[0] }
+                while ($a[1] < 0)   { $a[1] += 60; --$a[0] }
+                $a[0] = ($a[0] + 24) % 24;
             }
-            return "$a[-3]:$a[-2]:$a[-1]";
+            return join(':', @a);
         },
     },
     0x0008 => {
@@ -356,21 +360,41 @@ my %coordConv = (
     # which must therefore require this module as necessary
     GPSLatitude => {
         SubDoc => 1,    # generate for all sub-documents
+        Writable => 1,
+        Avoid => 1,
+        Priority => 1,  # (necessary because Avoid sets default Priority to 0)
         Require => {
             0 => 'GPS:GPSLatitude',
             1 => 'GPS:GPSLatitudeRef',
         },
+        WriteAlso => {
+            'GPS:GPSLatitude' => '$val',
+            'GPS:GPSLatitudeRef' => '(defined $val and $val < 0) ? "S" : "N"',
+        },
         ValueConv => '$val[1] =~ /^S/i ? -$val[0] : $val[0]',
         PrintConv => 'Image::ExifTool::GPS::ToDMS($self, $val, 1, "N")',
+        PrintConvInv => 'Image::ExifTool::GPS::ToDegrees($val, 1, "lat")',
     },
     GPSLongitude => {
         SubDoc => 1,    # generate for all sub-documents
+        Writable => 1,
+        Avoid => 1,
+        Priority => 1,
+        Require => {
+            0 => 'GPS:GPSLongitude',
+            1 => 'GPS:GPSLongitudeRef',
+        },
+        WriteAlso => {
+            'GPS:GPSLongitude' => '$val',
+            'GPS:GPSLongitudeRef' => '(defined $val and $val < 0) ? "W" : "E"',
+        },
         Require => {
             0 => 'GPS:GPSLongitude',
             1 => 'GPS:GPSLongitudeRef',
         },
         ValueConv => '$val[1] =~ /^W/i ? -$val[0] : $val[0]',
         PrintConv => 'Image::ExifTool::GPS::ToDMS($self, $val, 1, "E")',
+        PrintConvInv => 'Image::ExifTool::GPS::ToDegrees($val, 1, "lon")',
     },
     GPSAltitude => {
         SubDoc => [1,3], # generate for sub-documents if Desire 1 or 3 has a chance to exist
@@ -575,7 +599,7 @@ GPS (Global Positioning System) meta information in EXIF data.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2022, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

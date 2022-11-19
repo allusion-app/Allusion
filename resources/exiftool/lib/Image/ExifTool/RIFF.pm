@@ -21,20 +21,22 @@
 #              13) http://tech.ebu.ch/docs/tech/tech3285.pdf
 #              14) https://developers.google.com/speed/webp/docs/riff_container
 #              15) https://tech.ebu.ch/docs/tech/tech3306-2009.pdf
+#              16) https://sites.google.com/site/musicgapi/technical-documents/wav-file-format
 #------------------------------------------------------------------------------
 
 package Image::ExifTool::RIFF;
 
 use strict;
-use vars qw($VERSION);
+use vars qw($VERSION $AUTOLOAD);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.57';
+$VERSION = '1.61';
 
 sub ConvertTimecode($);
 sub ProcessSGLT($$$);
 sub ProcessSLLT($$$);
 sub ProcessLucas($$$);
+sub WriteRIFF($$);
 
 # recognized RIFF variants
 my %riffType = (
@@ -339,6 +341,9 @@ my %code2charset = (
         Large AVI videos may be a concatenation of two or more RIFF chunks.  For
         these files, information is extracted from subsequent RIFF chunks as
         sub-documents, but the Duration is calculated for the full video.
+
+        ExifTool currently has the ability to write EXIF, XMP and ICC_Profile
+        metadata to WEBP images, but can't yet write to other RIFF-based formats.
     },
     # (not 100% sure that the concatenation technique mentioned above is valid - PH)
    'fmt ' => {
@@ -354,9 +359,35 @@ my %code2charset = (
         SubDirectory => { TagTable => 'Image::ExifTool::RIFF::DS64' },
     },
     list => 'ListType',  #15
-    labl => { #15
-        Name => 'Label',
-        SubDirectory => { TagTable => 'Image::ExifTool::RIFF::Label' },
+    labl => { #16 (in 'adtl' chunk)
+        Name => 'CuePointLabel',
+        Priority => 0, # (so they are stored in sequence)
+        ValueConv => 'my $str=substr($val,4); $str=~s/\0+$//; unpack("V",$val) . " " . $str',
+    },
+    note => { #16 (in 'adtl' chunk)
+        Name => 'CuePointNote',
+        Priority => 0, # (so they are stored in sequence)
+        ValueConv => 'my $str=substr($val,4); $str=~s/\0+$//; unpack("V",$val) . " " . $str',
+    },
+    ltxt => { #16 (in 'adtl' chunk)
+        Name => 'LabeledText',
+        Notes => 'CuePointID Length Purpose Country Language Dialect Codepage Text',
+        Priority => 0, # (so they are stored in sequence)
+        ValueConv => q{
+            my @a = unpack('VVa4vvvv', $val);
+            $a[2] = "'$a[2]'";
+            my $txt = substr($val, 18);
+            $txt =~ s/\0+$//;   # remove null terminator
+            return join(' ', @a, $txt);
+        },
+    },
+    smpl => { #16
+        Name => 'Sampler',
+        SubDirectory => { TagTable => 'Image::ExifTool::RIFF::Sampler' },
+    },        
+    inst => { #16
+        Name => 'Instrument',
+        SubDirectory => { TagTable => 'Image::ExifTool::RIFF::Instrument' },
     },
     LIST_INFO => {
         Name => 'Info',
@@ -395,6 +426,10 @@ my %code2charset = (
             TagTable => 'Image::ExifTool::Pentax::AVI',
             ProcessProc => \&Image::ExifTool::RIFF::ProcessChunks,
         },
+    },
+    LIST_adtl => { #PH (ref 16, forum12387)
+        Name => 'AssociatedDataList',
+        SubDirectory => { TagTable => 'Image::ExifTool::RIFF::Main' },
     },
     # seen LIST_JUNK
     JUNK => [
@@ -466,10 +501,15 @@ my %code2charset = (
         Name => 'NumberOfSamples',
         RawConv => 'Get32u(\$val, 0)',
     },
-   'cue ' => {
+   'cue '=> {
         Name => 'CuePoints',
         Binary => 1,
+        Notes => q{
+            config_files/cutepointlist.config from full distribution will decode this
+            and generate a list of cue points with labels
+        },
     },
+    plst => { Name => 'Playlist',  Binary => 1 }, #16
     afsp => { },
     IDIT => {
         Name => 'DateTimeOriginal',
@@ -491,6 +531,10 @@ my %code2charset = (
         Name => 'Text',
         Notes => 'streamed text, extracted when the ExtractEmbedded option is used',
     },
+   'id3 ' => {
+        Name => 'ID3',
+        SubDirectory => { TagTable => 'Image::ExifTool::ID3::Main' },
+    },        
 #
 # WebP-specific tags
 #
@@ -504,7 +548,7 @@ my %code2charset = (
         },
     },{ # (WebP) - have also seen with "Exif\0\0" header - PH
         Name => 'EXIF',
-        Condition => '$$valPt =~ /^Exif\0\0(II\x2a\0|MM\0\x2a)/',
+        Condition => '$$valPt =~ /^Exif\0\0(II\x2a\0|MM\0\x2a)/ and $self->Warn("Improper EXIF header",1)',
         SubDirectory => {
             TagTable => 'Image::ExifTool::Exif::Main',
             ProcessProc => \&Image::ExifTool::ProcessTIFF,
@@ -596,6 +640,11 @@ my %code2charset = (
     },
     # gpsa - seen hex "01 20 00 00", same as QuickTime
     # gsea - 16 bytes hex "04 08 02 00 20 02 00 00 1f 03 00 00 01 00 00 00"
+
+    acid => {   # writen by Acidizer
+        Name => 'Acidizer',
+        SubDirectory => { TagTable => 'Image::ExifTool::RIFF::Acidizer' },
+    },
 );
 
 # the maker notes used by some digital cameras
@@ -704,16 +753,52 @@ my %code2charset = (
     #  very unlikely, support for these is not yet implemented)
 );
 
-# cue point labels (ref 15)
-%Image::ExifTool::RIFF::Label = (
+# Sampler chunk (ref 16)
+%Image::ExifTool::RIFF::Sampler = (
     PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
     GROUPS => { 2 => 'Audio' },
     FORMAT => 'int32u',
-    0 => 'LabelID',
-    1 => {
-        Name => 'LabelText',
-        Format => 'string[$size-4]',
+    0 => 'Manufacturer',
+    1 => 'Product',
+    2 => 'SamplePeriod',
+    3 => 'MIDIUnityNote',
+    4 => 'MIDIPitchFraction',
+    5 => {
+        Name => 'SMPTEFormat',
+        PrintConv => {
+            0 => 'none',
+            24 => '24 fps',
+            25 => '25 fps',
+            29 => '29 fps',
+            30 => '30 fps',
+        },
     },
+    6 => {
+        Name => 'SMPTEOffset',
+        Notes => 'HH:MM:SS:FF',
+        ValueConv => q{
+            my $str = sprintf('%.8x', $val);
+            $str =~ s/(..)(..)(..)(..)/$1:$2:$3:$4/;
+            return $str;
+        },
+    },
+    7 => 'NumSampleLoops',
+    8 => 'SamplerDataLen',
+    9 => { Name => 'SamplerData', Format => 'undef[$size-40]', Binary => 1 },
+);
+
+# Instrument chunk (ref 16)
+%Image::ExifTool::RIFF::Instrument = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 2 => 'Audio' },
+    FORMAT => 'int8s',
+    0 => 'UnshiftedNote',
+    1 => 'FineTune',
+    2 => 'Gain',
+    3 => 'LowNote',
+    4 => 'HighNote',
+    5 => 'LowVelocity',
+    6 => 'HighVelocity',
 );
 
 # Sub chunks of INFO LIST chunk
@@ -746,6 +831,7 @@ my %code2charset = (
     ILGT => 'Lightness',
     IMED => 'Medium',
     INAM => 'Title',
+    ITRK => 'TrackNumber',
     IPLT => 'NumColors',
     IPRD => 'Product',
     ISBJ => 'Subject',
@@ -1008,7 +1094,7 @@ my %code2charset = (
             Name => 'TextFormat',
             Condition => '$$self{RIFFStreamType} eq "txts"',
             Hidden => 1,
-            RawConv => '$self->Options("ExtractEmbedded") or $self->WarnOnce("Use ExtractEmbedded option to extract timed text"); undef',
+            RawConv => '$self->Options("ExtractEmbedded") or $self->WarnOnce("Use ExtractEmbedded option to extract timed text",3); undef',
         },
     ],
 );
@@ -1172,6 +1258,7 @@ my %code2charset = (
         Name => 'ImageWidth',
         Format => 'int16u',
         Mask => 0x3fff,
+        Priority => 0,
     },
     6.1 => {
         Name => 'HorizontalScale',
@@ -1182,6 +1269,7 @@ my %code2charset = (
         Name => 'ImageHeight',
         Format => 'int16u',
         Mask => 0x3fff,
+        Priority => 0,
     },
     8.1 => {
         Name => 'VerticalScale',
@@ -1198,11 +1286,13 @@ my %code2charset = (
     1 => {
         Name => 'ImageWidth',
         Format => 'int16u',
+        Priority => 0,
         ValueConv => '($val & 0x3fff) + 1',
     },
     2 => {
         Name => 'ImageHeight',
         Format => 'int32u',
+        Priority => 0,
         ValueConv => '(($val >> 6) & 0x3fff) + 1',
     },
 );
@@ -1213,6 +1303,19 @@ my %code2charset = (
     GROUPS => { 2 => 'Image' },
     NOTES => 'This chunk is found in extended WebP files.',
     # 0 - bitmask: 2=ICC, 3=alpha, 4=EXIF, 5=XMP, 6=animation
+    0 => {
+        Name => 'WebP_Flags',
+        Description => 'WebP Flags',
+        Notes => 'flags used in Extended WebP images',
+        Format => 'int32u',
+        PrintConv => { BITMASK => {
+            1 => 'Animation',
+            2 => 'XMP',
+            3 => 'EXIF',
+            4 => 'Alpha',
+            5 => 'ICC Profile',
+        }},
+    },
     4 => {
         Name => 'ImageWidth',
         Format => 'int32u',
@@ -1343,6 +1446,54 @@ my %code2charset = (
     },
 );
 
+# Acidizer information (ref https://forums.cockos.com/showthread.php?t=227118)
+%Image::ExifTool::RIFF::Acidizer = (
+    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    GROUPS => { 2 => 'Audio' },
+    0 => {
+        Name => 'AcidizerFlags',
+        Format => 'int32u',
+        PrintConv => { BITMASK => {
+            0 => 'One shot',
+            1 => 'Root note set',
+            2 => 'Stretch',
+            3 => 'Disk-based',
+            4 => 'High octave',
+        }},
+    },
+    4 => {
+        Name => 'RootNote',
+        Format => 'int16u',
+        PrintConv => {
+            0x30 => 'C',    0x3c => 'High C',
+            0x31 => 'C#',   0x3d => 'High C#',
+            0x32 => 'D',    0x3e => 'High D',
+            0x33 => 'D#',   0x3f => 'High D#',
+            0x34 => 'E',    0x40 => 'High E',
+            0x35 => 'F',    0x41 => 'High F',
+            0x36 => 'F#',   0x42 => 'High F#',
+            0x37 => 'G',    0x43 => 'High G',
+            0x38 => 'G#',   0x44 => 'High G#',
+            0x39 => 'A',    0x45 => 'High A',
+            0x3a => 'A#',   0x46 => 'High A#',
+            0x3b => 'B',    0x47 => 'High B',
+        },
+    },
+    12 => {
+        Name => 'Beats',
+        Format => 'int32u',
+    },
+    16 => {
+        Name => 'Meter',
+        Format => 'int16u[2]',
+        PrintConv => '$val =~ s/(\d+) (\d+)/$2\/$1/; $val', # denominator comes first, so swap them
+    },
+    20 => {
+        Name => 'Tempo',
+        Format => 'float',
+    },
+);
+
 # RIFF composite tags
 %Image::ExifTool::RIFF::Composite = (
     Duration => {
@@ -1381,6 +1532,14 @@ my %code2charset = (
 # add our composite tags
 Image::ExifTool::AddCompositeTags('Image::ExifTool::RIFF');
 
+
+#------------------------------------------------------------------------------
+# AutoLoad our writer routines when necessary
+#
+sub AUTOLOAD
+{
+    return Image::ExifTool::DoAutoLoad($AUTOLOAD, @_);
+}
 
 #------------------------------------------------------------------------------
 # Convert RIFF date to EXIF format
@@ -1565,7 +1724,7 @@ sub ProcessChunks($$$)
     my $start = $$dirInfo{DirStart};
     my $size = $$dirInfo{DirLen};
     my $end = $start + $size;
-    my $base = $$dirInfo{Base};
+    my $base = $$dirInfo{Base} || 0;
     my $verbose = $et->Options('Verbose');
     my $unknown = $et->Options('Unknown');
     my $charset = $et->Options('CharsetRIFF');
@@ -1819,6 +1978,7 @@ sub ProcessRIFF($$)
     my ($buff, $buf2, $type, $mime, $err, $rf64);
     my $verbose = $et->Options('Verbose');
     my $unknown = $et->Options('Unknown');
+    my $validate = $et->Options('Validate');
     my $ee = $et->Options('ExtractEmbedded');
 
     # verify this is a valid RIFF file
@@ -1840,6 +2000,8 @@ sub ProcessRIFF($$)
     $$et{RIFFStreamType} = '';      # initialize stream type
     $$et{RIFFStreamCodec} = [];     # initialize codec array
     SetByteOrder('II');
+    my $riffEnd = Get32u(\$buff, 4) + 8;
+    $riffEnd += $riffEnd & 0x01;    # (account for padding)
     my $tagTbl = GetTagTable('Image::ExifTool::RIFF::Main');
     my $pos = 12;
 #
@@ -1849,10 +2011,13 @@ sub ProcessRIFF($$)
         my $num = $raf->Read($buff, 8);
         if ($num < 8) {
             $err = 1 if $num;
+            $et->Warn('Incorrect RIFF chunk size' . " $pos vs. $riffEnd") if $validate and $pos != $riffEnd;
             last;
         }
         $pos += 8;
         my ($tag, $len) = unpack('a4V', $buff);
+        # tweak WEBP type if this is an extended WebP
+        $et->OverrideFileType('Extended WEBP',undef,'webp') if $tag eq 'VP8X' and $type eq 'WEBP';
         # special case: construct new tag name from specific LIST type
         if ($tag eq 'LIST') {
             $raf->Read($buff, 4) == 4 or $err=1, last;
@@ -1872,7 +2037,6 @@ sub ProcessRIFF($$)
             } else {
                 next;
             }
-            last;
         }
         # stop when we hit the audio data or AVI index or AVI movie data
         # --> no more because Adobe Bridge stores XMP after this!!
@@ -1892,6 +2056,7 @@ sub ProcessRIFF($$)
             $$et{DOC_NUM} = ++$$et{DOC_COUNT};
         }
         my $tagInfo = $$tagTbl{$tag};
+        # (in LIST_movi chunk: ##db = uncompressed DIB, ##dc = compressed DIB, ##wb = audio data)
         if ($tagInfo or (($verbose or $unknown) and $tag !~ /^(data|idx1|LIST_movi|RIFF|\d{2}(db|dc|wb))$/)) {
             $raf->Read($buff, $len2) == $len2 or $err=1, last;
             my $setGroups;
@@ -1903,7 +2068,7 @@ sub ProcessRIFF($$)
                 DataPt  => \$buff,
                 DataPos => 0,   # (relative to Base)
                 Start   => 0,
-                Size    => $len2,
+                Size    => $len,
                 Base    => $pos,
             );
             if ($setGroups) {
@@ -1912,10 +2077,14 @@ sub ProcessRIFF($$)
             }
             delete $$et{DOC_NUM} if $ee;
         } elsif ($tag eq 'RIFF') {
+            $et->Warn('Incorrect RIFF chunk size') if $validate and $pos - 8 != $riffEnd;
+            $riffEnd += $len2 + 8;
             # don't read into RIFF chunk (eg. concatenated video file)
-            $raf->Read($buff, 4) == 4 or $err=1, last;
+            $raf->Read($buff, 4) == 4 or $err=1, last;  # (skip RIFF type word)
+            $pos += 4;
             # extract information from remaining file as an embedded file
-            $$et{DOC_NUM} = ++$$et{DOC_COUNT}
+            $$et{DOC_NUM} = ++$$et{DOC_COUNT};
+            next; # (must not increment $pos)
         } elsif ($tag eq 'LIST_movi' and $ee) {
             next; # parse into movi chunk
         } else {
@@ -1923,7 +2092,12 @@ sub ProcessRIFF($$)
                 $et->Warn("Stopped parsing at large $tag chunk (LargeFileSupport not set)");
                 last;
             }
-            $raf->Seek($len2, 1) or $err=1, last;
+            if ($validate and $len2) {
+                # (must actually try to read something after seeking to detect error)
+                $raf->Seek($len2-1, 1) and $raf->Read($buff, 1) == 1 or $err = 1, last;
+            } else {
+                $raf->Seek($len2, 1) or $err=1, last;
+            }
         }
         $pos += $len2;
     }
@@ -1952,7 +2126,7 @@ including AVI videos, WAV audio files and WEBP images.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2022, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

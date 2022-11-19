@@ -16,6 +16,7 @@
 #               11) http://www.extensis.com/en/support/kb_article.jsp?articleNumber=6102211
 #               12) XMPSpecificationPart3_May2013, page 58
 #               13) https://developer.android.com/training/camera2/Dynamic-depth-v1.0.pdf
+#               14) http://www.iptc.org/standards/photo-metadata/iptc-standard/
 #------------------------------------------------------------------------------
 
 package Image::ExifTool::XMP;
@@ -530,16 +531,18 @@ my %sImageRegion = ( # new in 1.5
     rRole  => { Namespace => 'Iptc4xmpExt', FlatName => 'Role',  List => 'Bag', Struct => \%sEntity },
 );
 
-# IPTC Extension namespace properties (Iptc4xmpExt) (ref 4)
+# IPTC Extension namespace properties (Iptc4xmpExt) (ref 4, 14)
 %Image::ExifTool::XMP::iptcExt = (
     %xmpTableDefaults,
     GROUPS => { 1 => 'XMP-iptcExt', 2 => 'Author' },
     NAMESPACE   => 'Iptc4xmpExt',
     TABLE_DESC => 'XMP IPTC Extension',
     NOTES => q{
-        This table contains tags defined by the IPTC Extension schema version 1.5. 
-        The actual namespace prefix is "Iptc4xmpExt", but ExifTool shortens this for
-        the family 1 group name. (see L<http://www.iptc.org/IPTC4XMP/>)
+        This table contains tags defined by the IPTC Extension schema version 1.7
+        and IPTC Video Metadata version 1.3. The actual namespace prefix is
+        "Iptc4xmpExt", but ExifTool shortens this for the family 1 group name. (See
+        L<http://www.iptc.org/standards/photo-metadata/iptc-standard/> and
+        L<https://iptc.org/standards/video-metadata-hub/>.)
     },
     AboutCvTerm => {
         Struct => \%sCVTermDetails,
@@ -680,6 +683,7 @@ my %sImageRegion = ( # new in 1.5
             ProductName => { Writable => 'lang-alt' },
             ProductGTIN => { },
             ProductDescription => { Writable => 'lang-alt' },
+            ProductId => { }, # added in version 2022.1
         },
         List => 'Bag',
     },
@@ -794,8 +798,16 @@ my %sImageRegion = ( # new in 1.5
     },
     PlanningRef         => { List => 'Bag', Struct => \%sEntityWithRole },
     audioBitsPerSample  => { Groups => { 2 => 'Audio' }, Writable => 'integer' },
+    # new IPTC video metadata 1.3 properties
+    # (ref https://iptc.org/std/videometadatahub/recommendation/IPTC-VideoMetadataHub-props-Rec_1.3.html)
+    metadataLastEdited => { Groups => { 2 => 'Time' }, %dateTimeInfo },
+    metadataLastEditor => { Struct => \%sEntity },
+    metadataAuthority  => { Struct => \%sEntity },
+    parentId           => { Name => 'ParentID' },
     # new IPTC Extension schema 1.5 property
     ImageRegion => { Groups => { 2 => 'Image' }, List => 'Bag', Struct => \%sImageRegion },
+    # new Extension 1.6 property
+    EventId     => { Name => 'EventID', List => 'Bag' },
 );
 
 #------------------------------------------------------------------------------
@@ -1514,6 +1526,7 @@ my %sSubVersion = (
     ImageHistory           => { Avoid => 1, Notes => 'different format from EXIF:ImageHistory' },
     LensCorrectionSettings => { },
     ImageUniqueID          => { Avoid => 1 },
+    picasawebGPhotoId      => { }, #forum14108
 );
 
 # SWF namespace tags (ref PH)
@@ -1843,6 +1856,11 @@ my %sSubVersion = (
     MicroVideoVersion   => { Writable => 'integer' },
     MicroVideoOffset    => { Writable => 'integer' },
     MicroVideoPresentationTimestampUs => { Writable => 'integer' },
+    shot_log_data => { #forum14108
+        Name => 'ShotLogData',
+        ValueConv => 'Image::ExifTool::XMP::DecodeBase64($val)',
+        ValueConvInv => 'Image::ExifTool::XMP::EncodeBase64($val)',
+    },
 );
 
 # Google creations namespace (ref PH)
@@ -1852,6 +1870,7 @@ my %sSubVersion = (
     NAMESPACE => 'GCreations',
     NOTES => 'Google creations tags.',
     CameraBurstID  => { },
+    Type => { Avoid => 1 },
 );
 
 # Google depth-map Device namespace (ref 13)
@@ -2122,7 +2141,7 @@ This file contains definitions for less common XMP namespaces.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2022, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
