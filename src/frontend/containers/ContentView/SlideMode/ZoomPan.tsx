@@ -483,7 +483,7 @@ export const CONTAINER_DEFAULT_STYLE = {
 
 function imageStyle({ top, left, scale }: ZoomPanState): CSSProperties {
   return {
-    transform: `translate3d(${left}px, ${top}px, 0) scale(${scale})`,
+    transform: `translate3d(${Math.trunc(left)}px, ${Math.trunc(top)}px, 0) scale(${scale})`,
   };
 }
 
