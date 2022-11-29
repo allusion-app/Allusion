@@ -208,7 +208,7 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
   transitionEnd,
   onClose,
 }: ZoomableImageProps) => {
-  const { imageLoader } = useStore();
+  const { imageLoader, uiStore } = useStore();
   const { absolutePath, width: imgWidth, height: imgHeight } = file;
   // Image src can be set asynchronously: keep track of it in a state
   // Needed for image formats not natively supported by the browser (e.g. tiff): will be converted to another format
@@ -277,6 +277,7 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
         transitionStart={transitionStart}
         transitionEnd={transitionEnd}
         onClose={onClose}
+        upscaleMode={uiStore.upscaleMode}
       >
         {(props) => (
           <img

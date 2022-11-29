@@ -20,7 +20,7 @@ export const enum ViewMethod {
 }
 export type ThumbnailSize = 'small' | 'medium' | 'large' | number;
 type ThumbnailShape = 'square' | 'letterbox';
-type UpscaleMode = 'smooth' | 'pixelated';
+export type UpscaleMode = 'smooth' | 'pixelated';
 export const PREFERENCES_STORAGE_KEY = 'preferences';
 
 export interface IHotkeyMap {
@@ -101,6 +101,7 @@ type PersistentPreferenceFields =
   | 'method'
   | 'thumbnailSize'
   | 'thumbnailShape'
+  | 'upscaleMode'
   | 'hotkeyMap'
   | 'isThumbnailTagOverlayEnabled'
   | 'isThumbnailFilenameOverlayEnabled'
@@ -218,10 +219,6 @@ class UiStore {
     this.setThumbnailShape('letterbox');
   }
 
-  @action.bound setUpscaleMode(mode: UpscaleMode) {
-    this.upscaleMode = mode;
-  }
-
   @action.bound setUpscaleModeSmooth() {
     this.setUpscaleMode('smooth');
   }
@@ -291,10 +288,6 @@ class UiStore {
 
   @action.bound toggleThumbnailResolutionOverlay() {
     this.isThumbnailResolutionOverlayEnabled = !this.isThumbnailResolutionOverlayEnabled;
-  }
-
-  @action.bound togglePixelated() {
-    this.isPixelated = !this.isPixelated;
   }
 
   @action.bound toggleRememberSearchQuery() {
@@ -830,6 +823,9 @@ class UiStore {
         if (prefs.thumbnailShape) {
           this.setThumbnailShape(prefs.thumbnailShape);
         }
+        if (prefs.upscaleMode) {
+          this.setUpscaleMode(prefs.upscaleMode);
+        }
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
         this.isThumbnailFilenameOverlayEnabled = Boolean(prefs.isThumbnailFilenameOverlayEnabled ?? false); // eslint-disable-line prettier/prettier
         this.isThumbnailResolutionOverlayEnabled = Boolean(prefs.isThumbnailResolutionOverlayEnabled ?? false); // eslint-disable-line prettier/prettier
@@ -884,6 +880,7 @@ class UiStore {
       method: this.method,
       thumbnailSize: this.thumbnailSize,
       thumbnailShape: this.thumbnailShape,
+      upscaleMode: this.upscaleMode,
       hotkeyMap: { ...this.hotkeyMap },
       isThumbnailFilenameOverlayEnabled: this.isThumbnailFilenameOverlayEnabled,
       isThumbnailTagOverlayEnabled: this.isThumbnailTagOverlayEnabled,
@@ -945,6 +942,10 @@ class UiStore {
 
   @action private setThumbnailShape(shape: ThumbnailShape) {
     this.thumbnailShape = shape;
+  }
+
+  @action private setUpscaleMode(mode: UpscaleMode) {
+    this.upscaleMode = mode;
   }
 }
 
