@@ -20,6 +20,7 @@ export const enum ViewMethod {
 }
 export type ThumbnailSize = 'small' | 'medium' | 'large' | number;
 type ThumbnailShape = 'square' | 'letterbox';
+type UpscaleMode = 'smooth' | 'pixelated';
 export const PREFERENCES_STORAGE_KEY = 'preferences';
 
 export interface IHotkeyMap {
@@ -148,6 +149,7 @@ class UiStore {
   @observable firstItem: number = 0;
   @observable thumbnailSize: ThumbnailSize | number = 'medium';
   @observable thumbnailShape: ThumbnailShape = 'square';
+  @observable upscaleMode: UpscaleMode = 'smooth';
 
   @observable isToolbarTagPopoverOpen: boolean = false;
   /** Dialog for removing unlinked files from Allusion's database */
@@ -216,6 +218,18 @@ class UiStore {
     this.setThumbnailShape('letterbox');
   }
 
+  @action.bound setUpscaleMode(mode: UpscaleMode) {
+    this.upscaleMode = mode;
+  }
+
+  @action.bound setUpscaleModeSmooth() {
+    this.setUpscaleMode('smooth');
+  }
+
+  @action.bound setUpscaleModePixelated() {
+    this.setUpscaleMode('pixelated');
+  }
+
   @action.bound setFirstItem(index: number = 0) {
     if (isFinite(index) && index < this.rootStore.fileStore.fileList.length) {
       this.firstItem = index;
@@ -277,6 +291,10 @@ class UiStore {
 
   @action.bound toggleThumbnailResolutionOverlay() {
     this.isThumbnailResolutionOverlayEnabled = !this.isThumbnailResolutionOverlayEnabled;
+  }
+
+  @action.bound togglePixelated() {
+    this.isPixelated = !this.isPixelated;
   }
 
   @action.bound toggleRememberSearchQuery() {
