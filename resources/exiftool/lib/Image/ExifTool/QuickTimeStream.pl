@@ -26,6 +26,7 @@ sub ProcessFreeGPS($$$);
 sub ProcessFreeGPS2($$$);
 sub Process360Fly($$$);
 sub ProcessFMAS($$$);
+sub ProcessCAMM($$$);
 
 my $debug;  # set to 1 for extra debugging messages
 
@@ -101,7 +102,7 @@ my %insvLimit = (
         The tags below are extracted from timed metadata in QuickTime and other
         formats of video files when the ExtractEmbedded option is used.  Although
         most of these tags are combined into the single table below, ExifTool
-        currently reads 62 different formats of timed GPS metadata from video files.
+        currently reads 63 different formats of timed GPS metadata from video files.
     },
     VARS => { NO_ID => 1 },
     GPSLatitude  => { PrintConv => 'Image::ExifTool::GPS::ToDMS($self, $val, 1, "N")', RawConv => '$$self{FoundGPSLatitude} = 1; $val' },
@@ -236,7 +237,7 @@ my %insvLimit = (
     camm => [{
         Name => 'camm0',
         # (according to the spec. the first 2 bytes are reserved and should be zero,
-        # but I have a sample where these bytes are non-zero, so allow anything here)
+        # but I have samples where these bytes are non-zero, so allow anything here)
         Condition => '$$valPt =~ /^..\0\0/s',
         SubDirectory => {
             TagTable => 'Image::ExifTool::QuickTime::camm0',
@@ -318,7 +319,7 @@ my %insvLimit = (
 
 # tags found in 'camm' type 0 timed metadata (ref 4)
 %Image::ExifTool::QuickTime::camm0 = (
-    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    PROCESS_PROC => \&ProcessCAMM,
     GROUPS => { 2 => 'Location' },
     FIRST_ENTRY => 0,
     NOTES => q{
@@ -336,7 +337,7 @@ my %insvLimit = (
 
 # tags found in 'camm' type 1 timed metadata (ref 4)
 %Image::ExifTool::QuickTime::camm1 = (
-    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    PROCESS_PROC => \&ProcessCAMM,
     GROUPS => { 2 => 'Camera' },
     FIRST_ENTRY => 0,
     4 => {
@@ -355,7 +356,7 @@ my %insvLimit = (
 
 # tags found in 'camm' type 2 timed metadata (ref PH, Insta360Pro)
 %Image::ExifTool::QuickTime::camm2 = (
-    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    PROCESS_PROC => \&ProcessCAMM,
     GROUPS => { 2 => 'Location' },
     FIRST_ENTRY => 0,
     4 => {
@@ -367,7 +368,7 @@ my %insvLimit = (
 
 # tags found in 'camm' type 3 timed metadata (ref PH, Insta360Pro)
 %Image::ExifTool::QuickTime::camm3 = (
-    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    PROCESS_PROC => \&ProcessCAMM,
     GROUPS => { 2 => 'Location' },
     FIRST_ENTRY => 0,
     4 => {
@@ -379,7 +380,7 @@ my %insvLimit = (
 
 # tags found in 'camm' type 4 timed metadata (ref 4)
 %Image::ExifTool::QuickTime::camm4 = (
-    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    PROCESS_PROC => \&ProcessCAMM,
     GROUPS => { 2 => 'Location' },
     FIRST_ENTRY => 0,
     4 => {
@@ -391,7 +392,7 @@ my %insvLimit = (
 
 # tags found in 'camm' type 5 timed metadata (ref 4)
 %Image::ExifTool::QuickTime::camm5 = (
-    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    PROCESS_PROC => \&ProcessCAMM,
     GROUPS => { 2 => 'Location' },
     FIRST_ENTRY => 0,
     4 => {
@@ -416,7 +417,7 @@ my %insvLimit = (
 
 # tags found in 'camm' type 6 timed metadata (ref PH/4, Insta360)
 %Image::ExifTool::QuickTime::camm6 = (
-    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    PROCESS_PROC => \&ProcessCAMM,
     GROUPS => { 2 => 'Location' },
     FIRST_ENTRY => 0,
     0x04 => {
@@ -482,7 +483,7 @@ my %insvLimit = (
 
 # tags found in 'camm' type 7 timed metadata (ref 4)
 %Image::ExifTool::QuickTime::camm7 = (
-    PROCESS_PROC => \&Image::ExifTool::ProcessBinaryData,
+    PROCESS_PROC => \&ProcessCAMM,
     GROUPS => { 2 => 'Location' },
     FIRST_ENTRY => 0,
     4 => {
@@ -1481,8 +1482,12 @@ sub ProcessFreeGPS($$$)
         $lon = GetFloat($dataPt, 0x30);
         $spd = GetFloat($dataPt, 0x34) * $knotsToKph; # (convert knots to km/h)
         $trk = GetFloat($dataPt, 0x38);
-        @acc = unpack('x60V3', $$dataPt); # (may be all zeros if not valid)
-        map { $_ = $_ - 4294967296 if $_ >= 0x80000000; $_ /= 256 } @acc;
+        # (may be all zeros or int16u counting from 1 to 6 if not valid)
+        my $tmp = substr($$dataPt, 60, 12);
+        if ($tmp ne "\0\0\0\0\0\0\0\0\0\0\0\0" and $tmp ne "\x01\0\x02\0\x03\0\x04\0\x05\0\x06\0") {
+            @acc = unpack('V3', $tmp);
+            map { $_ = $_ - 4294967296 if $_ >= 0x80000000; $_ /= 256 } @acc;
+        }
         SetByteOrder('MM');
         $debug and $et->FoundTag(GPSType => '1C');
 
@@ -2238,6 +2243,7 @@ sub Process_3gf($$$)
 
 #------------------------------------------------------------------------------
 # Process DuDuBell M1 dashcam / VSYS M6L 'gps0' atom (ref PH)
+# (Lamax S9 dual dashcam also uses 'gps0' atom, but encrypted text format)
 # Inputs: 0) ExifTool ref, 1) dirInfo ref, 2) tag table ref
 # Returns: 1 on success
 sub Process_gps0($$$)
@@ -2245,14 +2251,28 @@ sub Process_gps0($$$)
     my ($et, $dirInfo, $tagTbl) = @_;
     my $dataPt = $$dirInfo{DataPt};
     my $dirLen = $$dirInfo{DirLen};
-    my $recLen = 32;    # 32-byte record length
+    my ($pos, $recLen);
     $et->VerboseDir('gps0', undef, $dirLen);
+    # check for encrypted format written by Lamax S9 dual dashcam
+    # (similar to Ambarella A12, but in multiple 311-byte records)
+    if ($$dataPt =~ /^.{2}\xf2\xe1\xf0\xeeTT\x98/s) {
+        $recLen = 311;
+        for ($pos=0; $pos+$recLen<=$dirLen; $pos+=$recLen) {
+            my $dat = substr($$dataPt, $pos, $recLen);
+            last unless $dat =~ /^.{2}\xf2\xe1\xf0\xeeTT\x98/s;
+            $$et{DOC_NUM} = ++$$et{DOC_COUNT};
+            Process_text($et, \$dat, $tagTbl);
+            $pos += $recLen;
+        }
+        delete $$et{DOC_NUM};
+        return 1;
+    }
+    $recLen = 32;    # 32-byte record length
     SetByteOrder('II');
     if ($dirLen > $recLen and not $et->Options('ExtractEmbedded')) {
         $dirLen = $recLen;
         EEWarn($et);
     }
-    my $pos;
     for ($pos=0; $pos+$recLen<=$dirLen; $pos+=$recLen) {
         $$et{DOC_NUM} = ++$$et{DOC_COUNT};
         # lat/long are in DDDMM.MMMM format
@@ -2774,6 +2794,34 @@ sub ProcessInsta360($;$)
 }
 
 #------------------------------------------------------------------------------
+# Process CAMM metadata (ref PH)
+# Inputs: 0) ExifTool object ref, 1) dirInfo ref, 2) tag table ref
+# Returns: 1 on success
+sub ProcessCAMM($$$)
+{
+    my ($et, $dirInfo, $tagTbl) = @_;
+    my $dataPt = $$dirInfo{DataPt};
+    my $pos = $$dirInfo{DirStart} || 0;
+    my $end = $pos + ($$dirInfo{DirLen} || length($$dataPt) - $pos);
+    # camm record size for each type, including 4-byte header
+    my %size = ( 1 => 12, 2 => 16, 3 => 16, 4 => 16, 5 => 28, 6 => 60, 7 => 16 );
+    my $rtnVal = 0;
+    while ($pos + 4 < $end) {
+        my $type = Get16u($dataPt, $pos + 2);
+        my $size = $size{$type} or $et->WarnOnce("Unknown camm record type $type"), last;
+        $pos + $size > $end and $et->WarnOnce("Truncated camm record $type"), last;
+        my $tagTbl = GetTagTable("Image::ExifTool::QuickTime::camm$type");
+        $$dirInfo{DirStart} = $pos;
+        $$dirInfo{DirLen} = $size;
+        $et->ProcessBinaryData($dirInfo, $tagTbl) and $rtnVal = 1;
+        # not sure if this is according to specification, but I have seen multiple
+        # camm records all in a single sample, so step forward to process the next one
+        $pos += $size;
+    }
+    return $rtnVal;
+}
+
+#------------------------------------------------------------------------------
 # Process Garmin GPS 'uuid' atom (ref PH)
 # Inputs: 0) ExifTool object ref, 1) dirInfo ref, 2) tag table ref
 # Returns: 1 on success
@@ -2972,7 +3020,7 @@ information like GPS tracks from MOV, MP4 and INSV media data.
 
 =head1 AUTHOR
 
-Copyright 2003-2022, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

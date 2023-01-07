@@ -34,7 +34,7 @@ use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 use Image::ExifTool::Minolta;
 
-$VERSION = '3.55';
+$VERSION = '3.56';
 
 sub ProcessSRF($$$);
 sub ProcessSR2($$$);
@@ -10191,10 +10191,10 @@ my %isoSetting2010 = (
         PrintConv => 'Image::ExifTool::Exif::PrintFNumber($val)',
     },
     0x8001 => { Name => 'Sony_rtmd_0x8001', Format => 'int16u', %hidUnk },
-    0x8004 => { Name => 'Sony_rtmd_0x8004', Format => 'int16u', %hidUnk },
-    0x8005 => { Name => 'Sony_rtmd_0x8005', Format => 'int16u', %hidUnk },
-    0x800a => { Name => 'Sony_rtmd_0x800a', Format => 'int16u', %hidUnk },
-    0x800b => { Name => 'Sony_rtmd_0x800b', Format => 'int16u', %hidUnk },
+    0x8004 => { Name => 'Sony_rtmd_0x8004', Format => 'int16u', %hidUnk }, # (FocalLength35efl?, forum14315)
+    0x8005 => { Name => 'Sony_rtmd_0x8005', Format => 'int16u', %hidUnk }, # (FocalLength?, forum14315)
+    0x800a => { Name => 'Sony_rtmd_0x800a', Format => 'int16u', %hidUnk }, # (FocusRingPosition?, forum14315)
+    0x800b => { Name => 'Sony_rtmd_0x800b', Format => 'int16u', %hidUnk }, # (ZoomRingPosition?, forum14315)
   # 0x8100 - 16 bytes starting with 0x060e2b340401
     0x8100 => { Name => 'Sony_rtmd_0x8100', Format => 'int8u',  %hidUnk },
     0x8101 => { Name => 'Sony_rtmd_0x8101', Format => 'int8u',  %hidUnk }, # seen: 0,1
@@ -10364,7 +10364,7 @@ my %isoSetting2010 = (
             return 'inf' if $val >= 255;
             return (2**($val/16-5) + 1) * $val[1] / 1000;
         },
-        PrintConv => '$val eq "inf" ? $val : sprintf("%.2f m",$val)',
+        PrintConv => '$val eq "inf" ? $val : sprintf("%.4g m", $val)',
     },
     GPSDateTime => {
         Description => 'GPS Date/Time',
@@ -11317,7 +11317,7 @@ Minolta.
 
 =head1 AUTHOR
 
-Copyright 2003-2022, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

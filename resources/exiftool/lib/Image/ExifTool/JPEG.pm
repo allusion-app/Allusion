@@ -205,6 +205,7 @@ sub ProcessJPEG_HDR($$$);
         Name => 'JUMBF',
         Condition => '$$valPt =~ /^JP/',
         SubDirectory => { TagTable => 'Image::ExifTool::Jpeg2000::Main' },
+        # Note: The recommended options for reading C2PA JUMBF metadata are "-G3 -b -j -u"
     }],
     APP12 => [{
         Name => 'PictureInfo',
@@ -718,7 +719,7 @@ segments are included in the Image::ExifTool module itself.
 
 =head1 AUTHOR
 
-Copyright 2003-2022, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

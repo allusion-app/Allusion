@@ -306,14 +306,17 @@ sub CheckQTValue($$$)
 
 #------------------------------------------------------------------------------
 # Format QuickTime value for writing
-# Inputs: 0) ExifTool ref, 1) value ref, 2) Format (or undef), 3) Writable (or undef)
-# Returns: Flags for QT data type, and reformats value as required
+# Inputs: 0) ExifTool ref, 1) value ref, 2) tagInfo ref, 3) Format (or undef)
+# Returns: Flags for QT data type, and reformats value as required (sets to undef on error)
 sub FormatQTValue($$;$$)
 {
-    my ($et, $valPt, $format, $writable) = @_;
+    my ($et, $valPt, $tagInfo, $format) = @_;
+    my $writable = $$tagInfo{Writable};
+    my $count = $$tagInfo{Count};
     my $flags;
+    $format or $format = $$tagInfo{Format};
     if ($format and $format ne 'string' or not $format and $writable and $writable ne 'string') {
-        $$valPt = WriteValue($$valPt, $format || $writable);
+        $$valPt = WriteValue($$valPt, $format || $writable, $count);
         if ($writable and $qtFormat{$writable}) {
             $flags = $qtFormat{$writable};
         } else {
@@ -329,6 +332,7 @@ sub FormatQTValue($$;$$)
         $flags = 0x01;  # UTF8
         $$valPt = $et->Encode($$valPt, 'UTF8');
     }
+    defined $$valPt or $et->WarnOnce("Error converting value for $$tagInfo{Name}");
     return $flags;
 }
 
@@ -1139,7 +1143,7 @@ sub WriteQuickTime($$$)
                                         my $newVal = $et->GetNewValue($nvHash);
                                         next unless defined $newVal;
                                         my $prVal = $newVal;
-                                        my $flags = FormatQTValue($et, \$newVal, $format, $$tagInfo{Writable});
+                                        my $flags = FormatQTValue($et, \$newVal, $tagInfo, $format);
                                         next unless defined $newVal;
                                         my ($ctry, $lang) = (0, 0);
                                         if ($$ti{LangCode}) {
@@ -1220,7 +1224,8 @@ sub WriteQuickTime($$$)
                                     }
                                     my $prVal = $newVal;
                                     # format new value for writing (and get new flags)
-                                    $flags = FormatQTValue($et, \$newVal, $format, $$tagInfo{Writable});
+                                    $flags = FormatQTValue($et, \$newVal, $tagInfo, $format);
+                                    next unless defined $newVal;
                                     my $grp = $et->GetGroup($langInfo, 1);
                                     $et->VerboseValue("- $grp:$$langInfo{Name}", $val);
                                     $et->VerboseValue("+ $grp:$$langInfo{Name}", $prVal);
@@ -1463,7 +1468,7 @@ sub WriteQuickTime($$$)
                 my $newVal = $et->GetNewValue($nvHash);
                 next unless defined $newVal;
                 my $prVal = $newVal;
-                my $flags = FormatQTValue($et, \$newVal, $$tagInfo{Format}, $$tagInfo{Writable});
+                my $flags = FormatQTValue($et, \$newVal, $tagInfo);
                 next unless defined $newVal;
                 my ($ctry, $lang) = (0, 0);
                 # handle alternate languages
@@ -1662,12 +1667,18 @@ sub WriteQuickTime($$$)
                 # edit size of mdat in header if necessary
                 if ($diff) {
                     if (length($$hdrChunk[2]) == 8) {
-                        my $size = Get32u(\$$hdrChunk[2], 0) + $diff;
-                        $size > 0xffffffff and $et->Error("Can't yet grow mdat across 4GB boundary"), return $rtnVal;
-                        Set32u($size, \$$hdrChunk[2], 0);
+                        my $size = Get32u(\$$hdrChunk[2], 0);
+                        if ($size) { # (0 size = extends to end of file)
+                            $size += $diff;
+                            $size > 0xffffffff and $et->Error("Can't yet grow mdat across 4GB boundary"), return $rtnVal;
+                            Set32u($size, \$$hdrChunk[2], 0);
+                        }
                     } elsif (length($$hdrChunk[2]) == 16) {
-                        my $size = Get64u(\$$hdrChunk[2], 8) + $diff;
-                        Set64u($size, \$$hdrChunk[2], 8);
+                        my $size = Get64u(\$$hdrChunk[2], 8);
+                        if ($size) {
+                            $size += $diff;
+                            Set64u($size, \$$hdrChunk[2], 8);
+                        }
                     } else {
                         $et->Error('Internal error. Invalid mdat header');
                         return $rtnVal;
@@ -1894,7 +1905,12 @@ sub WriteMOV($$)
         $ftype = 'MOV';
     }
     $et->SetFileType($ftype); # need to set "FileType" tag for a Condition
-    $et->InitWriteDirs($dirMap{$ftype}, 'XMP', 'QuickTime');
+    if ($ftype eq 'HEIC') {
+        # EXIF is preferred in HEIC files
+        $et->InitWriteDirs($dirMap{$ftype}, 'EXIF', 'QuickTime');
+    } else {
+        $et->InitWriteDirs($dirMap{$ftype}, 'XMP', 'QuickTime');
+    }
     $$et{DirMap} = $dirMap{$ftype};     # need access to directory map when writing
     # track tags globally to avoid creating multiple tags in the case of duplicate directories
     $$et{DidTag} = { };
@@ -1927,7 +1943,7 @@ QuickTime-based file formats like MOV and MP4.
 
 =head1 AUTHOR
 
-Copyright 2003-2022, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

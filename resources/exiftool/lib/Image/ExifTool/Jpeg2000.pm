@@ -16,7 +16,7 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.32';
+$VERSION = '1.33';
 
 sub ProcessJpeg2000Box($$$);
 sub ProcessJUMD($$$);
@@ -418,6 +418,12 @@ my %j2cMarker = (
         Binary => 1,
         JUMBF_Suffix => 'Data', # (used when tag is renamed according to JUMDLabel)
     },
+    c2sh => { # used in JUMBF
+        Name => 'C2PASaltHash',
+        Format => 'undef',
+        ValueConv => 'unpack("H*",$val)',
+        JUMBF_Suffix => 'Salt', # (used when tag is renamed according to JUMDLabel)
+    },
 #
 # stuff seen in JPEG XL images:
 #
@@ -438,7 +444,7 @@ my %j2cMarker = (
             ProcessProc => \&Image::ExifTool::ProcessTIFF,
             WriteProc => \&Image::ExifTool::WriteTIFF,
             DirName => 'EXIF',
-            Start => '$valuePtr + 4',
+            Start => '$valuePtr + 4 + (length($$dataPt)-$valuePtr > 4 ? unpack("N", $$dataPt) : 0)',
         },
     },
 );
@@ -770,7 +776,22 @@ sub ProcessJUMD($$$)
         $et->HandleTag($tagTablePtr, 'sig', substr($$dataPt, $pos, 32));
         $pos += 32;
     }
-    $pos == $end or $et->Warn('Extra data in JUMD box'." $pos $end", 1);
+    my $more = $end - $pos;
+    if ($more) {
+        # (may find c2sh box hiding after JUMD record)
+        if ($more >= 8) {
+            my %dirInfo = (
+                DataPt   => $dataPt,
+                DataLen  => $$dirInfo{DataLen},
+                DirStart => $pos,
+                DirLen   => $more,
+                DirName  => 'JUMDPrivate',
+            );
+            $et->ProcessDirectory(\%dirInfo, GetTagTable('Image::ExifTool::Jpeg2000::Main'));
+        } else {
+            $et->Warn("Extra data in JUMD box $more bytes)", 1);
+        }
+    }
     return 1;
 }
 
@@ -902,7 +923,7 @@ sub ProcessJpeg2000Box($$$)
     my ($et, $dirInfo, $tagTablePtr) = @_;
     my $dataPt = $$dirInfo{DataPt};
     my $dataLen = $$dirInfo{DataLen};
-    my $dataPos = $$dirInfo{DataPos};
+    my $dataPos = $$dirInfo{DataPos} || 0;
     my $dirLen = $$dirInfo{DirLen} || 0;
     my $dirStart = $$dirInfo{DirStart} || 0;
     my $base = $$dirInfo{Base} || 0;
@@ -1075,11 +1096,16 @@ sub ProcessJpeg2000Box($$$)
         if ($$tagInfo{SubDirectory}) {
             my $subdir = $$tagInfo{SubDirectory};
             my $subdirStart = $valuePtr;
+            my $subdirLen = $boxLen;
             if (defined $$subdir{Start}) {
-                #### eval Start ($valuePtr)
+                #### eval Start ($valuePtr, $dataPt)
                 $subdirStart = eval($$subdir{Start});
+                $subdirLen -= $subdirStart - $valuePtr;
+                if ($subdirLen < 0) {
+                    $subdirStart = $valuePtr;
+                    $subdirLen = 0;
+                }
             }
-            my $subdirLen = $boxLen - ($subdirStart - $valuePtr);
             my %subdirInfo = (
                 Parent => 'JP2',
                 DataPt => $dataPt,
@@ -1097,7 +1123,8 @@ sub ProcessJpeg2000Box($$$)
             my $subTable = GetTagTable($$subdir{TagTable}) || $tagTablePtr;
             if ($outfile) {
                 # remove this directory from our create list
-                delete $$et{AddJp2Dirs}{$$tagInfo{Name}};
+                delete $$et{AddJp2Dirs}{$$tagInfo{Name}};   # (eg. 'EXIF')
+                delete $$et{AddJp2Dirs}{$boxID};            # (eg. 'Exif')
                 my $newdir;
                 # only edit writable UUID, Exif and jp2h boxes
                 if ($uuid or $boxID eq 'Exif' or ($boxID eq 'xml ' and $$et{IsJXL}) or
@@ -1355,7 +1382,7 @@ files.
 
 =head1 AUTHOR
 
-Copyright 2003-2022, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
