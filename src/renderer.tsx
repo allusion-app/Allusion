@@ -5,6 +5,7 @@
 import { IS_DEV } from 'common/process';
 import { promiseRetry } from 'common/timeout';
 import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
+import { app } from 'electron';
 import { autorun, reaction, runInAction } from 'mobx';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
@@ -56,13 +57,6 @@ async function main(): Promise<void> {
       <Overlay />
     </StoreProvider>,
   );
-
-  window.addEventListener('beforeunload', () => {
-    // TODO: check whether this works okay with running in background process
-    // And when force-closing the application. I think it might be keep running...
-    // Update: yes, it keeps running when force-closing. Not sure how to fix. Don't think it can run as child-process
-    rootStore.exifTool.close();
-  });
 
   // -------------------------------------------
   // Messaging with the main process
@@ -118,6 +112,12 @@ async function setupMainApp(backend: Backend): Promise<[RootStore, () => JSX.Ele
 
   RendererMessenger.onClosedPreviewWindow(() => {
     rootStore.uiStore.closePreviewWindow();
+  });
+
+  // Runs operations to run before closing the app, e.g. closing child-processes
+  // TODO: for async operations, look into https://github.com/electron/electron/issues/9433#issuecomment-960635576
+  window.addEventListener('beforeunload', (e) => {
+    rootStore.close();
   });
 
   // Recover global preferences

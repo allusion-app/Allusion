@@ -132,8 +132,10 @@ class RootStore {
       // The tag store needs to be awaited because file entities have references
       // to tag entities.
       rootStore.tagStore.init(),
-      rootStore.exifTool.initialize(),
       rootStore.imageLoader.init(),
+      // Not: not initializing exiftool.
+      // Might be needed for extracting thumbnails in preview mode, but can't be closed reliably,
+      // causing exiftool to keep running after quitting
     ]);
 
     // Restore preferences, which affects how the file store initializes
@@ -164,6 +166,11 @@ class RootStore {
     RendererMessenger.clearDatabase();
     this.uiStore.clearPersistentPreferences();
     this.fileStore.clearPersistentPreferences();
+  }
+
+  async close(): Promise<void> {
+    // TODO: should be able to be done more reliably by running exiftool as a child process
+    return this.exifTool.close();
   }
 }
 
