@@ -42,6 +42,7 @@ export const IMG_EXTENSIONS = [
   'tif',
   'tiff',
   'bmp',
+  'ico',
   'svg',
   'psd',
   'kra',
