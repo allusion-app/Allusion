@@ -12,7 +12,7 @@ import ImageLoader from '../image/ImageLoader';
 import { RendererMessenger } from 'src/ipc/renderer';
 import SearchStore from './SearchStore';
 
-// This will throw exceptions whenver we try to modify the state directly without an action
+// This will throw exceptions whenever we try to modify the state directly without an action
 // Actions will batch state modifications -> better for performance
 // https://mobx.js.org/refguide/action.html
 configure({ observableRequiresReaction: true, reactionRequiresObservable: true });
@@ -62,10 +62,10 @@ class RootStore {
     });
 
     await Promise.all([
-      // The location store must be initiated because the file entity contructor
+      // The location store must be initiated because the file entity constructor
       // uses the location reference to set values.
       rootStore.locationStore.init(),
-      // The tag store needs to be awaited because file entites have references
+      // The tag store needs to be awaited because file entities have references
       // to tag entities.
       rootStore.tagStore.init(),
       rootStore.exifTool.initialize(),
@@ -74,7 +74,7 @@ class RootStore {
     ]);
 
     // Restore preferences, which affects how the file store initializes
-    // It depends on tag store being intialized for reconstructing search criteria
+    // It depends on tag store being initialized for reconstructing search criteria
     rootStore.uiStore.recoverPersistentPreferences();
     rootStore.fileStore.recoverPersistentPreferences();
     const isSlideMode = runInAction(() => rootStore.uiStore.isSlideMode);
@@ -126,10 +126,10 @@ class RootStore {
     });
 
     await Promise.all([
-      // The location store must be initiated because the file entity contructor
+      // The location store must be initiated because the file entity constructor
       // uses the location reference to set values.
       rootStore.locationStore.init(),
-      // The tag store needs to be awaited because file entites have references
+      // The tag store needs to be awaited because file entities have references
       // to tag entities.
       rootStore.tagStore.init(),
       rootStore.exifTool.initialize(),
@@ -137,7 +137,7 @@ class RootStore {
     ]);
 
     // Restore preferences, which affects how the file store initializes
-    // It depends on tag store being intialized for reconstructing search criteria
+    // It depends on tag store being initialized for reconstructing search criteria
     rootStore.uiStore.recoverPersistentPreferences();
     rootStore.fileStore.recoverPersistentPreferences();
 
