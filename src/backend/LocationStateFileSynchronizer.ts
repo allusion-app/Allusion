@@ -6,7 +6,7 @@ import { getExtension, IFile } from 'src/entities/File';
 import { ID } from 'src/entities/ID';
 import { ClientLocation } from 'src/entities/Location';
 import { ITag } from 'src/entities/Tag';
-import DBRepository from './DBRepository';
+import DBRepository from './db-repository';
 
 type LocationStateFile = {
   /** An identifier who created this file. Used for only processing state file changes made on other machines */
