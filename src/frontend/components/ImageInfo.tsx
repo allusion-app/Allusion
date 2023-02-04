@@ -75,6 +75,8 @@ const exifFields: Record<string, ExifField> = {
 
 const exifTags = Object.keys(exifFields);
 
+const stopPropagation = (e: React.KeyboardEvent<HTMLInputElement>) => e.stopPropagation();
+
 interface ImageInfoProps {
   file: ClientFile;
 }
@@ -221,7 +223,7 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
                   {!isEditingMode ? (
                     field.format?.(value || '') || value
                   ) : (
-                    <input defaultValue={value || ''} name={key} />
+                    <input defaultValue={value || ''} name={key} onKeyDown={stopPropagation} />
                   )}
                 </td>
               </tr>
