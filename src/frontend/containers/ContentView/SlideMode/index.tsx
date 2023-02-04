@@ -14,6 +14,7 @@ import { CommandDispatcher } from '../Commands';
 import { ContentRect } from '../utils';
 import ZoomPan, { CONTAINER_DEFAULT_STYLE, SlideTransform } from '../SlideMode/ZoomPan';
 import { createDimension, createTransform, Vec2 } from './utils';
+import { UpscaleMode } from 'src/frontend/stores/UiStore';
 
 const SlideMode = observer(({ contentRect }: { contentRect: ContentRect }) => {
   const { uiStore } = useStore();
@@ -177,6 +178,7 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
           transitionStart={transitionStart}
           transitionEnd={uiStore.isSlideMode ? undefined : transitionStart}
           onClose={uiStore.disableSlideMode}
+          upscaleMode={uiStore.upscaleMode}
         />
       )}
       <NavigationButtons
@@ -197,6 +199,7 @@ interface ZoomableImageProps {
   transitionStart?: SlideTransform;
   transitionEnd?: SlideTransform;
   onClose: () => void;
+  upscaleMode: UpscaleMode;
 }
 
 const ZoomableImage: React.FC<ZoomableImageProps> = ({
@@ -207,8 +210,9 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
   transitionStart,
   transitionEnd,
   onClose,
+  upscaleMode,
 }: ZoomableImageProps) => {
-  const { imageLoader, uiStore } = useStore();
+  const { imageLoader } = useStore();
   const { absolutePath, width: imgWidth, height: imgHeight } = file;
   // Image src can be set asynchronously: keep track of it in a state
   // Needed for image formats not natively supported by the browser (e.g. tiff): will be converted to another format
@@ -277,7 +281,7 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
         transitionStart={transitionStart}
         transitionEnd={transitionEnd}
         onClose={onClose}
-        upscaleMode={uiStore.upscaleMode}
+        upscaleMode={upscaleMode}
       >
         {(props) => (
           <img
