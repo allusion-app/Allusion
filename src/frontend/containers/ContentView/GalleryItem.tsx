@@ -151,12 +151,16 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
     return <span className="image-loading" />;
   } else if (imageSource.tag === 'ready') {
     if ('ok' in imageSource.value) {
+      const is_lowres = file.width < 320 || file.height < 320;
       return (
         <img
           src={encodeFilePath(imageSource.value.ok)}
           alt=""
           data-file-id={file.id}
           onError={handleImageError}
+          style={
+            is_lowres && uiStore.upscaleMode == 'pixelated' ? { imageRendering: 'pixelated' } : {}
+          }
         />
       );
     } else {

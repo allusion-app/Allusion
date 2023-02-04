@@ -86,6 +86,23 @@ const Appearance = observer(() => {
         </fieldset>
       </div>
 
+      <div className="input-group">
+        <RadioGroup name="Picture upscaling">
+          <Radio
+            label="Smooth"
+            checked={uiStore.upscaleMode === 'smooth'}
+            value="smooth"
+            onChange={uiStore.setUpscaleModeSmooth}
+          />
+          <Radio
+            label="Pixelated"
+            checked={uiStore.upscaleMode === 'pixelated'}
+            value="pixelated"
+            onChange={uiStore.setUpscaleModePixelated}
+          />
+        </RadioGroup>
+      </div>
+
       <h3>Thumbnail</h3>
 
       <div className="input-group">

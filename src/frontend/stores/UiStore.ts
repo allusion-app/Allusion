@@ -20,6 +20,7 @@ export const enum ViewMethod {
 }
 export type ThumbnailSize = 'small' | 'medium' | 'large' | number;
 type ThumbnailShape = 'square' | 'letterbox';
+export type UpscaleMode = 'smooth' | 'pixelated';
 export const PREFERENCES_STORAGE_KEY = 'preferences';
 
 export interface IHotkeyMap {
@@ -100,6 +101,7 @@ type PersistentPreferenceFields =
   | 'method'
   | 'thumbnailSize'
   | 'thumbnailShape'
+  | 'upscaleMode'
   | 'hotkeyMap'
   | 'isThumbnailTagOverlayEnabled'
   | 'isThumbnailFilenameOverlayEnabled'
@@ -148,6 +150,7 @@ class UiStore {
   @observable firstItem: number = 0;
   @observable thumbnailSize: ThumbnailSize | number = 'medium';
   @observable thumbnailShape: ThumbnailShape = 'square';
+  @observable upscaleMode: UpscaleMode = 'smooth';
 
   @observable isToolbarTagPopoverOpen: boolean = false;
   /** Dialog for removing unlinked files from Allusion's database */
@@ -214,6 +217,14 @@ class UiStore {
 
   @action.bound setThumbnailLetterbox() {
     this.setThumbnailShape('letterbox');
+  }
+
+  @action.bound setUpscaleModeSmooth() {
+    this.setUpscaleMode('smooth');
+  }
+
+  @action.bound setUpscaleModePixelated() {
+    this.setUpscaleMode('pixelated');
   }
 
   @action.bound setFirstItem(index: number = 0) {
@@ -812,6 +823,9 @@ class UiStore {
         if (prefs.thumbnailShape) {
           this.setThumbnailShape(prefs.thumbnailShape);
         }
+        if (prefs.upscaleMode) {
+          this.setUpscaleMode(prefs.upscaleMode);
+        }
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
         this.isThumbnailFilenameOverlayEnabled = Boolean(prefs.isThumbnailFilenameOverlayEnabled ?? false); // eslint-disable-line prettier/prettier
         this.isThumbnailResolutionOverlayEnabled = Boolean(prefs.isThumbnailResolutionOverlayEnabled ?? false); // eslint-disable-line prettier/prettier
@@ -866,6 +880,7 @@ class UiStore {
       method: this.method,
       thumbnailSize: this.thumbnailSize,
       thumbnailShape: this.thumbnailShape,
+      upscaleMode: this.upscaleMode,
       hotkeyMap: { ...this.hotkeyMap },
       isThumbnailFilenameOverlayEnabled: this.isThumbnailFilenameOverlayEnabled,
       isThumbnailTagOverlayEnabled: this.isThumbnailTagOverlayEnabled,
@@ -927,6 +942,10 @@ class UiStore {
 
   @action private setThumbnailShape(shape: ThumbnailShape) {
     this.thumbnailShape = shape;
+  }
+
+  @action private setUpscaleMode(mode: UpscaleMode) {
+    this.upscaleMode = mode;
   }
 }
 
