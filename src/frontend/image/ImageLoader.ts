@@ -28,6 +28,7 @@ const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   jfif: 'web',
   webp: 'web',
   bmp: 'web',
+  ico: 'web',
   svg: 'none',
   tif: 'tifLoader',
   tiff: 'tifLoader',

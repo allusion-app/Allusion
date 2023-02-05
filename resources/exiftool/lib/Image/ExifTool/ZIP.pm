@@ -19,7 +19,7 @@ use strict;
 use vars qw($VERSION $warnString);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.26';
+$VERSION = '1.28';
 
 sub WarnProc($) { $warnString = $_[0]; }
 
@@ -125,6 +125,7 @@ my %iWorkType = (
         Name => 'ZipFileName',
         Format => 'string[$$self{ZipFileNameLength}]',
     },
+    _com => 'ZipFileComment',
 );
 
 # GNU ZIP tags (ref 3)
@@ -380,6 +381,20 @@ sub HandleMember($$;$)
     $et->HandleTag($tagTablePtr, 9, $member->compressedSize());
     $et->HandleTag($tagTablePtr, 11, $member->uncompressedSize());
     $et->HandleTag($tagTablePtr, 15, $member->fileName());
+    my $com = $member->fileComment();
+    $et->HandleTag($tagTablePtr, '_com', $com) if defined $com and length $com;
+}
+
+#------------------------------------------------------------------------------
+# Extract file from ZIP archive
+# Inputs: 0) ExifTool ref, 1) Zip object ref, 2) file name
+# Returns: zip member or undef it it didn't exist
+sub ExtractFile($$$)
+{
+    my ($et, $zip, $file) = @_;
+    my $result = $zip->memberNamed($file);
+    $et->VPrint(1, "  (Extracting '${file}' from zip archive)\n");
+    return $result;
 }
 
 #------------------------------------------------------------------------------
@@ -448,12 +463,16 @@ sub ProcessZIP($$)
             $et->Warn("$err reading ZIP file");
             last;
         }
+        # extract zip file comment
+        my $comment = $zip->zipfileComment();
+        $et->FoundTag(Comment => $comment) if defined $comment and length $comment;
+
         $$dirInfo{ZIP} = $zip;
 
         # check for an Office Open file (DOCX, etc)
         # --> read '[Content_Types].xml' to determine the file type
         my ($mime, @members);
-        my $cType = $zip->memberNamed('[Content_Types].xml');
+        my $cType = ExtractFile($et, $zip, '[Content_Types].xml');
         if ($cType) {
             ($buff, $status) = $zip->contents($cType);
             if (not $status and (
@@ -494,7 +513,7 @@ sub ProcessZIP($$)
         }
 
         # check for an Open Document, IDML or EPUB file
-        my $mType = $zip->memberNamed('mimetype');
+        my $mType = ExtractFile($et, $zip, 'mimetype');
         if ($mType) {
             ($mime, $status) = $zip->contents($mType);
             if (not $status and $mime =~ /([\x21-\xfe]+)/s) {
@@ -503,9 +522,9 @@ sub ProcessZIP($$)
                 $et->SetFileType($openDocType{$mime} || 'ZIP', $mime);
                 $et->Warn("Unrecognized MIMEType $mime") unless $openDocType{$mime};
                 # extract Open Document metadata from "meta.xml"
-                my $meta = $zip->memberNamed('meta.xml');
+                my $meta = ExtractFile($et, $zip, 'meta.xml');
                 # IDML files have metadata in a different place (ref 6)
-                $meta or $meta = $zip->memberNamed('META-INF/metadata.xml');
+                $meta or $meta = ExtractFile($et, $zip, 'META-INF/metadata.xml');
                 if ($meta) {
                     ($buff, $status) = $zip->contents($meta);
                     unless ($status) {
@@ -525,7 +544,7 @@ sub ProcessZIP($$)
                 # process rootfile of EPUB container if applicable
                 for (;;) {
                     last if $meta and $mime ne 'application/epub+zip';
-                    my $container = $zip->memberNamed('META-INF/container.xml');
+                    my $container = ExtractFile($et, $zip, 'META-INF/container.xml');
                     ($buff, $status) = $zip->contents($container);
                     last if $status;
                     $buff =~ /<rootfile\s+[^>]*?\bfull-path=(['"])(.*?)\1/s or last;
@@ -563,7 +582,7 @@ sub ProcessZIP($$)
                     my $type;
                     my %tag = ( jpg => 'PreviewImage', png => 'PreviewPNG' );
                     foreach $type ('jpg', 'png') {
-                        my $thumb = $zip->memberNamed("Thumbnails/thumbnail.$type");
+                        my $thumb = ExtractFile($et, $zip, "Thumbnails/thumbnail.$type");
                         next unless $thumb;
                         ($buff, $status) = $zip->contents($thumb);
                         $et->FoundTag($tag{$type}, $buff) unless $status;
@@ -655,6 +674,7 @@ sub ProcessZIP($$)
             DataLen => 30 + $len,
             DirStart => 0,
             DirLen => 30 + $len,
+            MixedTags => 1, # (to ignore FileComment tag)
         );
         $et->ProcessDirectory(\%dirInfo, $tagTablePtr);
         my $flags = Get16u(\$buff, 6);
@@ -700,7 +720,7 @@ Electronic Publication (EPUB), and Sketch design files (SKETCH).
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

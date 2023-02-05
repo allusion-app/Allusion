@@ -6,7 +6,7 @@
 # Revisions:    09/12/2005 - P. Harvey Created
 #               09/08/2020 - PH Added Lyrics3 support
 #
-# References:   1) http://www.id3.org/
+# References:   1) http://www.id3.org/ (now https://id3.org)
 #               2) http://www.mp3-tech.org/
 #               3) http://www.fortunecity.com/underworld/sonic/3/id3tag.html
 #               4) https://id3.org/Lyrics3
@@ -18,11 +18,12 @@ use strict;
 use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 
-$VERSION = '1.55';
+$VERSION = '1.58';
 
 sub ProcessID3v2($$$);
 sub ProcessPrivate($$$);
 sub ProcessSynText($$$);
+sub ProcessID3Dir($$$);
 sub ConvertID3v1Text($$);
 sub ConvertTimeStamp($);
 
@@ -69,14 +70,15 @@ my %dateTimeConv = (
 # This table is just for documentation purposes
 %Image::ExifTool::ID3::Main = (
     VARS => { NO_ID => 1 },
+    PROCESS_PROC => \&ProcessID3Dir, # (used to process 'id3 ' chunk in WAV files)
     NOTES => q{
-        ExifTool extracts ID3 and Lyrics3 information from MP3, MPEG, AIFF, OGG,
-        FLAC, APE, MPC and RealAudio files.  ID3v2 tags which support multiple
+        ExifTool extracts ID3 and Lyrics3 information from MP3, MPEG, WAV, AIFF,
+        OGG, FLAC, APE, MPC and RealAudio files.  ID3v2 tags which support multiple
         languages (eg. Comment and Lyrics) are extracted by specifying the tag name,
         followed by a dash ('-'), then a 3-character ISO 639-2 language code (eg.
-        "Comment-spa"). See L<http://www.id3.org/> for the official ID3
-        specification and L<http://www.loc.gov/standards/iso639-2/php/code_list.php>
-        for a list of ISO 639-2 language codes.
+        "Comment-spa"). See L<https://id3.org/> for the official ID3 specification
+        and L<http://www.loc.gov/standards/iso639-2/php/code_list.php> for a list of
+        ISO 639-2 language codes.
     },
     ID3v1 => {
         Name => 'ID3v1',
@@ -1412,13 +1414,13 @@ sub ProcessID3($$)
         if ($flags & 0x40) {
             # skip the extended header
             $size >= 4 or $et->Warn('Bad ID3 extended header'), last;
-            my $len = unpack('N', $hBuff);
-            if ($len > length($hBuff) - 4) {
+            my $len = UnSyncSafe(unpack('N', $hBuff));
+            if ($len > length($hBuff)) {
                 $et->Warn('Truncated ID3 extended header');
                 last;
             }
-            $hBuff = substr($hBuff, $len + 4);
-            $pos += $len + 4;
+            $hBuff = substr($hBuff, $len);
+            $pos += $len;
         }
         if ($flags & 0x10) {
             # ignore v2.4 footer (10 bytes long)
@@ -1514,7 +1516,7 @@ sub ProcessID3($$)
         }
     }
 #
-# process the the information
+# process the information
 #
     if ($rtnVal) {
         # first process audio data if it exists
@@ -1568,6 +1570,16 @@ sub ProcessID3($$)
     # return file pointer to start of file to read audio data if necessary
     $raf->Seek(0, 0);
     return $rtnVal;
+}
+
+#------------------------------------------------------------------------------
+# Process ID3 directory
+# Inputs: 0) ExifTool object reference, 1) dirInfo reference, 2) dummy tag table ref
+sub ProcessID3Dir($$$)
+{
+    my ($et, $dirInfo, $tagTablePtr) = @_;
+    $et->VerboseDir('ID3', undef, length ${$$dirInfo{DataPt}});
+    return ProcessID3($et, $dirInfo);
 }
 
 #------------------------------------------------------------------------------
@@ -1640,7 +1652,7 @@ other types of audio files.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
@@ -1649,7 +1661,7 @@ under the same terms as Perl itself.
 
 =over 4
 
-=item L<http://www.id3.org/>
+=item L<https://id3.org/>
 
 =item L<http://www.mp3-tech.org/>
 

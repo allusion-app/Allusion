@@ -14,7 +14,7 @@ use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 use Image::ExifTool::GPS;
 
-$VERSION = '1.48';
+$VERSION = '1.50';
 
 sub ProcessMIE($$);
 sub ProcessMIEGroup($$$);
@@ -448,6 +448,13 @@ my %offOn = ( 0 => 'Off', 1 => 'On' );
         Notes => 'string composed of R, G, B, Y, Cb and Cr',
     },
     Compression     => { Name => 'CompressionRatio', Writable => 'rational32u' },
+    OriginalImageSize => { # PH added 2022-09-28
+        Writable => 'int16u',
+        Count => -1,
+        Notes => 'size of original image before cropping',
+        PrintConv => '$val=~tr/ /x/;$val',
+        PrintConvInv => '$val=~tr/x/ /;$val',
+    },
     ImageSize       => {
         Writable => 'int16u',
         Count => -1,
@@ -1023,6 +1030,7 @@ sub WriteMIEGroup($$$)
             # we are writing the new tag now
             my ($newVal, $writable, $oldVal, $newFormat, $compress);
             my $newTag = shift @editTags;
+            length($newTag) > 255 and $et->Warn('Tag name too long'), next; # (just to be safe)
             my $newInfo = $$editDirs{$newTag};
             if ($newInfo) {
                 # create the new subdirectory or rewrite existing non-MIE directory
@@ -1252,8 +1260,7 @@ sub WriteMIEGroup($$$)
                     # join multiple values into a single string
                     $newVal = join "\0", @newVals;
                     # write string as UTF-8,16 or 32 if value contains valid UTF-8 codes
-                    require Image::ExifTool::XMP;
-                    my $isUTF8 = Image::ExifTool::XMP::IsUTF8(\$newVal);
+                    my $isUTF8 = Image::ExifTool::IsUTF8(\$newVal);
                     if ($isUTF8 > 0) {
                         $writable = 'utf8';
                         # write UTF-16 or UTF-32 if it is more compact
@@ -2544,7 +2551,7 @@ tag name.  For example:
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.  The MIE format itself is also

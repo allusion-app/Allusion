@@ -105,6 +105,7 @@ my %writableType = (
     ICC => [ 'ICC_Profile', 'WriteICC' ],
     IND =>   'InDesign',
     JP2 =>   'Jpeg2000',
+    JXL =>   'Jpeg2000',
     MIE =>   undef,
     MOV => [ 'QuickTime',   'WriteMOV' ],
     MRW =>   'MinoltaRaw',
@@ -114,7 +115,9 @@ my %writableType = (
     PS  => [ 'PostScript',  'WritePS'  ],
     PSD =>   'Photoshop',
     RAF => [ 'FujiFilm',    'WriteRAF' ],
+    RIFF=> [ 'RIFF',        'WriteRIFF'],
     VRD =>   'CanonVRD',
+    WEBP=> [ 'RIFF',        'WriteRIFF'],
     X3F =>   'SigmaRaw',
     XMP => [ undef,         'WriteXMP' ],
 );
@@ -135,9 +138,9 @@ my %rawType = (
 my @delGroups = qw(
     Adobe AFCP APP0 APP1 APP2 APP3 APP4 APP5 APP6 APP7 APP8 APP9 APP10 APP11
     APP12 APP13 APP14 APP15 CanonVRD CIFF Ducky EXIF ExifIFD File FlashPix
-    FotoStation GlobParamIFD GPS ICC_Profile IFD0 IFD1 Insta360 InteropIFD
-    IPTC ItemList JFIF Jpeg2000 Keys MakerNotes Meta MetaIFD Microsoft MIE
-    MPF NikonCapture PDF PDF-update PhotoMechanic Photoshop PNG PNG-pHYs
+    FotoStation GlobParamIFD GPS ICC_Profile IFD0 IFD1 Insta360 InteropIFD IPTC
+    ItemList JFIF Jpeg2000 Keys MakerNotes Meta MetaIFD Microsoft MIE MPF
+    NikonApp NikonCapture PDF PDF-update PhotoMechanic Photoshop PNG PNG-pHYs
     PrintIM QuickTime RMETA RSRC SubIFD Trailer UserData XML XML-* XMP XMP-*
 );
 # family 2 group names that we can delete
@@ -153,7 +156,7 @@ my %delMore = (
 );
 
 # family 0 groups where directories should never be deleted
-my %permanentDir = ( QuickTime => 1 );
+my %permanentDir = ( QuickTime => 1, Jpeg2000 => 1 );
 
 # lookup for all valid family 2 groups (lower case)
 my %family2groups = map { lc $_ => 1 } @delGroup2, 'Unknown';
@@ -239,7 +242,7 @@ my %intRange = (
     'int64s' => [-9223372036854775808, 9223372036854775807],
 );
 # lookup for file types with block-writable EXIF
-my %blockExifTypes = map { $_ => 1 } qw(JPEG PNG JP2 MIE EXIF FLIF MOV MP4);
+my %blockExifTypes = map { $_ => 1 } qw(JPEG PNG JP2 JXL MIE EXIF FLIF MOV MP4 RIFF);
 
 my $maxSegmentLen = 0xfffd;     # maximum length of data in a JPEG segment
 my $maxXMPLen = $maxSegmentLen; # maximum length of XMP data in JPEG
@@ -573,6 +576,9 @@ sub SetNewValue($;$$%)
                     my $pre = $wantGroup ? $wantGroup . ':' : '';
                     $err = "Tag '$pre${origTag}' is not defined";
                     $err .= ' or has a bad language code' if $origTag =~ /-/;
+                    if (not $pre and uc($origTag) eq 'TAG') {
+                        $err .= " (specify a writable tag name, not '${origTag}' literally)"
+                    }
                 } else {
                     $err = "Invalid tag name '${tag}'";
                     $err .= " (remove the leading '\$')" if $tag =~ /^\$/;
@@ -701,9 +707,13 @@ TAG: foreach $tagInfo (@matchingTags) {
             $writeGroup or $writeGroup = $group0;
             # get priority for this group
             unless ($priority) {
-                $priority = $$self{WRITE_PRIORITY}{lc($writeGroup)};
-                unless ($priority) {
-                    $priority = $$self{WRITE_PRIORITY}{lc($group0)} || 0;
+                if ($$tagInfo{Avoid} and $$tagInfo{WriteAlso}) {
+                    $priority = 0;
+                } else {
+                    $priority = $$self{WRITE_PRIORITY}{lc($writeGroup)};
+                    unless ($priority) {
+                        $priority = $$self{WRITE_PRIORITY}{lc($group0)} || 0;
+                    }
                 }
             }
             # adjust priority based on Preferred level for this tag
@@ -824,6 +834,8 @@ TAG: foreach $tagInfo (@matchingTags) {
         $tag = $$tagInfo{Name};     # get tag name for warnings
         my $lcTag = lc $tag;
         my $pref = $preferred{$lcTag} || { };
+        # don't write Avoid-ed tags with side effect unless preferred
+        next if not $$pref{$tagInfo} and $$tagInfo{Avoid} and $$tagInfo{WriteAlso};
         my $shift = $options{Shift};
         my $addValue = $options{AddValue};
         if (defined $shift) {
@@ -854,7 +866,7 @@ TAG: foreach $tagInfo (@matchingTags) {
                 ($shift or ($shiftable eq '0' and $options{DelValue})))
             {
                 $err = "$wgrp1:$tag is not shiftable";
-                $verbose > 2 and print $out "$err\n";
+                $verbose and print $out "$err\n";
                 next;
             }
         }
@@ -965,16 +977,18 @@ TAG: foreach $tagInfo (@matchingTags) {
             $self->GetNewValueHash($tagInfo, $writeGroup, 'delete', $options{ProtectSaved});
             # also delete related tag previous new values
             if ($$tagInfo{WriteAlso}) {
+                $$self{INDENT2} = '+';
                 my ($wgrp, $wtag);
                 if ($$tagInfo{WriteGroup} and $$tagInfo{WriteGroup} eq 'All' and $writeGroup) {
                     $wgrp = $writeGroup . ':';
                 } else {
                     $wgrp = '';
                 }
-                foreach $wtag (keys %{$$tagInfo{WriteAlso}}) {
+                foreach $wtag (sort keys %{$$tagInfo{WriteAlso}}) {
                     my ($n,$e) = $self->SetNewValue($wgrp . $wtag, undef, Replace=>2);
                     $numSet += $n;
                 }
+                $$self{INDENT2} = '';
             }
             $options{Replace} == 2 and ++$numSet, next;
         }
@@ -1016,7 +1030,7 @@ TAG: foreach $tagInfo (@matchingTags) {
                                 require 'Image/ExifTool/XMPStruct.pl';
                                 $_ = Image::ExifTool::XMP::SerializeStruct($_);
                             }
-                            print $out "$verb $wgrp1:$tag$fromList if value is '${_}'\n";
+                            print $out "$$self{INDENT2}$verb $wgrp1:$tag$fromList if value is '${_}'\n";
                         }
                     }
                 }
@@ -1080,15 +1094,25 @@ TAG: foreach $tagInfo (@matchingTags) {
                     push @{$$nvHash{Value}}, ref $val eq 'ARRAY' ? @$val : $val;
                 }
                 if ($verbose > 1) {
-                    my $ifExists = $$nvHash{IsCreating} ? ( $createOnly ?
-                                  ($$nvHash{IsCreating} == 2 ?
-                                    " if $writeGroup exists and tag doesn't" :
-                                    " if tag doesn't exist") :
-                                  ($$nvHash{IsCreating} == 2 ? " if $writeGroup exists" : '')) :
+                    my $ifExists;
+                    if ($$tagInfo{IsComposite}) {
+                        # (composite tags don't technically exist in the file)
+                        if ($$tagInfo{WriteAlso}) {
+                            $ifExists = ' (+' . join(',+',sort keys %{$$tagInfo{WriteAlso}}) . '):';
+                        } else {
+                            $ifExists = '';
+                        }
+                    } else {
+                        $ifExists = $$nvHash{IsCreating} ? ( $createOnly ?
+                                   ($$nvHash{IsCreating} == 2 ?
+                                     " if $writeGroup exists and tag doesn't" :
+                                     " if tag doesn't exist") :
+                                   ($$nvHash{IsCreating} == 2 ? " if $writeGroup exists" : '')) :
                                   (($$nvHash{DelValue} and @{$$nvHash{DelValue}}) ?
-                                    ' if tag was deleted' : ' if tag exists');
+                                     ' if tag was deleted' : ' if tag exists');
+                    }
                     my $verb = ($shift ? 'Shifting' : ($addValue ? 'Adding' : 'Writing'));
-                    print $out "$verb $wgrp1:$tag$ifExists\n";
+                    print $out "$$self{INDENT2}$verb $wgrp1:$tag$ifExists\n";
                 }
             }
         } elsif ($permanent) {
@@ -1103,7 +1127,7 @@ TAG: foreach $tagInfo (@matchingTags) {
             $self->GetNewValueHash($tagInfo, $writeGroup, 'delete');
             my $nvHash = $self->GetNewValueHash($tagInfo, $writeGroup, 'create');
             $$nvHash{WantGroup} = $wantGroup;
-            $verbose > 1 and print $out "Deleting $wgrp1:$tag\n";
+            $verbose > 1 and print $out "$$self{INDENT2}Deleting $wgrp1:$tag\n";
         }
         $$setTags{$tagInfo} = 1 if $setTags;
         $prioritySet = 1 if $$pref{$tagInfo};
@@ -1112,6 +1136,7 @@ WriteAlso:
         # also write related tags
         my $writeAlso = $$tagInfo{WriteAlso};
         if ($writeAlso) {
+            $$self{INDENT2} = '+';  # indicate related tag with a leading "+"
             my ($wgrp, $wtag, $n);
             if ($$tagInfo{WriteGroup} and $$tagInfo{WriteGroup} eq 'All' and $writeGroup) {
                 $wgrp = $writeGroup . ':';
@@ -1119,7 +1144,7 @@ WriteAlso:
                 $wgrp = '';
             }
             local $SIG{'__WARN__'} = \&SetWarning;
-            foreach $wtag (keys %$writeAlso) {
+            foreach $wtag (sort keys %$writeAlso) {
                 my %opts = (
                     Type => 'ValueConv',
                     Protected   => $protected | 0x02,
@@ -1131,7 +1156,7 @@ WriteAlso:
                     SetTags     => \%alsoWrote,         # remember tags already written
                 );
                 undef $evalWarning;
-                #### eval WriteAlso ($val)
+                #### eval WriteAlso ($val,%opts)
                 my $v = eval $$writeAlso{$wtag};
                 # we wanted to do the eval in case there are side effect, but we
                 # don't want to write a value for a tag that is being deleted:
@@ -1153,6 +1178,7 @@ WriteAlso:
                     }
                 }
             }
+            $$self{INDENT2} = '';
         }
     }
     # print warning if we couldn't set our priority tag
@@ -1266,6 +1292,7 @@ sub SetNewValuesFromFile($$;@)
         GlobalTimeShift => $$options{GlobalTimeShift},
         HexTagIDs       => $$options{HexTagIDs},
         IgnoreMinorErrors=>$$options{IgnoreMinorErrors},
+        IgnoreTags      => $$options{IgnoreTags},
         Lang            => $$options{Lang},
         LargeFileSupport=> $$options{LargeFileSupport},
         List            => 1,
@@ -1396,7 +1423,10 @@ sub SetNewValuesFromFile($$;@)
                 }
             }
             # validate tag name(s)
-            $$opts{EXPR} or ValidTagName($tag) or $self->Warn("Invalid tag name '${tag}'"), next;
+            unless ($$opts{EXPR} or ValidTagName($tag)) {
+                $self->Warn("Invalid tag name '${tag}'. Use '=' not '<' to assign a tag value");
+                next;
+            }
             ValidTagName($dstTag) or $self->Warn("Invalid tag name '${dstTag}'"), next;
             # translate '+' and '-' to appropriate SetNewValue option
             if ($opt) {
@@ -2069,6 +2099,46 @@ sub SetSystemTags($$)
             $self->WarnOnce('Can only set MDItem tags on OS X');
             last;
         }
+    }
+    # delete Windows Zone.Identifier if specified
+    my $zhash = $self->GetNewValueHash($Image::ExifTool::Extra{ZoneIdentifier});
+    if ($zhash) {
+        my $res = -1;
+        if ($^O ne 'MSWin32') {
+            $self->Warn('ZoneIdentifer is a Windows-only tag');
+        } elsif (ref $file) {
+            $self->Warn('Writing ZoneIdentifer requires a file name');
+        } elsif (defined $self->GetNewValue('ZoneIdentifier', \$zhash)) {
+            $self->Warn('ZoneIndentifier may only be delted');
+        } elsif (not eval { require Win32API::File }) {
+            $self->Warn('Install Win32API::File to write ZoneIdentifier');
+        } else {
+            my ($wattr, $wide);
+            my $zfile = "${file}:Zone.Identifier";
+            if ($self->EncodeFileName($zfile)) {
+                $wide = 1;
+                $wattr = eval { Win32API::File::GetFileAttributesW($zfile) };
+            } else {
+                $wattr = eval { Win32API::File::GetFileAttributes($zfile) };
+            }
+            if ($wattr == Win32API::File::INVALID_FILE_ATTRIBUTES()) {
+                $res = 0; # file doesn't exist, nothing to do
+            } elsif ($wattr & Win32API::File::FILE_ATTRIBUTE_READONLY()) {
+                $self->Warn('Zone.Identifier stream is read-only');
+            } else {
+                if ($wide) {
+                    $res = 1 if eval { Win32API::File::DeleteFileW($zfile) };
+                } else {
+                    $res = 1 if eval { Win32API::File::DeleteFile($zfile) };
+                }
+                if ($res > 0) {
+                    $self->VPrint(0, "  Deleting Zone.Identifier stream\n");
+                } else {
+                    $self->Warn('Error deleting Zone.Identifier stream');
+                }
+            }
+        }
+        $result = $res if $res == 1 or not $result;
     }
     return $result;
 }
@@ -3485,7 +3555,8 @@ PAT:    foreach $pattern (@patterns) {
 #         2) optional tag value (before RawConv) if deleting specific values
 # Returns: >0 - tag should be overwritten
 #          =0 - the tag should be preserved
-#          <0 - not sure, we need the value to know
+#          <0 - not sure, we need the old value to tell (if there is no old value
+#               then the tag should be written if $$nvHash{IsCreating} is true)
 # Notes: $$nvHash{Value} is updated with the new value when shifting a value
 sub IsOverwriting($$;$)
 {
@@ -4193,7 +4264,12 @@ sub WriteDirectory($$$;$)
     $$self{DIR_NAME} = $oldDir;
     @$self{'Compression','SubfileType'} = @save;
     SetByteOrder($saveOrder);
-    print $out "  Deleting $name\n" if $out and defined $newData and not length $newData;
+    if ($out) {
+        print $out "  Deleting $name\n" if defined $newData and not length $newData;
+        if ($$self{CHANGED} == $oldChanged and $$self{OPTIONS}{Verbose} > 2) {
+            print $out "$$self{INDENT}  [nothing changed in $dirName]\n";
+        }
+    }
     return $newData;
 }
 
@@ -4482,7 +4558,7 @@ sub DumpUnknownTrailer($$)
         # add to Preview block list if valid and in the trailer
         $image{$prePos} = [$tag, $preLen] if $prePos and $preLen and $prePos+$preLen > $pos;
         last if $lastOne;   # checked all images
-        # look for MPF images (in the the proper order)
+        # look for MPF images (in the proper order)
         ++$mpImageNum;
         $prePos = $$self{VALUE}{"MPImageStart ($mpImageNum)"};
         if (defined $prePos) {
@@ -4731,7 +4807,7 @@ sub InverseDateTime($$;$$)
     my ($rtnVal, $tz);
     my $fmt = $$self{OPTIONS}{DateFormat};
     # strip off timezone first if it exists
-    if (not $fmt and $val =~ s/([+-])(\d{1,2}):?(\d{2})\s*(DST)?$//i) {
+    if (not $fmt and $val =~ s/([-+])(\d{1,2}):?(\d{2})\s*(DST)?$//i) {
         $tz = sprintf("$1%.2d:$3", $2);
     } elsif (not $fmt and $val =~ s/Z$//i) {
         $tz = 'Z';
@@ -4754,6 +4830,8 @@ sub InverseDateTime($$;$$)
                 $strptimeLib = '';
             }
         }
+        # handle factional seconds (%f), but only at the end of the string
+        my $fs = ($fmt =~ s/%f$// and $val =~ s/(\.\d+)\s*$//) ? $1 : '';
         my ($lib, $wrn, @a);
 TryLib: for ($lib=$strptimeLib; ; $lib='') {
             if (not $lib) {
@@ -4790,10 +4868,10 @@ TryLib: for ($lib=$strptimeLib; ; $lib='') {
                         next TryLib;
                     }
                 } elsif (length($a[$i]) < 2) {
-                    $$a[$i] = "0$a[$i]";# pad to 2 digits if necessary
+                    $a[$i] = "0$a[$i]"; # pad to 2 digits if necessary
                 }
             }
-            $val = join(':', @a[5,4,3]) . ' ' . join(':', @a[2,1,0]);
+            $val = join(':', @a[5,4,3]) . ' ' . join(':', @a[2,1,0]) . $fs;
             last;
         }
     }
@@ -6987,7 +7065,7 @@ used routines.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

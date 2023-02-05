@@ -37,7 +37,7 @@ use vars qw($VERSION %leicaLensTypes);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '2.14';
+$VERSION = '2.18';
 
 sub ProcessLeicaLEIC($$$);
 sub WhiteBalanceConv($;$$);
@@ -449,7 +449,7 @@ my %shootingMode = (
             same as the number printed on the camera body
         },
         PrintConv => q{
-            return $val unless $val=~/^([A-Z]\d{2})(\d{2})(\d{2})(\d{2})(\d{4})/;
+            return $val unless $val=~/^([A-Z][0-9A-Z]{2})(\d{2})(\d{2})(\d{2})(\d{4})/;
             my $yr = $2 + ($2 < 70 ? 2000 : 1900);
             return "($1) $yr:$3:$4 no. $5";
         },
@@ -543,7 +543,11 @@ my %shootingMode = (
     0x2c => [
         {
             Name => 'ContrastMode',
-            Condition => '$$self{Model} !~ /^DMC-(FX10|G1|L1|L10|LC80|GF\d+|G2|TZ10|ZS7)$/',
+            Condition => q{
+                $$self{Model} !~ /^DMC-(FX10|G1|L1|L10|LC80|GF\d+|G2|TZ10|ZS7)$/ and
+                # tested for DC-GH6, but rule out other DC- models just in case - PH
+                $$self{Model} !~ /^DC-/
+            },
             Flags => 'PrintHex',
             Writable => 'int16u',
             Notes => q{
@@ -1129,7 +1133,10 @@ my %shootingMode = (
             8 => 'Cinelike D', #forum11194
             9 => 'Cinelike V', #forum11194
             11 => 'L. Monochrome', #forum11194
+            12 => 'Like709', #forum14033
             15 => 'L. Monochrome D', #forum11194
+            17 => 'V-Log', #forum14033
+            18 => 'Cinelike D2', #forum14033
         },
     },
     0x8a => { #18
@@ -1255,8 +1262,9 @@ my %shootingMode = (
         Writable => 'rational64u',
         Format => 'int32u',
         PrintConv => {
-            '0 0' => 'Expressive',
-            # '0 1' => have seen this for XS1 (PH)
+            # '0 0' => 'Expressive', #forum11194
+            '0 0' => 'Off', #forum14033 (GH6)
+            '0 1' => 'Expressive', #forum14033 (GH6) (have also seen this for XS1)
             '0 2' => 'Retro',
             '0 4' => 'High Key',
             '0 8' => 'Sepia',
@@ -1422,6 +1430,27 @@ my %shootingMode = (
     0xd6 => { #PH (DC-S1)
         Name => 'NoiseReductionStrength',
         Writable => 'rational64s',
+    },
+    0xe4 => { #IB
+        Name => 'LensTypeModel',
+        Condition => '$format eq "int16u"',
+        Writable => 'int16u',
+        RawConv => q{
+            return undef unless $val;
+            require Image::ExifTool::Olympus; # (to load Composite LensID)
+            return $val;
+        },
+        ValueConv => '$_=sprintf("%.4x",$val); s/(..)(..)/$2 $1/; $_',
+        ValueConvInv => '$val =~ s/(..) (..)/$2$1/; hex($val)',
+    },
+    0xe8 => { #PH (DC-GH6)
+        Name => 'MinimumISO',
+        Writable => 'int32u',
+    },
+    0xee => { #PH (DC-GH6)
+        Name => 'DynamicRangeBoost',
+        Writable => 'int16u',
+        PrintConv => { 0 => 'Off', 1 => 'On' },
     },
     0x0e00 => {
         Name => 'PrintIM',
@@ -2118,6 +2147,7 @@ my %shootingMode = (
         Name => 'UserProfile',
         Writable => 'string',
     },
+    # 0x357 int32u - 0=DNG, 3162=JPG (ref 23)
     0x359 => { #23
         Name => 'ISOSelected',
         Writable => 'int32s',
@@ -2134,7 +2164,19 @@ my %shootingMode = (
         PrintConv => 'sprintf("%.1f", $val)',
         PrintConvInv => '$val',
     },
-    # 0x357 int32u - 0=DNG, 3162=JPG (ref 23)
+    0x035b => { #IB
+        Name => 'CorrelatedColorTemp', # (in Kelvin)
+        Writable => 'int16u',
+    },
+    0x035c => { #IB
+        Name => 'ColorTint', # (same units as Adobe is using)
+        Writable => 'int16s',
+    },
+    0x035d => { #IB
+        Name => 'WhitePoint', # (x/y)
+        Writable => 'rational64u',
+        Count => 2,
+    },
 );
 
 # Type 2 tags (ref PH)
@@ -2439,6 +2481,15 @@ my %shootingMode = (
         },
     },
     0x4080 => { # (FZ1000)
+        Name => 'ExifData',
+        Condition => '$$valPt =~ /^\xff\xd8\xff\xe1..Exif\0\0/s',
+        SubDirectory => {
+            TagTable => 'Image::ExifTool::Exif::Main',
+            ProcessProc => \&Image::ExifTool::ProcessTIFF,
+            Start => 12,
+        },
+    },
+    0x200080 => { # (GH6)
         Name => 'ExifData',
         Condition => '$$valPt =~ /^\xff\xd8\xff\xe1..Exif\0\0/s',
         SubDirectory => {
@@ -2812,7 +2863,7 @@ Panasonic and Leica maker notes in EXIF information.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

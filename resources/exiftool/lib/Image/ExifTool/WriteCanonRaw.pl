@@ -271,6 +271,13 @@ sub WriteCanonRaw($$$)
     $raf->Seek($blockStart+$blockSize-4, 0) or return 0;
     $raf->Read($buff, 4) == 4 or return 0;
     my $dirOffset = Get32u(\$buff,0) + $blockStart;
+    # avoid infinite recursion
+    $$et{ProcessedCanonRaw} or $$et{ProcessedCanonRaw} = { };
+    if ($$et{ProcessedCanonRaw}{$dirOffset}) {
+        $et->Error("Double-referenced $$dirInfo{DirName} directory");
+        return 0;
+    }
+    $$et{ProcessedCanonRaw}{$dirOffset} = 1;
     $raf->Seek($dirOffset, 0) or return 0;
     $raf->Read($buff, 2) == 2 or return 0;
     my $entries = Get16u(\$buff,0);             # get number of entries in directory
@@ -623,7 +630,7 @@ JPEG files, and would lead to far fewer problems with corrupted metadata.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

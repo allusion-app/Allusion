@@ -21,7 +21,7 @@ use vars qw($VERSION);
 use Image::ExifTool qw(:DataAccess :Utils);
 use Image::ExifTool::Exif;
 
-$VERSION = '1.25';
+$VERSION = '1.27';
 
 sub ProcessJpgFromRaw($$$);
 sub WriteJpgFromRaw($$$);
@@ -218,6 +218,7 @@ my %panasonicWhiteBalance = ( #forum9396
     0x30 => { Name => 'CropLeft',   Writable => 'int16u' },
     0x31 => { Name => 'CropBottom', Writable => 'int16u' },
     0x32 => { Name => 'CropRight',  Writable => 'int16u' },
+    # 0x44 - may contain another pointer to the raw data starting at byte 2 in this data (DC-GH6)
     0x10f => {
         Name => 'Make',
         Groups => { 2 => 'Camera' },
@@ -737,6 +738,8 @@ sub WriteDistortionInfo($$$)
 #  2 - value count
 #  3 - reference to list of original offset values
 #  4 - IFD format number
+#  5 - (pointer to StripOffsets value added by this PatchRawDataOffset routine)
+#  6 - flag set if this is a fixed offset (Panasonic GH6 fixed-offset hack)
 sub PatchRawDataOffset($$$)
 {
     my ($offsetInfo, $raf, $ifd) = @_;
@@ -745,15 +748,32 @@ sub PatchRawDataOffset($$$)
     my $rawDataOffset = $$offsetInfo{0x118};
     my $err;
     $err = 1 unless $ifd == 0;
-    $err = 1 unless $stripOffsets and $stripByteCounts and $$stripOffsets[2] == 1;
-    if ($rawDataOffset) {
+    if ($stripOffsets or $stripByteCounts) {
+        $err = 1 unless $stripOffsets and $stripByteCounts and $$stripOffsets[2] == 1;
+    } else {
+        # the DC-GH6 and DC-GH5M2 write RawDataOffset with no Strip tags, so we need
+        # to create fake StripByteCounts information for copying the data
+        if ($$offsetInfo{0x118}) { # (just to be safe)
+            $stripByteCounts = $$offsetInfo{0x117} = [ $PanasonicRaw::Main{0x117}, 0, 1, [ 0 ], 4 ];
+            # set flag so the offset will be fixed (GH6 hack, see https://exiftool.org/forum/index.php?topic=13861.0)
+            # (of course, fixing up the offset is now unnecessary, but continue to do this even
+            # though the fixup adjustment will be 0 because this allows us to delete the following
+            # line to remove the fix-offset restriction if Panasonic ever sees the light, but note
+            # that in this case we should investigate the purpose of the seemily-duplicate raw
+            # data offset contained within PanasonicRaw_0x0044)
+            $$offsetInfo{0x118}[6] = 1;
+        }
+    }
+    if ($rawDataOffset and not $err) {
         $err = 1 unless $$rawDataOffset[2] == 1;
-        $err = 1 unless $$stripOffsets[3][0] == 0xffffffff or $$stripByteCounts[3][0] == 0;
+        if ($stripOffsets) {
+            $err = 1 unless $$stripOffsets[3][0] == 0xffffffff or $$stripByteCounts[3][0] == 0;
+        }
     }
     $err and return 'Unsupported Panasonic/Leica RAW variant';
     if ($rawDataOffset) {
         # update StripOffsets along with this tag if it contains a reasonable value
-        unless ($$stripOffsets[3][0] == 0xffffffff) {
+        if ($stripOffsets and $$stripOffsets[3][0] != 0xffffffff) {
             # save pointer to StripOffsets value for updating later
             push @$rawDataOffset, $$stripOffsets[1];
         }
@@ -888,7 +908,7 @@ write meta information in Panasonic/Leica RAW, RW2 and RWL images.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

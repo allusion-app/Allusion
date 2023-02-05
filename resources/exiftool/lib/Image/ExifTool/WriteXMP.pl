@@ -298,6 +298,8 @@ sub SetPropertyPath($$;$$$$)
         $flatInfo = $$tagTablePtr{$flatID};
         if ($flatInfo) {
             return if $$flatInfo{PropertyPath};
+        } elsif (@$propList > 50) {
+            return; # avoid deep recursion
         } else {
             # flattened tag doesn't exist, so create it now
             # (could happen if we were just writing a structure)
@@ -506,7 +508,7 @@ sub ConformPathToNamespace($$)
     my $prop;
     foreach $prop (@propList) {
         my ($ns, $tag) = $prop =~ /(.+?):(.*)/;
-        next if $$nsUsed{$ns};
+        next if not defined $ns or $$nsUsed{$ns};
         my $uri = $nsURI{$ns};
         unless ($uri) {
             warn "No URI for namespace prefix $ns!\n";
@@ -559,7 +561,21 @@ sub AddStructType($$$$;$)
 }
 
 #------------------------------------------------------------------------------
-# Hack to use XMP writer for SphericalVideoXML
+# Process SphericalVideoXML (see XMP-GSpherical tags documentation)
+# Inputs: 0) ExifTool ref, 1) dirInfo ref, 2) tag table ref
+# Returns: SphericalVideoXML data
+sub ProcessGSpherical($$$)
+{
+    my ($et, $dirInfo, $tagTablePtr) = @_;
+    # extract SphericalVideoXML as a block if requested
+    if ($$et{REQ_TAG_LOOKUP}{sphericalvideoxml}) {
+        $et->FoundTag(SphericalVideoXML => substr(${$$dirInfo{DataPt}}, 16));
+    }
+    return Image::ExifTool::XMP::ProcessXMP($et, $dirInfo, $tagTablePtr);
+}
+
+#------------------------------------------------------------------------------
+# Hack to use XMP writer for SphericalVideoXML (see XMP-GSpherical tags documentation)
 # Inputs: 0) ExifTool ref, 1) dirInfo ref, 2) tag table ref
 # Returns: SphericalVideoXML data
 sub WriteGSpherical($$$)
@@ -1417,7 +1433,17 @@ sub WriteXMP($$;$)
             my $uri = $nsUsed{$1};
             unless ($uri) {
                 $uri = $nsURI{$1};      # we must have added a namespace
-                $uri or $xmpErr = "Undefined XMP namespace: $1", next;
+                unless ($uri) {
+                    # (namespace prefix may be empty if trying to write empty XMP structure, forum12384)
+                     if (length $1) {
+                        my $err = "Undefined XMP namespace: $1";
+                        if (not $xmpErr or $err ne $xmpErr) {
+                            $xmpFile ? $et->Error($err) : $et->Warn($err);
+                            $xmpErr = $err;
+                        }
+                     }
+                     next;
+                }
             }
             $nsNew{$1} = $uri;
             # need a new description if any new namespaces
@@ -1465,7 +1491,7 @@ sub WriteXMP($$;$)
             $long[-2] .= "$nl$sp<$prop rdf:about='${about}'";
             # generate et:toolkit attribute if this is an exiftool RDF/XML output file
             if (@ns and $nsCur{$ns[0]} =~ m{^http://ns.exiftool.(?:ca|org)/}) {
-                $long[-2] .= "\n$sp${sp}xmlns:et='http://ns.exiftool.ca/1.0/'" .
+                $long[-2] .= "\n$sp${sp}xmlns:et='http://ns.exiftool.org/1.0/'" .
                             " et:toolkit='Image::ExifTool $Image::ExifTool::VERSION'";
             }
             $long[-2] .= "\n$sp${sp}xmlns:$_='$nsCur{$_}'" foreach @ns;
@@ -1582,14 +1608,7 @@ sub WriteXMP($$;$)
     unless (%capture or $xmpFile or $$dirInfo{InPlace} or $$dirInfo{NoDelete}) {
         $long[-2] = '';
     }
-    if ($xmpErr) {
-        if ($xmpFile) {
-            $et->Error($xmpErr);
-            return -1;
-        }
-        $et->Warn($xmpErr);
-        return undef;
-    }
+    return($xmpFile ? -1 : undef) if $xmpErr;
     $$et{CHANGED} += $changed;
     $debug > 1 and $long[-2] and print $long[-2],"\n";
     return $long[-2] unless $xmpFile;
@@ -1616,7 +1635,7 @@ This file contains routines to write XMP metadata.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

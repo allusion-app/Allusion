@@ -15,7 +15,7 @@ use vars qw($VERSION @ISA $makeMissing);
 use Image::ExifTool qw(:Utils :Vars);
 use Image::ExifTool::XMP;
 
-$VERSION = '1.31';
+$VERSION = '1.35';
 @ISA = qw(Exporter);
 
 # set this to a language code to generate Lang module with 'MISSING' entries
@@ -31,13 +31,14 @@ my %credits = (
     de   => 'Jens Duttke, Herbert Kauer and Jobi',
     es   => 'Jens Duttke, Santiago del BrE<iacute>o GonzE<aacute>lez and Emilio Sancha',
     fi   => 'Jens Duttke and Jarkko ME<auml>kineva',
-    fr   => 'Jens Duttke, Bernard Guillotin, Jean Glasser, Jean Piquemal, Harry Nizard and Alphonse Philippe',
+    fr   => 'Jens Duttke, Bernard Guillotin, Jean Glasser, Jean Piquemal, Harry Nizard, Alphonse Philippe and Philippe Bonnaure (GraphicConverter)',
     it   => 'Jens Duttke, Ferdinando Agovino, Emilio Dati and Michele Locati',
     ja   => 'Jens Duttke and Kazunari Nishina',
     ko   => 'Jens Duttke and Jeong Beom Kim',
     nl   => 'Jens Duttke, Peter Moonen, Herman Beld and Peter van der Laan',
     pl   => 'Jens Duttke, Przemyslaw Sulek and Kacper Perschke',
     ru   => 'Jens Duttke, Sergey Shemetov, Dmitry Yerokhin, Anton Sukhinov and Alexander',
+    sk   => 'Peter Bagin',
     sv   => 'Jens Duttke and BjE<ouml>rn SE<ouml>derstrE<ouml>m',
    'tr'  => 'Jens Duttke, Hasan Yildirim and Cihan Ulusoy',
     zh_cn => 'Jens Duttke and Haibing Zhong',
@@ -57,6 +58,12 @@ my %translateLang = (
 
 my $numbersFirst = 1;   # set to -1 to sort numbers last, or 2 to put negative numbers last
 my $caseInsensitive;    # used internally by sort routine
+
+# write groups that don't represent real family 1 group names
+my %fakeWriteGroup = (
+    Comment => 1,   # (JPEG Comment)
+    colr => 1,      # (Jpeg2000 'colr' box)
+);
 
 #------------------------------------------------------------------------------
 # Utility to print tag information database as an XML list
@@ -178,9 +185,8 @@ PTILoop:    for ($index=0; $index<@infoArray; ++$index) {
                 }
                 my @groups = $et->GetGroup($tagInfo);
                 my $writeGroup = $$tagInfo{WriteGroup} || $$table{WRITE_GROUP};
-                if ($writeGroup and $writeGroup ne 'Comment') {
-                    $groups[1] = $writeGroup;   # use common write group for group 1
-                }
+                # use common write group for group 1 (unless fake)
+                $groups[1] = $writeGroup if $writeGroup and not $fakeWriteGroup{$writeGroup};
                 # add group names if different from table defaults
                 my $grp = '';
                 for ($fam=0; $fam<3; ++$fam) {
@@ -199,6 +205,8 @@ PTILoop:    for ($index=0; $index<@infoArray; ++$index) {
                     push @flags, 'Permanent' if $$tagInfo{Permanent} or
                         ($groups[0] eq 'MakerNotes' and not defined $$tagInfo{Permanent});
                     $grp = " flags='" . join(',', sort @flags) . "'$grp" if @flags;
+                    # add parent structure tag ID
+                    $grp .= " struct='$$tagInfo{ParentTagInfo}{TagID}'" if $$tagInfo{ParentTagInfo};
                 }
                 print $fp " <tag id='${xmlID}' name='${name}'$ind type='${format}'$count writable='${writable}'$grp";
                 if ($opts{NoDesc}) {
@@ -394,10 +402,14 @@ sub BuildLangModules($;$)
                 my $val = ucfirst $tval;
                 $val = $tval if $tval =~ /^(cRAW|iTun)/; # special-case non-capitalized values
                 my $cap = ($tval ne $val);
-                if ($makeMissing and $lang eq 'en') {
-                    $lang = $makeMissing;
-                    $val = 'MISSING';
-                    undef $cap;
+                if ($makeMissing) {
+                    if ($lang eq 'en') {
+                        $lang = $makeMissing;
+                        $val = 'MISSING';
+                        undef $cap;
+                    }
+                } elsif ($val eq 'MISSING') {
+                    next;   # ignore "MISSING" entries
                 }
                 my $isDefault = ($lang eq $Image::ExifTool::defaultLang);
                 unless ($langInfo{$lang} or $isDefault) {
@@ -638,7 +650,7 @@ and values.
 
 ~head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
@@ -822,7 +834,7 @@ Number of modules updated, or negative on error.
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

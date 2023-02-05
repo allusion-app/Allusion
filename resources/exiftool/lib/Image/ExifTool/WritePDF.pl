@@ -293,6 +293,7 @@ sub WritePDF($$)
     my $newTool = new Image::ExifTool;
     $newTool->Options(List => 1);
     $newTool->Options(Password => $et->Options('Password'));
+    $newTool->Options(NoPDFList => $et->Options('NoPDFList'));
     $$newTool{PDF_CAPTURE} = \%capture;
     my $info = $newTool->ImageInfo($raf, 'XMP', 'PDF:*', 'Error', 'Warning');
     # not a valid PDF file unless we got a version number
@@ -394,6 +395,10 @@ sub WritePDF($$)
 
     # must pre-determine Info reference to be used in encryption
     my $infoRef = $prevInfoRef || \ "$nextObject 0 R";
+    unless (ref $infoRef eq 'SCALAR') {
+        $et->Error("Info dictionary is not an indirect object");
+        return $rtn;
+    }
     $keyExt = $$infoRef;
 
     # must encrypt all values in dictionary if they came from an encrypted stream
@@ -749,7 +754,7 @@ C<PDF-update> pseudo group).
 
 =head1 AUTHOR
 
-Copyright 2003-2021, Phil Harvey (philharvey66 at gmail.com)
+Copyright 2003-2023, Phil Harvey (philharvey66 at gmail.com)
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

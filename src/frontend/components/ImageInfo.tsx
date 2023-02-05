@@ -61,6 +61,7 @@ const exifFields: Record<string, ExifField> = {
     },
   },
   ImageDescription: { label: 'Description', modifiable: true },
+  Parameters: { label: 'Parameters' },
   Copyright: { label: 'Copyright', modifiable: true },
   Make: { label: 'Camera Manufacturer' },
   Model: { label: 'Camera Model' },
@@ -73,6 +74,8 @@ const exifFields: Record<string, ExifField> = {
 };
 
 const exifTags = Object.keys(exifFields);
+
+const stopPropagation = (e: React.KeyboardEvent<HTMLInputElement>) => e.stopPropagation();
 
 interface ImageInfoProps {
   file: ClientFile;
@@ -220,7 +223,7 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
                   {!isEditingMode ? (
                     field.format?.(value || '') || value
                   ) : (
-                    <input defaultValue={value || ''} name={key} />
+                    <input defaultValue={value || ''} name={key} onKeyDown={stopPropagation} />
                   )}
                 </td>
               </tr>

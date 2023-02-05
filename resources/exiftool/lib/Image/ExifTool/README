@@ -395,7 +395,9 @@ numerical, and generated automatically otherwise.
                   be accessible.
 
                   'Hidden' - set to hide tag from the TagName documentation.
-                  Also suppresses verbose output of a BinaryData tag.
+                  Also suppresses verbose output of a BinaryData tag.  The
+                  RawConv of a Hidden tag should return undef so the tag value
+                  is not seen by the user.
 
                   'IsComposite' - flag set for Composite tags
 
@@ -407,6 +409,9 @@ numerical, and generated automatically otherwise.
                   absolute file offsets are used.  May be set to an expression
                   to be evaluated.  Expression may access $val and $et,
                   and is evaluated only when reading.
+
+                  'iTXt' - [PNG TextualData tags only] flag to write tag as PNG
+                  iTXt chunk even if it contains no special characters.
 
                   'List' - flag indicating that duplicate entries of this tag
                   are allowed, and will be accumulated in a list.  Note that for
@@ -447,6 +452,10 @@ numerical, and generated automatically otherwise.
                   may be written if the tag already exists.  By default, all
                   MakerNotes tags are permanent unless otherwise specified.
 
+                  'PreservePadding' - [QuickTime only] flag to preserve the
+                  original size of the QuickTime atom by padding with nulls when
+                  writing with the QuickTimePad option.
+
                   'PrintHex' - specifies that unknown PrintConv values should
                   be printed in hex (eg. 'Unknown (0x1)').  Also causes
                   numerical tag values to be printed in hex in the HTML tag name
@@ -471,9 +480,9 @@ numerical, and generated automatically otherwise.
                   tags in IFD1 of JPEG images which default to priority 0.
 
                   'Protected' - bit mask to protect tags from writing:
-                  Bit 0x01 indicates an 'unsafe' tag, which is not set via
+                  Bit 0x01 indicates an 'Unsafe' tag, which is not set via
                   SetNewValuesFromFile() unless specified explicitly.
-                  Bit 0x02 indicates a 'protected' tag, which should not be set
+                  Bit 0x02 indicates a 'Protected' tag, which should not be set
                   directly by the user.
 
                   'PutFirst' - [EXIF only] flag to place this value before IFD0
@@ -524,7 +533,8 @@ numerical, and generated automatically otherwise.
                   SubIFD's where the PutFirst flag is valid.
 
                   'Unknown' - this is an unknown tag (only extracted when the
-                  Unknown option is set).
+                  Unknown option is set).  This is set to 2 for Unknown tags in
+                  binary tables (extracted when Unknown is 2).
 
                   'WriteNothing' - flag indicating that nothing is actually
                   written when this tag is set.  It is a fake writable tag that
@@ -631,7 +641,8 @@ numerical, and generated automatically otherwise.
                   expression, a code reference or a list reference.  In this
                   expression, $self, $val and $tag may be used as with
                   ValueConv, but if ValueConv was defined then $val is the
-                  ValueConv value instead of the Raw value.  The returned value
+                  ValueConv value instead of the Raw value.  Composite tags
+                  may also use the @val, @prt and @raw lists. The returned value
                   should always be defined.  Note that the print conversion is
                   only done if the PrintConv option is enabled (which it is by
                   default), and if the result of the ValueConv is not a scalar
@@ -710,7 +721,7 @@ numerical, and generated automatically otherwise.
                   condition exists, then a 'true' condition is assumed.  The
                   expression may use $self to access the ExifTool object.  The
                   first 128 bytes of the raw data value are accessible through
-                  the reference $valPt for EXIF, Jpeg2000, QuickTime and
+                  the reference $valPt for EXIF, Jpeg2000, QuickTime, FLAC and
                   BinaryData tags only (note that for BinaryData tags, the raw
                   data of $$valPt is always 'undef' type, and may not be used
                   when writing except for SubDirectory tags).  EXIF tags (and
@@ -957,6 +968,10 @@ numerical, and generated automatically otherwise.
   OtherLang     : [reserved] Used internally by QuickTime module to store a list
                   of tag ID's for alternate-language tags based on this one.
 
+  ParentTagInfo : [reserved] Used internally to store a reference to the tag
+                  information hash of the parent structure for flattened
+                  structure tags.
+
   RootTagInfo   : [reserved] Used internally to store a reference to the tag
                   information hash of the top-level structure for flattened
                   structure tags.
@@ -967,6 +982,9 @@ numerical, and generated automatically otherwise.
   LangCode      : [reserved] Used internally to indicate language code for
                   alternate language tags (eg. 'fr').  Only used with formats
                   which support alternate languages (eg. XMP, MIE, etc).
+
+  AddedUnknown  : [reserved] Used internally to mark Unknown tags that were
+                  added to the table at run time.
 
   SubDirectory {  If it exists, this specifies the start of a new subdirectory.
                   It contains a collection of variables which specify the type

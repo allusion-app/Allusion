@@ -345,6 +345,10 @@ class ExifIO {
 
     // TODO: can also extract preview from RAW https://exiftool.org/forum/index.php?topic=7408.0
 
+    if (!this.isOpen()) {
+      return false;
+    }
+
     const res = await ep.readMetadata(input, ['ThumbnailImage', 'PhotoshopThumbnail', 'b']);
 
     let data = res.data?.[0]?.ThumbnailImage || res.data?.[0]?.PhotoshopThumbnail;
