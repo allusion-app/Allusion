@@ -22,6 +22,7 @@ import {
   tryPreventDefault,
   Vec2,
 } from './utils';
+import { UpscaleMode } from '../../../stores/UiStore';
 
 const OVERZOOM_TOLERANCE = 0.05;
 const DOUBLE_TAP_THRESHOLD = 250;
@@ -41,6 +42,7 @@ export interface ZoomPanProps {
   imageDimension: Dimension;
   containerDimension: Dimension;
   onClose?: () => void;
+  upscaleMode: UpscaleMode;
 
   transitionStart?: Transform;
   transitionEnd?: Transform;
@@ -160,8 +162,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
       }
     } else if (event.deltaY < 0) {
       if (scale < this.props.maxScale) {
-        const transform = getZoomedTransform(this.props, this.state, scale * 1.1, point, 0);
-        this.setState(transform);
+        this.zoomInStep(point);
         tryPreventDefault(event);
       }
     }
@@ -237,8 +238,13 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
     this.startAnimation(animateTransform(transform, ANIMATION_SPEED, this.setState));
   }
 
+  zoomInStep(center: Vec2) {
+    const transform = getZoomedTransform(this.props, this.state, this.state.scale * 1.1, center, 0);
+    this.setState(transform);
+  }
+
   zoomOut(center: Vec2) {
-    const transform = getZoomedTransform(this.props, this.state, this.state.scale * 0.9, center, 0);
+    const transform = getZoomedTransform(this.props, this.state, this.state.scale / 1.1, center, 0);
     this.setState(transform);
   }
 
@@ -292,7 +298,7 @@ export default class ZoomPan extends React.Component<ZoomPanProps, ZoomPanState>
           onWheel: this.handleMouseWheel,
           onDragStart: tryPreventDefault,
           onContextMenu: tryPreventDefault,
-          style: imageStyle(this.state),
+          style: imageStyle(this.state, this.props.upscaleMode),
         })}
       </div>
     );
@@ -481,9 +487,10 @@ export const CONTAINER_DEFAULT_STYLE = {
   margin: 'auto',
 };
 
-function imageStyle({ top, left, scale }: ZoomPanState): CSSProperties {
+function imageStyle({ top, left, scale }: ZoomPanState, upscaleMode: UpscaleMode): CSSProperties {
   return {
-    transform: `translate3d(${left}px, ${top}px, 0) scale(${scale})`,
+    transform: `translate3d(${Math.trunc(left)}px, ${Math.trunc(top)}px, 0) scale(${scale})`,
+    imageRendering: scale >= 2 && upscaleMode === 'pixelated' ? 'pixelated' : undefined,
   };
 }
 

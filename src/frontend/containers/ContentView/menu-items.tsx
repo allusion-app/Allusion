@@ -12,7 +12,7 @@ import {
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet } from 'widgets';
-import { MenuItem, MenuSubItem } from 'widgets/menus';
+import { MenuItem, MenuRadioItem, MenuSubItem } from 'widgets/menus';
 import { LocationTreeItemRevealer } from '../Outliner/LocationsPanel';
 import { TagsTreeItemRevealer } from '../Outliner/TagsPanel/TagsTree';
 import SysPath from 'path';
@@ -160,7 +160,7 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
   );
 };
 
-export const SlideFileViewerMenuItems = ({ file }: { file: ClientFile }) => {
+export const SlideFileViewerMenuItems = observer(({ file }: { file: ClientFile }) => {
   const { uiStore } = useStore();
 
   const handlePreviewWindow = () => {
@@ -175,9 +175,22 @@ export const SlideFileViewerMenuItems = ({ file }: { file: ClientFile }) => {
         text="Open In Preview Window"
         icon={IconSet.PREVIEW}
       />
+
+      <MenuSubItem text="Upscale filtering..." icon={IconSet.VIEW_GRID}>
+        <MenuRadioItem
+          onClick={uiStore.setUpscaleModeSmooth}
+          checked={uiStore.upscaleMode === 'smooth'}
+          text="Smooth"
+        />
+        <MenuRadioItem
+          onClick={uiStore.setUpscaleModePixelated}
+          checked={uiStore.upscaleMode === 'pixelated'}
+          text="Pixelated"
+        />
+      </MenuSubItem>
     </>
   );
-};
+});
 
 export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) => {
   const { uiStore } = useStore();
