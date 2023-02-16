@@ -90,7 +90,6 @@
     "@types/react-dom": "^18.0.6",
     "@types/react-window": "^1.8.5",
     "@types/utif": "^3.0.1",
-    "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^5.36.2",
     "@typescript-eslint/parser": "^5.36.2",
     "css-loader": "^6.5.1",
@@ -138,7 +137,6 @@
     "react-window": "^1.8.7",
     "sourcemapped-stacktrace": "^1.1.11",
     "utif": "^3.1.0",
-    "uuid": "^9.0.0",
     "wasm-feature-detect": "^1.2.11"
   }
 }
