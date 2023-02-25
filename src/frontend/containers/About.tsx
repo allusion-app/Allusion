@@ -4,13 +4,8 @@ import PopupWindow from '../components/PopupWindow';
 import { useStore } from '../contexts/StoreContext';
 
 import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter-dark.jpg';
-import { shell } from 'electron';
 import { RendererMessenger } from 'src/ipc/renderer';
-
-const clickLink = (e: React.MouseEvent<HTMLAnchorElement>) => {
-  e.preventDefault();
-  shell.openExternal((e.target as HTMLAnchorElement).href);
-};
+import ExternalLink from '../components/ExternalLink';
 
 const About = observer(() => {
   const { uiStore } = useStore();
@@ -32,18 +27,15 @@ const About = observer(() => {
           It&apos;s completely <b>free and open source</b>! Find out more at
         </p>
         <span>
-          <a href="https://allusion-app.github.io/" onClick={clickLink}>
-            allusion-app.github.io
-          </a>
-          .
+          <ExternalLink url="https://allusion-app.github.io/">allusion-app.github.io</ExternalLink>.
         </span>
         <ul>
           <li>General information</li>
           <li>Download the latest version</li>
         </ul>
-        <a href="https://github.com/allusion-app/Allusion" onClick={clickLink}>
+        <ExternalLink url="https://github.com/allusion-app/Allusion">
           github.com/allusion-app/Allusion
-        </a>
+        </ExternalLink>
         <ul>
           <li>🤓 View the source code</li>
           <li>🐛 Provide feedback and report bugs</li>
