@@ -1,51 +1,70 @@
 import './radio.scss';
-import React, { useEffect, useRef } from 'react';
+import React, { ReactNode, useContext, useMemo } from 'react';
 
-interface RadioProps {
-  label: string;
-  defaultChecked?: boolean;
-  checked?: boolean;
+type RadioProps = {
   value: string;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}
+  children: ReactNode;
+};
 
-const Radio = (props: RadioProps) => {
-  const { label, value, defaultChecked, checked, onChange } = props;
+const Radio = ({ value, children }: RadioProps) => {
+  const { name, handleChange } = useContext(PropsContext);
+  const checked = useContext(StateContext);
+
   return (
     <label>
       <input
         type="radio"
+        name={name}
         value={value}
-        defaultChecked={defaultChecked}
-        checked={checked}
-        onChange={onChange}
+        checked={value === checked}
+        onChange={handleChange}
       />
-      {label}
+      {children}
     </label>
   );
 };
 
-interface RadioGroupProps {
+type RadioGroupProps<T extends string = any> = {
   name: string;
+  value: T;
+  onChange: (value: T) => void;
   children: React.ReactElement<RadioProps>[];
   orientation?: 'horizontal' | 'vertical';
-}
+};
 
-const RadioGroup = ({ name, orientation = 'vertical', children }: RadioGroupProps) => {
-  const group = useRef<HTMLFieldSetElement>(null);
-  useEffect(() => {
-    if (group.current) {
-      const radios = group.current.querySelectorAll('input[type="radio"]');
-      radios.forEach((r) => r.setAttribute('name', name));
-    }
-  }, [name, children.length]);
+const RadioGroup = ({
+  name,
+  value,
+  onChange,
+  children,
+  orientation = 'vertical',
+}: RadioGroupProps) => {
+  const props = useMemo<PropsContext>(
+    () => ({
+      name,
+      handleChange: (event) => {
+        onChange(event.currentTarget.value);
+      },
+    }),
+    [name, onChange],
+  );
 
   return (
-    <fieldset ref={group} role="radiogroup" aria-orientation={orientation}>
-      <legend>{name}</legend>
-      {children}
+    <fieldset role="radiogroup" aria-orientation={orientation}>
+      <legend className="radiogroup-name">{name}</legend>
+      <PropsContext.Provider value={props}>
+        <StateContext.Provider value={value}>{children}</StateContext.Provider>
+      </PropsContext.Provider>
     </fieldset>
   );
 };
 
 export { Radio, RadioGroup };
+
+type PropsContext = {
+  name: string;
+  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+};
+
+const PropsContext = React.createContext<PropsContext>({} as any);
+const StateContext = React.createContext<string>('');

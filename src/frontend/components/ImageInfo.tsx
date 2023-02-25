@@ -1,4 +1,3 @@
-import { shell } from 'electron';
 import fse from 'fs-extra';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
 import { ClientFile } from 'src/entities/File';
@@ -9,6 +8,7 @@ import { IconSet } from 'widgets/Icons';
 import { Toolbar, ToolbarButton } from 'widgets/Toolbar';
 import { AppToaster } from './Toaster';
 import { RendererMessenger } from 'src/ipc/renderer';
+import ExternalLink from './ExternalLink';
 
 type CommonMetadata = {
   name: string;
@@ -44,20 +44,7 @@ const exifFields: Record<string, ExifField> = {
       if (!url) {
         return ' ';
       }
-      return (
-        <a
-          href={url}
-          title={url}
-          target="_blank"
-          rel="noreferrer"
-          onClick={(e) => {
-            e.preventDefault();
-            shell.openExternal(url);
-          }}
-        >
-          {url}
-        </a>
-      );
+      return <ExternalLink url={url}>{url}</ExternalLink>;
     },
   },
   ImageDescription: { label: 'Description', modifiable: true },

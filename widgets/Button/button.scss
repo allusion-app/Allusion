@@ -1,16 +1,9 @@
 .btn-group {
   display: flex;
+  gap: 0.5rem;
 
   &.align-center {
     justify-content: center;
-  }
-
-  button {
-    margin-inline-start: 0.5rem;
-
-    &:first-child {
-      margin-inline-start: 0;
-    }
   }
 }
 
@@ -22,15 +15,11 @@ button {
   min-height: 24px;
   min-width: 24px;
   padding: 0;
-  margin: 0;
   color: var(--text-color);
   background: transparent;
   border: none;
   outline: none;
-
-  &.align-left {
-    justify-content: start;
-  }
+  gap: 0.25rem;
 
   &:hover {
     color: var(--text-color-strong);
@@ -99,11 +88,4 @@ button {
   color: currentColor;
   height: fit-content;
   width: fit-content;
-}
-
-.btn-content-icon {
-  display: inline-flex;
-}
-.btn-content-text {
-  margin-inline-start: 0.25rem;
 }

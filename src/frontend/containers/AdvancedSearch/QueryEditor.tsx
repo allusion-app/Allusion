@@ -125,7 +125,7 @@ export const EditableCriteria = ({ index, id, criteria, dispatch }: EditableCrit
             })
           }
         >
-          <span aria-hidden="true">{IconSet.DELETE}</span>
+          IconSet.DELETE
           <span className="visually-hidden">Remove Criteria</span>
         </button>
       </td>
@@ -133,19 +133,21 @@ export const EditableCriteria = ({ index, id, criteria, dispatch }: EditableCrit
   );
 };
 
-interface IQueryMatchProps {
+type QueryMatchProps = {
   searchMatchAny: boolean;
   toggle: () => void;
-}
+};
 
-export const QueryMatch: React.FC<IQueryMatchProps> = ({
-  searchMatchAny,
-  toggle,
-}: IQueryMatchProps) => {
+export const QueryMatch: React.FC<QueryMatchProps> = ({ searchMatchAny, toggle }) => {
   return (
-    <RadioGroup name="Match" orientation="horizontal">
-      <Radio label="Any" value="any" checked={searchMatchAny} onChange={toggle} />
-      <Radio label="All" value="all" checked={!searchMatchAny} onChange={toggle} />
+    <RadioGroup
+      name="Match"
+      orientation="horizontal"
+      value={String(searchMatchAny)}
+      onChange={toggle}
+    >
+      <Radio value="true">Any</Radio>
+      <Radio value="false">All</Radio>
     </RadioGroup>
   );
 };

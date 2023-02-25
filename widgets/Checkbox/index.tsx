@@ -1,42 +1,40 @@
 import './checkbox.scss';
-import React from 'react';
+import React, { ReactNode } from 'react';
 
-interface IToggle {
-  checked?: boolean;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onLabel?: string;
-  offLabel?: string;
-}
+type ToggleProps = {
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  children: ReactNode;
+};
 
-const Toggle = (props: IToggle) => {
-  const { checked, onChange, onLabel = 'On', offLabel = 'Off' } = props;
+const Toggle = ({ checked, onChange, children }: ToggleProps) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(event.currentTarget.checked);
+  };
+
   return (
-    <label className="toggle">
-      <input data-toggle type="checkbox" checked={checked} onChange={onChange} />
-      {checked ? onLabel : offLabel}
+    <label>
+      <input data-toggle type="checkbox" checked={checked} onChange={handleChange} />
+      {children}
     </label>
   );
 };
 
-interface ICheckbox {
-  label: string;
-  checked?: boolean;
-  defaultChecked?: boolean;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-}
+type CheckboxProps = {
+  checked: boolean | undefined;
+  onChange: (value: boolean) => void;
+  children: ReactNode;
+};
 
-const Checkbox = (props: ICheckbox) => {
-  const { label, defaultChecked, checked, onChange } = props;
+const Checkbox = ({ checked, onChange, children }: CheckboxProps) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(event.currentTarget.checked);
+  };
+
   return (
-    <label className="checkbox">
-      <input
-        type="checkbox"
-        defaultChecked={defaultChecked}
-        checked={checked}
-        onChange={onChange}
-      />
-      &nbsp;
-      {label}
+    <label>
+      <input type="checkbox" checked={checked} onChange={handleChange} />
+      {children}
     </label>
   );
 };

@@ -1,6 +1,5 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { usePopover } from 'widgets/popovers/usePopover';
-import { generateWidgetId } from 'widgets/utility';
 
 interface OptionGroup {
   label: string;
@@ -35,7 +34,7 @@ export const GridCombobox = ({
   textboxLabelledby,
   popupLabelledby,
 }: GridComboboxProps) => {
-  const popupId = useRef(generateWidgetId('__combobox-popup')).current;
+  const popupId = useId();
   const input = useRef<HTMLInputElement>(null);
   const activeDescendant = useRef<HTMLElement | null>(null);
   const rowCount = useRef(data.length);
@@ -314,7 +313,7 @@ interface OptgroupProps {
 }
 
 const Optgroup = ({ label, children }: OptgroupProps) => {
-  const labelId = useRef(generateWidgetId('__optgroup')).current;
+  const labelId = useId();
   return (
     <div aria-labelledby={labelId} role="group">
       <div id={labelId}>{label}</div>

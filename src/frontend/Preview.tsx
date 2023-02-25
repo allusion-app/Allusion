@@ -54,12 +54,9 @@ const PreviewApp = observer(() => {
             onClick={handleRightButton}
             disabled={uiStore.firstItem === fileStore.fileList.length - 1}
           />
-          <Toggle
-            onChange={uiStore.toggleSlideMode}
-            checked={!uiStore.isSlideMode}
-            onLabel="Overview"
-            offLabel="Full size"
-          />
+          <Toggle onChange={uiStore.toggleSlideMode} checked={!uiStore.isSlideMode}>
+            Full size
+          </Toggle>
 
           <div className="spacer" />
 

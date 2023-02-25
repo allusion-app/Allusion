@@ -211,12 +211,8 @@ class UiStore {
     this.setThumbnailSize('large');
   }
 
-  @action.bound setThumbnailSquare() {
-    this.setThumbnailShape('square');
-  }
-
-  @action.bound setThumbnailLetterbox() {
-    this.setThumbnailShape('letterbox');
+  @action setThumbnailShape(shape: ThumbnailShape) {
+    this.thumbnailShape = shape;
   }
 
   @action.bound setUpscaleModeSmooth() {
@@ -225,6 +221,10 @@ class UiStore {
 
   @action.bound setUpscaleModePixelated() {
     this.setUpscaleMode('pixelated');
+  }
+
+  @action setUpscaleMode(mode: UpscaleMode) {
+    this.upscaleMode = mode;
   }
 
   @action.bound setFirstItem(index: number = 0) {
@@ -938,14 +938,6 @@ class UiStore {
 
   @action private setIsOutlinerOpen(value: boolean = true) {
     this.isOutlinerOpen = value;
-  }
-
-  @action private setThumbnailShape(shape: ThumbnailShape) {
-    this.thumbnailShape = shape;
-  }
-
-  @action private setUpscaleMode(mode: UpscaleMode) {
-    this.upscaleMode = mode;
   }
 }
 

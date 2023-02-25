@@ -36,9 +36,7 @@ export const ToolbarSegmentButton = (props: ToolbarSegmentButtonProps) => {
       data-tooltip={tooltip ?? text}
       data-collapsible={isCollapsible}
     >
-      <span className="btn-content-icon" aria-hidden>
-        {icon}
-      </span>
+      {icon}
       <span className="btn-content-text">{text}</span>
     </button>
   );

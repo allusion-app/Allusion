@@ -1,13 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { Button } from 'widgets';
-import { generateWidgetId, Intent } from 'widgets/utility';
+import { Intent } from 'widgets/utility';
 
 import 'widgets/utility/utility.scss';
 import './popover.scss';
 
 export interface AlertProps extends AlertActionsProps {
   open: boolean;
-  title: React.ReactChild;
+  title: React.ReactNode;
   icon?: JSX.Element;
   type?: Intent;
   children: React.ReactNode;
@@ -16,10 +16,8 @@ export interface AlertProps extends AlertActionsProps {
 export const Alert = (props: AlertProps) => {
   const { open, onClick, title, children, icon, type } = props;
   const dialog = useRef<HTMLDialogElement>(null);
-  const [alertTitle, alertMessage] = useRef([
-    generateWidgetId('__alert-title'),
-    generateWidgetId('__alert-message'),
-  ]).current;
+  const alertTitleId = useId();
+  const alertMessageId = useId();
 
   useEffect(() => {
     const element = dialog.current;
@@ -45,16 +43,16 @@ export const Alert = (props: AlertProps) => {
     <dialog
       ref={dialog}
       role="alertdialog"
-      aria-labelledby={alertTitle}
-      aria-describedby={alertMessage}
+      aria-labelledby={alertTitleId}
+      aria-describedby={alertMessageId}
       data-message-intent={type}
     >
       <div className="alert-content">
         <span className="dialog-icon">{icon}</span>
-        <span id={alertTitle} className="dialog-title">
+        <span id={alertTitleId} className="dialog-title">
           {title}
         </span>
-        <div id={alertMessage} className="alert-message">
+        <div id={alertMessageId} className="alert-message">
           {children}
         </div>
         <AlertActions
