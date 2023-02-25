@@ -2,54 +2,38 @@ import './button.scss';
 import 'widgets/utility/utility.scss';
 import React from 'react';
 
-interface ButtonProps {
-  text: React.ReactText;
+type ButtonProps = {
+  text: string | number;
   icon?: JSX.Element;
   onClick: (event: React.MouseEvent) => void;
   styling?: 'minimal' | 'outlined' | 'filled';
-  align?: 'center' | 'left';
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
-}
+};
 
 const Button = ({
   text,
   icon,
   onClick,
   styling = 'minimal',
-  align = 'center',
   disabled,
   type = 'button',
 }: ButtonProps) => {
   return (
-    <button
-      className={`btn-${styling} align-${align}`}
-      onClick={onClick}
-      disabled={disabled}
-      type={type}
-    >
-      {icon && (
-        <span className="btn-content-icon" aria-hidden="true">
-          {icon}
-        </span>
-      )}
-      <span className="btn-content-text">{text}</span>
+    <button className={`btn-${styling}`} onClick={onClick} disabled={disabled} type={type}>
+      {icon}
+      {text}
     </button>
   );
 };
 
-interface ButtonGroupProps {
-  id?: string;
+type ButtonGroupProps = {
   children: (React.ReactElement | undefined)[] | React.ReactElement;
   align?: 'left' | 'center';
-}
+};
 
-const ButtonGroup = ({ id, children, align = 'left' }: ButtonGroupProps) => {
-  return (
-    <div id={id} className={`btn-group align-${align}`}>
-      {children}
-    </div>
-  );
+const ButtonGroup = ({ children, align = 'left' }: ButtonGroupProps) => {
+  return <div className={`btn-group align-${align}`}>{children}</div>;
 };
 
 interface IconButtonProps {
@@ -69,9 +53,7 @@ const IconButton = ({ text, icon, onClick, disabled, className }: IconButtonProp
       type="button"
       data-tooltip={text}
     >
-      <span className="btn-content-icon" aria-hidden="true">
-        {icon}
-      </span>
+      {icon}
       <span className="visually-hidden">{text}</span>
     </button>
   );

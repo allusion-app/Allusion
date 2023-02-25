@@ -94,9 +94,7 @@ const ToolbarButton = (props: ToolbarButtonProps) => {
       data-tooltip={tooltip ?? text}
       type={type}
     >
-      <span className="btn-content-icon" aria-hidden>
-        {icon}
-      </span>
+      {icon}
       <span className="btn-content-text">{text}</span>
     </button>
   );

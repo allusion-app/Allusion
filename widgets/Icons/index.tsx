@@ -114,7 +114,7 @@ import WARNING_BROKEN_LINK from 'resources/icons/warning-broken-link.svg';
 import WARNING from 'resources/icons/warning.svg';
 import QUESTION_MARK from 'resources/icons/questionmark.svg';
 
-const toSvg = (src: any) => <SVG src={src} className="custom-icon" />;
+const toSvg = (src: any) => <SVG src={src} className="custom-icon" aria-hidden="true" />;
 
 const IconSet = {
   // ADD_TAG_FILL: toSvg(ADD_TAG_FILL),
