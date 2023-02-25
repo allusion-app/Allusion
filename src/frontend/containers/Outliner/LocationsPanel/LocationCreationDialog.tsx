@@ -60,22 +60,10 @@ const SubLocation = observer(
     };
 
     return (
-      <div className="tree-content-label" aria-disabled={subLocation.isExcluded}>
-        <Checkbox
-          // label looks nicer on the right
-          label=""
-          onChange={toggleExclusion}
-          // make it appear like it's an "include" option
-          checked={!subLocation.isExcluded}
-        />
-        <span
-          style={{
-            marginLeft: '4px',
-            color: subLocation.isExcluded ? 'var(--text-color-muted)' : undefined,
-          }}
-        >
+      <div className="tree-content-label">
+        <Checkbox onChange={toggleExclusion} checked={!subLocation.isExcluded}>
           {subLocation.name}
-        </span>
+        </Checkbox>
       </div>
     );
   },

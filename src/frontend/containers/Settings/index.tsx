@@ -56,10 +56,9 @@ export default observer(Settings);
 const Appearance = observer(() => {
   const { uiStore } = useStore();
 
-  const toggleFullScreen = (e: React.FormEvent<HTMLInputElement>) => {
-    const isFullScreen = e.currentTarget.checked;
-    localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen }));
-    RendererMessenger.setFullScreen(isFullScreen);
+  const toggleFullScreen = (value: boolean) => {
+    localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: value }));
+    RendererMessenger.setFullScreen(value);
   };
 
   return (
@@ -69,10 +68,9 @@ const Appearance = observer(() => {
       <h3>Interface</h3>
 
       <div className="input-group">
-        <fieldset>
-          <legend>Dark theme</legend>
-          <Toggle checked={uiStore.theme === 'dark'} onChange={uiStore.toggleTheme} />
-        </fieldset>
+        <Toggle checked={uiStore.theme === 'dark'} onChange={uiStore.toggleTheme}>
+          Enable dark theme
+        </Toggle>
 
         <CustomThemePicker />
       </div>
@@ -80,76 +78,55 @@ const Appearance = observer(() => {
       <div className="input-group">
         <Zoom />
 
-        <fieldset>
-          <legend>Full screen</legend>
-          <Toggle checked={uiStore.isFullScreen} onChange={toggleFullScreen} />
-        </fieldset>
+        <Toggle checked={uiStore.isFullScreen} onChange={toggleFullScreen}>
+          Show full screen
+        </Toggle>
       </div>
 
       <div className="input-group">
-        <RadioGroup name="Picture upscaling">
-          <Radio
-            label="Smooth"
-            checked={uiStore.upscaleMode === 'smooth'}
-            value="smooth"
-            onChange={uiStore.setUpscaleModeSmooth}
-          />
-          <Radio
-            label="Pixelated"
-            checked={uiStore.upscaleMode === 'pixelated'}
-            value="pixelated"
-            onChange={uiStore.setUpscaleModePixelated}
-          />
+        <RadioGroup
+          name="Picture Upscaling"
+          value={uiStore.upscaleMode}
+          onChange={uiStore.setUpscaleMode}
+        >
+          <Radio value="smooth">Smooth</Radio>
+          <Radio value="pixelated">Pixelated</Radio>
         </RadioGroup>
       </div>
 
       <h3>Thumbnail</h3>
 
       <div className="input-group">
-        <fieldset>
-          <legend>Show assigned tags</legend>
-          <Toggle
-            checked={uiStore.isThumbnailTagOverlayEnabled}
-            onChange={uiStore.toggleThumbnailTagOverlay}
-          />
-        </fieldset>
-        <fieldset>
-          <legend>Show filename on thumbnail</legend>
-          <Toggle
-            checked={uiStore.isThumbnailFilenameOverlayEnabled}
-            onChange={uiStore.toggleThumbnailFilenameOverlay}
-          />
-        </fieldset>
-        <fieldset>
-          <legend>Show resolution on thumbnail</legend>
-          <Toggle
-            checked={uiStore.isThumbnailResolutionOverlayEnabled}
-            onChange={uiStore.toggleThumbnailResolutionOverlay}
-          />
-        </fieldset>
+        <Toggle
+          checked={uiStore.isThumbnailTagOverlayEnabled}
+          onChange={uiStore.toggleThumbnailTagOverlay}
+        >
+          Show assigned tags
+        </Toggle>
+        <Toggle
+          checked={uiStore.isThumbnailFilenameOverlayEnabled}
+          onChange={uiStore.toggleThumbnailFilenameOverlay}
+        >
+          Show filename
+        </Toggle>
+        <Toggle
+          checked={uiStore.isThumbnailResolutionOverlayEnabled}
+          onChange={uiStore.toggleThumbnailResolutionOverlay}
+        >
+          Show resolution
+        </Toggle>
       </div>
 
       <br />
 
       <div className="input-group">
-        <RadioGroup name="Shape">
-          {/* TODO: Tooltips don't work here, even with <Overlay /> in <Settings /> */}
-          {/* <span data-tooltip="The layout method for images that do not fit exactly in their thumbnail container. Mainly affects the Grid layout.">
-            {IconSet.INFO}
-            Test test
-          </span> */}
-          <Radio
-            label="Square"
-            checked={uiStore.thumbnailShape === 'square'}
-            value="square"
-            onChange={uiStore.setThumbnailSquare}
-          />
-          <Radio
-            label="Letterbox"
-            checked={uiStore.thumbnailShape === 'letterbox'}
-            value="letterbox"
-            onChange={uiStore.setThumbnailLetterbox}
-          />
+        <RadioGroup
+          name="Shape"
+          value={uiStore.thumbnailShape}
+          onChange={uiStore.setThumbnailShape}
+        >
+          <Radio value="square">Square</Radio>
+          <Radio value="letterbox">Letterbox</Radio>
         </RadioGroup>
       </div>
     </>
@@ -458,29 +435,20 @@ const ImageFormatPicker = observer(() => {
           {IMG_EXTENSIONS.map((ext) => (
             <div className="item" key={ext}>
               <Checkbox
-                label={ext}
                 checked={newEnabledFileExtensions.has(ext)}
                 onChange={() => toggleExtension(ext)}
-              />
-              {imageFormatInts[ext] && <> {imageFormatInts[ext]}</>}
+              >
+                {ext}
+                {imageFormatInts[ext] && <> {imageFormatInts[ext]}</>}
+              </Checkbox>
             </div>
           ))}
         </div>
       </fieldset>
 
-      <fieldset>
-        <legend>
-          There may already be images discovered by Allusion with file extensions you have disabled.
-          <br />
-          Would you like to exclude these images from Allusion after saving, or keep them around?
-        </legend>
-        <Toggle
-          checked={removeDisabledImages}
-          onChange={toggleRemoveDisabledImages}
-          onLabel="Exclude images"
-          offLabel="Keep images"
-        />
-      </fieldset>
+      <Toggle checked={removeDisabledImages} onChange={toggleRemoveDisabledImages}>
+        Remove images with disabled file extensions after save
+      </Toggle>
 
       <Button
         text="Reset"
@@ -530,26 +498,25 @@ const BackgroundProcesses = observer(() => {
   const [isRunInBackground, setRunInBackground] = useState(() =>
     RendererMessenger.isRunningInBackground(),
   );
-  const toggleRunInBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRunInBackground(e.target.checked);
-    RendererMessenger.setRunInBackground({ isRunInBackground: e.target.checked });
+  const toggleRunInBackground = (value: boolean) => {
+    setRunInBackground(value);
+    RendererMessenger.setRunInBackground({ isRunInBackground: value });
   };
 
   const [isClipEnabled, setClipServerEnabled] = useState(() =>
     RendererMessenger.isClipServerEnabled(),
   );
-  const toggleClipServer = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setClipServerEnabled(e.target.checked);
-    RendererMessenger.setClipServerEnabled({ isClipServerRunning: e.target.checked });
+  const toggleClipServer = (value: boolean) => {
+    setClipServerEnabled(value);
+    RendererMessenger.setClipServerEnabled({ isClipServerRunning: value });
   };
 
   return (
     <>
       <h2>Options</h2>
-      <fieldset>
-        <legend>Run in background</legend>
-        <Toggle checked={isRunInBackground} onChange={toggleRunInBackground} />
-      </fieldset>
+      <Toggle checked={isRunInBackground} onChange={toggleRunInBackground}>
+        Run in background
+      </Toggle>
       <fieldset>
         <legend>Browser extension download directory (must be in a Location)</legend>
         <div className="input-file">
@@ -566,23 +533,20 @@ const BackgroundProcesses = observer(() => {
           />
         </div>
       </fieldset>
-      <fieldset>
-        <legend>Browser extension support</legend>
-        <Toggle
-          checked={isClipEnabled}
-          onChange={
-            isClipEnabled || importDirectory
-              ? toggleClipServer
-              : (e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  alert(
-                    'Please choose a download directory first, where images downloaded through the browser extension will be stored.',
-                  );
-                }
-          }
-        />
-      </fieldset>
+      <Toggle
+        checked={isClipEnabled}
+        onChange={
+          isClipEnabled || importDirectory
+            ? toggleClipServer
+            : () => {
+                alert(
+                  'Please choose a download directory first, where images downloaded through the browser extension will be stored.',
+                );
+              }
+        }
+      >
+        Enable browser extension support
+      </Toggle>
       <Callout icon={IconSet.INFO}>
         For the browser extension to work, first choose a download folder that is in one of your
         locations already added to Allusion, then enable the browser extension support toggle.
@@ -632,22 +596,17 @@ const StartUpBehavior = observer(() => {
     <>
       <h2>Start-up behavior</h2>
       <h3>Remember last search query</h3>
-      <fieldset>
-        <legend>
-          Will restore the search query you had open when you last quit Allusion, so the same images
-          will be shown in the gallery
-        </legend>
-        <Toggle
-          checked={uiStore.isRememberSearchEnabled}
-          onChange={uiStore.toggleRememberSearchQuery}
-        />
-      </fieldset>
+      <Toggle
+        checked={uiStore.isRememberSearchEnabled}
+        onChange={uiStore.toggleRememberSearchQuery}
+      >
+        Restore and query last submitted search query
+      </Toggle>
 
       <h3>Automatic updates</h3>
-      <fieldset>
-        <legend>Check for updates when starting Allusion</legend>
-        <Toggle checked={isAutoUpdateEnabled} onChange={toggleAutoUpdate} />
-      </fieldset>
+      <Toggle checked={isAutoUpdateEnabled} onChange={toggleAutoUpdate}>
+        Check for updates
+      </Toggle>
     </>
   );
 });
