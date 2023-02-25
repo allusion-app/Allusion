@@ -101,7 +101,6 @@ const renderTagOption = action((tag: ClientTag, index: number, selection: boolea
         <span
           className="combobox-popup-option-icon"
           style={{ color: tag.viewColor }}
-          aria-hidden={true}
         >
           {IconSet.TAG}
         </span>

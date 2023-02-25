@@ -125,7 +125,7 @@ export const EditableCriteria = ({ index, id, criteria, dispatch }: EditableCrit
             })
           }
         >
-          <span aria-hidden="true">{IconSet.DELETE}</span>
+          IconSet.DELETE
           <span className="visually-hidden">Remove Criteria</span>
         </button>
       </td>

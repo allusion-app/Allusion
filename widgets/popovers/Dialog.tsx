@@ -48,14 +48,14 @@ export const Dialog = (props: DialogProps) => {
   return (
     <dialog ref={dialog} aria-labelledby={dialogTitleId} aria-describedby={describedby}>
       <div className="dialog-header">
-        <span aria-hidden="true" className="dialog-icon">
+        <span className="dialog-icon">
           {icon}
         </span>
         <span id={dialogTitleId} className="dialog-title">
           {title}
         </span>
         <button aria-keyshortcuts="Esc" className="btn-icon dialog-close" onClick={onCancel}>
-          <span aria-hidden="true">{IconSet.CLOSE}</span>
+          {IconSet.CLOSE}
           <span className="visually-hidden">Close</span>
         </button>
       </div>
