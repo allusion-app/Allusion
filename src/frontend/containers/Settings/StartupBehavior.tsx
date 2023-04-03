@@ -7,8 +7,8 @@ import { useStore } from '../../contexts/StoreContext';
 export const StartupBehavior = observer(() => {
   const { uiStore } = useStore();
 
-  const [isAutoUpdateEnabled, setAutoUpdateEnabled] = useState(() =>
-    RendererMessenger.isCheckUpdatesOnStartupEnabled(),
+  const [isAutoUpdateEnabled, setAutoUpdateEnabled] = useState(
+    RendererMessenger.isCheckUpdatesOnStartupEnabled,
   );
 
   const toggleAutoUpdate = useCallback(() => {
@@ -19,15 +19,12 @@ export const StartupBehavior = observer(() => {
   return (
     <>
       <h2>Startup Behavior</h2>
-      <h3>Remember last search query</h3>
       <Toggle
         checked={uiStore.isRememberSearchEnabled}
         onChange={uiStore.toggleRememberSearchQuery}
       >
         Restore and query last submitted search query
       </Toggle>
-
-      <h3>Automatic updates</h3>
       <Toggle checked={isAutoUpdateEnabled} onChange={toggleAutoUpdate}>
         Check for updates
       </Toggle>
