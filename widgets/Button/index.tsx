@@ -9,6 +9,7 @@ type ButtonProps = {
   styling?: 'minimal' | 'outlined' | 'filled';
   disabled?: boolean;
   type?: 'button' | 'submit' | 'reset';
+  tooltip?: string;
 };
 
 const Button = ({
@@ -18,9 +19,16 @@ const Button = ({
   styling = 'minimal',
   disabled,
   type = 'button',
+  tooltip,
 }: ButtonProps) => {
   return (
-    <button className={`btn-${styling}`} onClick={onClick} disabled={disabled} type={type}>
+    <button
+      className={`btn-${styling}`}
+      onClick={onClick}
+      disabled={disabled}
+      type={type}
+      data-tooltip={tooltip}
+    >
       {icon}
       {text}
     </button>

@@ -96,7 +96,7 @@ const renderTagOption = action((tag: ClientTag, index: number, selection: boolea
   const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
 
   return (
-    <GridOption key={id} rowIndex={index} selected={selection || undefined} data-tooltip={path}>
+    <GridOption key={id} rowIndex={index} selected={selection || undefined} tooltip={path}>
       <GridOptionCell id={id} colIndex={1}>
         <span
           className="combobox-popup-option-icon"

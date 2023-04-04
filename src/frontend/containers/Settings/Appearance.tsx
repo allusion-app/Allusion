@@ -144,13 +144,13 @@ const CustomThemePicker = () => {
         icon={IconSet.FOLDER_CLOSE}
         text="Add..."
         onClick={() => shell.openExternal(themeDir)}
-        data-tooltip="Open the directory containing the theme files"
+        tooltip="Open the directory containing the theme files"
       />
       <Button
         icon={IconSet.RELOAD}
         text="Refresh"
         onClick={refresh}
-        data-tooltip="Reload the list of themes and current theme"
+        tooltip="Reload the list of themes and current theme"
       />
     </div>
   );

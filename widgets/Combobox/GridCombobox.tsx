@@ -326,12 +326,13 @@ interface RowProps {
   rowIndex: number;
   selected?: boolean;
   children: React.ReactElement<CellProps> | React.ReactElement<CellProps>[];
+  tooltip?: string;
 }
 
-export const GridOption = ({ rowIndex, selected, children, ...props }: RowProps) => {
+export const GridOption = ({ rowIndex, selected, children, tooltip }: RowProps) => {
   return (
     <div
-      {...props}
+      data-tooltip={tooltip}
       role="row"
       aria-rowindex={rowIndex}
       aria-selected={selected}
