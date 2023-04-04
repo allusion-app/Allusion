@@ -17,8 +17,6 @@ export const Appearance = observer(() => {
 
   return (
     <>
-      <h2>Appearance</h2>
-
       <h3>Interface</h3>
 
       <div className="input-group">

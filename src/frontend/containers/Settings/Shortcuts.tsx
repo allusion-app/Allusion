@@ -11,7 +11,6 @@ import { Button, IconSet, keyComboToString } from 'widgets';
 export const Shortcuts = observer(() => {
   return (
     <>
-      <h2>Keyboard Shortcuts</h2>
       <p>
         Click on a key combination to modify it. After typing your new combination, press Enter to
         confirm or Escape to cancel.

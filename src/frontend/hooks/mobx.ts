@@ -1,5 +1,6 @@
 import { action, autorun, computed, IComputedValue } from 'mobx';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
+import { useLazy } from './useLazy';
 
 /**
  * Creates an action function from a function in the current component.
@@ -8,7 +9,7 @@ import { useEffect, useRef } from 'react';
  * @returns action function with stable identity across renders
  */
 export function useAction<F extends (...args: any) => any>(fun: F): F {
-  return useRef(action(fun)).current;
+  return useLazy(() => action(fun));
 }
 
 /**
@@ -28,5 +29,5 @@ export function useAutorun(fun: () => void): void {
  * @returns computed value with stable reference across renders
  */
 export function useComputed<T>(fun: () => T): IComputedValue<T> {
-  return useRef(computed(fun)).current;
+  return useLazy(() => computed(fun));
 }

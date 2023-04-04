@@ -68,8 +68,6 @@ export const ImportExport = observer(() => {
 
   return (
     <>
-      <h2>Import/Export</h2>
-
       <h3>File Metadata</h3>
 
       <Callout icon={IconSet.INFO}>

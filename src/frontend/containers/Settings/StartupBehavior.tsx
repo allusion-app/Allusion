@@ -18,7 +18,6 @@ export const StartupBehavior = observer(() => {
 
   return (
     <>
-      <h2>Startup Behavior</h2>
       <Toggle
         checked={uiStore.isRememberSearchEnabled}
         onChange={uiStore.toggleRememberSearchQuery}

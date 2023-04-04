@@ -49,7 +49,6 @@ export const BackgroundProcesses = observer(() => {
 
   return (
     <>
-      <h2>Options</h2>
       <Toggle checked={isRunInBackground} onChange={toggleRunInBackground}>
         Run in background
       </Toggle>

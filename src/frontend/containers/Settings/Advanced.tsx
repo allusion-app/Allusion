@@ -60,8 +60,6 @@ export const Advanced = observer(() => {
 
   return (
     <>
-      <h2>Storage</h2>
-
       {/* Todo: Add support to toggle this */}
       {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
       <fieldset>

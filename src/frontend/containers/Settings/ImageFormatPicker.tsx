@@ -46,7 +46,6 @@ export const ImageFormatPicker = observer(() => {
   // TODO: group extensions by type: JPG+JPEG+JFIF, TIF+TIFF, etc
   return (
     <>
-      <h2>Image formats</h2>
       <fieldset>
         <legend>Image formats to be discovered by Allusion in your Locations</legend>
         <div className="checkbox-set-container">
