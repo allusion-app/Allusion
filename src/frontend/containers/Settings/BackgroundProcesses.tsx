@@ -1,27 +1,18 @@
 import { chromeExtensionUrl, firefoxExtensionUrl } from 'common/config';
-import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
+import ExternalLink from 'src/frontend/components/ExternalLink';
 import { RendererMessenger } from 'src/ipc/renderer';
-import { Button, IconSet, Toggle } from 'widgets';
+import { IconSet, Toggle } from 'widgets';
 import { Callout } from 'widgets/notifications';
 import { useStore } from '../../contexts/StoreContext';
+import FileInput from 'src/frontend/components/FileInput';
 
 export const BackgroundProcesses = observer(() => {
   const { uiStore, locationStore } = useStore();
 
   const importDirectory = uiStore.importDirectory;
-  const browseImportDirectory = async () => {
-    const { filePaths: dirs } = await RendererMessenger.showOpenDialog({
-      properties: ['openDirectory'],
-      defaultPath: importDirectory,
-    });
-
-    if (dirs.length === 0) {
-      return;
-    }
-    const newDir = dirs[0];
-
+  const browseImportDirectory = async ([newDir]: [string, ...string[]]) => {
     if (locationStore.locationList.some((loc) => newDir.startsWith(loc.path))) {
       await RendererMessenger.setClipServerImportLocation(newDir);
       uiStore.setImportDirectory(newDir);
@@ -31,17 +22,13 @@ export const BackgroundProcesses = observer(() => {
     }
   };
 
-  const [isRunInBackground, setRunInBackground] = useState(() =>
-    RendererMessenger.isRunningInBackground(),
-  );
+  const [isRunInBackground, setRunInBackground] = useState(RendererMessenger.isRunningInBackground);
   const toggleRunInBackground = (value: boolean) => {
     setRunInBackground(value);
     RendererMessenger.setRunInBackground({ isRunInBackground: value });
   };
 
-  const [isClipEnabled, setClipServerEnabled] = useState(() =>
-    RendererMessenger.isClipServerEnabled(),
-  );
+  const [isClipEnabled, setClipServerEnabled] = useState(RendererMessenger.isClipServerEnabled);
   const toggleClipServer = (value: boolean) => {
     setClipServerEnabled(value);
     RendererMessenger.setClipServerEnabled({ isClipServerRunning: value });
@@ -52,52 +39,44 @@ export const BackgroundProcesses = observer(() => {
       <Toggle checked={isRunInBackground} onChange={toggleRunInBackground}>
         Run in background
       </Toggle>
-      <fieldset>
-        <legend>Browser extension download directory (must be in a Location)</legend>
-        <div className="input-file">
-          <input
-            readOnly
-            className="input input-file-value"
-            value={uiStore.importDirectory || 'Not set'}
-          />
-          <Button
-            styling="minimal"
-            icon={IconSet.FOLDER_CLOSE}
-            text="Browse"
-            onClick={browseImportDirectory}
-          />
-        </div>
-      </fieldset>
+      <h3>Browser Extension</h3>
+      <Callout icon={IconSet.INFO}>
+        You need to install the browser extension before either in the{' '}
+        <ExternalLink url={chromeExtensionUrl}>Chrome Web Store</ExternalLink> or{' '}
+        <ExternalLink url={firefoxExtensionUrl}>Firefox Browser Add-Ons</ExternalLink>.
+      </Callout>
+      <Callout icon={IconSet.INFO}>
+        To keep the browser extension working even when Allusion is closed, you must enable the Run
+        in background option.
+      </Callout>
+      <Callout icon={IconSet.INFO}>
+        For the browser extension to work, choose a download folder that is in one of your locations
+        already added to Allusion.
+      </Callout>
       <Toggle
         checked={isClipEnabled}
         onChange={
           isClipEnabled || importDirectory
             ? toggleClipServer
-            : () => {
-                alert(
-                  'Please choose a download directory first, where images downloaded through the browser extension will be stored.',
-                );
-              }
+            : () => alert('Please choose a download directory first.')
         }
       >
-        Enable browser extension support
+        Run browser extension
       </Toggle>
-      <Callout icon={IconSet.INFO}>
-        For the browser extension to work, first choose a download folder that is in one of your
-        locations already added to Allusion, then enable the browser extension support toggle.
-        Finally, if you want the browser extension to work even when Allusion is not open, enable
-        the run in background option.
-      </Callout>
-      <Button
-        onClick={() => shell.openExternal(chromeExtensionUrl)}
-        styling="outlined"
-        text="Chrome Web Store"
-      />{' '}
-      <Button
-        onClick={() => shell.openExternal(firefoxExtensionUrl)}
-        styling="outlined"
-        text="FireFox add-on"
-      />
+      <div className="filepicker">
+        <FileInput
+          className="btn-minimal filepicker-input"
+          options={{
+            properties: ['openDirectory'],
+            defaultPath: importDirectory,
+          }}
+          onChange={browseImportDirectory}
+        >
+          Change...
+        </FileInput>
+        <h4 className="filepicker-label">Download Directory</h4>
+        <div className="filepicker-path">{uiStore.importDirectory || 'Not set'}</div>
+      </div>
     </>
   );
 });

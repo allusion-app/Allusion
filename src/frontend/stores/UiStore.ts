@@ -433,9 +433,9 @@ class UiStore {
     this.importDirectory = dir;
   }
 
-  @action.bound toggleTheme() {
-    this.setTheme(this.theme === 'dark' ? 'light' : 'dark');
-    RendererMessenger.setTheme({ theme: this.theme === 'dark' ? 'dark' : 'light' });
+  @action.bound setTheme(theme: 'light' | 'dark' = 'dark') {
+    this.theme = theme;
+    RendererMessenger.setTheme({ theme });
   }
 
   @action.bound toggleAdvancedSearch() {
@@ -930,10 +930,6 @@ class UiStore {
 
   @action private viewQueryContent() {
     this.rootStore.fileStore.fetchFilesByQuery();
-  }
-
-  @action private setTheme(theme: 'light' | 'dark' = 'dark') {
-    this.theme = theme;
   }
 
   @action private setIsOutlinerOpen(value: boolean = true) {

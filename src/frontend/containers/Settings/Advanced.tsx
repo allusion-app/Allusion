@@ -2,11 +2,14 @@ import { getThumbnailPath, isDirEmpty } from 'common/fs';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
+import FileInput from 'src/frontend/components/FileInput';
 import { RendererMessenger } from 'src/ipc/renderer';
 import { Button, ButtonGroup, IconSet } from 'widgets';
 import { useStore } from '../../contexts/StoreContext';
 import { moveThumbnailDir } from '../../image/ThumbnailGeneration';
 import { ClearDbButton } from '../ErrorBoundary';
+import { Callout } from 'widgets/notifications';
+import ExternalLink from 'src/frontend/components/ExternalLink';
 
 export const Advanced = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -34,17 +37,7 @@ export const Advanced = observer(() => {
     });
   };
 
-  const browseThumbnailDirectory = async () => {
-    const { filePaths: dirs } = await RendererMessenger.showOpenDialog({
-      properties: ['openDirectory'],
-      defaultPath: thumbnailDirectory,
-    });
-
-    if (dirs.length === 0) {
-      return;
-    }
-    const newDir = dirs[0];
-
+  const browseThumbnailDirectory = async ([newDir]: [string, ...string[]]) => {
     if (!(await isDirEmpty(newDir))) {
       if (
         window.confirm(
@@ -62,27 +55,26 @@ export const Advanced = observer(() => {
     <>
       {/* Todo: Add support to toggle this */}
       {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
-      <fieldset>
-        <legend>Thumbnail Directory</legend>
-        <div className="input-file">
-          <input readOnly className="input input-file-value" value={thumbnailDirectory} />
-          <Button
-            styling="minimal"
-            icon={IconSet.FOLDER_CLOSE}
-            text="Browse"
-            onClick={browseThumbnailDirectory}
-          />
-          {defaultThumbnailDir && defaultThumbnailDir !== uiStore.thumbnailDirectory && (
-            <Button
-              icon={IconSet.RELOAD}
-              text="Reset"
-              onClick={() => changeThumbnailDirectory(defaultThumbnailDir)}
-            />
-          )}
-        </div>
-      </fieldset>
+      <Callout icon={IconSet.INFO}>
+        By default thumbnails are stored in{' '}
+        <ExternalLink url={defaultThumbnailDir}>{defaultThumbnailDir}</ExternalLink>.
+      </Callout>
+      <div className="filepicker">
+        <FileInput
+          className="btn-minimal filepicker-input"
+          options={{
+            properties: ['openDirectory'],
+            defaultPath: thumbnailDirectory,
+          }}
+          onChange={browseThumbnailDirectory}
+        >
+          Change...
+        </FileInput>
+        <h3 className="filepicker-label">Thumbnail Directory</h3>
+        <div className="filepicker-path">{thumbnailDirectory}</div>
+      </div>
 
-      <h2>Development</h2>
+      <h3>Development</h3>
       <ButtonGroup>
         <ClearDbButton />
         <Button

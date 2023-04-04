@@ -50,15 +50,14 @@ export const ImageFormatPicker = observer(() => {
         <legend>Image formats to be discovered by Allusion in your Locations</legend>
         <div className="checkbox-set-container">
           {IMG_EXTENSIONS.map((ext) => (
-            <div className="item" key={ext}>
-              <Checkbox
-                checked={newEnabledFileExtensions.has(ext)}
-                onChange={() => toggleExtension(ext)}
-              >
-                {ext}
-                {imageFormatInts[ext] && <> {imageFormatInts[ext]}</>}
-              </Checkbox>
-            </div>
+            <Checkbox
+              key={ext}
+              checked={newEnabledFileExtensions.has(ext)}
+              onChange={() => toggleExtension(ext)}
+            >
+              {ext}
+              {imageFormatInts[ext] && <> {imageFormatInts[ext]}</>}
+            </Checkbox>
           ))}
         </div>
       </fieldset>

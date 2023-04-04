@@ -9,6 +9,8 @@ import { Button, ButtonGroup, IconSet } from 'widgets';
 import { Callout } from 'widgets/notifications';
 import { Alert, DialogButton } from 'widgets/popovers';
 import { useStore } from '../../contexts/StoreContext';
+import ExternalLink from 'src/frontend/components/ExternalLink';
+import FileInput from 'src/frontend/components/FileInput';
 
 export const ImportExport = observer(() => {
   const rootStore = useStore();
@@ -23,16 +25,7 @@ export const ImportExport = observer(() => {
     RendererMessenger.getDefaultBackupDirectory().then(setBackupDir);
   }, []);
 
-  const handleChooseImportDir = async () => {
-    const { filePaths } = await RendererMessenger.showOpenDialog({
-      properties: ['openFile'],
-      filters: [{ extensions: ['json'], name: 'JSON' }],
-      defaultPath: backupDir,
-    });
-    const path = filePaths[0];
-    if (!path) {
-      return;
-    }
+  const handleChooseImportDir = async ([path]: [string, ...string[]]) => {
     try {
       const [numTags, numFiles] = await rootStore.peekDatabaseFile(path);
       setConfirmingFileImport({
@@ -125,27 +118,23 @@ export const ImportExport = observer(() => {
 
       <h3>Backup Database as File</h3>
 
-      <Callout icon={IconSet.INFO}>Automatic back-ups are created every 10 minutes.</Callout>
-      <fieldset>
-        <legend>Backup Directory</legend>
-        <div className="input-file">
-          <input readOnly className="input input-file-value" value={backupDir} />
-          <Button
-            styling="minimal"
-            icon={IconSet.FOLDER_CLOSE}
-            text="Open"
-            onClick={() => shell.showItemInFolder(backupDir)}
-          />
-        </div>
-      </fieldset>
+      <Callout icon={IconSet.INFO}>
+        Automatic back-ups are created every 10 minutes in{' '}
+        <ExternalLink url={backupDir}>{backupDir}</ExternalLink>.
+      </Callout>
 
       <ButtonGroup>
-        <Button
-          text="Restore database from file"
-          onClick={handleChooseImportDir}
-          icon={IconSet.IMPORT}
-          styling="outlined"
-        />
+        <FileInput
+          className="btn-outlined"
+          options={{
+            properties: ['openFile'],
+            filters: [{ extensions: ['json'], name: 'JSON' }],
+            defaultPath: backupDir,
+          }}
+          onChange={handleChooseImportDir}
+        >
+          {IconSet.IMPORT} Restore database from file
+        </FileInput>
         <Button
           text="Backup database to file"
           onClick={handleCreateExport}

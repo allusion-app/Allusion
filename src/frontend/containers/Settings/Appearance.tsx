@@ -20,9 +20,10 @@ export const Appearance = observer(() => {
       <h3>Interface</h3>
 
       <div className="input-group">
-        <Toggle checked={uiStore.theme === 'dark'} onChange={uiStore.toggleTheme}>
-          Enable dark theme
-        </Toggle>
+        <RadioGroup name="Color Scheme" value={uiStore.theme} onChange={uiStore.setTheme}>
+          <Radio value="light">Light</Radio>
+          <Radio value="dark">Dark</Radio>
+        </RadioGroup>
 
         <CustomThemePicker />
       </div>
@@ -86,29 +87,36 @@ export const Appearance = observer(() => {
 });
 
 const Zoom = () => {
-  const [localZoomFactor, setLocalZoomFactor] = useState(() => RendererMessenger.getZoomFactor());
+  const [localZoomFactor, setLocalZoomFactor] = useState(RendererMessenger.getZoomFactor);
 
-  useEffect(() => {
-    RendererMessenger.setZoomFactor(localZoomFactor);
-  }, [localZoomFactor]);
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = Number(event.target.value);
+    setLocalZoomFactor(value);
+    RendererMessenger.setZoomFactor(value);
+  };
 
   return (
-    <fieldset>
-      <legend>UI Scale (zoom)</legend>
-      <span className="zoom-input">
-        <IconButton
-          icon={<span>-</span>}
-          onClick={() => setLocalZoomFactor(localZoomFactor - 0.1)}
-          text="Decrease"
-        />
-        <span>{Math.round(100 * localZoomFactor)}%</span>
-        <IconButton
-          icon={<span>+</span>}
-          onClick={() => setLocalZoomFactor(localZoomFactor + 0.1)}
-          text="Increase"
-        />
-      </span>
-    </fieldset>
+    <label>
+      Zoom
+      <select value={localZoomFactor} onChange={handleChange}>
+        <option value={0.5}>50%</option>
+        <option value={0.6}>60%</option>
+        <option value={0.7}>70%</option>
+        <option value={0.8}>80%</option>
+        <option value={0.9}>90%</option>
+        <option value={1.0}>100%</option>
+        <option value={1.1}>110%</option>
+        <option value={1.2}>120%</option>
+        <option value={1.3}>130%</option>
+        <option value={1.4}>140%</option>
+        <option value={1.5}>150%</option>
+        <option value={1.6}>160%</option>
+        <option value={1.7}>170%</option>
+        <option value={1.8}>180%</option>
+        <option value={1.9}>190%</option>
+        <option value={2.0}>200%</option>
+      </select>
+    </label>
   );
 };
 

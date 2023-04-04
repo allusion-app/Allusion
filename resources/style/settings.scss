@@ -1,6 +1,33 @@
 #settings {
   background-color: var(--background-color);
 
+  .filepicker {
+    display: grid;
+    grid-template-areas: 'filepicker-label .' 'filepicker-path filepicker-input';
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0 0.5rem;
+  }
+
+  .filepicker-input {
+    grid-area: filepicker-input;
+  }
+
+  .filepicker-label {
+    grid-area: filepicker-label;
+    margin-block: 1em;
+  }
+
+  .filepicker-path {
+    grid-area: filepicker-path;
+    word-break: break-word;
+    user-select: text;
+    background: var(--input-color);
+    border: 0.0625rem solid var(--border-color);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+  }
+
   .input-group {
     display: flex;
 
@@ -16,7 +43,7 @@
     align-items: flex-start;
     align-content: flex-start;
     
-    .item {
+    > * {
       flex-basis: 20%;
       padding-bottom: 0.5rem;
     }
@@ -36,14 +63,6 @@
 .key-combo-input-warning {
   display: flex;
   padding: 0.25rem;
-}
-
-// Zoom factor text
-.zoom-input > span {
-  min-width: 5ch;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .tabs {
