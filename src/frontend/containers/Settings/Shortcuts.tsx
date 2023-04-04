@@ -8,6 +8,18 @@ import { defaultHotkeyMap, IHotkeyMap } from '../../stores/UiStore';
 import { camelCaseToSpaced } from 'common/fmt';
 import { Button, IconSet, keyComboToString } from 'widgets';
 
+export const Shortcuts = observer(() => {
+  return (
+    <>
+      <p>
+        Click on a key combination to modify it. After typing your new combination, press Enter to
+        confirm or Escape to cancel.
+      </p>
+      <HotkeyMapper />
+    </>
+  );
+});
+
 export const HotkeyMapper = observer(() => {
   const { uiStore } = useStore();
   const [changed, onChange] = useState<keyof IHotkeyMap | null>(null);
@@ -114,7 +126,7 @@ const KeyComboEditor = observer(
         <Button
           icon={IconSet.RELOAD}
           onClick={() => uiStore.remapHotkey(actionKey, defaultCombo)}
-          text="Reset to default"
+          text="Reset"
           disabled={comboMatches(parseKeyCombo(combo), parseKeyCombo(defaultCombo))}
         />
       </div>

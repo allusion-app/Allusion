@@ -35,8 +35,8 @@ a {
   color: var(--accent-color-blue);
   text-underline-offset: 2px;
   text-decoration-thickness: 2px;
-  text-decoration-color: var(--accent-color-blue);
   transition: text-decoration-color 0.2s ease-in-out 0.1s;
+  word-break: break-word;
 
   &:hover {
     text-decoration-color: transparent;
@@ -52,13 +52,8 @@ header h2 {
 
 fieldset {
   margin: 0;
-  margin-bottom: 1rem;
   border: none;
   padding: 0;
-}
-
-legend {
-  margin-bottom: 1rem;
 }
 
 label {

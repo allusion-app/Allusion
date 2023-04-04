@@ -199,19 +199,7 @@ class UiStore {
     this.thumbnailSize = size;
   }
 
-  @action.bound setThumbnailSmall() {
-    this.setThumbnailSize('small');
-  }
-
-  @action.bound setThumbnailMedium() {
-    this.setThumbnailSize('medium');
-  }
-
-  @action.bound setThumbnailLarge() {
-    this.setThumbnailSize('large');
-  }
-
-  @action setThumbnailShape(shape: ThumbnailShape) {
+  @action.bound setThumbnailShape(shape: ThumbnailShape) {
     this.thumbnailShape = shape;
   }
 
@@ -223,7 +211,7 @@ class UiStore {
     this.setUpscaleMode('pixelated');
   }
 
-  @action setUpscaleMode(mode: UpscaleMode) {
+  @action.bound setUpscaleMode(mode: UpscaleMode) {
     this.upscaleMode = mode;
   }
 
@@ -433,9 +421,9 @@ class UiStore {
     this.importDirectory = dir;
   }
 
-  @action.bound toggleTheme() {
-    this.setTheme(this.theme === 'dark' ? 'light' : 'dark');
-    RendererMessenger.setTheme({ theme: this.theme === 'dark' ? 'dark' : 'light' });
+  @action.bound setTheme(theme: 'light' | 'dark' = 'dark') {
+    this.theme = theme;
+    RendererMessenger.setTheme({ theme });
   }
 
   @action.bound toggleAdvancedSearch() {
@@ -930,10 +918,6 @@ class UiStore {
 
   @action private viewQueryContent() {
     this.rootStore.fileStore.fetchFilesByQuery();
-  }
-
-  @action private setTheme(theme: 'light' | 'dark' = 'dark') {
-    this.theme = theme;
   }
 
   @action private setIsOutlinerOpen(value: boolean = true) {

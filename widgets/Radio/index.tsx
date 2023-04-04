@@ -51,7 +51,8 @@ const RadioGroup = ({
 
   return (
     <fieldset role="radiogroup" aria-orientation={orientation}>
-      <legend className="radiogroup-name">{name}</legend>
+      <legend className="visually-hidden">{name}</legend>
+      <div className="radiogroup-name">{name}</div>
       <PropsContext.Provider value={props}>
         <StateContext.Provider value={value}>{children}</StateContext.Provider>
       </PropsContext.Provider>

@@ -42,23 +42,14 @@ input[type='radio'] {
 }
 
 [role='radiogroup'] {
-  display: flex;
+  display: inline-flex;
+  gap: 0.5rem;
 
   &[aria-orientation='vertical'] {
     flex-direction: column;
-
-    label {
-      margin-block-end: 0.5rem;
-    }
   }
 
   &[aria-orientation='horizontal'] {
-    label {
-      margin-inline-end: 0.5rem;
-    }
-  }
-
-  label:last-child {
-    margin: 0;
+    align-items: center;
   }
 }
