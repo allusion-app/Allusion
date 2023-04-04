@@ -63,66 +63,70 @@ export const ImportExport = observer(() => {
     <>
       <h3>File Metadata</h3>
 
-      <Callout icon={IconSet.INFO}>
+      <p>
         This option is useful for importing/exporting tags from/to other software. If you use a
         service like Dropbox or Google, you can write your tags to your files on one device and read
         them on other devices.
+      </p>
+      <Callout icon={IconSet.INFO}>
+        The separator is used to format the tags metadata. For example a file with the assigned tags
+        Food, Fruit and Apple will be formatted with the currently selected separator as{' '}
+        <pre style={{ display: 'inline' }}>
+          {['Food', 'Fruit', 'Apple'].join(exifTool.hierarchicalSeparator)}
+        </pre>
+        .
       </Callout>
-      <fieldset>
-        <legend>
-          Hierarchical separator, e.g.{' '}
-          <pre style={{ display: 'inline' }}>
-            {['Food', 'Fruit', 'Apple'].join(exifTool.hierarchicalSeparator)}
-          </pre>
-        </legend>
-        <select
-          value={exifTool.hierarchicalSeparator}
-          onChange={(e) => exifTool.setHierarchicalSeparator(e.target.value)}
-        >
-          <option value="|">|</option>
-          <option value="/">/</option>
-          <option value="\">\</option>
-          <option value=":">:</option>
-        </select>
-      </fieldset>
-      {/* TODO: adobe bridge has option to read with multiple separators */}
+      <div className="vstack">
+        <label>
+          Hierarchical separator
+          <select
+            value={exifTool.hierarchicalSeparator}
+            onChange={(e) => exifTool.setHierarchicalSeparator(e.target.value)}
+          >
+            <option value="|">|</option>
+            <option value="/">/</option>
+            <option value="\">\</option>
+            <option value=":">:</option>
+          </select>
+        </label>
+        {/* TODO: adobe bridge has option to read with multiple separators */}
 
-      <ButtonGroup>
-        <Button
-          text="Import tags from file metadata"
-          onClick={fileStore.readTagsFromFiles}
-          styling="outlined"
-        />
-        <Button
-          text="Export tags to file metadata"
-          onClick={() => setConfirmingMetadataExport(true)}
-          styling="outlined"
-        />
-        <Alert
-          open={isConfirmingMetadataExport}
-          title="Are you sure you want to overwrite your files' tags?"
-          primaryButtonText="Export"
-          onClick={(button) => {
-            if (button === DialogButton.PrimaryButton) {
-              fileStore.writeTagsToFiles();
-            }
-            setConfirmingMetadataExport(false);
-          }}
-        >
-          <p>
-            This will overwrite any existing tags (a.k.a. keywords) in those files with
-            Allusion&#39;s tags. It is recommended to import all tags before writing new tags.
-          </p>
-        </Alert>
-      </ButtonGroup>
+        <ButtonGroup>
+          <Button
+            text="Import tags from file metadata"
+            onClick={fileStore.readTagsFromFiles}
+            styling="outlined"
+          />
+          <Button
+            text="Export tags to file metadata"
+            onClick={() => setConfirmingMetadataExport(true)}
+            styling="outlined"
+          />
+          <Alert
+            open={isConfirmingMetadataExport}
+            title="Are you sure you want to overwrite your files' tags?"
+            primaryButtonText="Export"
+            onClick={(button) => {
+              if (button === DialogButton.PrimaryButton) {
+                fileStore.writeTagsToFiles();
+              }
+              setConfirmingMetadataExport(false);
+            }}
+          >
+            <p>
+              This will overwrite any existing tags (a.k.a. keywords) in those files with
+              Allusion&#39;s tags. It is recommended to import all tags before writing new tags.
+            </p>
+          </Alert>
+        </ButtonGroup>
+      </div>
 
       <h3>Backup Database as File</h3>
 
       <Callout icon={IconSet.INFO}>
-        Automatic back-ups are created every 10 minutes in{' '}
-        <ExternalLink url={backupDir}>{backupDir}</ExternalLink>.
+        Automatic back-ups are created every 10 minutes in the{' '}
+        <ExternalLink url={backupDir}>backup directory</ExternalLink>.
       </Callout>
-
       <ButtonGroup>
         <FileInput
           className="btn-outlined"

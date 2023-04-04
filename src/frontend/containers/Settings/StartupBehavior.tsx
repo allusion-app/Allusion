@@ -17,7 +17,7 @@ export const StartupBehavior = observer(() => {
   }, []);
 
   return (
-    <>
+    <div className="vstack">
       <Toggle
         checked={uiStore.isRememberSearchEnabled}
         onChange={uiStore.toggleRememberSearchQuery}
@@ -27,6 +27,6 @@ export const StartupBehavior = observer(() => {
       <Toggle checked={isAutoUpdateEnabled} onChange={toggleAutoUpdate}>
         Check for updates
       </Toggle>
-    </>
+    </div>
   );
 });

@@ -22,8 +22,8 @@ const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: Qu
 
   return (
     <fieldset aria-labelledby="criteria-builder-label">
-      <div style={{ display: 'flex' }}>
-        <legend id="criteria-builder-label">Criteria Builder</legend>
+      <legend id="criteria-builder-label">
+        Criteria Builder
         <InfoButton>
           A criteria is made of three components:
           <ul>
@@ -47,7 +47,7 @@ const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: Qu
           </span>{' '}
           icon button next to the inputs.
         </InfoButton>
-      </div>
+      </legend>
       <div id="criteria-builder">
         <label id="builder-key">Key</label>
         <label id="builder-operator">Operator</label>

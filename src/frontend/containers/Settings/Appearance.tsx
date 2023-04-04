@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
 import useCustomTheme from 'src/frontend/hooks/useCustomTheme';
 import { RendererMessenger } from 'src/ipc/renderer';
-import { IconButton, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
+import { Button, IconSet, Radio, RadioGroup, Toggle } from 'widgets';
 import { useStore } from '../../contexts/StoreContext';
 
 export const Appearance = observer(() => {
@@ -17,28 +17,31 @@ export const Appearance = observer(() => {
 
   return (
     <>
-      <h3>Interface</h3>
+      <h3>Theme</h3>
 
-      <div className="input-group">
-        <RadioGroup name="Color Scheme" value={uiStore.theme} onChange={uiStore.setTheme}>
+      <div className="vstack">
+        <RadioGroup
+          orientation="horizontal"
+          name="Color Scheme"
+          value={uiStore.theme}
+          onChange={uiStore.setTheme}
+        >
           <Radio value="light">Light</Radio>
           <Radio value="dark">Dark</Radio>
         </RadioGroup>
-
         <CustomThemePicker />
       </div>
 
-      <div className="input-group">
-        <Zoom />
+      <h3>Display</h3>
 
+      <div className="vstack">
         <Toggle checked={uiStore.isFullScreen} onChange={toggleFullScreen}>
           Show full screen
         </Toggle>
-      </div>
-
-      <div className="input-group">
+        <Zoom />
         <RadioGroup
-          name="Picture Upscaling"
+          orientation="horizontal"
+          name="Scale images..."
           value={uiStore.upscaleMode}
           onChange={uiStore.setUpscaleMode}
         >
@@ -49,7 +52,7 @@ export const Appearance = observer(() => {
 
       <h3>Thumbnail</h3>
 
-      <div className="input-group">
+      <div className="vstack">
         <Toggle
           checked={uiStore.isThumbnailTagOverlayEnabled}
           onChange={uiStore.toggleThumbnailTagOverlay}
@@ -68,12 +71,8 @@ export const Appearance = observer(() => {
         >
           Show resolution
         </Toggle>
-      </div>
-
-      <br />
-
-      <div className="input-group">
         <RadioGroup
+          orientation="horizontal"
           name="Shape"
           value={uiStore.thumbnailShape}
           onChange={uiStore.setThumbnailShape}
@@ -129,28 +128,30 @@ const CustomThemePicker = () => {
   }, []);
 
   return (
-    <fieldset>
-      <legend>Theme customization</legend>
-      <select onChange={(e) => setTheme(e.target.value)} defaultValue={theme}>
-        {<option value="">None (default)</option>}
-        {options.map((file) => (
-          <option key={file} value={file}>
-            {file.replace('.css', '')}
-          </option>
-        ))}
-      </select>{' '}
-      <IconButton
+    <div className="hstack">
+      <label>
+        Custom Theme
+        <select onChange={(e) => setTheme(e.target.value)} defaultValue={theme}>
+          {<option value="">None</option>}
+          {options.map((file) => (
+            <option key={file} value={file}>
+              {file.replace('.css', '')}
+            </option>
+          ))}
+        </select>
+      </label>
+      <Button
+        icon={IconSet.FOLDER_CLOSE}
+        text="Add..."
+        onClick={() => shell.openExternal(themeDir)}
+        data-tooltip="Open the directory containing the theme files"
+      />
+      <Button
         icon={IconSet.RELOAD}
         text="Refresh"
         onClick={refresh}
         data-tooltip="Reload the list of themes and current theme"
       />
-      <IconButton
-        icon={IconSet.FOLDER_CLOSE}
-        text="Open"
-        onClick={() => shell.showItemInFolder(themeDir)}
-        data-tooltip="Open the directory containing the theme files"
-      />
-    </fieldset>
+    </div>
   );
 };

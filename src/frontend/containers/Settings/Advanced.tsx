@@ -56,8 +56,8 @@ export const Advanced = observer(() => {
       {/* Todo: Add support to toggle this */}
       {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
       <Callout icon={IconSet.INFO}>
-        By default thumbnails are stored in{' '}
-        <ExternalLink url={defaultThumbnailDir}>{defaultThumbnailDir}</ExternalLink>.
+        By default thumbnails are stored in the{' '}
+        <ExternalLink url={defaultThumbnailDir}>temporary files directory</ExternalLink>.
       </Callout>
       <div className="filepicker">
         <FileInput

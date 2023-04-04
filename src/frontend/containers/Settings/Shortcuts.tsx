@@ -126,7 +126,7 @@ const KeyComboEditor = observer(
         <Button
           icon={IconSet.RELOAD}
           onClick={() => uiStore.remapHotkey(actionKey, defaultCombo)}
-          text="Reset to default"
+          text="Reset"
           disabled={comboMatches(parseKeyCombo(combo), parseKeyCombo(defaultCombo))}
         />
       </div>
