@@ -51,7 +51,16 @@
       "extraResources": [
         "resources/exiftool/exiftool.exe",
         "resources/exiftool/.Exiftool_config"
-      ]
+      ],
+			"extraFiles": [
+				{
+					"from": "./node_modules/sharp/build/Release",
+					"to": ".",
+					"filter": [
+						"lib*.dll"
+					]
+				}
+			]
     },
     "extraResources": [
       "resources/themes"
@@ -63,8 +72,11 @@
     "portable": {
       "artifactName": "${productName}Portable.${version}.${ext}"
     },
+    "asarUnpack": [
+      "**/node_modules/sharp/**/*"
+    ],
     "files": [
-      "!node_modules",
+      "**/node_modules/sharp/**/*",
       "build/**/*",
       "package.json"
     ],
