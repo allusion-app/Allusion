@@ -70,6 +70,9 @@ let rendererConfig = {
       wasm: path.resolve(__dirname, 'wasm/'),
     },
   },
+  externals: {
+    'sharp': 'commonjs sharp'
+  },
   module: {
     rules: [
       {

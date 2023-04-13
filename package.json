@@ -93,7 +93,7 @@
     "@typescript-eslint/eslint-plugin": "^5.52.0",
     "@typescript-eslint/parser": "^5.52.0",
     "css-loader": "^6.7.3",
-    "electron": "21.3.0",
+    "electron": "21.3.4",
     "electron-builder": "23.6.0",
     "eslint": "^8.34.0",
     "eslint-config-prettier": "^8.6.0",
@@ -135,6 +135,7 @@
     "react-colorful": "^5.6.1",
     "react-dom": "^18.2.0",
     "react-window": "^1.8.8",
+    "sharp": "^0.32.0",
     "sourcemapped-stacktrace": "^1.1.11",
     "utif": "^3.1.0",
     "wasm-feature-detect": "^1.2.11"

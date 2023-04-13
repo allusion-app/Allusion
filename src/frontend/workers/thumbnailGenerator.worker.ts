@@ -1,44 +1,34 @@
 import fse from 'fs-extra';
 
+import * as sharp from 'sharp';
 import { thumbnailFormat, thumbnailMaxSize } from 'common/config';
 import { IThumbnailMessage, IThumbnailMessageResponse } from '../image/ThumbnailGeneration';
 
 // TODO: Merge this with the generateThumbnail func from frontend/image/utils.ts, it's duplicate code
 const generateThumbnailData = async (filePath: string): Promise<ArrayBuffer | null> => {
   const inputBuffer = await fse.readFile(filePath);
-  const inputBlob = new Blob([inputBuffer]);
-  const img = await createImageBitmap(inputBlob);
+  const img = await sharp(inputBuffer);
+  const metadata = await img.metadata();
 
   // Scale the image so that either width or height becomes `thumbnailMaxSize`
-  let width = img.width;
-  let height = img.height;
-  if (img.width >= img.height) {
+  if (typeof metadata.width == 'undefined' || typeof metadata.height == 'undefined') {
+    throw 'could not read image dimensions';
+  }
+  const iwidth = metadata.width;
+  const iheight = metadata.height;
+  let width = iwidth;
+  let height = iheight;
+  if (iwidth >= iheight) {
     width = thumbnailMaxSize;
-    height = (thumbnailMaxSize * img.height) / img.width;
+    height = Math.trunc((thumbnailMaxSize * iheight) / iwidth);
   } else {
     height = thumbnailMaxSize;
-    width = (thumbnailMaxSize * img.width) / img.height;
+    width = Math.trunc((thumbnailMaxSize * iwidth) / iheight);
   }
-
-  const canvas = new OffscreenCanvas(width, height);
-
-  const ctx2D = canvas.getContext('2d');
-  if (!ctx2D) {
-    console.warn('No canvas context 2D (should never happen)');
-    return null;
-  }
-
-  // Todo: Take into account rotation. Can be found with https://www.npmjs.com/package/node-exiftool
-
-  // TODO: Could maybe use https://www.electronjs.org/docs/api/native-image#imageresizeoptions
-
-  ctx2D.drawImage(img, 0, 0, width, height);
-
-  const thumbBlob = await canvas.convertToBlob({ type: `image/${thumbnailFormat}`, quality: 0.75 });
-  // TODO: is canvas.toDataURL faster?
-  const reader = new FileReaderSync();
-  const buffer = reader.readAsArrayBuffer(thumbBlob);
-  return buffer;
+  const resized = img
+    .resize({ width: width, height: height, fit: sharp.fit.cover })
+    .toFormat(thumbnailFormat, { quality: 75 });
+  return await resized.toBuffer();
 };
 
 const generateAndStoreThumbnail = async (filePath: string, thumbnailFilePath: string) => {
