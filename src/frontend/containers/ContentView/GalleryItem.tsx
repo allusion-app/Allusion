@@ -152,6 +152,23 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
   } else if (imageSource.tag === 'ready') {
     if ('ok' in imageSource.value) {
       const is_lowres = file.width < 320 || file.height < 320;
+      // Alternative case where imageSource is a video
+      if (file.extension === 'webm' || file.extension === 'mp4' || file.extension === 'ogg') {
+        return (
+          <video
+            src={encodeFilePath(imageSource.value.ok)}
+            data-file-id={file.id}
+            onError={handleImageError}
+            style={
+              is_lowres && uiStore.upscaleMode == 'pixelated' ? { imageRendering: 'pixelated' } : {}
+            }
+            autoPlay
+            muted
+            loop
+          />
+        );
+      }
+
       return (
         <img
           src={encodeFilePath(imageSource.value.ok)}

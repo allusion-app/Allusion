@@ -37,6 +37,9 @@ const FormatHandlers: Record<IMG_EXTENSIONS_TYPE, FormatHandlerType> = {
   // xcf: 'extractEmbeddedThumbnailOnly',
   exr: 'exrLoader',
   // avif: 'sharp',
+  mp4: 'web',
+  webm: 'web',
+  ogg: 'web',
 };
 
 type ObjectURL = string;
@@ -62,7 +65,13 @@ class ImageLoader {
 
   needsThumbnail(file: FileDTO) {
     // Not using thumbnails for gifs, since they're mostly used for animations, which doesn't get preserved in thumbnails
-    if (file.extension === 'gif') {
+    // Not using thumbnails for videos as well
+    if (
+      file.extension === 'gif' ||
+      file.extension === 'webm' ||
+      file.extension === 'mp4' ||
+      file.extension === 'ogg'
+    ) {
       return false;
     }
 

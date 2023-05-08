@@ -31,9 +31,7 @@ const ANIMATION_SPEED = 0.1;
 export type SlideTransform = Transform;
 
 export interface ZoomPanProps {
-  children: (
-    props: React.ImgHTMLAttributes<HTMLImageElement>,
-  ) => React.ReactElement<HTMLImageElement>;
+  children: (props: React.ImgHTMLAttributes<HTMLElement>) => React.ReactElement<HTMLElement>;
   initialScale: number | 'auto';
   minScale: number;
   maxScale: number;
