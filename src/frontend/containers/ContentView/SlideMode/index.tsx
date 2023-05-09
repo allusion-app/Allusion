@@ -7,7 +7,7 @@ import { ClientFile } from 'src/entities/File';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAction, useComputed } from 'src/frontend/hooks/mobx';
 import { usePromise } from 'src/frontend/hooks/usePromise';
-import { encodeFilePath } from 'common/fs';
+import { encodeFilePath, isFileExtensionVideo } from 'common/fs';
 import { Button, IconSet, Split } from 'widgets';
 import Inspector from '../../Inspector';
 import { CommandDispatcher } from '../Commands';
@@ -124,11 +124,7 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
       if (!isLast.get() && uiStore.firstItem + 1 < fileStore.fileList.length) {
         const nextFile = fileStore.fileList[uiStore.firstItem + 1];
         let nextImg: any;
-        if (
-          nextFile.extension === 'mp4' ||
-          nextFile.extension === 'webm' ||
-          nextFile.extension === 'ogg'
-        ) {
+        if (isFileExtensionVideo(nextFile.extension)) {
           nextImg = document.createElement('video');
         } else {
           nextImg = new Image();
@@ -140,11 +136,7 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
       if (!isFirst.get() && fileStore.fileList.length > 0) {
         const prevFile = fileStore.fileList[uiStore.firstItem - 1];
         let prevImg: any;
-        if (
-          prevFile.extension === 'mp4' ||
-          prevFile.extension === 'webm' ||
-          prevFile.extension === 'ogg'
-        ) {
+        if (isFileExtensionVideo(prevFile.extension)) {
           prevImg = document.createElement('video');
         } else {
           prevImg = new Image();
@@ -253,7 +245,7 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
           const dimension = await new Promise<{ src: string; dimension: Vec2 }>(
             (resolve, reject) => {
               let img;
-              if (fileExtension === 'webm' || fileExtension === 'mp4' || fileExtension === 'ogg') {
+              if (isFileExtensionVideo(fileExtension)) {
                 img = document.createElement('video');
                 img.onload = function (this: any) {
                   // TODO: would be better to resolve once transition is complete: for large resolution images, the transition freezes for ~.4s bc of a re-paint task when the image changes
@@ -304,7 +296,7 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
     const minScale = Math.min(0.1, Math.min(width / dimension[0], height / dimension[1]));
 
     // Alternative case for videos
-    if (file.extension === 'webm' || file.extension === 'mp4' || file.extension === 'ogg') {
+    if (isFileExtensionVideo(file.extension)) {
       return (
         <ZoomPan
           position="center"

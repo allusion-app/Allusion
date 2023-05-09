@@ -10,6 +10,7 @@ import StreamZip from 'node-stream-zip';
 import ExrLoader from './ExrLoader';
 import { generateThumbnail, getBlob } from './util';
 import PsdLoader from './PSDLoader';
+import { isFileExtensionVideo } from 'common/fs';
 
 type FormatHandlerType =
   | 'web'
@@ -65,13 +66,8 @@ class ImageLoader {
 
   needsThumbnail(file: FileDTO) {
     // Not using thumbnails for gifs, since they're mostly used for animations, which doesn't get preserved in thumbnails
-    // Not using thumbnails for videos as well
-    if (
-      file.extension === 'gif' ||
-      file.extension === 'webm' ||
-      file.extension === 'mp4' ||
-      file.extension === 'ogg'
-    ) {
+    // Not using thumbnails for videos for now
+    if (file.extension === 'gif' || isFileExtensionVideo(file.extension)) {
       return false;
     }
 

@@ -4,19 +4,22 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import fse from 'fs-extra';
 import { ClientFile } from 'src/entities/File';
 import { ellipsize, humanFileSize } from 'common/fmt';
-import { encodeFilePath } from 'common/fs';
+import { encodeFilePath, isFileExtensionVideo } from 'common/fs';
 import { IconButton, IconSet, Tag } from 'widgets';
 import { ITransform } from './Masonry/layout-helpers';
 import { ClientTag } from 'src/entities/Tag';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { usePromise } from 'src/frontend/hooks/usePromise';
 import { CommandDispatcher, MousePointerEvent } from './Commands';
+import { GalleryVideoPlaybackMode } from 'src/frontend/stores/UiStore';
 
 interface ItemProps {
   file: ClientFile;
   mounted: boolean;
   // Will use the original image instead of the thumbnail
   forceNoThumbnail?: boolean;
+  hovered?: boolean;
+  galleryVideoPlaybackMode?: GalleryVideoPlaybackMode;
 }
 
 interface MasonryItemProps extends ItemProps {
@@ -32,8 +35,16 @@ export const MasonryCell = observer(
     transform: [width, height, top, left],
   }: MasonryItemProps) => {
     const { uiStore, fileStore } = useStore();
+    const [isHovered, setIsHovered] = useState(false);
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
     const eventManager = useMemo(() => new CommandDispatcher(file), [file]);
+
+    const handleMouseEnter = useCallback((e: React.MouseEvent): void => {
+      setIsHovered(true);
+    }, []);
+    const handleMouseLeave = useCallback((e: React.MouseEvent): void => {
+      setIsHovered(false);
+    }, []);
 
     return (
       <div data-masonrycell aria-selected={uiStore.fileSelection.has(file)} style={style}>
@@ -48,8 +59,18 @@ export const MasonryCell = observer(
           onDragLeave={eventManager.dragLeave}
           onDrop={eventManager.drop}
           onDragEnd={eventManager.dragEnd}
+          onMouseEnter={
+            uiStore.galleryVideoPlaybackMode === 'hover' && isFileExtensionVideo(file.extension)
+              ? handleMouseEnter
+              : (e: React.MouseEvent): void => {}
+          }
+          onMouseLeave={
+            uiStore.galleryVideoPlaybackMode === 'hover' && isFileExtensionVideo(file.extension)
+              ? handleMouseLeave
+              : (e: React.MouseEvent): void => {}
+          }
         >
-          <Thumbnail mounted={mounted} file={file} forceNoThumbnail={forceNoThumbnail} />
+          <Thumbnail mounted={mounted} file={file} forceNoThumbnail={forceNoThumbnail} hovered={isHovered} galleryVideoPlaybackMode={uiStore.galleryVideoPlaybackMode}/>
         </div>
         {file.isBroken === true && !fileStore.showsMissingContent && (
           <IconButton
@@ -87,7 +108,7 @@ export const MasonryCell = observer(
 
 // TODO: When a filename contains https://x/y/z.abc?323 etc., it can't be found
 // e.g. %2F should be %252F on filesystems. Something to do with decodeURI, but seems like only on the filename - not the whole path
-export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProps) => {
+export const Thumbnail = observer(({ file, mounted, forceNoThumbnail, hovered, galleryVideoPlaybackMode }: ItemProps) => {
   const { uiStore, imageLoader } = useStore();
   const { thumbnailPath, isBroken } = file;
 
@@ -145,6 +166,34 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
     setLoadError(false);
   }, [fileId]);
 
+  // Plays and pauses video
+  const thumbnailRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    if (thumbnailRef.current === null) {
+      return;
+    }
+    if (isFileExtensionVideo(file.extension)) {
+      if (hovered) {
+        thumbnailRef.current.play();
+      } else {
+        thumbnailRef.current.pause();
+        thumbnailRef.current.currentTime = 0;
+      }
+    }
+  }, [thumbnailRef, hovered]);
+  useEffect(() => {
+    if (thumbnailRef.current !== null) {
+      if (isFileExtensionVideo(file.extension)) {
+        if (galleryVideoPlaybackMode === 'auto') {
+          thumbnailRef.current.play();
+        } else {
+          thumbnailRef.current.pause();
+          thumbnailRef.current.currentTime = 0;
+        }
+      }
+    }
+  }, [thumbnailRef, galleryVideoPlaybackMode]);
+
   if (!mounted) {
     return <span className="image-placeholder" />;
   } else if (loadError) {
@@ -152,21 +201,21 @@ export const Thumbnail = observer(({ file, mounted, forceNoThumbnail }: ItemProp
   } else if (imageSource.tag === 'ready') {
     if ('ok' in imageSource.value) {
       const is_lowres = file.width < 320 || file.height < 320;
-      // Alternative case where imageSource is a video
-      if (file.extension === 'webm' || file.extension === 'mp4' || file.extension === 'ogg') {
-        return (
-          <video
-            src={encodeFilePath(imageSource.value.ok)}
-            data-file-id={file.id}
-            onError={handleImageError}
-            style={
-              is_lowres && uiStore.upscaleMode == 'pixelated' ? { imageRendering: 'pixelated' } : {}
-            }
-            autoPlay
-            muted
-            loop
-          />
-        );
+      // TODO: add thumbnails to video for performance in gallery view
+      if (isFileExtensionVideo(file.extension)) {
+        const videoProps = {
+          src: encodeFilePath(imageSource.value.ok),
+          'data-file-id': file.id,
+          onError: handleImageError,
+          muted: true,
+          autoPlay: false,
+          loop: true,
+        };
+        if (galleryVideoPlaybackMode === 'auto' || hovered) {
+          videoProps.autoPlay = true;
+        }
+
+        return <video ref={thumbnailRef} {...videoProps} />;
       }
 
       return (
