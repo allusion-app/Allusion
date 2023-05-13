@@ -9,6 +9,7 @@ import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 
 import RootStore from './RootStore';
 import { ClientFile } from 'src/entities/File';
+import { PositionSource } from 'position-strings';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -17,7 +18,7 @@ class TagStore {
   private readonly backend: IDataStorage;
   private readonly rootStore: RootStore;
 
-  /** A lookup map to speedup finding entities */
+  readonly #positions = new PositionSource({ ID: 't' });
   private readonly tagGraph = observable(new Map<ID, ClientTag>());
 
   constructor(backend: IDataStorage, rootStore: RootStore) {
@@ -90,7 +91,15 @@ class TagStore {
 
   @action.bound async create(parent: ClientTag, tagName: string) {
     const id = generateId();
-    const tag = new ClientTag(this, id, tagName, new Date(), '', false);
+    const tag = new ClientTag(
+      this,
+      id,
+      tagName,
+      new Date(),
+      '',
+      false,
+      this.#positions.createBetween(parent.subTags.at(-1)?.position),
+    );
     this.tagGraph.set(tag.id, tag);
     tag.setParent(parent);
     parent.subTags.push(tag);
@@ -163,27 +172,27 @@ class TagStore {
 
   @action private createTagGraph(backendTags: TagDTO[]) {
     // Create tags
-    for (const { id, name, dateAdded, color, isHidden } of backendTags) {
+    for (const { id, name, dateAdded, color, isHidden, position } of backendTags) {
       // Create entity and set properties
       // We have to do this because JavaScript does not allow multiple constructor.
-      const tag = new ClientTag(this, id, name, dateAdded, color, isHidden);
+      const tag = new ClientTag(this, id, name, dateAdded, color, isHidden, position);
       // Add to index
       this.tagGraph.set(tag.id, tag);
     }
 
     // Set parent and add sub tags
-    for (const { id, subTags } of backendTags) {
+    for (const { id, parent } of backendTags) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const tag = this.tagGraph.get(id)!;
+      const parentTag = this.tagGraph.get(parent);
 
-      for (const id of subTags) {
-        const subTag = this.get(id);
-        if (subTag !== undefined) {
-          subTag.setParent(tag);
-          tag.subTags.push(subTag);
-        }
+      if (parentTag !== undefined) {
+        tag.setParent(parentTag);
+        const index = parentTag.subTags.findIndex((subTag) => subTag.position > tag.position);
+        parentTag.subTags.splice(index, 0, tag);
       }
     }
+
     this.root.setParent(this.root);
   }
 }

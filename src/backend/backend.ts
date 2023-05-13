@@ -47,7 +47,8 @@ export default class Backend implements IDataStorage {
         id: ROOT_TAG_ID,
         name: 'Root',
         dateAdded: new Date(),
-        subTags: [],
+        parent: '',
+        position: '',
         color: '',
         isHidden: false,
       });

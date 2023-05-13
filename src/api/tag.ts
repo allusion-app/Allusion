@@ -7,7 +7,8 @@ export type TagDTO = {
   name: string;
   dateAdded: Date;
   color: string;
-  subTags: ID[];
+  parent: ID;
+  position: string;
   /** Whether any files with this tag should be hidden */
   isHidden: boolean;
 };

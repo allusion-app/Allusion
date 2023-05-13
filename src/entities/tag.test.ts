@@ -24,6 +24,7 @@ describe('ClientTag', () => {
       new Date(),
       props.color || '',
       props.isHidden || false,
+      '',
     );
 
   beforeAll(() => {
