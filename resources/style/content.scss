@@ -59,7 +59,7 @@
     pointer-events: none;
   }
 
-  > img {
+  > :is(img, video) {
     width: 100%;
     height: 100%;
     cursor: pointer;
@@ -72,7 +72,7 @@
   &[data-dnd-target='true'] {
     background-color: var(--accent-color-yellow);
 
-    img {
+    :is(img, video) {
       clip-path: inset(0.5rem round 0.125rem);
     }
   }
@@ -81,16 +81,14 @@
 [aria-selected='true'] > .thumbnail {
   // If selected, show a blue border
   background-color: var(--accent-color);
-  > img,
-  > .image-error {
+  > :is(img, video) {
     clip-path: inset(0.25rem round 0.125rem); // old design
   }
 
   // If selected AND drop target: big yellow border
   &[data-dnd-target='true'] {
     background-color: var(--accent-color-yellow);
-    > img,
-    > .image-error {
+    > :is(img, video) {
       clip-path: inset(0.5rem round 0.125rem);
     }
   }
@@ -278,7 +276,7 @@
     width: var(--thumbnail-size);
   }
 
-  .col-name > img {
+  .col-name > :is(img, video) {
     object-fit: cover;
     padding: 2px;
   }
@@ -330,11 +328,11 @@
   position: relative;
 }
 
-.thumbnail-square img {
+.thumbnail-square img, video {
   background-position: center;
   object-fit: cover;
 }
-.thumbnail-letterbox img {
+.thumbnail-letterbox img, video {
   object-fit: contain;
 }
 
@@ -422,7 +420,7 @@
     right: 0;
   }
 
-  img {
+  img, video {
     // Let the compositor know that the image will transform for better performance
     will-change: transform;
   
