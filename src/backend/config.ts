@@ -2,6 +2,7 @@ import { Transaction } from 'dexie';
 import { FileDTO } from 'src/api/file';
 import { DBVersioningConfig } from './db-repository';
 import fse from 'fs-extra';
+import { PositionSource } from 'position-strings';
 
 // The name of the IndexedDB
 export const DB_NAME = 'Allusion';
@@ -93,6 +94,24 @@ export const dbConfig: DBVersioningConfig[] = [
             console.warn(`Could not get ino for ${file.absolutePath}`);
           }
           return file;
+        });
+    },
+  },
+  {
+    version: 9,
+    collections: [],
+    upgrade: (tx: Transaction): void => {
+      tx.table('searches')
+        .toCollection()
+        .sortBy('index')
+        .then((searches) => {
+          const source = new PositionSource({ ID: 's' });
+          let position: string | undefined = undefined;
+          searches.forEach((search) => {
+            delete search.index;
+            position = source.createBetween(position);
+            search.position = position;
+          });
         });
     },
   },

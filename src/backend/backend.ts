@@ -91,7 +91,9 @@ export default class Backend implements IDataStorage {
 
   async fetchSearches(): Promise<FileSearchDTO[]> {
     console.info('Backend: Fetching searches...');
-    return this.searchRepository.getAll();
+    const searches = await this.searchRepository.getAll();
+    searches.sort((a, b) => (a.position < b.position ? -1 : Number(a.position > b.position)));
+    return searches;
   }
 
   async searchFiles(

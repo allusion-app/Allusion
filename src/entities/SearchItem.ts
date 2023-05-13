@@ -6,23 +6,27 @@ import { SearchCriteria } from '../api/search-criteria';
 import { FileSearchDTO } from '../api/file-search';
 
 export class ClientFileSearchItem {
-  id: ID;
+  readonly id: ID;
   @observable name: string = '';
   @observable matchAny: boolean = false;
+  @observable position: string;
   readonly criteria: IObservableArray<ClientFileSearchCriteria>;
-
-  /** A custom index defined by the user for ordering the search items */
-  index: number = 0;
 
   // TODO: also store sort mode? (filename, descending, etc)
   // Then it wouldn't be a "Saved Search", but a "Saved view" maybe?
 
-  constructor(id: ID, name: string, criteria: SearchCriteria[], matchAny: boolean, index: number) {
+  constructor(
+    id: ID,
+    name: string,
+    criteria: SearchCriteria[],
+    matchAny: boolean,
+    position: string,
+  ) {
     this.id = id;
     this.name = name;
     this.criteria = observable(criteria.map((c) => ClientFileSearchCriteria.deserialize(c)));
     this.matchAny = matchAny;
-    this.index = index;
+    this.position = position;
 
     makeObservable(this);
   }
@@ -39,17 +43,13 @@ export class ClientFileSearchItem {
     this.criteria.replace(newCriteria);
   }
 
-  @action.bound setIndex(newIndex: number): void {
-    this.index = newIndex;
-  }
-
   serialize(rootStore: RootStore): FileSearchDTO {
     return {
       id: this.id,
       name: this.name,
       criteria: this.criteria.map((c) => c.serialize(rootStore)),
       matchAny: this.matchAny,
-      index: this.index,
+      position: this.position,
     };
   }
 }

@@ -4,6 +4,8 @@ import { generateId, ID } from 'src/api/id';
 import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import RootStore from './RootStore';
+import { PositionSource } from 'position-strings';
+import { SearchCriteria } from 'src/api/search-criteria';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -12,7 +14,7 @@ class SearchStore {
   private readonly backend: IDataStorage;
   private readonly rootStore: RootStore;
 
-  /** A lookup map to speedup finding entities */
+  readonly #positions = new PositionSource({ ID: 's' });
   readonly searchList = observable<ClientFileSearchItem>([]);
 
   constructor(backend: IDataStorage, rootStore: RootStore) {
@@ -25,12 +27,10 @@ class SearchStore {
   async init() {
     try {
       const fetchedSearches = await this.backend.fetchSearches();
-      fetchedSearches.sort((a, b) => a.index - b.index);
 
-      this.searchList.push(
-        ...fetchedSearches.map(
-          (s, i) =>
-            new ClientFileSearchItem(s.id, s.name, s.criteria, s.matchAny === true, s.index ?? i),
+      fetchedSearches.forEach((s) =>
+        this.searchList.push(
+          new ClientFileSearchItem(s.id, s.name, s.criteria, s.matchAny === true, s.position),
         ),
       );
     } catch (err) {
@@ -42,14 +42,20 @@ class SearchStore {
     return this.searchList.find((s) => s.id === search);
   }
 
-  @action.bound async create(search: ClientFileSearchItem) {
+  @action.bound async create(name: string, criteria: SearchCriteria[], matchAny: boolean) {
+    const search = new ClientFileSearchItem(
+      generateId(),
+      name,
+      criteria,
+      matchAny,
+      this.#positions.createBetween(this.searchList.at(-1)?.position),
+    );
     this.searchList.push(search);
     await this.backend.createSearch(search.serialize(this.rootStore));
     return search;
   }
 
   @action.bound async remove(search: ClientFileSearchItem) {
-    // Do we need to dispose anything? There is no save handler, observable properties should be disposed automatically I believe
     this.searchList.remove(search);
     await this.backend.removeSearch(search.id);
   }
@@ -60,7 +66,7 @@ class SearchStore {
       `${search.name} (copy)`,
       search.criteria.map((c) => c.serialize(this.rootStore)),
       search.matchAny,
-      this.searchList.length,
+      this.#positions.createBetween(this.searchList.at(-1)?.position),
     );
     // TODO: insert below given item or keep it at the end like this?
     this.searchList.push(newSearch);
@@ -68,31 +74,34 @@ class SearchStore {
     return newSearch;
   }
 
-  @action.bound replaceWithActiveSearch(search: ClientFileSearchItem) {
+  @action.bound async replaceWithActiveSearch(search: ClientFileSearchItem) {
     search.setMatchAny(this.rootStore.uiStore.searchMatchAny);
     search.setCriteria(
       this.rootStore.uiStore.searchCriteriaList.map((c) =>
         ClientFileSearchCriteria.deserialize(c.serialize(this.rootStore)),
       ),
     );
+    await this.backend.saveSearch(search.serialize(this.rootStore));
   }
 
   /** Source is moved to where Target currently is */
-  @action.bound reorder(source: ClientFileSearchItem, target: ClientFileSearchItem) {
-    const sourceIndex = this.searchList.indexOf(source);
+  @action.bound async reorder(source: ClientFileSearchItem, target: ClientFileSearchItem) {
+    if (source === target) {
+      return;
+    }
+
     const targetIndex = this.searchList.indexOf(target);
+    const position = this.#positions.createBetween(
+      targetIndex === 0 ? undefined : this.searchList.at(targetIndex - 1)?.position,
+      this.searchList.at(targetIndex + 1)?.position,
+    );
 
     // Remove the source element and insert it at the target index
     this.searchList.remove(source);
     this.searchList.splice(targetIndex, 0, source);
+    source.position = position;
 
-    // Update the index for all changed items: all items between source and target have been moved
-    const startIndex = Math.min(sourceIndex, targetIndex);
-    const endIndex = Math.max(sourceIndex, targetIndex);
-    for (let i = startIndex; i <= endIndex; i++) {
-      this.searchList[i].setIndex(i);
-      this.save(this.searchList[i]);
-    }
+    await this.backend.saveSearch(source.serialize(this.rootStore));
   }
 
   save(search: ClientFileSearchItem) {

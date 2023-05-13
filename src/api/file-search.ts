@@ -6,5 +6,5 @@ export type FileSearchDTO = {
   name: string;
   criteria: SearchCriteria[];
   matchAny?: boolean;
-  index: number;
+  position: string;
 };

@@ -1,7 +1,6 @@
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { generateId } from 'src/api/id';
 import { CustomKeyDict, ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import { SavedSearchRemoval } from 'src/frontend/components/RemovalAlert';
@@ -371,14 +370,10 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
 
   const saveCurrentSearch = async () => {
     const savedSearch = await searchStore.create(
-      new ClientFileSearchItem(
-        generateId(),
-        uiStore.searchCriteriaList.map((c) => c.getLabel(CustomKeyDict, rootStore)).join(', ') ||
-          'New search',
-        uiStore.searchCriteriaList.map((c) => c.serialize(rootStore)),
-        uiStore.searchMatchAny,
-        searchStore.searchList.length,
-      ),
+      uiStore.searchCriteriaList.map((c) => c.getLabel(CustomKeyDict, rootStore)).join(', ') ||
+        'New search',
+      uiStore.searchCriteriaList.map((c) => c.serialize(rootStore)),
+      uiStore.searchMatchAny,
     );
     setEditableSearch(savedSearch);
   };
