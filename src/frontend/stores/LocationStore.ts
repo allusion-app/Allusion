@@ -15,6 +15,7 @@ import { AppToaster } from 'src/frontend/components/Toaster';
 import { RendererMessenger } from 'src/ipc/renderer';
 import ImageLoader from '../image/ImageLoader';
 import RootStore from './RootStore';
+import { PositionSource } from 'position-strings';
 
 const PREFERENCES_STORAGE_KEY = 'location-store-preferences';
 type Preferences = { extensions: IMG_EXTENSIONS_TYPE[] };
@@ -37,6 +38,7 @@ class LocationStore {
   private readonly backend: IDataStorage;
   private readonly rootStore: RootStore;
 
+  readonly #positions = new PositionSource({ ID: 'l' });
   readonly locationList = observable<ClientLocation>([]);
 
   // Allow users to disable certain file types. Global option for now, needs restart
@@ -65,24 +67,21 @@ class LocationStore {
     // Get dirs from backend
     const dirs = await this.backend.fetchLocations();
 
-    // backwards compatibility
-    dirs.sort((a, b) =>
-      a.index === b.index ? a.dateAdded.getTime() - b.dateAdded.getTime() : a.index - b.index,
-    );
-
-    const locations = dirs.map(
-      (dir, i) =>
-        new ClientLocation(
-          this,
-          dir.id,
-          dir.path,
-          dir.dateAdded,
-          dir.subLocations,
-          runInAction(() => Array.from(this.enabledFileExtensions)),
-          dir.index ?? i,
+    runInAction(() => {
+      dirs.forEach((dir) =>
+        this.locationList.push(
+          new ClientLocation(
+            this,
+            dir.id,
+            dir.path,
+            dir.dateAdded,
+            dir.subLocations,
+            Array.from(this.enabledFileExtensions),
+            dir.position,
+          ),
         ),
-    );
-    runInAction(() => this.locationList.replace(locations));
+      );
+    });
   }
 
   save(loc: LocationDTO) {
@@ -335,7 +334,7 @@ class LocationStore {
       location.dateAdded,
       location.subLocations,
       runInAction(() => Array.from(this.enabledFileExtensions)),
-      this.locationList.length,
+      location.position,
     );
     runInAction(() => (this.locationList[index] = newLocation));
     await this.initLocation(newLocation);
@@ -358,11 +357,11 @@ class LocationStore {
       path,
       new Date(),
       [],
-      runInAction(() => Array.from(this.enabledFileExtensions)),
-      this.locationList.length,
+      Array.from(this.enabledFileExtensions),
+      this.#positions.createBetween(this.locationList.at(-1)?.position),
     );
+    this.locationList.push(location);
     await this.backend.createLocation(location.serialize());
-    runInAction(() => this.locationList.push(location));
     return location;
   }
 
@@ -517,21 +516,23 @@ class LocationStore {
   }
 
   /** Source is moved to where Target currently is */
-  @action.bound reorder(source: ClientLocation, target: ClientLocation) {
-    const sourceIndex = this.locationList.indexOf(source);
+  @action.bound async reorder(source: ClientLocation, target: ClientLocation) {
+    if (source === target) {
+      return;
+    }
+
     const targetIndex = this.locationList.indexOf(target);
+    const position = this.#positions.createBetween(
+      targetIndex === 0 ? undefined : this.locationList.at(targetIndex - 1)?.position,
+      this.locationList.at(targetIndex + 1)?.position,
+    );
 
     // Remove the source element and insert it at the target index
     this.locationList.remove(source);
     this.locationList.splice(targetIndex, 0, source);
+    source.position = position;
 
-    // Update the index for all changed items: all items between source and target have been moved
-    const startIndex = Math.min(sourceIndex, targetIndex);
-    const endIndex = Math.max(sourceIndex, targetIndex);
-    for (let i = startIndex; i <= endIndex; i++) {
-      this.locationList[i].setIndex(i);
-      this.save(this.locationList[i].serialize());
-    }
+    await this.backend.saveLocation(source.serialize());
   }
 }
 

@@ -9,7 +9,7 @@ export class ClientFileSearchItem {
   readonly id: ID;
   @observable name: string = '';
   @observable matchAny: boolean = false;
-  @observable position: string;
+  position: string;
   readonly criteria: IObservableArray<ClientFileSearchCriteria>;
 
   // TODO: also store sort mode? (filename, descending, etc)

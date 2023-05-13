@@ -99,7 +99,12 @@ export const dbConfig: DBVersioningConfig[] = [
   },
   {
     version: 9,
-    collections: [],
+    collections: [
+      {
+        name: 'locations',
+        schema: '++id',
+      },
+    ],
     upgrade: (tx: Transaction): void => {
       tx.table('searches')
         .toCollection()
@@ -111,6 +116,21 @@ export const dbConfig: DBVersioningConfig[] = [
             delete search.index;
             position = source.createBetween(position);
             search.position = position;
+          });
+        });
+
+      tx.table('locations')
+        .toArray()
+        .then((locations) => {
+          locations.sort((a, b) =>
+            a.index === b.index ? a.dateAdded.getTime() - b.dateAdded.getTime() : a.index - b.index,
+          );
+          const source = new PositionSource({ ID: 'l' });
+          let position: string | undefined = undefined;
+          locations.forEach((location) => {
+            delete location.index;
+            position = source.createBetween(position);
+            location.position = position;
           });
         });
     },

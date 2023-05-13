@@ -79,7 +79,7 @@ export class ClientLocation {
   // true when the path no longer exists (broken link)
   @observable isBroken = false;
 
-  index: number;
+  position: string;
 
   /** The file extensions for the files to be watched */
   extensions: IMG_EXTENSIONS_TYPE[];
@@ -99,14 +99,14 @@ export class ClientLocation {
     dateAdded: Date,
     subLocations: SubLocationDTO[],
     extensions: IMG_EXTENSIONS_TYPE[],
-    index: number,
+    position: string,
   ) {
     this.store = store;
     this.id = id;
     this.path = path;
     this.dateAdded = dateAdded;
     this.extensions = extensions;
-    this.index = index;
+    this.position = position;
 
     this.subLocations = observable(
       subLocations
@@ -217,12 +217,8 @@ export class ClientLocation {
       path: this.path,
       dateAdded: this.dateAdded,
       subLocations: this.subLocations.map((sl) => sl.serialize()),
-      index: this.index,
+      position: this.position,
     };
-  }
-
-  @action.bound setIndex(index: number): void {
-    this.index = index;
   }
 
   /** Cleanup resources */

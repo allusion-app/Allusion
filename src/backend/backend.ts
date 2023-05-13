@@ -86,7 +86,9 @@ export default class Backend implements IDataStorage {
 
   async fetchLocations(): Promise<LocationDTO[]> {
     console.info('Backend: Fetching locations...');
-    return this.locationRepository.getAllOrdered('dateAdded', OrderDirection.Asc);
+    const locations = await this.locationRepository.getAll();
+    locations.sort((a, b) => (a.position < b.position ? -1 : Number(a.position > b.position)));
+    return locations;
   }
 
   async fetchSearches(): Promise<FileSearchDTO[]> {
