@@ -10,6 +10,7 @@ import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import RootStore from './RootStore';
 import { ClientFile } from 'src/entities/File';
 import { PositionSource } from 'position-strings';
+import { move } from './move';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -107,6 +108,27 @@ class TagStore {
     return tag;
   }
 
+  @action move(parent: ClientTag, child: ClientTag, at: number) {
+    if (parent === child || parent.isAncestor(child) || child.id === ROOT_TAG_ID) {
+      return;
+    }
+
+    let currentIndex = 0;
+
+    if (parent === child.parent) {
+      currentIndex = parent.subTags.indexOf(child);
+    } else {
+      child.parent.subTags.remove(child);
+      child.setParent(parent);
+      // FIXME: Sub tags are ordered by position. A branchless binary search would probably be better.
+      const index = parent.subTags.findIndex((subTag) => subTag.position > child.position);
+      currentIndex = index === -1 ? parent.subTags.length : index;
+      parent.subTags.splice(currentIndex, 0, child);
+    }
+
+    move(parent.subTags, this.#positions, currentIndex, at);
+  }
+
   @action findByName(name: string): ClientTag | undefined {
     return this.tagList.find((t) => t.name === name);
   }
@@ -188,6 +210,7 @@ class TagStore {
 
       if (parentTag !== undefined) {
         tag.setParent(parentTag);
+        // FIXME: Sub tags are ordered by position. A branchless binary search would probably be better.
         const index = parentTag.subTags.findIndex((subTag) => subTag.position > tag.position);
         parentTag.subTags.splice(index === -1 ? parentTag.subTags.length : index, 0, tag);
       }

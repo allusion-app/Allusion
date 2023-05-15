@@ -123,7 +123,7 @@ const DnDHelper = createDragReorderHelper('tag-dnd-preview', DnDTagType);
 
 const TagItem = observer((props: ITagItemProps) => {
   const { nodeData, dispatch, expansion, isEditing, submit, pos, select } = props;
-  const { uiStore } = useStore();
+  const { uiStore, tagStore } = useStore();
   const dndData = useTagDnD();
 
   const show = useContextMenu();
@@ -231,14 +231,18 @@ const TagItem = observer((props: ITagItemProps) => {
         if (dndData.source?.isSelected) {
           if (relativeMovePos === 'middle') {
             uiStore.moveSelectedTagItems(nodeData.id);
+          } else if (relativeMovePos === -1) {
+            uiStore.moveSelectedTagItems(nodeData.parent.id, pos - 1);
           } else {
-            uiStore.moveSelectedTagItems(nodeData.parent.id, pos + relativeMovePos);
+            uiStore.moveSelectedTagItems(nodeData.parent.id, pos);
           }
         } else if (dndData.source !== undefined) {
           if (relativeMovePos === 'middle') {
-            nodeData.insertSubTag(dndData.source, 0);
+            tagStore.move(nodeData, dndData.source, 0);
+          } else if (relativeMovePos === -1) {
+            tagStore.move(nodeData.parent, dndData.source, pos - 1);
           } else {
-            nodeData.parent.insertSubTag(dndData.source, pos + relativeMovePos);
+            tagStore.move(nodeData.parent, dndData.source, pos);
           }
         }
       });
@@ -248,7 +252,7 @@ const TagItem = observer((props: ITagItemProps) => {
         setExpandTimeoutId(undefined);
       }
     },
-    [dispatch, dndData, expandTimeoutId, expansion, nodeData, pos, uiStore],
+    [dispatch, dndData, expandTimeoutId, expansion, nodeData, pos, tagStore, uiStore],
   );
 
   const handleSelect = useCallback(
@@ -520,7 +524,7 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
       uiStore.moveSelectedTagItems(ROOT_TAG_ID);
     } else if (dndData.source !== undefined) {
       const { root } = tagStore;
-      root.insertSubTag(dndData.source, root.subTags.length);
+      tagStore.move(root, dndData.source, root.subTags.length);
     }
   });
 

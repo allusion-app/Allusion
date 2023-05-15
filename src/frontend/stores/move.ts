@@ -1,8 +1,6 @@
 import { PositionSource } from 'position-strings';
 
-type ListItem = { id: string; position: string };
-
-export function moveBefore<T extends ListItem>(
+export function moveBefore<T extends { id: string; position: string }>(
   list: T[],
   positions: PositionSource,
   source: T,
@@ -12,7 +10,7 @@ export function moveBefore<T extends ListItem>(
   return move(list, positions, sourceIndex, targetIndex);
 }
 
-export function moveAfter<T extends ListItem>(
+export function moveAfter<T extends { id: string; position: string }>(
   list: T[],
   positions: PositionSource,
   source: T,
@@ -22,7 +20,7 @@ export function moveAfter<T extends ListItem>(
   return move(list, positions, sourceIndex, targetIndex + 1);
 }
 
-function findIndices<T extends ListItem>(
+function findIndices<T extends { id: string }>(
   list: T[],
   source: T,
   target: T,
@@ -48,15 +46,20 @@ function findIndices<T extends ListItem>(
 }
 
 /**
- * Moves item to target index.
+ * Moves an item to another index.
  *
- * The item's previous sibling becomes the target's previous and the next sibling becomes target.
+ * The item is removed and then inserted between the items at index `to - 1` and `to`
+ * (`list[to - 1] < list[from] < list[to]`).
  *
+ * @param list A sequence ordered by positions.
+ * @param positions The generator for this actor/device from which all positions in the items of list are created from.
  * @param from The index of the moved item. It must be a valid index from 0 to the length of the list (exclusive).
  * @param to The destination index of the item. Values from 0 to the length of the list (inclusive) are valid. It it is
  * the length of the list, it will put the item at the end.
+ * @returns Returns false if items are already ordered or indices of source and destination are the same. Otherwise
+ * true for a successful move operation.
  */
-function move<T extends ListItem>(
+export function move<T extends { position: string }>(
   list: T[],
   positions: PositionSource,
   from: number,

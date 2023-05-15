@@ -143,13 +143,13 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
       />
       <MenuDivider />
       <MenuItem
-        onClick={() => tag.parent.insertSubTag(tag, pos - 2)}
+        onClick={() => tagStore.move(tag.parent, tag, pos - 2)}
         text="Move Up"
         icon={IconSet.ITEM_MOVE_UP}
         disabled={pos === 1}
       />
       <MenuItem
-        onClick={() => tag.parent.insertSubTag(tag, pos + 1)}
+        onClick={() => tagStore.move(tag.parent, tag, pos + 1)}
         text="Move Down"
         icon={IconSet.ITEM_MOVE_DOWN}
         disabled={pos === tag.parent.subTags.length}
