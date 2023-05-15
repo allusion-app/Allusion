@@ -189,7 +189,7 @@ class TagStore {
       if (parentTag !== undefined) {
         tag.setParent(parentTag);
         const index = parentTag.subTags.findIndex((subTag) => subTag.position > tag.position);
-        parentTag.subTags.splice(index, 0, tag);
+        parentTag.subTags.splice(index === -1 ? parentTag.subTags.length : index, 0, tag);
       }
     }
 
