@@ -16,6 +16,7 @@ import { RendererMessenger } from 'src/ipc/renderer';
 import ImageLoader from '../image/ImageLoader';
 import RootStore from './RootStore';
 import { PositionSource } from 'position-strings';
+import { moveAfter, moveBefore } from './move';
 
 const PREFERENCES_STORAGE_KEY = 'location-store-preferences';
 type Preferences = { extensions: IMG_EXTENSIONS_TYPE[] };
@@ -515,24 +516,16 @@ class LocationStore {
     this.rootStore.fileStore.refetch();
   }
 
-  /** Source is moved to where Target currently is */
-  @action.bound async reorder(source: ClientLocation, target: ClientLocation) {
-    if (source === target) {
-      return;
+  @action async moveBefore(source: ClientLocation, target: ClientLocation) {
+    if (moveBefore(this.locationList, this.#positions, source, target)) {
+      return this.backend.saveLocation(source.serialize());
     }
+  }
 
-    const targetIndex = this.locationList.indexOf(target);
-    const position = this.#positions.createBetween(
-      targetIndex === 0 ? undefined : this.locationList.at(targetIndex - 1)?.position,
-      this.locationList.at(targetIndex + 1)?.position,
-    );
-
-    // Remove the source element and insert it at the target index
-    this.locationList.remove(source);
-    this.locationList.splice(targetIndex, 0, source);
-    source.position = position;
-
-    await this.backend.saveLocation(source.serialize());
+  @action async moveAfter(source: ClientLocation, target: ClientLocation) {
+    if (moveAfter(this.locationList, this.#positions, source, target)) {
+      return this.backend.saveLocation(source.serialize());
+    }
   }
 }
 

@@ -6,6 +6,7 @@ import { ClientFileSearchItem } from 'src/entities/SearchItem';
 import RootStore from './RootStore';
 import { PositionSource } from 'position-strings';
 import { SearchCriteria } from 'src/api/search-criteria';
+import { moveAfter, moveBefore } from './move';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -84,24 +85,16 @@ class SearchStore {
     await this.backend.saveSearch(search.serialize(this.rootStore));
   }
 
-  /** Source is moved to where Target currently is */
-  @action.bound async reorder(source: ClientFileSearchItem, target: ClientFileSearchItem) {
-    if (source === target) {
-      return;
+  @action async moveBefore(source: ClientFileSearchItem, target: ClientFileSearchItem) {
+    if (moveBefore(this.searchList, this.#positions, source, target)) {
+      return this.backend.saveSearch(source.serialize(this.rootStore));
     }
+  }
 
-    const targetIndex = this.searchList.indexOf(target);
-    const position = this.#positions.createBetween(
-      targetIndex === 0 ? undefined : this.searchList.at(targetIndex - 1)?.position,
-      this.searchList.at(targetIndex + 1)?.position,
-    );
-
-    // Remove the source element and insert it at the target index
-    this.searchList.remove(source);
-    this.searchList.splice(targetIndex, 0, source);
-    source.position = position;
-
-    await this.backend.saveSearch(source.serialize(this.rootStore));
+  @action async moveAfter(source: ClientFileSearchItem, target: ClientFileSearchItem) {
+    if (moveAfter(this.searchList, this.#positions, source, target)) {
+      return this.backend.saveSearch(source.serialize(this.rootStore));
+    }
   }
 
   save(search: ClientFileSearchItem) {

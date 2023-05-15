@@ -370,14 +370,11 @@ const Location = observer(
           if (relativeMovePos === 'middle') {
             // not possible for locations, no middle position allowed
           } else {
-            let target = nodeData;
             if (relativeMovePos === -1) {
-              const index = locationStore.locationList.indexOf(target) - 1;
-              if (index >= 0) {
-                target = locationStore.locationList[index];
-              }
+              locationStore.moveBefore(dndData.source, nodeData);
+            } else {
+              locationStore.moveAfter(dndData.source, nodeData);
             }
-            locationStore.reorder(dndData.source, target);
           }
         });
       },

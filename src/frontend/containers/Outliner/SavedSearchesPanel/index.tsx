@@ -211,14 +211,11 @@ const SearchItem = observer(
           if (relativeMovePos === 'middle') {
             // not possible for searches, no middle position allowed
           } else {
-            let target = nodeData;
             if (relativeMovePos === -1) {
-              const index = searchStore.searchList.indexOf(target) - 1;
-              if (index >= 0) {
-                target = searchStore.searchList[index];
-              }
+              searchStore.moveBefore(dndData.source, nodeData);
+            } else {
+              searchStore.moveAfter(dndData.source, nodeData);
             }
-            searchStore.reorder(dndData.source, target);
           }
         });
       },
