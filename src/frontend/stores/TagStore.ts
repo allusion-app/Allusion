@@ -29,13 +29,31 @@ class TagStore {
     makeObservable(this);
   }
 
-  async init() {
-    try {
-      const fetchedTags = await this.backend.fetchTags();
-      this.createTagGraph(fetchedTags);
-    } catch (err) {
-      console.log('Could not load tags', err);
+  @action init(backendTags: TagDTO[]): void {
+    // Create tags
+    for (const { id, name, dateAdded, color, isHidden, position } of backendTags) {
+      // Create entity and set properties
+      // We have to do this because JavaScript does not allow multiple constructor.
+      const tag = new ClientTag(this, id, name, dateAdded, color, isHidden, position);
+      // Add to index
+      this.tagGraph.set(tag.id, tag);
     }
+
+    // Set parent and add sub tags
+    for (const { id, parent } of backendTags) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const tag = this.tagGraph.get(id)!;
+      const parentTag = this.tagGraph.get(parent);
+
+      if (parentTag !== undefined) {
+        tag.setParent(parentTag);
+        // FIXME: Sub tags are ordered by position. A branchless binary search would probably be better.
+        const index = parentTag.subTags.findIndex((subTag) => subTag.position > tag.position);
+        parentTag.subTags.splice(index === -1 ? parentTag.subTags.length : index, 0, tag);
+      }
+    }
+
+    this.root.setParent(this.root);
   }
 
   @action.bound initializeFileCounts(files: ClientFile[]): void {
@@ -108,14 +126,15 @@ class TagStore {
     return tag;
   }
 
-  @action move(parent: ClientTag, child: ClientTag, at: number) {
+  @action move(parent: ClientTag, child: ClientTag, at: number): boolean {
     if (parent === child || parent.isAncestor(child) || child.id === ROOT_TAG_ID) {
-      return;
+      return false;
     }
 
+    const isChild = child.parent === parent;
     let currentIndex = 0;
 
-    if (parent === child.parent) {
+    if (isChild) {
       currentIndex = parent.subTags.indexOf(child);
     } else {
       child.parent.subTags.remove(child);
@@ -126,7 +145,7 @@ class TagStore {
       parent.subTags.splice(currentIndex, 0, child);
     }
 
-    move(parent.subTags, this.#positions, currentIndex, at);
+    return move(parent.subTags, this.#positions, currentIndex, at) || !isChild;
   }
 
   @action findByName(name: string): ClientTag | undefined {
@@ -190,33 +209,6 @@ class TagStore {
 
   save(tag: TagDTO) {
     this.backend.saveTag(tag);
-  }
-
-  @action private createTagGraph(backendTags: TagDTO[]) {
-    // Create tags
-    for (const { id, name, dateAdded, color, isHidden, position } of backendTags) {
-      // Create entity and set properties
-      // We have to do this because JavaScript does not allow multiple constructor.
-      const tag = new ClientTag(this, id, name, dateAdded, color, isHidden, position);
-      // Add to index
-      this.tagGraph.set(tag.id, tag);
-    }
-
-    // Set parent and add sub tags
-    for (const { id, parent } of backendTags) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const tag = this.tagGraph.get(id)!;
-      const parentTag = this.tagGraph.get(parent);
-
-      if (parentTag !== undefined) {
-        tag.setParent(parentTag);
-        // FIXME: Sub tags are ordered by position. A branchless binary search would probably be better.
-        const index = parentTag.subTags.findIndex((subTag) => subTag.position > tag.position);
-        parentTag.subTags.splice(index === -1 ? parentTag.subTags.length : index, 0, tag);
-      }
-    }
-
-    this.root.setParent(this.root);
   }
 }
 

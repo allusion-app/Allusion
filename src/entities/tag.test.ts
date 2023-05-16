@@ -1,55 +1,46 @@
 import TagStore from 'src/frontend/stores/TagStore';
-import { ClientTag } from './Tag';
 import { ROOT_TAG_ID } from '../api/tag';
 
-jest.mock('../frontend/stores/TagStore', () => ({
-  default: {
-    root: null,
-    isSelected: jest.fn().mockImplementation(() => false),
-  },
+jest.mock('../api/id', () => ({
+  // This makes me very unhappy.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  generateId: () => require('crypto').randomUUID(),
 }));
 
 describe('ClientTag', () => {
-  // const MockedTagStore = TagStore as jest.Mock<TagStore>;
-  // const MockedTagStore = mocked<TagStore>({});
-
-  const storeInstance = TagStore as unknown as TagStore;
-  storeInstance.isSearched = jest.fn().mockImplementation(() => false);
-
-  const createTag = (props: { id: string; name?: string; color?: string; isHidden?: boolean }) =>
-    new ClientTag(
-      storeInstance,
-      props.id,
-      props.name || props.id,
-      new Date(),
-      props.color || '',
-      props.isHidden || false,
-      '',
-    );
-
-  beforeAll(() => {
-    // Clear all instances and calls to constructor and all methods:
-    // MockedTagStore.mockClear();
-    jest.clearAllMocks();
-  });
-
-  it('should create an instance', () => {
-    expect(createTag({ id: 'myTag' })).toBeTruthy();
-  });
+  function createStore() {
+    const backend = {
+      createTag: async () => {},
+    } as any;
+    const rootStore = {} as any;
+    const store = new TagStore(backend, rootStore);
+    store.init([
+      {
+        id: ROOT_TAG_ID,
+        name: 'Root',
+        dateAdded: new Date(),
+        parent: '',
+        position: '',
+        color: '',
+        isHidden: false,
+      },
+    ]);
+    return store;
+  }
 
   describe('getAncestors', () => {
     it('should return nothing for the root tag', () => {
-      const tag = createTag({ id: ROOT_TAG_ID });
+      const store = createStore();
 
-      const ancestors = Array.from(tag.getAncestors());
+      const ancestors = Array.from(store.root.getAncestors());
 
       expect(ancestors).toHaveLength(0);
     });
 
-    it('should return the the tag itself', () => {
-      const tag = createTag({ id: 'myTag' });
-      const root = createTag({ id: ROOT_TAG_ID });
-      tag.setParent(root);
+    it('should return the tag itself', async () => {
+      const store = createStore();
+      const root = store.root;
+      const tag = await store.create(root, 'myTag');
 
       const ancestors = Array.from(tag.getAncestors());
 
@@ -57,12 +48,11 @@ describe('ClientTag', () => {
       expect(ancestors[0].id).toBe(tag.id);
     });
 
-    it('should return the tag itself, its parent and grand-parent', () => {
-      const tag = createTag({ id: 'myTag' });
-      const parent = createTag({ id: 'parent' });
-      const root = createTag({ id: ROOT_TAG_ID });
-      tag.setParent(parent);
-      parent.setParent(root);
+    it('should return the tag itself, its parent and grand-parent', async () => {
+      const store = createStore();
+      const root = store.root;
+      const parent = await store.create(root, 'parent');
+      const tag = await store.create(parent, 'myTag');
 
       const ancestors = Array.from(tag.getAncestors());
 
@@ -73,47 +63,38 @@ describe('ClientTag', () => {
   });
 
   describe('isAncestor', () => {
-    it('should be false when testing against itself', () => {
-      const root = createTag({ id: ROOT_TAG_ID });
-      const tag1 = createTag({ id: 'tag1' });
-
-      tag1.setParent(root);
+    it('should be false when testing against itself', async () => {
+      const store = createStore();
+      const root = store.root;
+      const tag1 = await store.create(root, 'tag1');
 
       expect(tag1.isAncestor(tag1)).toBeFalsy();
     });
 
-    it('should check if a tag is a direct parent', () => {
-      const root = createTag({ id: ROOT_TAG_ID });
-      const tag1 = createTag({ id: 'tag1' });
-      const tag2 = createTag({ id: 'tag2' });
-
-      tag1.setParent(root);
-      tag2.setParent(tag1);
+    it('should check if a tag is a direct parent', async () => {
+      const store = createStore();
+      const root = store.root;
+      const tag1 = await store.create(root, 'tag1');
+      const tag2 = await store.create(tag1, 'tag2');
 
       expect(tag2.isAncestor(tag1)).toBeTruthy();
     });
 
-    it('should be false when testing a child tag', () => {
-      const root = createTag({ id: ROOT_TAG_ID });
-      const tag1 = createTag({ id: 'tag1' });
-      const tag2 = createTag({ id: 'tag2' });
-
-      (storeInstance as any).root = root;
-      tag1.setParent(root);
-      tag2.setParent(tag1);
+    it('should be false when testing a child tag', async () => {
+      const store = createStore();
+      const root = store.root;
+      const tag1 = await store.create(root, 'tag1');
+      const tag2 = await store.create(tag1, 'tag2');
 
       expect(tag1.isAncestor(tag2)).toBeFalsy();
     });
 
-    it('should check if a tag is an indirect parent', () => {
-      const root = createTag({ id: ROOT_TAG_ID });
-      const tag1 = createTag({ id: 'tag1' });
-      const tag2 = createTag({ id: 'tag2' });
-      const tag3 = createTag({ id: 'tag3' });
-
-      tag1.setParent(root);
-      tag2.setParent(tag1);
-      tag3.setParent(tag2);
+    it('should check if a tag is an indirect parent', async () => {
+      const store = createStore();
+      const root = store.root;
+      const tag1 = await store.create(root, 'tag1');
+      const tag2 = await store.create(tag1, 'tag2');
+      const tag3 = await store.create(tag2, 'tag3');
 
       expect(tag3.isAncestor(tag1)).toBeTruthy();
     });
@@ -121,45 +102,38 @@ describe('ClientTag', () => {
 
   describe('insertSubTag', () => {
     it('should not allow a tag to be inserted on itself', () => {
-      const tag1 = createTag({ id: ROOT_TAG_ID });
-      expect(tag1.insertSubTag(tag1, 0)).toBeFalsy();
+      const store = createStore();
+      const tag1 = store.root;
+      expect(store.move(tag1, tag1, 0)).toBeFalsy();
     });
 
-    it('should not allow a tag to be inserted that is a parent of the given tag', () => {
-      const root = createTag({ id: ROOT_TAG_ID });
-      const tag1 = createTag({ id: 'tag1' });
-      const tag2 = createTag({ id: 'tag2' });
+    it('should not allow a tag to be inserted that is a parent of the given tag', async () => {
+      const store = createStore();
+      const root = store.root;
+      const tag1 = await store.create(root, 'tag1');
+      const tag2 = await store.create(tag1, 'tag2');
 
-      tag1.setParent(root);
-      tag2.setParent(tag1);
-
-      expect(tag2.insertSubTag(tag1, 0)).toBeFalsy();
+      expect(store.move(tag2, tag1, 0)).toBeFalsy();
       expect(tag2.parent).toBe(tag1);
     });
 
-    it('should insert a tag to its direct parent', () => {
-      const root = createTag({ id: ROOT_TAG_ID });
-      const tag1 = createTag({ id: 'tag1' });
-      const tag2 = createTag({ id: 'tag2' });
+    it('should not insert if parent and position do not change', async () => {
+      const store = createStore();
+      const root = store.root;
+      const tag1 = await store.create(root, 'tag1');
+      const tag2 = await store.create(tag1, 'tag2');
 
-      tag1.setParent(root);
-      tag2.setParent(tag1);
-      (storeInstance as any).root = root;
-
-      expect(tag1.insertSubTag(tag2, 0)).toBeTruthy();
+      expect(store.move(tag1, tag2, 0)).toBeFalsy();
       expect(tag2.parent).toBe(tag1);
     });
 
-    it('should insert a tag to an indirect parent', () => {
-      const root = createTag({ id: ROOT_TAG_ID });
-      const tag1 = createTag({ id: 'tag1' });
-      const tag2 = createTag({ id: 'tag2' });
+    it('should insert a tag to an indirect parent', async () => {
+      const store = createStore();
+      const root = store.root;
+      const tag1 = await store.create(root, 'tag1');
+      const tag2 = await store.create(tag1, 'tag2');
 
-      tag1.setParent(root);
-      tag2.setParent(tag1);
-      (storeInstance as any).root = root;
-
-      expect(root.insertSubTag(tag2, 0)).toBeTruthy();
+      expect(store.move(root, tag2, 0)).toBeTruthy();
       expect(tag2.parent).toBe(root);
     });
   });

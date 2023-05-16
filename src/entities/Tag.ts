@@ -152,32 +152,6 @@ export class ClientTag {
     this.color = color;
   }
 
-  @action.bound insertSubTag(tag: ClientTag, at: number): boolean {
-    if (this === tag || this.isAncestor(tag) || tag.id === ROOT_TAG_ID) {
-      return false;
-    }
-    // Move to different pos in same parent: Reorder tag.subTags and return
-    if (this === tag.parent) {
-      const currentIndex = this.subTags.indexOf(tag);
-      if (currentIndex !== at && at >= 0 && at <= this.subTags.length) {
-        // If moving below current position, take into account removing self affecting the index
-        const newIndex = currentIndex < at ? at - 1 : at;
-        this.subTags.remove(tag);
-        this.subTags.splice(newIndex, 0, tag);
-      }
-    } else {
-      // Insert subTag into tag
-      tag.parent.subTags.remove(tag);
-      if (at >= 0 && at < this.subTags.length) {
-        this.subTags.splice(at, 0, tag);
-      } else {
-        this.subTags.push(tag);
-      }
-      tag.setParent(this);
-    }
-    return true;
-  }
-
   @action.bound incrementFileCount(amount = 1): void {
     this.fileCount += amount;
   }
