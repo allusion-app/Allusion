@@ -39,6 +39,8 @@ class LocationStore {
   private readonly backend: IDataStorage;
   private readonly rootStore: RootStore;
 
+  // Right now the id is only set for better debugging. It should be `l${actorId}` if collaborative editing is ever
+  // implemented where actorId is a unique id between collaborators (which includes multiple devices of one user).
   readonly #positions = new PositionSource({ ID: 'l' });
   readonly locationList = observable<ClientLocation>([]);
 
