@@ -54,8 +54,6 @@ class TagStore {
         parentTag.subTags.splice(index === -1 ? parentTag.subTags.length : index, 0, tag);
       }
     }
-
-    this.root.setParent(this.root);
   }
 
   @action.bound initializeFileCounts(files: ClientFile[]): void {

@@ -67,7 +67,7 @@ export class ClientTag {
   /** Get actual tag objects based on the IDs retrieved from the backend */
   @computed get parent(): ClientTag {
     if (this._parent === undefined) {
-      console.warn('Tag does not have a parent', this);
+      console.assert(this.id === ROOT_TAG_ID, 'Tag does not have a parent', this);
       return this.store.root;
     }
     return this._parent;
@@ -140,7 +140,7 @@ export class ClientTag {
     return false;
   }
 
-  @action setParent(parent: ClientTag): void {
+  setParent(parent: ClientTag): void {
     this._parent = parent;
   }
 
