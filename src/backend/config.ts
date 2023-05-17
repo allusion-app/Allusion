@@ -113,11 +113,11 @@ export const dbConfig: DBVersioningConfig[] = [
           const source = new PositionSource({ ID: 's' });
           let position: string | undefined = undefined;
 
-          searches.forEach((search) => {
+          for (const search of searches) {
             delete search.index;
             position = source.createBetween(position);
             search.position = position;
-          });
+          }
 
           return tx.table('searches').bulkPut(searches);
         });
@@ -131,11 +131,11 @@ export const dbConfig: DBVersioningConfig[] = [
           const source = new PositionSource({ ID: 'l' });
           let position: string | undefined = undefined;
 
-          locations.forEach((location) => {
+          for (const location of locations) {
             delete location.index;
             position = source.createBetween(position);
             location.position = position;
-          });
+          }
 
           return tx.table('locations').bulkPut(locations);
         });
@@ -147,7 +147,7 @@ export const dbConfig: DBVersioningConfig[] = [
           const tagGraph = new Map();
           tags.forEach((tag) => tagGraph.set(tag.id, tag));
 
-          tags.forEach((tag) => {
+          for (const tag of tags) {
             let position: string | undefined = undefined;
 
             for (const subTagId of tag.subTags) {
@@ -163,7 +163,7 @@ export const dbConfig: DBVersioningConfig[] = [
             tag.parent = tag.parent ?? '';
             tag.position = tag.position ?? '';
             delete tag.subTags;
-          });
+          }
 
           return tx.table('tags').bulkPut(tags);
         });

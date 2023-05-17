@@ -32,13 +32,8 @@ class TagStore {
   }
 
   @action init(fetchedTags: TagDTO[]): void {
-    fetchedTags.sort((a, b) => {
-      if (a.parent === b.parent) {
-        return a.position < b.position ? -1 : Number(a.position > b.position);
-      } else {
-        return a.parent < b.parent ? -1 : 1;
-      }
-    });
+    // Sort tags beforehand, so when sub tags are inserted, they do not need to be sorted again.
+    fetchedTags.sort((a, b) => (a.position < b.position ? -1 : Number(a.position > b.position)));
 
     // Create tags
     for (const { id, name, dateAdded, color, isHidden, position } of fetchedTags) {
@@ -57,9 +52,8 @@ class TagStore {
 
       if (parentTag !== undefined) {
         tag.setParent(parentTag);
-        // FIXME: Sub tags are ordered by position. A branchless binary search would probably be better.
-        const index = parentTag.subTags.findIndex((subTag) => subTag.position > tag.position);
-        parentTag.subTags.splice(index === -1 ? parentTag.subTags.length : index, 0, tag);
+        // Sub tags were already sorted by position at the beginning.
+        parentTag.subTags.push(tag);
       }
     }
   }
@@ -147,7 +141,7 @@ class TagStore {
     } else {
       child.parent.subTags.remove(child);
       child.setParent(parent);
-      // FIXME: Sub tags are ordered by position. A branchless binary search would probably be better.
+      // FIXME: Sub tags are ordered by position. A binary search could be better.
       const index = parent.subTags.findIndex((subTag) => subTag.position > child.position);
       currentIndex = index === -1 ? parent.subTags.length : index;
       parent.subTags.splice(currentIndex, 0, child);
