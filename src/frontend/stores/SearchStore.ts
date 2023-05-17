@@ -7,6 +7,7 @@ import RootStore from './RootStore';
 import { PositionSource } from 'position-strings';
 import { SearchCriteria } from 'src/api/search-criteria';
 import { moveAfter, moveBefore } from './move';
+import { FileSearchDTO } from 'src/api/file-search';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -27,17 +28,21 @@ class SearchStore {
     makeObservable(this);
   }
 
-  async init() {
-    try {
-      const fetchedSearches = await this.backend.fetchSearches();
+  @action init(fetchedSearches: FileSearchDTO[]) {
+    fetchedSearches.sort((a, b) =>
+      a.position < b.position ? -1 : Number(a.position > b.position),
+    );
 
-      fetchedSearches.forEach((s) =>
-        this.searchList.push(
-          new ClientFileSearchItem(s.id, s.name, s.criteria, s.matchAny === true, s.position),
+    for (const search of fetchedSearches) {
+      this.searchList.push(
+        new ClientFileSearchItem(
+          search.id,
+          search.name,
+          search.criteria,
+          search.matchAny === true,
+          search.position,
         ),
       );
-    } catch (err) {
-      console.log('Could not load searches', err);
     }
   }
 

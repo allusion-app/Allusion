@@ -61,19 +61,21 @@ class RootStore {
       }
     });
 
-    const [, fetchedTags] = await Promise.all([
+    const [fetchedLocations, fetchedTags, fetchedSearches] = await Promise.all([
       // The location store must be initiated because the file entity constructor
       // uses the location reference to set values.
-      rootStore.locationStore.init(),
+      backend.fetchLocations(),
       // The tag store needs to be awaited because file entities have references
       // to tag entities.
       backend.fetchTags(),
+      backend.fetchSearches(),
       rootStore.exifTool.initialize(),
       rootStore.imageLoader.init(),
-      rootStore.searchStore.init(),
     ]);
 
+    rootStore.locationStore.init(fetchedLocations);
     rootStore.tagStore.init(fetchedTags);
+    rootStore.searchStore.init(fetchedSearches);
 
     // Restore preferences, which affects how the file store initializes
     // It depends on tag store being initialized for reconstructing search criteria
@@ -127,10 +129,10 @@ class RootStore {
       }
     });
 
-    const [, fetchedTags] = await Promise.all([
+    const [fetchedLocations, fetchedTags] = await Promise.all([
       // The location store must be initiated because the file entity constructor
       // uses the location reference to set values.
-      rootStore.locationStore.init(),
+      backend.fetchLocations(),
       // The tag store needs to be awaited because file entities have references
       // to tag entities.
       backend.fetchTags(),
@@ -140,6 +142,7 @@ class RootStore {
       // causing exiftool to keep running after quitting
     ]);
 
+    rootStore.locationStore.init(fetchedLocations);
     rootStore.tagStore.init(fetchedTags);
 
     // Restore preferences, which affects how the file store initializes

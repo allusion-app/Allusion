@@ -9,8 +9,8 @@ export class ClientFileSearchItem {
   readonly id: ID;
   @observable name: string = '';
   @observable matchAny: boolean = false;
-  position: string;
   readonly criteria: IObservableArray<ClientFileSearchCriteria>;
+  position: string;
 
   // TODO: also store sort mode? (filename, descending, etc)
   // Then it wouldn't be a "Saved Search", but a "Saved view" maybe?

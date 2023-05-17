@@ -55,7 +55,7 @@ class LocationStore {
     makeObservable(this);
   }
 
-  @action async init() {
+  @action init(fetchedLocations: LocationDTO[]) {
     // Restore preferences
     try {
       const prefs = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) || '') as Preferences;
@@ -67,24 +67,23 @@ class LocationStore {
       this.enabledFileExtensions.delete('exr');
     }
 
-    // Get dirs from backend
-    const dirs = await this.backend.fetchLocations();
+    fetchedLocations.sort((a, b) =>
+      a.position < b.position ? -1 : Number(a.position > b.position),
+    );
 
-    runInAction(() => {
-      dirs.forEach((dir) =>
-        this.locationList.push(
-          new ClientLocation(
-            this,
-            dir.id,
-            dir.path,
-            dir.dateAdded,
-            dir.subLocations,
-            Array.from(this.enabledFileExtensions),
-            dir.position,
-          ),
+    for (const location of fetchedLocations) {
+      this.locationList.push(
+        new ClientLocation(
+          this,
+          location.id,
+          location.path,
+          location.dateAdded,
+          location.subLocations,
+          Array.from(this.enabledFileExtensions),
+          location.position,
         ),
       );
-    });
+    }
   }
 
   save(loc: LocationDTO) {

@@ -5,7 +5,6 @@
 import { IS_DEV } from 'common/process';
 import { promiseRetry } from 'common/timeout';
 import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
-import { app } from 'electron';
 import { autorun, reaction, runInAction } from 'mobx';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
@@ -116,7 +115,7 @@ async function setupMainApp(backend: Backend): Promise<[RootStore, () => JSX.Ele
 
   // Runs operations to run before closing the app, e.g. closing child-processes
   // TODO: for async operations, look into https://github.com/electron/electron/issues/9433#issuecomment-960635576
-  window.addEventListener('beforeunload', (e) => {
+  window.addEventListener('beforeunload', () => {
     rootStore.close();
   });
 
@@ -179,7 +178,8 @@ async function setupPreviewApp(backend: Backend): Promise<[RootStore, () => JSX.
         files.some((f) => !rootStore.locationStore.locationList.find((l) => l.id === f.id)),
       );
       if (hasNewLocation) {
-        await rootStore.locationStore.init();
+        const fetchedLocations = await backend.fetchLocations();
+        rootStore.locationStore.init(fetchedLocations);
       }
 
       await rootStore.fileStore.updateFromBackend(files);

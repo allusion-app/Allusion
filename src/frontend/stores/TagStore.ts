@@ -31,9 +31,17 @@ class TagStore {
     makeObservable(this);
   }
 
-  @action init(backendTags: TagDTO[]): void {
+  @action init(fetchedTags: TagDTO[]): void {
+    fetchedTags.sort((a, b) => {
+      if (a.parent === b.parent) {
+        return a.position < b.position ? -1 : Number(a.position > b.position);
+      } else {
+        return a.parent < b.parent ? -1 : 1;
+      }
+    });
+
     // Create tags
-    for (const { id, name, dateAdded, color, isHidden, position } of backendTags) {
+    for (const { id, name, dateAdded, color, isHidden, position } of fetchedTags) {
       // Create entity and set properties
       // We have to do this because JavaScript does not allow multiple constructor.
       const tag = new ClientTag(this, id, name, dateAdded, color, isHidden, position);
@@ -42,7 +50,7 @@ class TagStore {
     }
 
     // Set parent and add sub tags
-    for (const { id, parent } of backendTags) {
+    for (const { id, parent } of fetchedTags) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const tag = this.tagGraph.get(id)!;
       const parentTag = this.tagGraph.get(parent);
