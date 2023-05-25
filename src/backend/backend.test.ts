@@ -1,6 +1,5 @@
 // Mocks the DBRepository file with the one defined in the __mocks__ directory
 jest.mock('./db-repository');
-jest.mock('./backup-scheduler');
 
 import Backend from './backend';
 import { TagDTO, ROOT_TAG_ID } from '../api/tag';
@@ -34,10 +33,14 @@ const mockFile: FileDTO = {
   tags: [mockTag.id],
 };
 
+function createBackend() {
+  return Backend.init({} as any, () => {});
+}
+
 describe('Backend', () => {
   describe('Tag API', () => {
     it('should be able to fetch a tag after adding it', async () => {
-      const backend = await Backend.init();
+      const backend = await createBackend();
       await backend.createTag({ ...mockTag });
       const dbTags = await backend.fetchTags();
       expect(dbTags).toHaveLength(2);
@@ -47,7 +50,7 @@ describe('Backend', () => {
 
     describe('removeTag', () => {
       it('should remove the tag from all files with that tag when removing that tag', async () => {
-        const backend = await Backend.init();
+        const backend = await createBackend();
         await backend.createTag({ ...mockTag });
         await backend.createFile({ ...mockFile, id: '1', tags: [mockTag.id] });
         await backend.createFile({ ...mockFile, id: '2' });
@@ -59,7 +62,7 @@ describe('Backend', () => {
       });
 
       it('should not remove other tags from the files of which a tag was deleted', async () => {
-        const backend = await Backend.init();
+        const backend = await createBackend();
         await backend.createTag({ ...mockTag, id: 'tag1' });
         await backend.createTag({ ...mockTag, id: 'tag2' });
         await backend.createFile({ ...mockFile, id: '1', tags: ['tag1', 'tag2'] });
@@ -76,7 +79,7 @@ describe('Backend', () => {
 
     describe('removeTags', () => {
       it('should remove only the tags that were deleted from the files that had them', async () => {
-        const backend = await Backend.init();
+        const backend = await createBackend();
         await backend.createTag({ ...mockTag, id: 'tag1' });
         await backend.createTag({ ...mockTag, id: 'tag2' });
         await backend.createTag({ ...mockTag, id: 'tag3' });

@@ -1,16 +1,12 @@
-import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
 import Dexie, { IndexableType } from 'dexie';
-import fse from 'fs-extra';
-import { RendererMessenger } from '../ipc/renderer';
+
 import { FileSearchDTO } from '../api/file-search';
 import { FileDTO } from '../api/file';
 import { ID } from '../api/id';
 import { LocationDTO } from '../api/location';
 import { ConditionDTO, OrderBy, OrderDirection } from '../api/data-storage-search';
 import { TagDTO, ROOT_TAG_ID } from '../api/tag';
-import BackupScheduler from './backup-scheduler';
-import { dbConfig, DB_NAME } from './config';
-import DBRepository, { dbDelete, dbInit } from './db-repository';
+import DBRepository, { dbDelete } from './db-repository';
 import { DataStorage } from '../api/data-storage';
 
 /**
@@ -25,22 +21,21 @@ export default class Backend implements DataStorage {
   #locations: DBRepository<LocationDTO>;
   #searches: DBRepository<FileSearchDTO>;
   #db: Dexie;
-  #backupScheduler: BackupScheduler;
+  #notifyChange: () => void;
 
-  private constructor() {
-    console.info(`Initializing database "${DB_NAME}"...`);
+  constructor(db: Dexie, notifyChange: () => void) {
+    console.info(`Initializing database "${db.name}"...`);
     // Initialize database tables
-    const db = dbInit(dbConfig, DB_NAME);
     this.#files = new DBRepository('files', db);
     this.#tags = new DBRepository('tags', db);
     this.#locations = new DBRepository('locations', db);
     this.#searches = new DBRepository('searches', db);
     this.#db = db;
-    this.#backupScheduler = new BackupScheduler(this);
+    this.#notifyChange = notifyChange;
   }
 
-  static async init(): Promise<Backend> {
-    const backend = new Backend();
+  static async init(db: Dexie, notifyChange: () => void): Promise<Backend> {
+    const backend = new Backend(db, notifyChange);
     // Create a root tag if it does not exist
     const tagCount = await backend.#tags.count();
     if (tagCount === 0) {
@@ -54,14 +49,6 @@ export default class Backend implements DataStorage {
       });
     }
     return backend;
-  }
-
-  async setupBackup(backupDirectory: string): Promise<void> {
-    try {
-      await this.#backupScheduler.initialize(backupDirectory);
-    } catch (e) {
-      console.error('Could not initialize backup scheduler', e);
-    }
   }
 
   async fetchTags(): Promise<TagDTO[]> {
@@ -108,7 +95,7 @@ export default class Backend implements DataStorage {
 
   async createTag(tag: TagDTO): Promise<void> {
     console.info('Backend: Creating tag...', tag);
-    this.#backupScheduler.notifyChange();
+    this.#notifyChange();
     return this.#tags.create(tag);
   }
 
@@ -119,37 +106,37 @@ export default class Backend implements DataStorage {
 
   async createLocation(location: LocationDTO): Promise<void> {
     console.info('Backend: Create location...', location);
-    this.#backupScheduler.notifyChange();
+    this.#notifyChange();
     return this.#locations.create(location);
   }
 
   async createSearch(search: FileSearchDTO): Promise<void> {
     console.info('Backend: Create search...', search);
-    this.#backupScheduler.notifyChange();
+    this.#notifyChange();
     return this.#searches.create(search);
   }
 
   async saveTag(tag: TagDTO): Promise<void> {
     console.info('Backend: Saving tag...', tag);
-    this.#backupScheduler.notifyChange();
+    this.#notifyChange();
     return this.#tags.update(tag);
   }
 
   async saveFiles(files: FileDTO[]): Promise<void> {
     console.info('Backend: Saving files...', files);
-    this.#backupScheduler.notifyChange();
+    this.#notifyChange();
     return this.#files.updateMany(files);
   }
 
   async saveLocation(location: LocationDTO): Promise<void> {
     console.info('Backend: Saving location...', location);
-    this.#backupScheduler.notifyChange();
+    this.#notifyChange();
     return this.#locations.update(location);
   }
 
   async saveSearch(search: FileSearchDTO): Promise<void> {
     console.info('Backend: Saving search...', search);
-    this.#backupScheduler.notifyChange();
+    this.#notifyChange();
     return this.#searches.update(search);
   }
 
@@ -171,7 +158,7 @@ export default class Backend implements DataStorage {
     // Update files in db
     await this.saveFiles(filesWithTags);
     // Remove tag from db
-    this.#backupScheduler.notifyChange();
+    this.#notifyChange();
     return this.#tags.removeMany(tags);
   }
 
@@ -193,13 +180,13 @@ export default class Backend implements DataStorage {
     // Update files in db
     await this.saveFiles(filesWithTags);
     // Remove tag from DB
-    this.#backupScheduler.notifyChange();
+    this.#notifyChange();
     await this.#tags.remove(tagToBeRemoved);
   }
 
   async removeFiles(files: ID[]): Promise<void> {
     console.info('Backend: Removing files...', files);
-    this.#backupScheduler.notifyChange();
+    this.#notifyChange();
     return this.#files.removeMany(files);
   }
 
@@ -212,13 +199,13 @@ export default class Backend implements DataStorage {
       valueType: 'string',
     });
     await this.removeFiles(filesWithLocation.map((f) => f.id));
-    this.#backupScheduler.notifyChange();
+    this.#notifyChange();
     return this.#locations.remove(location);
   }
 
   async removeSearch(search: ID): Promise<void> {
     console.info('Backend: Removing search...', search);
-    this.#backupScheduler.notifyChange();
+    this.#notifyChange();
     return this.#searches.remove(search);
   }
 
@@ -255,35 +242,6 @@ export default class Backend implements DataStorage {
 
   async clear(): Promise<void> {
     console.info('Clearing database...');
-    return dbDelete(DB_NAME);
-  }
-
-  async backupToFile(path: string): Promise<void> {
-    const blob = await exportDB(this.#db, { prettyJson: false });
-    // might be nice to zip it and encode as base64 to save space. Keeping it simple for now
-    await fse.ensureFile(path);
-    await fse.writeFile(path, await blob.text());
-  }
-
-  async restoreFromFile(path: string): Promise<void> {
-    const buffer = await fse.readFile(path);
-    const blob = new Blob([buffer]);
-    await this.clear();
-    console.log('Importing database backup', path);
-    await importDB(blob);
-    // There also is "importInto" which as an "clearTablesBeforeImport" option,
-    // but that didn't seem to work correctly (files were always re-created after restarting for some reason)
-  }
-
-  async peekFile(path: string): Promise<[numTags: number, numFiles: number]> {
-    const buffer = await fse.readFile(path);
-    const blob = new Blob([buffer]);
-    const metadata = await peakImportFile(blob); // heh, they made a typo
-    const tagsTable = metadata.data.tables.find((t) => t.name === 'tags');
-    const filesTable = metadata.data.tables.find((t) => t.name === 'files');
-    if (tagsTable && filesTable) {
-      return [tagsTable.rowCount, filesTable.rowCount];
-    }
-    throw new Error('Database does not contain a table for files and/or tags');
+    dbDelete(this.#db.name);
   }
 }

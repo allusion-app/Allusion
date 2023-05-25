@@ -1,6 +1,7 @@
 import { configure, runInAction } from 'mobx';
 
 import { DataStorage } from 'src/api/data-storage';
+import { DataBackup } from 'src/api/data-backup';
 
 import FileStore from './FileStore';
 import TagStore from './TagStore';
@@ -28,6 +29,9 @@ configure({ observableRequiresReaction: true, reactionRequiresObservable: true }
  * 3. Makes complex unit tests easy as you just have to instantiate a root store.
  */
 class RootStore {
+  readonly #backend: DataStorage;
+  readonly #backup: DataBackup;
+
   readonly tagStore: TagStore;
   readonly fileStore: FileStore;
   readonly locationStore: LocationStore;
@@ -38,7 +42,8 @@ class RootStore {
   readonly getWindowTitle: () => string;
 
   private constructor(
-    private backend: DataStorage,
+    backend: DataStorage,
+    backup: DataBackup,
     formatWindowTitle: (FileStore: FileStore, uiStore: UiStore) => string,
   ) {
     this.tagStore = new TagStore(backend, this);
@@ -46,13 +51,15 @@ class RootStore {
     this.locationStore = new LocationStore(backend, this);
     this.uiStore = new UiStore(this);
     this.searchStore = new SearchStore(backend, this);
+    this.#backend = backend;
+    this.#backup = backup;
     this.exifTool = new ExifIO(localStorage.getItem('hierarchical-separator') || undefined);
     this.imageLoader = new ImageLoader(this.exifTool);
     this.getWindowTitle = () => formatWindowTitle(this.fileStore, this.uiStore);
   }
 
-  static async main(backend: DataStorage): Promise<RootStore> {
-    const rootStore = new RootStore(backend, (fileStore, uiStore) => {
+  static async main(backend: DataStorage, backup: DataBackup): Promise<RootStore> {
+    const rootStore = new RootStore(backend, backup, (fileStore, uiStore) => {
       if (uiStore.isSlideMode && fileStore.fileList.length > 0) {
         const activeFile = fileStore.fileList[uiStore.firstItem];
         return `${activeFile.filename}.${activeFile.extension} - Allusion`;
@@ -113,8 +120,8 @@ class RootStore {
     return rootStore;
   }
 
-  static async preview(backend: DataStorage): Promise<RootStore> {
-    const rootStore = new RootStore(backend, (fileStore, uiStore) => {
+  static async preview(backend: DataStorage, backup: DataBackup): Promise<RootStore> {
+    const rootStore = new RootStore(backend, backup, (fileStore, uiStore) => {
       const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
       const index = uiStore.firstItem;
       if (index >= 0 && index < fileStore.fileList.length) {
@@ -150,19 +157,19 @@ class RootStore {
   }
 
   async backupDatabaseToFile(path: string): Promise<void> {
-    return this.backend.backupToFile(path);
+    return this.#backup.backupToFile(path);
   }
 
   async restoreDatabaseFromFile(path: string): Promise<void> {
-    return this.backend.restoreFromFile(path);
+    return this.#backup.restoreFromFile(path);
   }
 
   async peekDatabaseFile(path: string): Promise<[numTags: number, numFiles: number]> {
-    return this.backend.peekFile(path);
+    return this.#backup.peekFile(path);
   }
 
   async clearDatabase(): Promise<void> {
-    await this.backend.clear();
+    await this.#backend.clear();
     RendererMessenger.clearDatabase();
     this.uiStore.clearPersistentPreferences();
     this.fileStore.clearPersistentPreferences();

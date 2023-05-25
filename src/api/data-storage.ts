@@ -43,7 +43,4 @@ export interface DataStorage {
   removeSearch(search: ID): Promise<void>;
   countFiles(): Promise<[fileCount: number, untaggedFileCount: number]>;
   clear(): Promise<void>;
-  backupToFile(path: string): Promise<void>;
-  restoreFromFile(path: string): Promise<void>;
-  peekFile(path: string): Promise<[numTags: number, numFiles: number]>;
 }

@@ -282,7 +282,7 @@ export default class BaseRepository<T> implements IRepository<T> {
     ] as const;
 
     if ((dbStringOperators as readonly string[]).includes(crit.operator)) {
-      const funcName = crit.operator as unknown as typeof dbStringOperators[number];
+      const funcName = crit.operator as unknown as (typeof dbStringOperators)[number];
       return where[funcName](crit.value);
     }
     // Use normal string filter as fallback for functions not supported by the DB
