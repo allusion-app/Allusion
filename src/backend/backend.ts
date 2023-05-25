@@ -56,9 +56,9 @@ export default class Backend implements DataStorage {
     return backend;
   }
 
-  async setupBackup(): Promise<void> {
+  async setupBackup(backupDirectory: string): Promise<void> {
     try {
-      await this.#backupScheduler.initialize(await RendererMessenger.getDefaultBackupDirectory());
+      await this.#backupScheduler.initialize(backupDirectory);
     } catch (e) {
       console.error('Could not initialize backup scheduler', e);
     }

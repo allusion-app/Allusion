@@ -107,7 +107,7 @@ async function main(): Promise<void> {
 }
 
 async function setupMainApp(backend: Backend): Promise<[RootStore, () => JSX.Element]> {
-  const [rootStore] = await Promise.all([RootStore.main(backend), backend.setupBackup()]);
+  const [rootStore] = await Promise.all([RootStore.main(backend), backend.setupBackup(await RendererMessenger.getDefaultBackupDirectory())]);
   RendererMessenger.initialized();
 
   RendererMessenger.onClosedPreviewWindow(() => {

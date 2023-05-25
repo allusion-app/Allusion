@@ -1,13 +1,6 @@
 // Mocks the DBRepository file with the one defined in the __mocks__ directory
 jest.mock('./db-repository');
 jest.mock('./backup-scheduler');
-jest.mock('../ipc/renderer', () => ({
-  RendererMessenger: {
-    getDefaultBackupDirectory() {
-      return Promise.resolve('/tmp');
-    },
-  },
-}));
 
 import Backend from './backend';
 import { TagDTO, ROOT_TAG_ID } from '../api/tag';
