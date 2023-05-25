@@ -1,6 +1,6 @@
 import { configure, runInAction } from 'mobx';
 
-import { IDataStorage } from 'src/api/data-storage';
+import { DataStorage } from 'src/api/data-storage';
 
 import FileStore from './FileStore';
 import TagStore from './TagStore';
@@ -38,7 +38,7 @@ class RootStore {
   readonly getWindowTitle: () => string;
 
   private constructor(
-    private backend: IDataStorage,
+    private backend: DataStorage,
     formatWindowTitle: (FileStore: FileStore, uiStore: UiStore) => string,
   ) {
     this.tagStore = new TagStore(backend, this);
@@ -51,7 +51,7 @@ class RootStore {
     this.getWindowTitle = () => formatWindowTitle(this.fileStore, this.uiStore);
   }
 
-  static async main(backend: IDataStorage): Promise<RootStore> {
+  static async main(backend: DataStorage): Promise<RootStore> {
     const rootStore = new RootStore(backend, (fileStore, uiStore) => {
       if (uiStore.isSlideMode && fileStore.fileList.length > 0) {
         const activeFile = fileStore.fileList[uiStore.firstItem];
@@ -113,7 +113,7 @@ class RootStore {
     return rootStore;
   }
 
-  static async preview(backend: IDataStorage): Promise<RootStore> {
+  static async preview(backend: DataStorage): Promise<RootStore> {
     const rootStore = new RootStore(backend, (fileStore, uiStore) => {
       const PREVIEW_WINDOW_BASENAME = 'Allusion Quick View';
       const index = uiStore.firstItem;

@@ -6,7 +6,16 @@ import { ID } from './id';
 import { LocationDTO } from './location';
 import { TagDTO } from './tag';
 
-export interface IDataStorage {
+/**
+ * The user generated persisted data edited or viewed by one or multiple actors (users, multiple devices etc.).
+ *
+ * The document contains data about
+ * * files (index map),
+ * * tags (tree),
+ * * locations (list) and
+ * * searches (list).
+ */
+export interface DataStorage {
   fetchTags: () => Promise<TagDTO[]>;
   fetchFiles: (order: OrderBy<FileDTO>, fileOrder: OrderDirection) => Promise<FileDTO[]>;
   fetchFilesByID: (ids: ID[]) => Promise<FileDTO[]>;

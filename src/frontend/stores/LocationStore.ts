@@ -3,7 +3,7 @@ import { promiseAllLimit } from 'common/promise';
 import fse from 'fs-extra';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
-import { IDataStorage } from 'src/api/data-storage';
+import { DataStorage } from 'src/api/data-storage';
 import { OrderDirection } from 'src/api/data-storage-search';
 import { FileDTO, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/file';
 import { generateId, ID } from 'src/api/id';
@@ -34,7 +34,7 @@ function areFilesIdenticalBesidesName(a: FileDTO, b: FileDTO): boolean {
 }
 
 class LocationStore {
-  private readonly backend: IDataStorage;
+  private readonly backend: DataStorage;
   private readonly rootStore: RootStore;
 
   readonly locationList = observable<ClientLocation>([]);
@@ -43,7 +43,7 @@ class LocationStore {
   // TODO: Maybe per location/sub-location?
   readonly enabledFileExtensions = observable(new Set<IMG_EXTENSIONS_TYPE>());
 
-  constructor(backend: IDataStorage, rootStore: RootStore) {
+  constructor(backend: DataStorage, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
 

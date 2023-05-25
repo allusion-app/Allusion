@@ -1,6 +1,6 @@
 import { action, observable, computed, makeObservable } from 'mobx';
 
-import { IDataStorage } from 'src/api/data-storage';
+import { DataStorage } from 'src/api/data-storage';
 
 import { generateId, ID } from 'src/api/id';
 import { ClientTag } from 'src/entities/Tag';
@@ -14,13 +14,13 @@ import { ClientFile } from 'src/entities/File';
  * Based on https://mobx.js.org/best/store.html
  */
 class TagStore {
-  private readonly backend: IDataStorage;
+  private readonly backend: DataStorage;
   private readonly rootStore: RootStore;
 
   /** A lookup map to speedup finding entities */
   private readonly tagGraph = observable(new Map<ID, ClientTag>());
 
-  constructor(backend: IDataStorage, rootStore: RootStore) {
+  constructor(backend: DataStorage, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
 

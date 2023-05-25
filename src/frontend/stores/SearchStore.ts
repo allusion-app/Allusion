@@ -1,5 +1,5 @@
 import { action, makeObservable, observable } from 'mobx';
-import { IDataStorage } from 'src/api/data-storage';
+import { DataStorage } from 'src/api/data-storage';
 import { generateId, ID } from 'src/api/id';
 import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
 import { ClientFileSearchItem } from 'src/entities/SearchItem';
@@ -9,13 +9,13 @@ import RootStore from './RootStore';
  * Based on https://mobx.js.org/best/store.html
  */
 class SearchStore {
-  private readonly backend: IDataStorage;
+  private readonly backend: DataStorage;
   private readonly rootStore: RootStore;
 
   /** A lookup map to speedup finding entities */
   readonly searchList = observable<ClientFileSearchItem>([]);
 
-  constructor(backend: IDataStorage, rootStore: RootStore) {
+  constructor(backend: DataStorage, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
 

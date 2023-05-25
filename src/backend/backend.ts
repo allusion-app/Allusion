@@ -11,7 +11,7 @@ import { TagDTO, ROOT_TAG_ID } from '../api/tag';
 import BackupScheduler from './backup-scheduler';
 import { dbConfig, DB_NAME } from './config';
 import DBRepository, { dbDelete, dbInit } from './db-repository';
-import { IDataStorage } from '../api/data-storage';
+import { DataStorage } from '../api/data-storage';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -19,7 +19,7 @@ import { IDataStorage } from '../api/data-storage';
  * Whenever we want to change things in the backend, this should have no consequences in the frontend.
  * The backend has access to the database, which is exposed to the frontend through a set of endpoints.
  */
-export default class Backend implements IDataStorage {
+export default class Backend implements DataStorage {
   private fileRepository: DBRepository<FileDTO>;
   private tagRepository: DBRepository<TagDTO>;
   private locationRepository: DBRepository<LocationDTO>;
