@@ -26,8 +26,7 @@ import { FILE_STORAGE_KEY } from './frontend/stores/FileStore';
 import RootStore from './frontend/stores/RootStore';
 import { PREFERENCES_STORAGE_KEY } from './frontend/stores/UiStore';
 import BackupScheduler from './backend/backup-scheduler';
-import { dbInit } from './backend/db-repository';
-import { DB_NAME, dbConfig } from './backend/config';
+import { DB_NAME, dbInit } from './backend/config';
 
 async function main(): Promise<void> {
   // Render our react components in the div with id 'app' in the html file
@@ -41,7 +40,7 @@ async function main(): Promise<void> {
 
   root.render(<SplashScreen />);
 
-  const db = dbInit(dbConfig, DB_NAME);
+  const db = dbInit(DB_NAME);
 
   if (!IS_PREVIEW_WINDOW) {
     await runMainApp(db, root);

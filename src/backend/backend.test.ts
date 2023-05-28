@@ -1,10 +1,8 @@
-// Mocks the DBRepository file with the one defined in the __mocks__ directory
-jest.mock('./db-repository');
-
 import Backend from './backend';
 import { TagDTO, ROOT_TAG_ID } from '../api/tag';
 import { FileDTO } from '../api/file';
 import { OrderDirection } from '../api/data-storage-search';
+import { dbInit } from './config';
 
 const mockTag: TagDTO = {
   id: 'tag1',
@@ -34,7 +32,8 @@ const mockFile: FileDTO = {
 };
 
 function createBackend() {
-  return Backend.init({} as any, () => {});
+  const db = dbInit('Test');
+  return Backend.init(db, () => {});
 }
 
 describe('Backend', () => {

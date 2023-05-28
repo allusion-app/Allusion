@@ -5,7 +5,6 @@ import path from 'path';
 
 import { debounce } from 'common/timeout';
 import { NUM_AUTO_BACKUPS, AUTO_BACKUP_TIMEOUT } from './config';
-import { dbDelete } from './db-repository';
 import { DataBackup } from 'src/api/data-backup';
 
 /** Returns the date at 00:00 today */
@@ -120,7 +119,7 @@ export default class BackupScheduler implements DataBackup {
     const blob = new Blob([buffer]);
 
     console.debug('Clearing database...');
-    dbDelete(this.#db.name);
+    Dexie.delete(this.#db.name);
 
     await importDB(blob);
     // There also is "importInto" which as an "clearTablesBeforeImport" option,
