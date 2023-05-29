@@ -12,6 +12,9 @@ describe('TagStore', () => {
       const store = new TagStore(backend, {} as any);
       await store.init();
       await test(store);
+      // FIXME: That is kind of our fault for automatically making backend calls in MobX reactions.
+      // The delay is 500ms, so twice should hopefully suffice.
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     });
   }
 
