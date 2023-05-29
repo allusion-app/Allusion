@@ -1,7 +1,7 @@
-import { Transaction } from 'dexie';
-import { FileDTO } from 'src/api/file';
-import { DBVersioningConfig } from './db-repository';
+import Dexie, { Transaction } from 'dexie';
 import fse from 'fs-extra';
+
+import { FileDTO } from '../api/file';
 
 // The name of the IndexedDB
 export const DB_NAME = 'Allusion';
@@ -14,7 +14,7 @@ export const AUTO_BACKUP_TIMEOUT = 1000 * 60 * 10; // 10 minutes
 // Only for the indexes of the DB, not all fields
 // Versions help with upgrading DB to new configurations:
 // https://dexie.org/docs/Tutorial/Design#database-versioning
-export const dbConfig: DBVersioningConfig[] = [
+const dbConfig: DBVersioningConfig[] = [
   {
     // Version 4, 19-9-20: Added system created date
     version: 4,
@@ -97,3 +97,30 @@ export const dbConfig: DBVersioningConfig[] = [
     },
   },
 ];
+
+type DBVersioningConfig = {
+  version: number;
+  collections: Array<{ name: string; schema: string }>;
+  upgrade?: (tx: Transaction) => void | Promise<void>;
+};
+
+/**
+ * A function that should be called before using the database.
+ * It initializes the object stores
+ */
+export function dbInit(dbName: string): Dexie {
+  const db = new Dexie(dbName);
+
+  // Initialize for each DB version: https://dexie.org/docs/Tutorial/Design#database-versioning
+  for (const config of dbConfig) {
+    const { version, collections, upgrade } = config;
+    const dbSchema: { [key: string]: string } = {};
+    collections.forEach(({ name, schema }) => (dbSchema[name] = schema));
+    const stores = db.version(version).stores(dbSchema);
+    if (upgrade) {
+      stores.upgrade(upgrade);
+    }
+  }
+
+  return db;
+}

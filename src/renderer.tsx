@@ -2,13 +2,19 @@
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
 
+// Import the styles here to let Webpack know to include them
+// in the HTML file
+import './style.scss';
+
+import Dexie from 'dexie';
+import fse from 'fs-extra';
+import { autorun, reaction, runInAction } from 'mobx';
+import React from 'react';
+import { Root, createRoot } from 'react-dom/client';
+
 import { IS_DEV } from 'common/process';
 import { promiseRetry } from 'common/timeout';
 import { IS_PREVIEW_WINDOW, WINDOW_STORAGE_KEY } from 'common/window';
-import { app } from 'electron';
-import { autorun, reaction, runInAction } from 'mobx';
-import React from 'react';
-import { createRoot } from 'react-dom/client';
 import { RendererMessenger } from 'src/ipc/renderer';
 import Backend from './backend/backend';
 import App from './frontend/App';
@@ -19,11 +25,11 @@ import PreviewApp from './frontend/Preview';
 import { FILE_STORAGE_KEY } from './frontend/stores/FileStore';
 import RootStore from './frontend/stores/RootStore';
 import { PREFERENCES_STORAGE_KEY } from './frontend/stores/UiStore';
-// Import the styles here to let Webpack know to include them
-// in the HTML file
-import './style.scss';
+import BackupScheduler from './backend/backup-scheduler';
+import { DB_NAME, dbInit } from './backend/config';
 
 async function main(): Promise<void> {
+  // Render our react components in the div with id 'app' in the html file
   const container = document.getElementById('app');
 
   if (container === null) {
@@ -34,26 +40,67 @@ async function main(): Promise<void> {
 
   root.render(<SplashScreen />);
 
-  // Initialize the backend for the App, that serves as an API to the front-end
-  const backend = await Backend.init();
-  console.log('Backend has been initialized!');
+  const db = dbInit(DB_NAME);
 
-  const SPLASH_SCREEN_TIME = 1400;
+  if (!IS_PREVIEW_WINDOW) {
+    await runMainApp(db, root);
+  } else {
+    await runPreviewApp(db, root);
+  }
+}
 
-  const [[rootStore, Component]] = await Promise.all([
-    !IS_PREVIEW_WINDOW ? setupMainApp(backend) : setupPreviewApp(backend),
-    new Promise((resolve) => setTimeout(resolve, SPLASH_SCREEN_TIME)),
+async function runMainApp(db: Dexie, root: Root): Promise<void> {
+  const defaultBackupDirectory = await RendererMessenger.getDefaultBackupDirectory();
+  const backup = new BackupScheduler(db, defaultBackupDirectory);
+  const [backend] = await Promise.all([
+    Backend.init(db, () => backup.schedule()),
+    fse.ensureDir(defaultBackupDirectory),
   ]);
+
+  const rootStore = await RootStore.main(backend, backup);
+
+  RendererMessenger.initialized();
+
+  // Recover global preferences
+  try {
+    const window_preferences = localStorage.getItem(WINDOW_STORAGE_KEY);
+    if (window_preferences === null) {
+      localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: false }));
+    } else {
+      const prefs = JSON.parse(window_preferences);
+      if (prefs.isFullScreen === true) {
+        RendererMessenger.setFullScreen(true);
+        rootStore.uiStore.setFullScreen(true);
+      }
+    }
+  } catch (e) {
+    console.error('Cannot load window preferences', e);
+  }
+
+  // Debounced and automatic storing of preferences
+  reaction(
+    () => rootStore.fileStore.getPersistentPreferences(),
+    (preferences) => {
+      localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(preferences));
+    },
+    { delay: 200 },
+  );
+
+  reaction(
+    () => rootStore.uiStore.getPersistentPreferences(),
+    (preferences) => {
+      localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(preferences));
+    },
+    { delay: 200 },
+  );
 
   autorun(() => {
     document.title = rootStore.getWindowTitle();
   });
 
-  // Render our react components in the div with id 'app' in the html file
-  // The Provider component provides the state management for the application
   root.render(
     <StoreProvider value={rootStore}>
-      <Component />
+      <App />
       <Overlay />
     </StoreProvider>,
   );
@@ -104,11 +151,6 @@ async function main(): Promise<void> {
       throw new Error('Could not find image to set tags for ' + filePath);
     }
   }
-}
-
-async function setupMainApp(backend: Backend): Promise<[RootStore, () => JSX.Element]> {
-  const [rootStore] = await Promise.all([RootStore.main(backend), backend.setupBackup()]);
-  RendererMessenger.initialized();
 
   RendererMessenger.onClosedPreviewWindow(() => {
     rootStore.uiStore.closePreviewWindow();
@@ -116,75 +158,63 @@ async function setupMainApp(backend: Backend): Promise<[RootStore, () => JSX.Ele
 
   // Runs operations to run before closing the app, e.g. closing child-processes
   // TODO: for async operations, look into https://github.com/electron/electron/issues/9433#issuecomment-960635576
-  window.addEventListener('beforeunload', (e) => {
+  window.addEventListener('beforeunload', () => {
     rootStore.close();
   });
-
-  // Recover global preferences
-  try {
-    const window_preferences = localStorage.getItem(WINDOW_STORAGE_KEY);
-    if (window_preferences === null) {
-      localStorage.setItem(WINDOW_STORAGE_KEY, JSON.stringify({ isFullScreen: false }));
-    } else {
-      const prefs = JSON.parse(window_preferences);
-      if (prefs.isFullScreen === true) {
-        RendererMessenger.setFullScreen(true);
-        rootStore.uiStore.setFullScreen(true);
-      }
-    }
-  } catch (e) {
-    console.error('Cannot load window preferences', e);
-  }
-
-  // Debounced and automatic storing of preferences
-  reaction(
-    () => rootStore.fileStore.getPersistentPreferences(),
-    (preferences) => {
-      localStorage.setItem(FILE_STORAGE_KEY, JSON.stringify(preferences));
-    },
-    { delay: 200 },
-  );
-
-  reaction(
-    () => rootStore.uiStore.getPersistentPreferences(),
-    (preferences) => {
-      localStorage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(preferences));
-    },
-    { delay: 200 },
-  );
-
-  return [rootStore, App];
 }
 
-async function setupPreviewApp(backend: Backend): Promise<[RootStore, () => JSX.Element]> {
-  const rootStore = await RootStore.preview(backend);
-  rootStore.uiStore.enableSlideMode();
+async function runPreviewApp(db: Dexie, root: Root): Promise<void> {
+  const backend = new Backend(db, () => {});
+  const rootStore = await RootStore.preview(backend, new BackupScheduler(db, ''));
+
   RendererMessenger.initialized();
 
-  RendererMessenger.onReceivePreviewFiles(
-    async ({ ids, thumbnailDirectory, viewMethod, activeImgId }) => {
-      rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
-      rootStore.uiStore.setMethod(viewMethod);
-      rootStore.uiStore.enableSlideMode();
+  await new Promise<void>((executor) => {
+    let initRender: (() => void) | undefined = executor;
 
-      runInAction(() => {
-        rootStore.uiStore.isInspectorOpen = false;
-      });
+    RendererMessenger.onReceivePreviewFiles(
+      async ({ ids, thumbnailDirectory, viewMethod, activeImgId }) => {
+        rootStore.uiStore.setThumbnailDirectory(thumbnailDirectory);
+        rootStore.uiStore.setMethod(viewMethod);
+        rootStore.uiStore.enableSlideMode();
 
-      const files = await backend.fetchFilesByID(ids);
+        runInAction(() => {
+          rootStore.uiStore.isInspectorOpen = false;
+        });
 
-      // If a file has a location we don't know about (e.g. when a new location was added to the main window),
-      // re-fetch the locations in the preview window
-      const hasNewLocation = runInAction(() =>
-        files.some((f) => !rootStore.locationStore.locationList.find((l) => l.id === f.id)),
-      );
-      if (hasNewLocation) {
-        await rootStore.locationStore.init();
-      }
+        const files = await backend.fetchFilesByID(ids);
 
-      await rootStore.fileStore.updateFromBackend(files);
-      rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
-    },
+        // If a file has a location we don't know about (e.g. when a new location was added to the main window),
+        // re-fetch the locations in the preview window
+        const hasNewLocation = runInAction(() =>
+          files.some((f) => !rootStore.locationStore.locationList.find((l) => l.id === f.id)),
+        );
+        if (hasNewLocation) {
+          await rootStore.locationStore.init();
+        }
+
+        await rootStore.fileStore.updateFromBackend(files);
+        rootStore.uiStore.setFirstItem((activeImgId && ids.indexOf(activeImgId)) || 0);
+
+        if (initRender !== undefined) {
+          initRender();
+          initRender = undefined;
+        }
+      },
+    );
+  });
+
+  autorun(() => {
+    document.title = rootStore.getWindowTitle();
+  });
+
+  // Render our react components in the div with id 'app' in the html file
+  // The Provider component provides the state management for the application
+  root.render(
+    <StoreProvider value={rootStore}>
+      <PreviewApp />
+      <Overlay />
+    </StoreProvider>,
   );
 
   // Close preview with space
@@ -202,7 +232,6 @@ async function setupPreviewApp(backend: Backend): Promise<[RootStore, () => JSX.
       window.close();
     }
   });
-  return [rootStore, PreviewApp];
 }
 
 main()
