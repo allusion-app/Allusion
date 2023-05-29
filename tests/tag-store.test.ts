@@ -10,7 +10,7 @@ describe('TagStore', () => {
       const db = dbInit(`Test_${TEST_DATABASE_ID_COUNTER++}`);
       const backend = await Backend.init(db, () => {});
       const store = new TagStore(backend, {} as any);
-      await store.init();
+      store.init(await backend.fetchTags());
       await test(store);
       // FIXME: That is kind of our fault for automatically making backend calls in MobX reactions.
       // The delay is 500ms, so twice should hopefully suffice.
@@ -91,7 +91,7 @@ describe('TagStore', () => {
   describe('insertSubTag', () => {
     test('should not allow a tag to be inserted on itself', async (store) => {
       const tag1 = store.root;
-      expect(tag1.insertSubTag(tag1, 0)).toBeFalsy();
+      expect(store.move(tag1, tag1, 0)).toBeFalsy();
     });
 
     test('should not allow a tag to be inserted that is a parent of the given tag', async (store) => {
@@ -99,16 +99,16 @@ describe('TagStore', () => {
       const tag1 = await store.create(root, 'tag1');
       const tag2 = await store.create(tag1, 'tag2');
 
-      expect(tag2.insertSubTag(tag1, 0)).toBeFalsy();
+      expect(store.move(tag2, tag1, 0)).toBeFalsy();
       expect(tag2.parent).toBe(tag1);
     });
 
-    test('should insert a tag to its direct parent', async (store) => {
+    test('should not insert if parent and position do not change', async (store) => {
       const root = store.root;
       const tag1 = await store.create(root, 'tag1');
       const tag2 = await store.create(tag1, 'tag2');
 
-      expect(tag1.insertSubTag(tag2, 0)).toBeTruthy();
+      expect(store.move(tag1, tag2, 0)).toBeFalsy();
       expect(tag2.parent).toBe(tag1);
     });
 
@@ -117,7 +117,7 @@ describe('TagStore', () => {
       const tag1 = await store.create(root, 'tag1');
       const tag2 = await store.create(tag1, 'tag2');
 
-      expect(root.insertSubTag(tag2, 0)).toBeTruthy();
+      expect(store.move(root, tag2, 0)).toBeTruthy();
       expect(tag2.parent).toBe(root);
     });
   });

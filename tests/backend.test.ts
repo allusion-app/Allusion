@@ -20,7 +20,8 @@ describe('Backend', () => {
     name: 'tag1 name',
     dateAdded: new Date(),
     color: '',
-    subTags: [],
+    parent: '',
+    position: '',
     isHidden: false,
   };
 
