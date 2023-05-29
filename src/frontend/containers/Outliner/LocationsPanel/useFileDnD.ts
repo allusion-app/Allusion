@@ -2,13 +2,14 @@ import { humanFileSize } from 'common/fmt';
 import fse from 'fs-extra';
 import path from 'path';
 import { useCallback, useState } from 'react';
-import { ClientFile } from 'src/entities/File';
-import { ClientLocation } from 'src/entities/Location';
-import { AppToaster } from 'src/frontend/components/Toaster';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
-import FileStore from 'src/frontend/stores/FileStore';
-import { RendererMessenger } from 'src/ipc/renderer';
+
+import { RendererMessenger } from '../../../../ipc/renderer';
+import { AppToaster } from '../../../components/Toaster';
+import { useStore } from '../../../contexts/StoreContext';
+import { DnDAttribute } from '../../../contexts/TagDnDContext';
+import { ClientFile } from '../../../entities/File';
+import { ClientLocation } from '../../../entities/Location';
+import FileStore from '../../../stores/FileStore';
 import { IExpansionState } from '../../types';
 import {
   findDroppedFileMatches,

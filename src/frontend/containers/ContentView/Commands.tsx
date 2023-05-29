@@ -1,13 +1,13 @@
 import { action } from 'mobx';
-import React from 'react';
-import { useEffect } from 'react';
-import { ClientFile } from 'src/entities/File';
-import { ClientTag } from 'src/entities/Tag';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import { DnDAttribute, DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
-import { RendererMessenger } from 'src/ipc/renderer';
+import React, { useEffect } from 'react';
+
 import { IconSet } from 'widgets/Icons';
 import { Menu, MenuDivider, MenuSubItem, useContextMenu } from 'widgets/menus';
+import { RendererMessenger } from '../../../ipc/renderer';
+import { useStore } from '../../contexts/StoreContext';
+import { DnDAttribute, DnDTagType, useTagDnD } from '../../contexts/TagDnDContext';
+import { ClientFile } from '../../entities/File';
+import { ClientTag } from '../../entities/Tag';
 import { LayoutMenuItems, SortMenuItems } from '../AppToolbar/Menus';
 import {
   ExternalAppMenuItems,

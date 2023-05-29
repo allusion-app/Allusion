@@ -1,7 +1,7 @@
-import React, { useRef } from 'react';
 import { observer } from 'mobx-react-lite';
+import React, { useRef } from 'react';
 
-import { useStore } from 'src/frontend/contexts/StoreContext';
+import { useStore } from '../../contexts/StoreContext';
 
 const Searchbar = observer(() => {
   const { uiStore } = useStore();
@@ -26,13 +26,13 @@ const Searchbar = observer(() => {
 export default Searchbar;
 
 import {
-  CustomKeyDict,
   ClientStringSearchCriteria,
   ClientTagSearchCriteria,
-} from 'src/entities/SearchCriteria';
-import { ClientTag } from 'src/entities/Tag';
+  CustomKeyDict,
+} from 'src/frontend/entities/SearchCriteria';
+import { ClientTag } from 'src/frontend/entities/Tag';
 
-import { IconButton, IconSet, Tag, Row } from 'widgets';
+import { IconButton, IconSet, Row, Tag } from 'widgets';
 
 import { TagSelector } from 'src/frontend/components/TagSelector';
 import { useAction, useComputed } from 'src/frontend/hooks/mobx';

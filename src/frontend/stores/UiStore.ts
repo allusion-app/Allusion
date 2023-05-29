@@ -1,16 +1,17 @@
 import { shell } from 'electron';
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable } from 'mobx';
-import { ClientFile } from 'src/entities/File';
-import { ID } from 'src/api/id';
-import { ClientFileSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { SearchCriteria } from 'src/api/search-criteria';
-import { ClientTag } from 'src/entities/Tag';
-import { RendererMessenger } from 'src/ipc/renderer';
-import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
-import { clamp, notEmpty } from 'common/core';
-import RootStore from './RootStore';
+
 import { maxNumberOfExternalFilesBeforeWarning } from 'common/config';
+import { clamp, notEmpty } from 'common/core';
+import { ID } from '../../api/id';
+import { SearchCriteria } from '../../api/search-criteria';
+import { RendererMessenger } from '../../ipc/renderer';
+import { ClientFile } from '../entities/File';
+import { ClientFileSearchCriteria, ClientTagSearchCriteria } from '../entities/SearchCriteria';
+import { ClientTag } from '../entities/Tag';
+import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
+import RootStore from './RootStore';
 
 export const enum ViewMethod {
   List,

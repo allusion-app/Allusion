@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
 import fse from 'fs-extra';
 import { observer } from 'mobx-react-lite';
 import Path from 'path';
+import React, { useState } from 'react';
 
-import { RendererMessenger } from 'src/ipc/renderer';
-import { IMG_EXTENSIONS } from 'src/api/file';
-import { ClientLocation } from 'src/entities/Location';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import LocationStore from 'src/frontend/stores/LocationStore';
 import { Button, IconSet } from 'widgets';
 import { Dialog } from 'widgets/popovers';
-import { AppToaster } from 'src/frontend/components/Toaster';
+import { IMG_EXTENSIONS } from '../../../../api/file';
+import { RendererMessenger } from '../../../../ipc/renderer';
+import { AppToaster } from '../../../components/Toaster';
+import { useStore } from '../../../contexts/StoreContext';
+import { ClientLocation } from '../../../entities/Location';
+import LocationStore from '../../../stores/LocationStore';
 
 interface IMatch {
   locationImageCount: number;

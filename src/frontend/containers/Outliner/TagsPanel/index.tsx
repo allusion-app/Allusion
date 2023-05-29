@@ -1,16 +1,14 @@
-import React, { useCallback } from 'react';
-import { comboMatches, getKeyCombo, parseKeyCombo } from '../../../hotkeyParser';
 import { observer } from 'mobx-react-lite';
-
-import { useStore } from '../../../contexts/StoreContext';
+import React, { useCallback } from 'react';
 
 import { IconSet } from 'widgets';
-import { Toolbar, ToolbarButton } from 'widgets/menus';
-
-import TagsTree from './TagsTree';
-import { useAction } from 'src/frontend/hooks/mobx';
-import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
 import { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
+import { Toolbar, ToolbarButton } from 'widgets/menus';
+import { useStore } from '../../../contexts/StoreContext';
+import { ClientTagSearchCriteria } from '../../../entities/SearchCriteria';
+import { useAction } from '../../../hooks/mobx';
+import { comboMatches, getKeyCombo, parseKeyCombo } from '../../../hotkeyParser';
+import TagsTree from './TagsTree';
 
 // Tooltip info
 const enum TooltipInfo {

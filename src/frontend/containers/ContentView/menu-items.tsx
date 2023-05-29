@@ -1,21 +1,22 @@
 import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
+import SysPath from 'path';
 import React from 'react';
-import { ClientFile } from 'src/entities/File';
+
+import { IconSet } from 'widgets';
+import { MenuItem, MenuRadioItem, MenuSubItem } from 'widgets/menus';
+import { useStore } from '../../contexts/StoreContext';
+import { ClientFile } from '../../entities/File';
 import {
   ClientDateSearchCriteria,
   ClientFileSearchCriteria,
   ClientNumberSearchCriteria,
   ClientStringSearchCriteria,
   ClientTagSearchCriteria,
-} from 'src/entities/SearchCriteria';
-import { ClientTag } from 'src/entities/Tag';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import { IconSet } from 'widgets';
-import { MenuItem, MenuRadioItem, MenuSubItem } from 'widgets/menus';
+} from '../../entities/SearchCriteria';
+import { ClientTag } from '../../entities/Tag';
 import { LocationTreeItemRevealer } from '../Outliner/LocationsPanel';
 import { TagsTreeItemRevealer } from '../Outliner/TagsPanel/TagsTree';
-import SysPath from 'path';
 
 export const MissingFileMenuItems = observer(() => {
   const { uiStore, fileStore } = useStore();

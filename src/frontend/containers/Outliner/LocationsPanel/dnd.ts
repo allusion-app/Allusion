@@ -1,15 +1,16 @@
 import fse from 'fs-extra';
+import { action } from 'mobx';
 import path from 'path';
-import { ClientFile } from 'src/entities/File';
-import { IMG_EXTENSIONS } from 'src/api/file';
-import { ALLOWED_DROP_TYPES } from 'src/frontend/contexts/DropContext';
+
 import { retainArray } from 'common/core';
 import { timeoutPromise } from 'common/timeout';
-import { StoreFileMessage } from 'src/ipc/messages';
-import { RendererMessenger } from 'src/ipc/renderer';
-import { DnDAttribute } from 'src/frontend/contexts/TagDnDContext';
-import FileStore from 'src/frontend/stores/FileStore';
-import { action } from 'mobx';
+import { IMG_EXTENSIONS } from '../../../../api/file';
+import { StoreFileMessage } from '../../../../ipc/messages';
+import { RendererMessenger } from '../../../../ipc/renderer';
+import { ALLOWED_DROP_TYPES } from '../../../contexts/DropContext';
+import { DnDAttribute } from '../../../contexts/TagDnDContext';
+import { ClientFile } from '../../../entities/File';
+import FileStore from '../../../stores/FileStore';
 
 const ALLOWED_FILE_DROP_TYPES = IMG_EXTENSIONS.map((ext) => `image/${ext}`);
 

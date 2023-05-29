@@ -1,12 +1,12 @@
-import React from 'react';
 import { observer } from 'mobx-react-lite';
+import React from 'react';
 import { HexColorPicker } from 'react-colorful';
 
-import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientTag } from 'src/entities/Tag';
-import { useStore } from 'src/frontend/contexts/StoreContext';
 import { IconSet } from 'widgets';
-import { MenuDivider, MenuItem, MenuSubItem, Menu, MenuCheckboxItem } from 'widgets/menus';
+import { Menu, MenuCheckboxItem, MenuDivider, MenuItem, MenuSubItem } from 'widgets/menus';
+import { useStore } from '../../../contexts/StoreContext';
+import { ClientTagSearchCriteria } from '../../../entities/SearchCriteria';
+import { ClientTag } from '../../../entities/Tag';
 import { Action, Factory } from './state';
 
 const defaultColorOptions = [

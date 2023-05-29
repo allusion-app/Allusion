@@ -1,18 +1,19 @@
-import { getThumbnailPath } from 'common/fs';
-import { promiseAllLimit } from 'common/promise';
 import fse from 'fs-extra';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
-import { DataStorage } from 'src/api/data-storage';
-import { OrderDirection } from 'src/api/data-storage-search';
-import { FileDTO, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/file';
-import { generateId, ID } from 'src/api/id';
-import { LocationDTO } from 'src/api/location';
-import { getMetaData, mergeMovedFile } from 'src/entities/File';
-import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
-import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
-import { AppToaster } from 'src/frontend/components/Toaster';
-import { RendererMessenger } from 'src/ipc/renderer';
+
+import { getThumbnailPath } from 'common/fs';
+import { promiseAllLimit } from 'common/promise';
+import { DataStorage } from '../../api/data-storage';
+import { OrderDirection } from '../../api/data-storage-search';
+import { FileDTO, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from '../../api/file';
+import { ID, generateId } from '../../api/id';
+import { LocationDTO } from '../../api/location';
+import { RendererMessenger } from '../../ipc/renderer';
+import { AppToaster } from '../components/Toaster';
+import { getMetaData, mergeMovedFile } from '../entities/File';
+import { ClientLocation, ClientSubLocation } from '../entities/Location';
+import { ClientStringSearchCriteria } from '../entities/SearchCriteria';
 import ImageLoader from '../image/ImageLoader';
 import RootStore from './RootStore';
 

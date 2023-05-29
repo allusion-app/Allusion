@@ -3,9 +3,9 @@ import { action, computed, makeObservable, observable } from 'mobx';
 import { DataStorage } from '../../api/data-storage';
 import { generateId, ID } from '../../api/id';
 import { ROOT_TAG_ID, TagDTO } from '../../api/tag';
-import { ClientFile } from '../../entities/File';
-import { ClientTagSearchCriteria } from '../../entities/SearchCriteria';
-import { ClientTag } from '../../entities/Tag';
+import { ClientFile } from '../entities/File';
+import { ClientTagSearchCriteria } from '../entities/SearchCriteria';
+import { ClientTag } from '../entities/Tag';
 import RootStore from './RootStore';
 
 /**

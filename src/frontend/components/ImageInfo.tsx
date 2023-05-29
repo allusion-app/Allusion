@@ -1,14 +1,15 @@
 import fse from 'fs-extra';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
-import { ClientFile } from 'src/entities/File';
-import { useStore } from '../contexts/StoreContext';
-import { usePromise } from '../hooks/usePromise';
+
 import { formatDateTime, humanFileSize } from 'common/fmt';
 import { IconSet } from 'widgets/Icons';
 import { Toolbar, ToolbarButton } from 'widgets/Toolbar';
-import { AppToaster } from './Toaster';
-import { RendererMessenger } from 'src/ipc/renderer';
+import { RendererMessenger } from '../../ipc/renderer';
+import { useStore } from '../contexts/StoreContext';
+import { ClientFile } from '../entities/File';
+import { usePromise } from '../hooks/usePromise';
 import ExternalLink from './ExternalLink';
+import { AppToaster } from './Toaster';
 
 type CommonMetadata = {
   name: string;

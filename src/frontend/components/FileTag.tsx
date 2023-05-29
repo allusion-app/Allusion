@@ -1,13 +1,14 @@
 import { observer } from 'mobx-react-lite';
 import React, { useCallback } from 'react';
-import { ClientFile } from 'src/entities/File';
-import { IconSet } from 'widgets/Icons';
+
 import { Row } from 'widgets';
-import { useStore } from '../contexts/StoreContext';
-import { TagSelector } from './TagSelector';
-import { FileTagMenuItems } from '../containers/ContentView/menu-items';
-import { ClientTag } from 'src/entities/Tag';
+import { IconSet } from 'widgets/Icons';
 import { Menu, useContextMenu } from 'widgets/menus';
+import { FileTagMenuItems } from '../containers/ContentView/menu-items';
+import { useStore } from '../contexts/StoreContext';
+import { ClientFile } from '../entities/File';
+import { ClientTag } from '../entities/Tag';
+import { TagSelector } from './TagSelector';
 
 interface IFileTagProp {
   file: ClientFile;

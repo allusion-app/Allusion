@@ -1,13 +1,14 @@
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useLayoutEffect, useRef, useState } from 'react';
+
 import { thumbnailMaxSize } from 'common/config';
-import { ClientFile } from 'src/entities/File';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import useMountState from 'src/frontend/hooks/useMountState';
 import { debouncedThrottle } from 'common/timeout';
+import { useStore } from '../../../contexts/StoreContext';
+import { ClientFile } from '../../../entities/File';
+import useMountState from '../../../hooks/useMountState';
 import { MasonryCell } from '../GalleryItem';
-import { findViewportEdge, Layouter } from './layout-helpers';
+import { Layouter, findViewportEdge } from './layout-helpers';
 
 interface IRendererProps {
   containerHeight: number;

@@ -1,8 +1,9 @@
 import { action, makeObservable, observable } from 'mobx';
-import { DataStorage } from 'src/api/data-storage';
-import { generateId, ID } from 'src/api/id';
-import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientFileSearchItem } from 'src/entities/SearchItem';
+
+import { DataStorage } from '../../api/data-storage';
+import { ID, generateId } from '../../api/id';
+import { ClientFileSearchCriteria } from '../entities/SearchCriteria';
+import { ClientFileSearchItem } from '../entities/SearchItem';
 import RootStore from './RootStore';
 
 /**

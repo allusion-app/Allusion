@@ -1,23 +1,24 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, {
-  useRef,
+  ForwardedRef,
+  forwardRef,
+  memo,
   useCallback,
   useEffect,
   useLayoutEffect,
+  useRef,
   useState,
-  memo,
-  ForwardedRef,
-  forwardRef,
 } from 'react';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
-import { OrderDirection } from 'src/api/data-storage-search';
-import { ClientFile } from 'src/entities/File';
-import { FileDTO } from 'src/api/file';
+
 import { debouncedThrottle } from 'common/timeout';
-import { GalleryProps } from './utils';
-import { useStore } from 'src/frontend/contexts/StoreContext';
+import { OrderDirection } from '../../../api/data-storage-search';
+import { FileDTO } from '../../../api/file';
+import { useStore } from '../../contexts/StoreContext';
+import { ClientFile } from '../../entities/File';
 import { Row } from './ListItem';
+import { GalleryProps } from './utils';
 
 /** Generates a unique key for an element in the fileList */
 const getItemKey = action((index: number, data: ClientFile[]): string => {

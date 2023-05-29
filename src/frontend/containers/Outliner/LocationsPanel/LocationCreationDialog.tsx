@@ -1,14 +1,15 @@
 import { when } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import { useAutorun } from 'src/frontend/hooks/mobx';
+
 import { Button } from 'widgets';
 import { Checkbox } from 'widgets/Checkbox';
 import { IconSet } from 'widgets/Icons';
-import { Dialog } from 'widgets/popovers';
 import Tree, { ITreeItem } from 'widgets/Tree';
+import { Dialog } from 'widgets/popovers';
+import { useStore } from '../../../contexts/StoreContext';
+import { ClientLocation, ClientSubLocation } from '../../../entities/Location';
+import { useAutorun } from '../../../hooks/mobx';
 import { IExpansionState } from '../../types';
 
 interface ITreeData {
