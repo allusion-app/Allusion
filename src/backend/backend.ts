@@ -1,9 +1,7 @@
 import Dexie, { Collection, IndexableType, Table, WhereClause } from 'dexie';
 
-import { FileSearchDTO } from '../api/file-search';
-import { FileDTO } from '../api/file';
-import { ID } from '../api/id';
-import { LocationDTO } from '../api/location';
+import { retainArray, shuffleArray } from '../../common/core';
+import { DataStorage } from '../api/data-storage';
 import {
   ArrayConditionDTO,
   ConditionDTO,
@@ -13,9 +11,11 @@ import {
   OrderDirection,
   StringConditionDTO,
 } from '../api/data-storage-search';
-import { TagDTO, ROOT_TAG_ID } from '../api/tag';
-import { DataStorage } from '../api/data-storage';
-import { retainArray, shuffleArray } from 'common/core';
+import { FileDTO } from '../api/file';
+import { FileSearchDTO } from '../api/file-search';
+import { ID } from '../api/id';
+import { LocationDTO } from '../api/location';
+import { ROOT_TAG_ID, TagDTO } from '../api/tag';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -123,11 +123,6 @@ export default class Backend implements DataStorage {
     console.info('Backend: Creating tag...', tag);
     await this.#tags.add(tag);
     this.#notifyChange();
-  }
-
-  async createFile(file: FileDTO): Promise<void> {
-    console.info('Backend: Creating file...', file);
-    await this.#files.add(file);
   }
 
   async createLocation(location: LocationDTO): Promise<void> {

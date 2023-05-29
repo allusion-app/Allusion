@@ -16,11 +16,11 @@
     "lib": ["dom", "esnext", "webworker"],
     "moduleResolution": "node",
     "experimentalDecorators": true,
-    "useDefineForClassFields": true,
+	"useDefineForClassFields": true,
     "useUnknownInCatchVariables": false,
     "strict": true, 
     "isolatedModules": true
   },
-  "include": ["widgets/**/*", "src/**/*", "custom.d.ts", "wasm/**/*", "common/**/*"],
+  "include": ["widgets/**/*", "src/**/*", "custom.d.ts", "wasm/**/*", "common/**/*", "tests/**/*"],
   "exclude": ["**/node_modules", "**/.*/*", "dist", "resources", "build"]
 }

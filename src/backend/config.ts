@@ -1,6 +1,7 @@
 import Dexie, { Transaction } from 'dexie';
-import { FileDTO } from 'src/api/file';
 import fse from 'fs-extra';
+
+import { FileDTO } from '../api/file';
 
 // The name of the IndexedDB
 export const DB_NAME = 'Allusion';

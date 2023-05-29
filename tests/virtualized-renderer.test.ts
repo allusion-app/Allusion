@@ -1,4 +1,7 @@
-import { findViewportEdge, Layouter } from './layout-helpers';
+import {
+  findViewportEdge,
+  Layouter,
+} from '../src/frontend/containers/ContentView/Masonry/layout-helpers';
 
 // Simple linear layout: One image per row
 const linearLayout: Layouter = {

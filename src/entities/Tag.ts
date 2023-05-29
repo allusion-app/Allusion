@@ -1,10 +1,9 @@
-import { MAX_TAG_DEPTH } from 'common/config';
-import { IReactionDisposer, observable, reaction, computed, action, makeObservable } from 'mobx';
+import { IReactionDisposer, action, computed, makeObservable, observable, reaction } from 'mobx';
 
-import TagStore from 'src/frontend/stores/TagStore';
-
+import { MAX_TAG_DEPTH } from '../../common/config';
 import { ID } from '../api/id';
 import { ROOT_TAG_ID, TagDTO } from '../api/tag';
+import TagStore from '../frontend/stores/TagStore';
 
 /**
  * A Tag as it is stored in the Client.
