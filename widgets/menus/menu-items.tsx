@@ -1,6 +1,6 @@
 import React, { ForwardedRef, forwardRef, useCallback, useRef } from 'react';
 
-import { IconSet } from '../Icons';
+import { IconSet } from '../icons';
 
 export type MenuItemProps = {
   icon?: JSX.Element;

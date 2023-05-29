@@ -1,10 +1,11 @@
 import React, { memo } from 'react';
+
 import { ID } from 'src/api/id';
-import { IconSet } from 'widgets/Icons';
+import { IconSet } from 'widgets/icons';
 import { Callout, InfoButton } from 'widgets/notifications';
-import { RadioGroup, Radio } from 'widgets/Radio';
-import { Criteria } from './data';
+import { Radio, RadioGroup } from 'widgets/radio';
 import { KeySelector, OperatorSelector, ValueInput } from './Inputs';
+import { Criteria } from './data';
 
 export type Query = Map<string, Criteria>;
 export type QueryDispatch = React.Dispatch<React.SetStateAction<Query>>;

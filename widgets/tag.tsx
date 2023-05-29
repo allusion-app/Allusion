@@ -1,11 +1,9 @@
 import React, { useMemo } from 'react';
 
-import './tag.scss';
+import { IconButton } from 'widgets/button';
+import { IconSet } from './icons';
 
-import { IconButton } from 'widgets/Button';
-import { IconSet } from '../Icons';
-
-import { getColorFromBackground } from '../utility/color';
+import { getColorFromBackground } from './utility/color';
 
 interface TagProps {
   text: string;

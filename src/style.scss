@@ -1,10 +1,26 @@
 @import '~normalize.css';
-// Custom color scheme: Imported before Blueprint's stuff to override their colors
 
+// Custom color scheme
 @import '~resources/style/themes.scss';
 @import '~resources/style/variables.scss';
 
 @import '~resources/style/global.scss'; // Global styles, layout, media queries and miscellanious CSS
+
+// Controls
+@import '~resources/style/controls/button.scss';
+@import '~resources/style/controls/checkbox.scss';
+@import '~resources/style/controls/combobox.scss';
+@import '~resources/style/controls/info-button.scss';
+@import '~resources/style/controls/input.scss';
+@import '~resources/style/controls/menu.scss';
+@import '~resources/style/controls/multisplit.scss';
+@import '~resources/style/controls/notifications.scss';
+@import '~resources/style/controls/popover.scss';
+@import '~resources/style/controls/radio.scss';
+@import '~resources/style/controls/split.scss';
+@import '~resources/style/controls/tag.scss';
+@import '~resources/style/controls/toolbar.scss';
+@import '~resources/style/controls/tree.scss';
 
 // Panels
 @import '~resources/style/content.scss'; // The main content area (Gallery, etc.)

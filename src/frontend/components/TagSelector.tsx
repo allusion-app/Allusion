@@ -11,7 +11,7 @@ import React, {
 } from 'react';
 
 import { Grid, GridCell, IconButton, IconSet, Row, Tag } from 'widgets';
-import { RowProps, useGridFocus } from 'widgets/Combobox/Grid';
+import { RowProps, useGridFocus } from 'widgets/combobox/Grid';
 import { Flyout } from 'widgets/popovers';
 import { useStore } from '../contexts/StoreContext';
 import { ClientTag } from '../entities/Tag';

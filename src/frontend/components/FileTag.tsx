@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback } from 'react';
 
 import { Row } from 'widgets';
-import { IconSet } from 'widgets/Icons';
+import { IconSet } from 'widgets/icons';
 import { Menu, useContextMenu } from 'widgets/menus';
 import { FileTagMenuItems } from '../containers/ContentView/menu-items';
 import { useStore } from '../contexts/StoreContext';

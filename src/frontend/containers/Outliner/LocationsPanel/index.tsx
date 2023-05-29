@@ -6,9 +6,10 @@ import React, { useCallback, useContext, useEffect, useMemo, useState } from 're
 
 import { IconSet, Tree } from 'widgets';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
-import { ITreeItem, createBranchOnKeyDown } from 'widgets/Tree';
-import { Menu, MenuDivider, MenuItem, Toolbar, ToolbarButton, useContextMenu } from 'widgets/menus';
+import { Menu, MenuDivider, MenuItem, useContextMenu } from 'widgets/menus';
 import { Callout } from 'widgets/notifications';
+import { Toolbar, ToolbarButton } from 'widgets/toolbar';
+import { ITreeItem, createBranchOnKeyDown } from 'widgets/tree';
 import { RendererMessenger } from '../../../../ipc/renderer';
 import { LocationRemoval, SubLocationExclusion } from '../../../components/RemovalAlert';
 import { AppToaster } from '../../../components/Toaster';

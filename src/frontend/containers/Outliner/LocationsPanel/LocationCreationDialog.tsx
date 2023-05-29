@@ -3,10 +3,10 @@ import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button } from 'widgets';
-import { Checkbox } from 'widgets/Checkbox';
-import { IconSet } from 'widgets/Icons';
-import Tree, { ITreeItem } from 'widgets/Tree';
+import { Checkbox } from 'widgets/checkbox';
+import { IconSet } from 'widgets/icons';
 import { Dialog } from 'widgets/popovers';
+import Tree, { ITreeItem } from 'widgets/tree';
 import { useStore } from '../../../contexts/StoreContext';
 import { ClientLocation, ClientSubLocation } from '../../../entities/Location';
 import { useAutorun } from '../../../hooks/mobx';

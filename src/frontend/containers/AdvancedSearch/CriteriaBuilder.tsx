@@ -1,10 +1,11 @@
 import React, { RefObject, memo, useState } from 'react';
-import { IconButton } from 'widgets/Button';
-import { IconSet } from 'widgets/Icons';
+
+import { IconButton } from 'widgets/button';
+import { IconSet } from 'widgets/icons';
 import { InfoButton } from 'widgets/notifications';
-import { defaultQuery, generateCriteriaId } from './data';
 import { KeySelector, OperatorSelector, ValueInput } from './Inputs';
 import { QueryDispatch } from './QueryEditor';
+import { defaultQuery, generateCriteriaId } from './data';
 
 export interface QueryBuilderProps {
   keySelector: RefObject<HTMLSelectElement>;

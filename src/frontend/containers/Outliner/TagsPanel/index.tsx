@@ -3,7 +3,7 @@ import React, { useCallback } from 'react';
 
 import { IconSet } from 'widgets';
 import { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
-import { Toolbar, ToolbarButton } from 'widgets/menus';
+import { Toolbar, ToolbarButton } from 'widgets/toolbar';
 import { useStore } from '../../../contexts/StoreContext';
 import { ClientTagSearchCriteria } from '../../../entities/SearchCriteria';
 import { useAction } from '../../../hooks/mobx';

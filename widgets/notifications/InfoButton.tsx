@@ -1,7 +1,5 @@
 import React from 'react';
 
-import './info-button.scss';
-
 interface InfoButtonProps {
   children: React.ReactNode;
 }

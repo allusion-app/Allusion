@@ -2,12 +2,12 @@ import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
-import { IconSet } from 'widgets/Icons';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
-import { Toolbar, ToolbarButton } from 'widgets/Toolbar';
-import Tree, { ITreeItem, createBranchOnKeyDown } from 'widgets/Tree';
+import { IconSet } from 'widgets/icons';
 import { Menu, MenuItem, useContextMenu } from 'widgets/menus';
 import { Callout } from 'widgets/notifications';
+import { Toolbar, ToolbarButton } from 'widgets/toolbar';
+import Tree, { ITreeItem, createBranchOnKeyDown } from 'widgets/tree';
 import { generateId } from '../../../../api/id';
 import { SavedSearchRemoval } from '../../../components/RemovalAlert';
 import { useStore } from '../../../contexts/StoreContext';

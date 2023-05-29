@@ -3,7 +3,6 @@ import { Button } from 'widgets';
 import { Intent } from 'widgets/utility';
 
 import 'widgets/utility/utility.scss';
-import './popover.scss';
 
 export interface AlertProps extends AlertActionsProps {
   open: boolean;

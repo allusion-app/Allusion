@@ -1,7 +1,7 @@
 import { action } from 'mobx';
 import React, { useEffect } from 'react';
 
-import { IconSet } from 'widgets/Icons';
+import { IconSet } from 'widgets/icons';
 import { Menu, MenuDivider, MenuSubItem, useContextMenu } from 'widgets/menus';
 import { RendererMessenger } from '../../../ipc/renderer';
 import { useStore } from '../../contexts/StoreContext';

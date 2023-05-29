@@ -5,8 +5,9 @@ import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } 
 import { formatTagCountText } from 'common/fmt';
 import { IconSet, Tree } from 'widgets';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
-import { ITreeItem, TreeLabel, createBranchOnKeyDown, createLeafOnKeyDown } from 'widgets/Tree';
-import { Toolbar, ToolbarButton, useContextMenu } from 'widgets/menus';
+import { useContextMenu } from 'widgets/menus';
+import { Toolbar, ToolbarButton } from 'widgets/toolbar';
+import { ITreeItem, TreeLabel, createBranchOnKeyDown, createLeafOnKeyDown } from 'widgets/tree';
 import { ROOT_TAG_ID } from '../../../../api/tag';
 import { TagRemoval } from '../../../components/RemovalAlert';
 import { TagMerge } from '../../../containers/Outliner/TagsPanel/TagMerge';

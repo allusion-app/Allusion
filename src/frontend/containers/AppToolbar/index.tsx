@@ -1,10 +1,8 @@
-import React from 'react';
 import { observer } from 'mobx-react-lite';
+import React from 'react';
 
+import { Toolbar } from 'widgets/toolbar';
 import { useStore } from '../../contexts/StoreContext';
-
-import { Toolbar } from 'widgets/menus';
-
 import PrimaryCommands, { SlideModeCommand } from './PrimaryCommands';
 import SecondaryCommands from './SecondaryCommands';
 

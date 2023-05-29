@@ -1,5 +1,4 @@
 import React, { ReactNode, useCallback } from 'react';
-import './multisplit.scss';
 import { MultiSplitPaneProps } from './MultiSplitPane';
 
 /**
