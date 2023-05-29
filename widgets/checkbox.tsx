@@ -1,4 +1,3 @@
-import './checkbox.scss';
 import React, { ReactNode } from 'react';
 
 type ToggleProps = {

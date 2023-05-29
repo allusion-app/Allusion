@@ -1,14 +1,15 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { useCallback, useRef, useState, memo } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Button, ButtonGroup, IconSet, Split } from 'widgets';
-import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter-dark.jpg';
-import { clamp } from 'common/core';
-import { useStore } from '../contexts/StoreContext';
-import PopupWindow from '../components/PopupWindow';
+import React, { memo, useCallback, useRef, useState } from 'react';
+
 import { chromeExtensionUrl, firefoxExtensionUrl } from 'common/config';
-import { ToolbarButton } from 'widgets/Toolbar';
+import { clamp } from 'common/core';
+import Logo_About from 'resources/images/helpcenter/logo-about-helpcenter-dark.jpg';
+import { Button, ButtonGroup, IconSet, Split } from 'widgets';
+import { ToolbarButton } from 'widgets/toolbar';
 import ExternalLink from '../components/ExternalLink';
+import PopupWindow from '../components/PopupWindow';
+import { useStore } from '../contexts/StoreContext';
 
 const HelpCenter = observer(() => {
   const { uiStore } = useStore();

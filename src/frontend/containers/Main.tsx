@@ -1,15 +1,16 @@
-import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import { action, observable } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useRef } from 'react';
-import { Split } from 'widgets/Split';
+
+import { ContextMenuLayer } from 'widgets/menus';
+import { Split } from 'widgets/split';
 import { useStore } from '../contexts/StoreContext';
-import { TagDnDProvider, DnDAttribute } from '../contexts/TagDnDContext';
+import { DnDAttribute, TagDnDProvider } from '../contexts/TagDnDContext';
+import { useAction } from '../hooks/mobx';
+import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
 import AppToolbar from './AppToolbar';
 import ContentView from './ContentView';
 import Outliner from './Outliner';
-import { useAction } from '../hooks/mobx';
-import { ContextMenuLayer } from 'widgets/menus';
 
 const Main = () => {
   const { uiStore } = useStore();

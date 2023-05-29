@@ -24,12 +24,12 @@ input[type='checkbox'] {
   }
 
   &:checked::before {
-    background-image: url(../../resources/icons/checkmark.svg);
+    background-image: url(~resources/icons/checkmark.svg);
     background-color: white;
     background-blend-mode: screen;
     mask-repeat: no-repeat;
-    mask-image: url(../../resources/icons/checkmark.svg);
-    -webkit-mask-image: url(../../resources/icons/checkmark.svg);
+    mask-image: url(~resources/icons/checkmark.svg);
+    -webkit-mask-image: url(~resources/icons/checkmark.svg);
   }
 
   &:hover {

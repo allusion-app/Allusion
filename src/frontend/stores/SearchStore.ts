@@ -1,19 +1,20 @@
 import { action, makeObservable, observable } from 'mobx';
-import { IDataStorage } from 'src/api/data-storage';
-import { generateId, ID } from 'src/api/id';
-import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientFileSearchItem } from 'src/entities/SearchItem';
-import RootStore from './RootStore';
 import { PositionSource } from 'position-strings';
-import { SearchCriteria } from 'src/api/search-criteria';
-import { moveAfter, moveBefore } from './move';
+
 import { FileSearchDTO } from 'src/api/file-search';
+import { SearchCriteria } from 'src/api/search-criteria';
+import { DataStorage } from '../../api/data-storage';
+import { ID, generateId } from '../../api/id';
+import { ClientFileSearchCriteria } from '../entities/SearchCriteria';
+import { ClientFileSearchItem } from '../entities/SearchItem';
+import RootStore from './RootStore';
+import { moveAfter, moveBefore } from './move';
 
 /**
  * Based on https://mobx.js.org/best/store.html
  */
 class SearchStore {
-  private readonly backend: IDataStorage;
+  private readonly backend: DataStorage;
   private readonly rootStore: RootStore;
 
   // Right now the id is only set for better debugging. It should be `s${actorId}` if collaborative editing is ever
@@ -21,14 +22,14 @@ class SearchStore {
   readonly #positions = new PositionSource({ ID: 's' });
   readonly searchList = observable<ClientFileSearchItem>([]);
 
-  constructor(backend: IDataStorage, rootStore: RootStore) {
+  constructor(backend: DataStorage, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
 
     makeObservable(this);
   }
 
-  @action init(fetchedSearches: FileSearchDTO[]) {
+  @action init(fetchedSearches: FileSearchDTO[]): void {
     fetchedSearches.sort((a, b) =>
       a.position < b.position ? -1 : Number(a.position > b.position),
     );
@@ -50,7 +51,11 @@ class SearchStore {
     return this.searchList.find((s) => s.id === search);
   }
 
-  @action.bound async create(name: string, criteria: SearchCriteria[], matchAny: boolean) {
+  @action.bound async create(
+    name: string,
+    criteria: SearchCriteria[],
+    matchAny: boolean,
+  ): Promise<ClientFileSearchItem> {
     const search = new ClientFileSearchItem(
       generateId(),
       name,
@@ -63,12 +68,12 @@ class SearchStore {
     return search;
   }
 
-  @action.bound async remove(search: ClientFileSearchItem) {
+  @action.bound async remove(search: ClientFileSearchItem): Promise<void> {
     this.searchList.remove(search);
     await this.backend.removeSearch(search.id);
   }
 
-  @action.bound async duplicate(search: ClientFileSearchItem) {
+  @action.bound async duplicate(search: ClientFileSearchItem): Promise<ClientFileSearchItem> {
     const newSearch = new ClientFileSearchItem(
       generateId(),
       `${search.name} (copy)`,
@@ -82,7 +87,7 @@ class SearchStore {
     return newSearch;
   }
 
-  @action.bound async replaceWithActiveSearch(search: ClientFileSearchItem) {
+  @action.bound async replaceWithActiveSearch(search: ClientFileSearchItem): Promise<void> {
     search.setMatchAny(this.rootStore.uiStore.searchMatchAny);
     search.setCriteria(
       this.rootStore.uiStore.searchCriteriaList.map((c) =>
@@ -92,19 +97,25 @@ class SearchStore {
     await this.backend.saveSearch(search.serialize(this.rootStore));
   }
 
-  @action async moveBefore(source: ClientFileSearchItem, target: ClientFileSearchItem) {
+  @action async moveBefore(
+    source: ClientFileSearchItem,
+    target: ClientFileSearchItem,
+  ): Promise<void> {
     if (moveBefore(this.searchList, this.#positions, source, target)) {
       return this.backend.saveSearch(source.serialize(this.rootStore));
     }
   }
 
-  @action async moveAfter(source: ClientFileSearchItem, target: ClientFileSearchItem) {
+  @action async moveAfter(
+    source: ClientFileSearchItem,
+    target: ClientFileSearchItem,
+  ): Promise<void> {
     if (moveAfter(this.searchList, this.#positions, source, target)) {
       return this.backend.saveSearch(source.serialize(this.rootStore));
     }
   }
 
-  save(search: ClientFileSearchItem) {
+  save(search: ClientFileSearchItem): void {
     this.backend.saveSearch(search.serialize(this.rootStore));
   }
 }

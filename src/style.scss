@@ -1,25 +1,40 @@
 @import '~normalize.css';
-// Custom color scheme: Imported before Blueprint's stuff to override their colors
 
-@import '~resources/style/remake/themes.scss';
-@import '~resources/style/remake/variables.scss';
+// Custom color scheme
+@import '~resources/style/themes.scss';
+@import '~resources/style/variables.scss';
 
-@import '~resources/style/remake/global.scss'; // Global styles, layout, media queries and miscellanious CSS
+@import '~resources/style/global.scss'; // Global styles, layout, media queries and miscellanious CSS
+
+// Controls
+@import '~resources/style/controls/button.scss';
+@import '~resources/style/controls/checkbox.scss';
+@import '~resources/style/controls/combobox.scss';
+@import '~resources/style/controls/info-button.scss';
+@import '~resources/style/controls/input.scss';
+@import '~resources/style/controls/menu.scss';
+@import '~resources/style/controls/multisplit.scss';
+@import '~resources/style/controls/notifications.scss';
+@import '~resources/style/controls/popover.scss';
+@import '~resources/style/controls/radio.scss';
+@import '~resources/style/controls/split.scss';
+@import '~resources/style/controls/tag.scss';
+@import '~resources/style/controls/toolbar.scss';
+@import '~resources/style/controls/tree.scss';
 
 // Panels
 @import '~resources/style/content.scss'; // The main content area (Gallery, etc.)
 @import '~resources/style/inspector.scss'; // The inspector (right toolbar)
 
 // Individual components
-@import '~resources/style/remake/about.scss';
+@import '~resources/style/about.scss';
 @import '~resources/style/help-center.scss';
 @import '~resources/style/settings.scss';
 
-// Remake
-@import '~resources/style/remake/splash-screen.scss';
-@import '~resources/style/remake/layout.scss';
-@import '~resources/style/remake/window-titlebar.scss';
-@import '~resources/style/remake/app-toolbar.scss';
-@import '~resources/style/remake/outliner.scss';
-@import '~resources/style/remake/tag-editor.scss';
-@import '~resources/style/remake/advanced-search.scss';
+@import '~resources/style/splash-screen.scss';
+@import '~resources/style/layout.scss';
+@import '~resources/style/window-titlebar.scss';
+@import '~resources/style/app-toolbar.scss';
+@import '~resources/style/outliner.scss';
+@import '~resources/style/tag-editor.scss';
+@import '~resources/style/advanced-search.scss';

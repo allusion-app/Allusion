@@ -1,16 +1,16 @@
-import { ID } from 'src/api/id';
-import { FileDTO, IMG_EXTENSIONS } from 'src/api/file';
-import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
-import { NumberOperatorType, StringOperatorType } from 'src/api/data-storage-search';
-import { OperatorType, TagOperatorType, BinaryOperatorType } from 'src/api/search-criteria';
+import { generateWidgetId } from 'widgets/utility';
+import { NumberOperatorType, StringOperatorType } from '../../../api/data-storage-search';
+import { FileDTO, IMG_EXTENSIONS } from '../../../api/file';
+import { ID } from '../../../api/id';
+import { BinaryOperatorType, OperatorType, TagOperatorType } from '../../../api/search-criteria';
 import {
+  ClientDateSearchCriteria,
+  ClientFileSearchCriteria,
+  ClientNumberSearchCriteria,
   ClientStringSearchCriteria,
   ClientTagSearchCriteria,
-  ClientDateSearchCriteria,
-  ClientNumberSearchCriteria,
-} from 'src/entities/SearchCriteria';
-import TagStore from 'src/frontend/stores/TagStore';
-import { generateWidgetId } from 'widgets/utility';
+} from '../../entities/SearchCriteria';
+import TagStore from '../../stores/TagStore';
 
 export function generateCriteriaId() {
   return generateWidgetId('__criteria');

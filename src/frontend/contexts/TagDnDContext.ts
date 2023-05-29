@@ -1,8 +1,9 @@
 import React, { useContext } from 'react';
-import { ClientFile } from 'src/entities/File';
-import { ClientLocation } from 'src/entities/Location';
-import { ClientFileSearchItem } from 'src/entities/SearchItem';
-import { ClientTag } from 'src/entities/Tag';
+
+import { ClientFile } from '../entities/File';
+import { ClientLocation } from '../entities/Location';
+import { ClientFileSearchItem } from '../entities/SearchItem';
+import { ClientTag } from '../entities/Tag';
 
 // Common
 export type IDnDData<T extends { id: string }> = {

@@ -11,7 +11,7 @@ let mainConfig = {
   mode: 'development',
   entry: './src/main.ts',
   devtool: 'source-map',
-  target: ['electron-main', 'es2020'],
+  target: ['electron-main', 'es2022'],
   output: {
     filename: 'main.bundle.js',
     path: __dirname + '/build',
@@ -48,7 +48,7 @@ let rendererConfig = {
   mode: 'development',
   entry: './src/renderer.tsx',
   devtool: 'source-map',
-  target: ['electron-renderer', 'es2020'],
+  target: ['electron-renderer', 'es2022'],
   output: {
     filename: 'renderer.bundle.js',
     path: __dirname + '/build',
@@ -80,28 +80,10 @@ let rendererConfig = {
       },
       {
         test: /\.(scss|css)$/,
-        exclude: /\.module\.scss$/,
         use: [
           'style-loader',
           { loader: 'css-loader', options: { sourceMap: true } },
           { loader: 'sass-loader', options: { sourceMap: true } },
-        ],
-      },
-      {
-        test: /\.module.(scss|css)$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              sourceMap: true,
-              modules: {
-                // Use real class name, hash only added when needed
-                localIdentName: '[local]_[hash:base64:5]',
-              },
-            },
-          },
-          'sass-loader?sourceMap',
         ],
       },
       {

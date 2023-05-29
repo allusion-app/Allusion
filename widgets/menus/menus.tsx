@@ -1,14 +1,13 @@
-import './menu.scss';
 import React, { ForwardedRef, forwardRef, useLayoutEffect, useState } from 'react';
 
+import { usePopover } from '../popovers/usePopover';
 import {
   MenuCheckboxItemProps,
-  MenuItemProps,
-  MenuItemLinkProps,
-  MenuRadioItemProps,
   MenuItemLink,
+  MenuItemLinkProps,
+  MenuItemProps,
+  MenuRadioItemProps,
 } from './menu-items';
-import { usePopover } from '../popovers/usePopover';
 
 export type MenuProps = {
   id?: string;

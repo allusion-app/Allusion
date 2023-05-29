@@ -39,11 +39,6 @@ declare module 'worker-loader!*' {
   export default WebpackWorker;
 }
 
-declare module 'react-responsive-pinch-zoom-pan' {
-  const PinchZoomPan: any;
-  export default PinchZoomPan;
-}
-
 declare module 'node-exiftool' {
   /**
    * Custom type definition based on https://www.npmjs.com/package/node-exiftool

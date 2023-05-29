@@ -1,11 +1,12 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import FocusManager from 'src/frontend/FocusManager';
-import { ClientFile } from '../../../entities/File';
-import { ViewMethod } from '../../stores/UiStore';
+
 import { throttle } from 'common/timeout';
+import FocusManager from '../../FocusManager';
+import { useStore } from '../../contexts/StoreContext';
+import { ClientFile } from '../../entities/File';
+import { ViewMethod } from '../../stores/UiStore';
 import { useCommandHandler } from './Commands';
 import ListGallery from './ListGallery';
 import MasonryRenderer from './Masonry/MasonryRenderer';

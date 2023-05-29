@@ -3,18 +3,19 @@ import { autorun, reaction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { useEffect, useMemo } from 'react';
-import { ClientFile } from 'src/entities/File';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import { useAction, useComputed } from 'src/frontend/hooks/mobx';
-import { usePromise } from 'src/frontend/hooks/usePromise';
+
 import { encodeFilePath } from 'common/fs';
 import { Button, IconSet, Split } from 'widgets';
+import { useStore } from '../../../contexts/StoreContext';
+import { ClientFile } from '../../../entities/File';
+import { useAction, useComputed } from '../../../hooks/mobx';
+import { usePromise } from '../../../hooks/usePromise';
+import { UpscaleMode } from '../../../stores/UiStore';
 import Inspector from '../../Inspector';
 import { CommandDispatcher } from '../Commands';
-import { ContentRect } from '../utils';
 import ZoomPan, { CONTAINER_DEFAULT_STYLE, SlideTransform } from '../SlideMode/ZoomPan';
-import { createDimension, createTransform, Vec2 } from './utils';
-import { UpscaleMode } from 'src/frontend/stores/UiStore';
+import { ContentRect } from '../utils';
+import { Vec2, createDimension, createTransform } from './utils';
 
 const SlideMode = observer(({ contentRect }: { contentRect: ContentRect }) => {
   const { uiStore } = useStore();

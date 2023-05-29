@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import React, { useEffect, useRef, useLayoutEffect, CSSProperties, useState } from 'react';
-
-import './tree.scss';
+import React, { CSSProperties, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 // --- Helper function for tree items ---
 

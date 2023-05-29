@@ -1,7 +1,8 @@
 import { runInAction } from 'mobx';
-import { ClientFile } from 'src/entities/File';
+
+import { ClientFile } from '../../../entities/File';
 // Force Webpack to include worker and WASM file in the build folder!
-import { default as init, MasonryWorker, MasonryType } from 'wasm/packages/masonry';
+import { MasonryType, MasonryWorker, default as init } from 'wasm/packages/masonry';
 import { ITransform, Layouter } from './layout-helpers';
 
 export interface MasonryOptions {

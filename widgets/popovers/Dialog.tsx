@@ -1,8 +1,7 @@
 import React, { useEffect, useId, useRef } from 'react';
-import { IconSet } from 'widgets/Icons';
+import { IconSet } from 'widgets/icons';
 
 import 'widgets/utility/utility.scss';
-import './popover.scss';
 
 export interface DialogProps {
   open: boolean;
@@ -48,9 +47,7 @@ export const Dialog = (props: DialogProps) => {
   return (
     <dialog ref={dialog} aria-labelledby={dialogTitleId} aria-describedby={describedby}>
       <div className="dialog-header">
-        <span className="dialog-icon">
-          {icon}
-        </span>
+        <span className="dialog-icon">{icon}</span>
         <span id={dialogTitleId} className="dialog-title">
           {title}
         </span>

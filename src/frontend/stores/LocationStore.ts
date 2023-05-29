@@ -1,21 +1,22 @@
-import { getThumbnailPath } from 'common/fs';
-import { promiseAllLimit } from 'common/promise';
 import fse from 'fs-extra';
 import { action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
-import { IDataStorage } from 'src/api/data-storage';
-import { OrderDirection } from 'src/api/data-storage-search';
-import { FileDTO, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/file';
-import { generateId, ID } from 'src/api/id';
-import { LocationDTO } from 'src/api/location';
-import { getMetaData, mergeMovedFile } from 'src/entities/File';
-import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
-import { ClientStringSearchCriteria } from 'src/entities/SearchCriteria';
-import { AppToaster } from 'src/frontend/components/Toaster';
-import { RendererMessenger } from 'src/ipc/renderer';
+import { PositionSource } from 'position-strings';
+
+import { getThumbnailPath } from 'common/fs';
+import { promiseAllLimit } from 'common/promise';
+import { DataStorage } from '../../api/data-storage';
+import { OrderDirection } from '../../api/data-storage-search';
+import { FileDTO, IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from '../../api/file';
+import { ID, generateId } from '../../api/id';
+import { LocationDTO } from '../../api/location';
+import { RendererMessenger } from '../../ipc/renderer';
+import { AppToaster } from '../components/Toaster';
+import { getMetaData, mergeMovedFile } from '../entities/File';
+import { ClientLocation, ClientSubLocation } from '../entities/Location';
+import { ClientStringSearchCriteria } from '../entities/SearchCriteria';
 import ImageLoader from '../image/ImageLoader';
 import RootStore from './RootStore';
-import { PositionSource } from 'position-strings';
 import { moveAfter, moveBefore } from './move';
 
 const PREFERENCES_STORAGE_KEY = 'location-store-preferences';
@@ -36,7 +37,7 @@ function areFilesIdenticalBesidesName(a: FileDTO, b: FileDTO): boolean {
 }
 
 class LocationStore {
-  private readonly backend: IDataStorage;
+  private readonly backend: DataStorage;
   private readonly rootStore: RootStore;
 
   // Right now the id is only set for better debugging. It should be `l${actorId}` if collaborative editing is ever
@@ -48,14 +49,14 @@ class LocationStore {
   // TODO: Maybe per location/sub-location?
   readonly enabledFileExtensions = observable(new Set<IMG_EXTENSIONS_TYPE>());
 
-  constructor(backend: IDataStorage, rootStore: RootStore) {
+  constructor(backend: DataStorage, rootStore: RootStore) {
     this.backend = backend;
     this.rootStore = rootStore;
 
     makeObservable(this);
   }
 
-  @action init(fetchedLocations: LocationDTO[]) {
+  @action init(fetchedLocations: LocationDTO[]): void {
     // Restore preferences
     try {
       const prefs = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) || '') as Preferences;
@@ -86,13 +87,13 @@ class LocationStore {
     }
   }
 
-  save(loc: LocationDTO) {
+  save(loc: LocationDTO): void {
     this.backend.saveLocation(loc);
   }
 
   // E.g. in preview window, it's not needed to watch the locations
   // Returns whether files have been added, changed or removed
-  @action async watchLocations() {
+  @action async watchLocations(): Promise<boolean> {
     const progressToastKey = 'progress';
     let foundNewFiles = false;
     const len = this.locationList.length;
@@ -368,7 +369,7 @@ class LocationStore {
   }
 
   /** Imports all files from a location into the FileStore */
-  @action.bound async initLocation(location: ClientLocation) {
+  @action.bound async initLocation(location: ClientLocation): Promise<void> {
     const toastKey = `initialize-${location.id}`;
 
     let isCancelled = false;
@@ -427,7 +428,7 @@ class LocationStore {
     this.rootStore.fileStore.refetchFileCounts();
   }
 
-  @action.bound async delete(location: ClientLocation) {
+  @action.bound async delete(location: ClientLocation): Promise<void> {
     // Remove location from DB through backend
     await this.backend.removeLocation(location.id);
     runInAction(() => {
@@ -444,7 +445,7 @@ class LocationStore {
     this.rootStore.fileStore.refetchFileCounts();
   }
 
-  @action.bound setSupportedImageExtensions(extensions: Set<IMG_EXTENSIONS_TYPE>) {
+  @action.bound setSupportedImageExtensions(extensions: Set<IMG_EXTENSIONS_TYPE>): void {
     this.enabledFileExtensions.replace(extensions);
     localStorage.setItem(
       PREFERENCES_STORAGE_KEY,
@@ -456,7 +457,7 @@ class LocationStore {
     );
   }
 
-  @action async addFile(fileStats: FileStats, location: ClientLocation) {
+  @action async addFile(fileStats: FileStats, location: ClientLocation): Promise<void> {
     const fileStore = this.rootStore.fileStore;
 
     // Gather file data
@@ -485,7 +486,7 @@ class LocationStore {
     }
   }
 
-  @action hideFile(path: string) {
+  @action hideFile(path: string): void {
     // This is called when an image is removed from the filesystem.
     // Could also mean that a file was renamed or moved, in which case addFile was called already:
     // its path will have changed, so we won't find it here, which is fine, it'll be detected as missing later.
@@ -517,13 +518,13 @@ class LocationStore {
     this.rootStore.fileStore.refetch();
   }
 
-  @action async moveBefore(source: ClientLocation, target: ClientLocation) {
+  @action async moveBefore(source: ClientLocation, target: ClientLocation): Promise<void> {
     if (moveBefore(this.locationList, this.#positions, source, target)) {
       return this.backend.saveLocation(source.serialize());
     }
   }
 
-  @action async moveAfter(source: ClientLocation, target: ClientLocation) {
+  @action async moveAfter(source: ClientLocation, target: ClientLocation): Promise<void> {
     if (moveAfter(this.locationList, this.#positions, source, target)) {
       return this.backend.saveLocation(source.serialize());
     }

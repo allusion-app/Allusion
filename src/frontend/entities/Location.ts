@@ -1,15 +1,16 @@
 import { Remote, wrap } from 'comlink';
 import fse from 'fs-extra';
-import { action, IObservableArray, makeObservable, observable, runInAction } from 'mobx';
+import { IObservableArray, action, makeObservable, observable, runInAction } from 'mobx';
 import SysPath from 'path';
+
 import { retainArray } from 'common/core';
-import { AppToaster } from 'src/frontend/components/Toaster';
-import LocationStore, { FileStats } from 'src/frontend/stores/LocationStore';
-import { FolderWatcherWorker } from 'src/frontend/workers/folderWatcher.worker';
-import { RendererMessenger } from 'src/ipc/renderer';
-import { IMG_EXTENSIONS_TYPE } from '../api/file';
-import { ID } from '../api/id';
-import { SubLocationDTO, LocationDTO } from '../api/location';
+import { IMG_EXTENSIONS_TYPE } from '../../api/file';
+import { ID } from '../../api/id';
+import { LocationDTO, SubLocationDTO } from '../../api/location';
+import { RendererMessenger } from '../../ipc/renderer';
+import { AppToaster } from '../components/Toaster';
+import LocationStore, { FileStats } from '../stores/LocationStore';
+import { FolderWatcherWorker } from '../workers/folderWatcher.worker';
 
 /** Sorts alphanumerically, "natural" sort */
 const sort = (a: SubLocationDTO, b: SubLocationDTO) =>

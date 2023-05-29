@@ -1,7 +1,5 @@
-import './notifications.scss';
-
 import React from 'react';
-import { Button } from 'widgets/Button';
+import { Button } from 'widgets/button';
 
 interface IToast {
   message: string;

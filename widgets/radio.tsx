@@ -1,4 +1,3 @@
-import './radio.scss';
 import React, { ReactNode, useContext, useMemo } from 'react';
 
 type RadioProps = {

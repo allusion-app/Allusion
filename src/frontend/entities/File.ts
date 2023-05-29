@@ -7,11 +7,12 @@ import {
   reaction,
 } from 'mobx';
 import Path from 'path';
-import ImageLoader from 'src/frontend/image/ImageLoader';
-import FileStore from 'src/frontend/stores/FileStore';
-import { FileStats } from 'src/frontend/stores/LocationStore';
-import { FileDTO, IMG_EXTENSIONS_TYPE } from '../api/file';
-import { ID } from '../api/id';
+
+import { FileDTO, IMG_EXTENSIONS_TYPE } from '../../api/file';
+import { ID } from '../../api/id';
+import ImageLoader from '../image/ImageLoader';
+import FileStore from '../stores/FileStore';
+import { FileStats } from '../stores/LocationStore';
 import { ClientTag } from './Tag';
 
 /** Retrieved file meta data information */

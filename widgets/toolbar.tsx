@@ -1,4 +1,3 @@
-import './toolbar.scss';
 import React, { useEffect, useRef } from 'react';
 
 interface ToolbarProps {
@@ -100,6 +99,4 @@ const ToolbarButton = (props: ToolbarButtonProps) => {
   );
 };
 
-import { ToolbarSegment, ToolbarSegmentButton } from './ToolbarSegment';
-
-export { Toolbar, ToolbarButton, ToolbarSegment, ToolbarSegmentButton };
+export { Toolbar, ToolbarButton };

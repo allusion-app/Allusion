@@ -1,13 +1,12 @@
-import React, { useEffect, useCallback, useState } from 'react';
 import { observer } from 'mobx-react-lite';
+import React, { useCallback, useEffect, useState } from 'react';
 
-import { useStore } from './contexts/StoreContext';
-
-import ErrorBoundary from './containers/ErrorBoundary';
-import ContentView from './containers/ContentView';
 import { IconSet, Toggle } from 'widgets';
-import { ContextMenuLayer, Toolbar, ToolbarButton } from 'widgets/menus';
-
+import { ContextMenuLayer } from 'widgets/menus';
+import { Toolbar, ToolbarButton } from 'widgets/toolbar';
+import ContentView from './containers/ContentView';
+import ErrorBoundary from './containers/ErrorBoundary';
+import { useStore } from './contexts/StoreContext';
 import { useWorkerListener } from './image/ThumbnailGeneration';
 
 const PreviewApp = observer(() => {

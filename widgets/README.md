@@ -31,8 +31,6 @@ Toolbars are any grouping of widgets that control an area/component of the appli
 - Toolbar
 - ToolbarButton
 - MenuButton
-- ToolbarSegment
-- ToolbarSegmentButton
 - ToolbarToggleButton
 
 #### Menu Widgets

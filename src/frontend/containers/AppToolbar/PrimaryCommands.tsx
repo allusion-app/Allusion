@@ -1,13 +1,13 @@
-import React from 'react';
 import { observer } from 'mobx-react-lite';
-import { useStore } from '../../contexts/StoreContext';
+import React from 'react';
 
 import { IconSet } from 'widgets';
-import { ToolbarButton } from 'widgets/menus';
-import { FileRemoval } from 'src/frontend/components/RemovalAlert';
-import FileTagEditor from 'src/frontend/containers/AppToolbar/FileTagEditor';
-import Searchbar from './Searchbar';
+import { ToolbarButton } from 'widgets/toolbar';
+import { FileRemoval } from '../../components/RemovalAlert';
+import FileTagEditor from '../../containers/AppToolbar/FileTagEditor';
+import { useStore } from '../../contexts/StoreContext';
 import { SortCommand, ViewCommand } from './Menus';
+import Searchbar from './Searchbar';
 
 const OutlinerToggle = observer(() => {
   const { uiStore } = useStore();

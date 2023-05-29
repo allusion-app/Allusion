@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { IconSet } from 'widgets/Icons';
+
+import { IconSet } from 'widgets/icons';
 
 interface SearchButtonProps {
   onClick: (event: React.MouseEvent) => void;

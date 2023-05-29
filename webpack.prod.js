@@ -10,7 +10,7 @@ const path = require('path');
 let mainConfig = {
   mode: 'production',
   entry: './src/main.ts',
-  target: ['electron-main', 'es2020'],
+  target: ['electron-main', 'es2022'],
   output: {
     filename: 'main.bundle.js',
     path: __dirname + '/build',
@@ -46,7 +46,7 @@ let mainConfig = {
 let rendererConfig = {
   mode: 'production',
   entry: './src/renderer.tsx',
-  target: ['electron-renderer', 'es2020'],
+  target: ['electron-renderer', 'es2022'],
   output: {
     filename: 'renderer.bundle.js',
     path: __dirname + '/build',
@@ -80,7 +80,6 @@ let rendererConfig = {
       },
       {
         test: /\.(scss|css)$/,
-        exclude: /\.module\.scss$/,
         use: [
           {
             loader: MiniCssExtractPlugin.loader,
@@ -89,27 +88,6 @@ let rendererConfig = {
             },
           },
           'css-loader',
-          'sass-loader',
-        ],
-      },
-      {
-        test: /\.module.(scss|css)$/,
-        use: [
-          {
-            loader: MiniCssExtractPlugin.loader,
-            options: {
-              publicPath: './',
-            },
-          },
-          {
-            loader: 'css-loader',
-            options: {
-              modules: {
-                // Use real class name, hash only added when needed
-                localIdentName: '[local]_[hash:base64:5]',
-              },
-            },
-          },
           'sass-loader',
         ],
       },

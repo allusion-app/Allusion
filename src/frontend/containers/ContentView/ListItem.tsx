@@ -1,10 +1,11 @@
 import { observer } from 'mobx-react-lite';
-import React, { useMemo, useEffect, useState, useRef, CSSProperties } from 'react';
+import React, { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
+
 import { formatDateTime, humanFileSize } from 'common/fmt';
-import { Thumbnail, ThumbnailTags } from './GalleryItem';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import { ClientFile } from 'src/entities/File';
+import { useStore } from '../../contexts/StoreContext';
+import { ClientFile } from '../../entities/File';
 import { CommandDispatcher } from './Commands';
+import { Thumbnail, ThumbnailTags } from './GalleryItem';
 
 interface RowProps {
   index: number;

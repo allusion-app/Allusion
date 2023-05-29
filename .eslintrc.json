@@ -39,7 +39,7 @@
   },
   "overrides": [
     {
-      "files": ["src/entities/*.ts", "src/backend/*.ts"],
+      "files": ["src/backend/*.ts", "src/frontend/entities/*.ts", "src/frontend/stores/*.ts"],
       "rules": {
         "@typescript-eslint/explicit-module-boundary-types": "error"
       }

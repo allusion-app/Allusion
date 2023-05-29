@@ -1,14 +1,15 @@
-import { camelCaseToSpaced } from 'common/fmt';
 import { action } from 'mobx';
 import React, { ForwardedRef, forwardRef, useState } from 'react';
-import { NumberOperators, StringOperators } from 'src/api/data-storage-search';
-import { IMG_EXTENSIONS } from 'src/api/file';
-import { BinaryOperators, TagOperators } from 'src/api/search-criteria';
-import { NumberOperatorSymbols, StringOperatorLabels } from 'src/entities/SearchCriteria';
-import { ClientTag } from 'src/entities/Tag';
-import { TagSelector } from 'src/frontend/components/TagSelector';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import { Criteria, defaultQuery, Key, Operator, TagValue, Value } from './data';
+
+import { camelCaseToSpaced } from 'common/fmt';
+import { NumberOperators, StringOperators } from '../../../api/data-storage-search';
+import { IMG_EXTENSIONS } from '../../../api/file';
+import { BinaryOperators, TagOperators } from '../../../api/search-criteria';
+import { TagSelector } from '../../components/TagSelector';
+import { useStore } from '../../contexts/StoreContext';
+import { NumberOperatorSymbols, StringOperatorLabels } from '../../entities/SearchCriteria';
+import { ClientTag } from '../../entities/Tag';
+import { Criteria, Key, Operator, TagValue, Value, defaultQuery } from './data';
 
 type SetCriteria = (fn: (criteria: Criteria) => Criteria) => void;
 
