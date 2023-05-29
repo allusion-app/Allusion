@@ -25,7 +25,7 @@ class TagStore {
     makeObservable(this);
   }
 
-  async init() {
+  async init(): Promise<void> {
     try {
       const fetchedTags = await this.backend.fetchTags();
       this.createTagGraph(fetchedTags);
@@ -46,7 +46,7 @@ class TagStore {
     return this.tagGraph.get(tag);
   }
 
-  @computed get root() {
+  @computed get root(): ClientTag {
     const root = this.tagGraph.get(ROOT_TAG_ID);
     if (!root) {
       throw new Error('Root tag not found. This should not happen!');
@@ -86,7 +86,7 @@ class TagStore {
     );
   }
 
-  @action.bound async create(parent: ClientTag, tagName: string) {
+  @action.bound async create(parent: ClientTag, tagName: string): Promise<ClientTag> {
     const id = generateId();
     const tag = new ClientTag(this, id, tagName, new Date(), '', false);
     this.tagGraph.set(tag.id, tag);
@@ -100,7 +100,7 @@ class TagStore {
     return this.tagList.find((t) => t.name === name);
   }
 
-  @action.bound async delete(tag: ClientTag) {
+  @action.bound async delete(tag: ClientTag): Promise<void> {
     const {
       rootStore: { uiStore, fileStore },
       tagGraph,
@@ -117,7 +117,7 @@ class TagStore {
     fileStore.refetch();
   }
 
-  @action.bound async deleteTags(tags: ClientTag[]) {
+  @action.bound async deleteTags(tags: ClientTag[]): Promise<void> {
     const {
       rootStore: { uiStore, fileStore },
       tagGraph,
@@ -139,7 +139,7 @@ class TagStore {
     fileStore.refetch();
   }
 
-  @action.bound async merge(tagToBeRemoved: ClientTag, tagToMergeWith: ClientTag) {
+  @action.bound async merge(tagToBeRemoved: ClientTag, tagToMergeWith: ClientTag): Promise<void> {
     // not dealing with tags that have subtags
     if (tagToBeRemoved.subTags.length > 0) {
       throw new Error('Merging a tag with sub-tags is currently not supported.');
@@ -151,11 +151,11 @@ class TagStore {
     this.rootStore.fileStore.refetch();
   }
 
-  @action.bound refetchFiles() {
+  @action.bound refetchFiles(): void {
     this.rootStore.fileStore.refetch();
   }
 
-  save(tag: TagDTO) {
+  save(tag: TagDTO): void {
     this.backend.saveTag(tag);
   }
 

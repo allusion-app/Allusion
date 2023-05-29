@@ -51,7 +51,7 @@ class LocationStore {
     makeObservable(this);
   }
 
-  @action async init() {
+  @action async init(): Promise<void> {
     // Restore preferences
     try {
       const prefs = JSON.parse(localStorage.getItem(PREFERENCES_STORAGE_KEY) || '') as Preferences;
@@ -86,13 +86,13 @@ class LocationStore {
     runInAction(() => this.locationList.replace(locations));
   }
 
-  save(loc: LocationDTO) {
+  save(loc: LocationDTO): void {
     this.backend.saveLocation(loc);
   }
 
   // E.g. in preview window, it's not needed to watch the locations
   // Returns whether files have been added, changed or removed
-  @action async watchLocations() {
+  @action async watchLocations(): Promise<boolean> {
     const progressToastKey = 'progress';
     let foundNewFiles = false;
     const len = this.locationList.length;
@@ -368,7 +368,7 @@ class LocationStore {
   }
 
   /** Imports all files from a location into the FileStore */
-  @action.bound async initLocation(location: ClientLocation) {
+  @action.bound async initLocation(location: ClientLocation): Promise<void> {
     const toastKey = `initialize-${location.id}`;
 
     let isCancelled = false;
@@ -427,7 +427,7 @@ class LocationStore {
     this.rootStore.fileStore.refetchFileCounts();
   }
 
-  @action.bound async delete(location: ClientLocation) {
+  @action.bound async delete(location: ClientLocation): Promise<void> {
     // Remove location from DB through backend
     await this.backend.removeLocation(location.id);
     runInAction(() => {
@@ -444,7 +444,7 @@ class LocationStore {
     this.rootStore.fileStore.refetchFileCounts();
   }
 
-  @action.bound setSupportedImageExtensions(extensions: Set<IMG_EXTENSIONS_TYPE>) {
+  @action.bound setSupportedImageExtensions(extensions: Set<IMG_EXTENSIONS_TYPE>): void {
     this.enabledFileExtensions.replace(extensions);
     localStorage.setItem(
       PREFERENCES_STORAGE_KEY,
@@ -456,7 +456,7 @@ class LocationStore {
     );
   }
 
-  @action async addFile(fileStats: FileStats, location: ClientLocation) {
+  @action async addFile(fileStats: FileStats, location: ClientLocation): Promise<void> {
     const fileStore = this.rootStore.fileStore;
 
     // Gather file data
@@ -485,7 +485,7 @@ class LocationStore {
     }
   }
 
-  @action hideFile(path: string) {
+  @action hideFile(path: string): void {
     // This is called when an image is removed from the filesystem.
     // Could also mean that a file was renamed or moved, in which case addFile was called already:
     // its path will have changed, so we won't find it here, which is fine, it'll be detected as missing later.
@@ -518,7 +518,7 @@ class LocationStore {
   }
 
   /** Source is moved to where Target currently is */
-  @action.bound reorder(source: ClientLocation, target: ClientLocation) {
+  @action.bound reorder(source: ClientLocation, target: ClientLocation): void {
     const sourceIndex = this.locationList.indexOf(source);
     const targetIndex = this.locationList.indexOf(target);
 
