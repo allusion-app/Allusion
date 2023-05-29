@@ -1,28 +1,30 @@
-import { formatTagCountText } from 'common/fmt';
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientTag } from 'src/entities/Tag';
-import { ROOT_TAG_ID } from 'src/api/tag';
-import { TagRemoval } from 'src/frontend/components/RemovalAlert';
-import { TagMerge } from 'src/frontend/containers/Outliner/TagsPanel/TagMerge';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import { DnDTagType, useTagDnD } from 'src/frontend/contexts/TagDnDContext';
-import { useAction } from 'src/frontend/hooks/mobx';
-import TagStore from 'src/frontend/stores/TagStore';
-import UiStore from 'src/frontend/stores/UiStore';
+
+import { formatTagCountText } from 'common/fmt';
 import { IconSet, Tree } from 'widgets';
-import { Toolbar, ToolbarButton, useContextMenu } from 'widgets/menus';
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
-import { createBranchOnKeyDown, createLeafOnKeyDown, ITreeItem, TreeLabel } from 'widgets/Tree';
+import { useContextMenu } from 'widgets/menus';
+import { Toolbar, ToolbarButton } from 'widgets/toolbar';
+import { ITreeItem, TreeLabel, createBranchOnKeyDown, createLeafOnKeyDown } from 'widgets/tree';
+import { ROOT_TAG_ID } from '../../../../api/tag';
+import { TagRemoval } from '../../../components/RemovalAlert';
+import { TagMerge } from '../../../containers/Outliner/TagsPanel/TagMerge';
+import { useStore } from '../../../contexts/StoreContext';
+import { DnDTagType, useTagDnD } from '../../../contexts/TagDnDContext';
+import { ClientTagSearchCriteria } from '../../../entities/SearchCriteria';
+import { ClientTag } from '../../../entities/Tag';
+import { useAction } from '../../../hooks/mobx';
+import TagStore from '../../../stores/TagStore';
+import UiStore from '../../../stores/UiStore';
 import { IExpansionState } from '../../types';
 import { HOVER_TIME_TO_EXPAND } from '../LocationsPanel/useFileDnD';
 import { createDragReorderHelper } from '../TreeItemDnD';
 import TreeItemRevealer from '../TreeItemRevealer';
 import { TagItemContextMenu } from './ContextMenu';
 import SearchButton from './SearchButton';
-import { Action, Factory, reducer, State } from './state';
+import { Action, Factory, State, reducer } from './state';
 
 export class TagsTreeItemRevealer extends TreeItemRevealer {
   public static readonly instance: TagsTreeItemRevealer = new TagsTreeItemRevealer();

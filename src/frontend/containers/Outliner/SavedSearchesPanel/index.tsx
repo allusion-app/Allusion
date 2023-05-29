@@ -1,23 +1,20 @@
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { generateId } from 'src/api/id';
-import { CustomKeyDict, ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientFileSearchItem } from 'src/entities/SearchItem';
-import { SavedSearchRemoval } from 'src/frontend/components/RemovalAlert';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import {
-  DnDSearchType,
-  SearchDnDProvider,
-  useSearchDnD,
-} from 'src/frontend/contexts/TagDnDContext';
-import { useAutorun } from 'src/frontend/hooks/mobx';
-import { IconSet } from 'widgets/Icons';
-import { Menu, MenuItem, useContextMenu } from 'widgets/menus';
+
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
+import { IconSet } from 'widgets/icons';
+import { Menu, MenuItem, useContextMenu } from 'widgets/menus';
 import { Callout } from 'widgets/notifications';
-import { Toolbar, ToolbarButton } from 'widgets/Toolbar';
-import Tree, { createBranchOnKeyDown, ITreeItem } from 'widgets/Tree';
+import { Toolbar, ToolbarButton } from 'widgets/toolbar';
+import Tree, { ITreeItem, createBranchOnKeyDown } from 'widgets/tree';
+import { generateId } from '../../../../api/id';
+import { SavedSearchRemoval } from '../../../components/RemovalAlert';
+import { useStore } from '../../../contexts/StoreContext';
+import { DnDSearchType, SearchDnDProvider, useSearchDnD } from '../../../contexts/TagDnDContext';
+import { ClientFileSearchCriteria, CustomKeyDict } from '../../../entities/SearchCriteria';
+import { ClientFileSearchItem } from '../../../entities/SearchItem';
+import { useAutorun } from '../../../hooks/mobx';
 import SearchItemDialog from '../../AdvancedSearch/SearchItemDialog';
 import { IExpansionState } from '../../types';
 import { createDragReorderHelper } from '../TreeItemDnD';

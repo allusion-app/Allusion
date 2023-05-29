@@ -1,6 +1,5 @@
-import './button.scss';
-import 'widgets/utility/utility.scss';
 import React from 'react';
+import 'widgets/utility/utility.scss';
 
 type ButtonProps = {
   text: string | number;

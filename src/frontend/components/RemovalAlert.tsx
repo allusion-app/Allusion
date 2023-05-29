@@ -1,15 +1,15 @@
-import React from 'react';
-import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
+import { observer } from 'mobx-react-lite';
+import React from 'react';
 
-import { ClientLocation, ClientSubLocation } from 'src/entities/Location';
-import { ClientTag } from 'src/entities/Tag';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import { Tag, IconSet } from 'widgets';
+import { IconSet, Tag } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
+import { RendererMessenger } from '../../ipc/renderer';
+import { useStore } from '../contexts/StoreContext';
+import { ClientLocation, ClientSubLocation } from '../entities/Location';
+import { ClientFileSearchItem } from '../entities/SearchItem';
+import { ClientTag } from '../entities/Tag';
 import { AppToaster } from './Toaster';
-import { RendererMessenger } from 'src/ipc/renderer';
-import { ClientFileSearchItem } from 'src/entities/SearchItem';
 
 interface IRemovalProps<T> {
   object: T;

@@ -1,10 +1,11 @@
-import { thumbnailFormat } from 'common/config';
 import fse from 'fs-extra';
 import { action } from 'mobx';
 import path from 'path';
 import { useEffect } from 'react';
-import { ClientFile } from 'src/entities/File';
-import { ID } from 'src/api/id';
+
+import { thumbnailFormat } from 'common/config';
+import { ID } from '../../api/id';
+import { ClientFile } from '../entities/File';
 
 export interface IThumbnailMessage {
   filePath: string;

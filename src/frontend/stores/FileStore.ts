@@ -1,17 +1,18 @@
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable, runInAction } from 'mobx';
-import { DataStorage } from 'src/api/data-storage';
-import { ConditionDTO, OrderBy, OrderDirection } from 'src/api/data-storage-search';
-import { ClientFile, mergeMovedFile } from 'src/entities/File';
-import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/file';
-import { ID } from 'src/api/id';
-import { ClientLocation } from 'src/entities/Location';
-import { ClientStringSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientTag } from 'src/entities/Tag';
-import { AppToaster } from '../components/Toaster';
-import { debounce } from 'common/timeout';
+
 import { getThumbnailPath } from 'common/fs';
 import { promiseAllLimit } from 'common/promise';
+import { debounce } from 'common/timeout';
+import { DataStorage } from '../../api/data-storage';
+import { ConditionDTO, OrderBy, OrderDirection } from '../../api/data-storage-search';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from '../../api/file';
+import { ID } from '../../api/id';
+import { AppToaster } from '../components/Toaster';
+import { ClientFile, mergeMovedFile } from '../entities/File';
+import { ClientLocation } from '../entities/Location';
+import { ClientStringSearchCriteria, ClientTagSearchCriteria } from '../entities/SearchCriteria';
+import { ClientTag } from '../entities/Tag';
 import RootStore from './RootStore';
 
 export const FILE_STORAGE_KEY = 'Allusion_File';
@@ -61,7 +62,7 @@ class FileStore {
     this.debouncedSaveFilesToSave = debounce(this.saveFilesToSave, 100).bind(this);
   }
 
-  @action.bound async readTagsFromFiles() {
+  @action.bound async readTagsFromFiles(): Promise<void> {
     const toastKey = 'read-tags-from-file';
     try {
       const numFiles = this.fileList.length;
@@ -127,7 +128,7 @@ class FileStore {
     }
   }
 
-  @action.bound async writeTagsToFiles() {
+  @action.bound async writeTagsToFiles(): Promise<void> {
     const toastKey = 'write-tags-to-file';
     try {
       const numFiles = this.fileList.length;
@@ -180,49 +181,49 @@ class FileStore {
     }
   }
 
-  @computed get showsAllContent() {
+  @computed get showsAllContent(): boolean {
     return this.content === Content.All;
   }
 
-  @computed get showsUntaggedContent() {
+  @computed get showsUntaggedContent(): boolean {
     return this.content === Content.Untagged;
   }
 
-  @computed get showsMissingContent() {
+  @computed get showsMissingContent(): boolean {
     return this.content === Content.Missing;
   }
 
-  @computed get showsQueryContent() {
+  @computed get showsQueryContent(): boolean {
     return this.content === Content.Query;
   }
 
-  @action.bound switchOrderDirection() {
+  @action.bound switchOrderDirection(): void {
     this.setOrderDirection(
       this.orderDirection === OrderDirection.Desc ? OrderDirection.Asc : OrderDirection.Desc,
     );
     this.refetch();
   }
 
-  @action.bound orderFilesBy(prop: OrderBy<FileDTO> = 'dateAdded') {
+  @action.bound orderFilesBy(prop: OrderBy<FileDTO> = 'dateAdded'): void {
     this.setOrderBy(prop);
     this.refetch();
   }
 
-  @action.bound setContentQuery() {
+  @action.bound setContentQuery(): void {
     this.content = Content.Query;
     if (this.rootStore.uiStore.isSlideMode) {
       this.rootStore.uiStore.disableSlideMode();
     }
   }
 
-  @action.bound setContentAll() {
+  @action.bound setContentAll(): void {
     this.content = Content.All;
     if (this.rootStore.uiStore.isSlideMode) {
       this.rootStore.uiStore.disableSlideMode();
     }
   }
 
-  @action.bound setContentUntagged() {
+  @action.bound setContentUntagged(): void {
     this.content = Content.Untagged;
     if (this.rootStore.uiStore.isSlideMode) {
       this.rootStore.uiStore.disableSlideMode();
@@ -237,7 +238,7 @@ class FileStore {
    * file will not be saved in the database.
    * @param file
    */
-  @action.bound hideFile(file: ClientFile) {
+  @action.bound hideFile(file: ClientFile): void {
     file.setBroken(true);
     this.rootStore.uiStore.deselectFile(file);
     this.incrementNumMissingFiles();
@@ -247,7 +248,7 @@ class FileStore {
   }
 
   /** Replaces a file's data when it is moved or renamed */
-  @action.bound replaceMovedFile(file: ClientFile, newData: FileDTO) {
+  @action.bound replaceMovedFile(file: ClientFile, newData: FileDTO): void {
     const index = this.index.get(file.id);
     if (index !== undefined) {
       file.dispose();
@@ -306,7 +307,7 @@ class FileStore {
     }
   }
 
-  @action.bound async refetch() {
+  @action.bound async refetch(): Promise<void> {
     if (this.showsAllContent) {
       return this.fetchAllFiles();
     } else if (this.showsUntaggedContent) {
@@ -318,7 +319,7 @@ class FileStore {
     }
   }
 
-  @action.bound async fetchAllFiles() {
+  @action.bound async fetchAllFiles(): Promise<void> {
     try {
       this.rootStore.uiStore.clearSearchCriteriaList();
       const fetchedFiles = await this.backend.fetchFiles(this.orderBy, this.orderDirection);
@@ -329,7 +330,7 @@ class FileStore {
     }
   }
 
-  @action.bound async fetchUntaggedFiles() {
+  @action.bound async fetchUntaggedFiles(): Promise<void> {
     try {
       const { uiStore } = this.rootStore;
       uiStore.clearSearchCriteriaList();
@@ -348,7 +349,7 @@ class FileStore {
     }
   }
 
-  @action.bound async fetchMissingFiles() {
+  @action.bound async fetchMissingFiles(): Promise<void> {
     try {
       const {
         orderBy,
@@ -411,7 +412,7 @@ class FileStore {
     }
   }
 
-  @action.bound async fetchFilesByQuery() {
+  @action.bound async fetchFilesByQuery(): Promise<void> {
     const { uiStore } = this.rootStore;
 
     if (uiStore.searchCriteriaList.length === 0) {
@@ -433,11 +434,11 @@ class FileStore {
     }
   }
 
-  @action.bound incrementNumUntaggedFiles() {
+  @action.bound incrementNumUntaggedFiles(): void {
     this.numUntaggedFiles++;
   }
 
-  @action.bound decrementNumUntaggedFiles() {
+  @action.bound decrementNumUntaggedFiles(): void {
     if (this.numUntaggedFiles === 0) {
       throw new Error('Invalid Database State: Cannot have less than 0 untagged files.');
     }
@@ -445,7 +446,7 @@ class FileStore {
   }
 
   // Removes all items from fileList
-  @action.bound clearFileList() {
+  @action.bound clearFileList(): void {
     this.fileList.clear();
     this.index.clear();
   }
@@ -480,7 +481,7 @@ class FileStore {
     return loc;
   }
 
-  save(file: FileDTO) {
+  save(file: FileDTO): void {
     file.dateModified = new Date();
 
     // Save files in bulk so saving many files at once is faster.
@@ -495,7 +496,7 @@ class FileStore {
     this.filesToSave.clear();
   }
 
-  @action recoverPersistentPreferences() {
+  @action recoverPersistentPreferences(): void {
     const prefsString = localStorage.getItem(FILE_STORAGE_KEY);
     if (prefsString) {
       try {
@@ -517,7 +518,7 @@ class FileStore {
     return preferences;
   }
 
-  clearPersistentPreferences() {
+  clearPersistentPreferences(): void {
     localStorage.removeItem(FILE_STORAGE_KEY);
   }
 
@@ -667,7 +668,7 @@ class FileStore {
   }
 
   /** Initializes the total and untagged file counters by querying the database with count operations */
-  async refetchFileCounts() {
+  async refetchFileCounts(): Promise<void> {
     const [numTotalFiles, numUntaggedFiles] = await this.backend.countFiles();
     runInAction(() => {
       this.numUntaggedFiles = numUntaggedFiles;

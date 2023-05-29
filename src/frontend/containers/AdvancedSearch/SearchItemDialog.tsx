@@ -1,15 +1,16 @@
 import { observer } from 'mobx-react-lite';
-import React, { useState, useRef, useCallback } from 'react';
-import { ID } from 'src/api/id';
-import { ClientFileSearchItem } from 'src/entities/SearchItem';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import { useAutorun } from 'src/frontend/hooks/mobx';
-import { Button } from 'widgets/Button';
-import { IconSet } from 'widgets/Icons';
+import React, { useCallback, useRef, useState } from 'react';
+
+import { Button } from 'widgets/button';
+import { IconSet } from 'widgets/icons';
 import { Dialog } from 'widgets/popovers';
+import { ID } from '../../../api/id';
+import { useStore } from '../../contexts/StoreContext';
+import { ClientFileSearchItem } from '../../entities/SearchItem';
+import { useAutorun } from '../../hooks/mobx';
 import CriteriaBuilder from './CriteriaBuilder';
-import { Criteria, fromCriteria, intoCriteria } from './data';
 import { QueryEditor, QueryMatch } from './QueryEditor';
+import { Criteria, fromCriteria, intoCriteria } from './data';
 
 interface ISearchItemDialogProps {
   searchItem: ClientFileSearchItem;

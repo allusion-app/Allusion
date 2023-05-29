@@ -1,15 +1,16 @@
 import fse from 'fs-extra';
 import { action } from 'mobx';
+import StreamZip from 'node-stream-zip';
+
 import ExifIO from 'common/ExifIO';
 import { thumbnailMaxSize } from 'common/config';
-import { ClientFile } from 'src/entities/File';
-import { FileDTO, IMG_EXTENSIONS_TYPE } from 'src/api/file';
-import TifLoader from './TifLoader';
-import { generateThumbnailUsingWorker } from './ThumbnailGeneration';
-import StreamZip from 'node-stream-zip';
+import { FileDTO, IMG_EXTENSIONS_TYPE } from '../../api/file';
+import { ClientFile } from '../entities/File';
 import ExrLoader from './ExrLoader';
-import { generateThumbnail, getBlob } from './util';
 import PsdLoader from './PSDLoader';
+import { generateThumbnailUsingWorker } from './ThumbnailGeneration';
+import TifLoader from './TifLoader';
+import { generateThumbnail, getBlob } from './util';
 
 type FormatHandlerType =
   | 'web'

@@ -1,21 +1,21 @@
-import Tree from './Tree';
-import { Button, ButtonGroup, IconButton } from './Button';
-import { Radio, RadioGroup } from './Radio';
-import { Checkbox, Toggle } from './Checkbox';
-import { Tag } from './Tag';
-import { IconSet, SVG } from './Icons';
+import { Button, ButtonGroup, IconButton } from './button';
+import { Checkbox, Toggle } from './checkbox';
 import {
-  Listbox,
-  Option,
   Grid,
-  Row,
   GridCell,
   GridCombobox,
   GridOption,
   GridOptionCell,
-} from './Combobox';
+  Listbox,
+  Option,
+  Row,
+} from './combobox';
+import { IconSet, SVG } from './icons';
 import { KeyCombo, keyComboToString } from './KeyCombo';
-import { Split } from './Split';
+import { Radio, RadioGroup } from './radio';
+import { Split } from './split';
+import { Tag } from './tag';
+import Tree from './tree';
 
 export {
   Checkbox,

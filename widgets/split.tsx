@@ -1,5 +1,3 @@
-import './split.scss';
-
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 export type SplitAxis = 'horizontal' | 'vertical';

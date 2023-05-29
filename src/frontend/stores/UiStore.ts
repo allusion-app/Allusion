@@ -1,16 +1,17 @@
 import { shell } from 'electron';
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable } from 'mobx';
-import { ClientFile } from 'src/entities/File';
-import { ID } from 'src/api/id';
-import { ClientFileSearchCriteria, ClientTagSearchCriteria } from 'src/entities/SearchCriteria';
-import { SearchCriteria } from 'src/api/search-criteria';
-import { ClientTag } from 'src/entities/Tag';
-import { RendererMessenger } from 'src/ipc/renderer';
-import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
-import { clamp, notEmpty } from 'common/core';
-import RootStore from './RootStore';
+
 import { maxNumberOfExternalFilesBeforeWarning } from 'common/config';
+import { clamp, notEmpty } from 'common/core';
+import { ID } from '../../api/id';
+import { SearchCriteria } from '../../api/search-criteria';
+import { RendererMessenger } from '../../ipc/renderer';
+import { ClientFile } from '../entities/File';
+import { ClientFileSearchCriteria, ClientTagSearchCriteria } from '../entities/SearchCriteria';
+import { ClientTag } from '../entities/Tag';
+import { comboMatches, getKeyCombo, parseKeyCombo } from '../hotkeyParser';
+import RootStore from './RootStore';
 
 export const enum ViewMethod {
   List,
@@ -195,102 +196,102 @@ class UiStore {
     return this.method === ViewMethod.MasonryHorizontal;
   }
 
-  @action.bound setThumbnailSize(size: ThumbnailSize) {
+  @action.bound setThumbnailSize(size: ThumbnailSize): void {
     this.thumbnailSize = size;
   }
 
-  @action.bound setThumbnailShape(shape: ThumbnailShape) {
+  @action.bound setThumbnailShape(shape: ThumbnailShape): void {
     this.thumbnailShape = shape;
   }
 
-  @action.bound setUpscaleModeSmooth() {
+  @action.bound setUpscaleModeSmooth(): void {
     this.setUpscaleMode('smooth');
   }
 
-  @action.bound setUpscaleModePixelated() {
+  @action.bound setUpscaleModePixelated(): void {
     this.setUpscaleMode('pixelated');
   }
 
-  @action.bound setUpscaleMode(mode: UpscaleMode) {
+  @action.bound setUpscaleMode(mode: UpscaleMode): void {
     this.upscaleMode = mode;
   }
 
-  @action.bound setFirstItem(index: number = 0) {
+  @action.bound setFirstItem(index: number = 0): void {
     if (isFinite(index) && index < this.rootStore.fileStore.fileList.length) {
       this.firstItem = index;
     }
   }
 
-  @action setMethod(method: ViewMethod) {
+  @action setMethod(method: ViewMethod): void {
     this.method = method;
   }
 
-  @action.bound setMethodList() {
+  @action.bound setMethodList(): void {
     this.method = ViewMethod.List;
   }
 
-  @action.bound setMethodGrid() {
+  @action.bound setMethodGrid(): void {
     this.method = ViewMethod.Grid;
   }
 
-  @action.bound setMethodMasonryVertical() {
+  @action.bound setMethodMasonryVertical(): void {
     this.method = ViewMethod.MasonryVertical;
   }
 
-  @action.bound setMethodMasonryHorizontal() {
+  @action.bound setMethodMasonryHorizontal(): void {
     this.method = ViewMethod.MasonryHorizontal;
   }
 
-  @action.bound enableSlideMode() {
+  @action.bound enableSlideMode(): void {
     this.isSlideMode = true;
   }
 
-  @action.bound disableSlideMode() {
+  @action.bound disableSlideMode(): void {
     this.isSlideMode = false;
   }
 
-  @action.bound toggleSlideMode() {
+  @action.bound toggleSlideMode(): void {
     this.isSlideMode = !this.isSlideMode;
   }
 
   /** This does not actually set the window to full-screen, just for bookkeeping! Use RendererMessenger instead */
-  @action.bound setFullScreen(val: boolean) {
+  @action.bound setFullScreen(val: boolean): void {
     this.isFullScreen = val;
   }
 
-  @action.bound enableThumbnailTagOverlay() {
+  @action.bound enableThumbnailTagOverlay(): void {
     this.isThumbnailTagOverlayEnabled = true;
   }
 
-  @action.bound disableThumbnailTagOverlay() {
+  @action.bound disableThumbnailTagOverlay(): void {
     this.isThumbnailTagOverlayEnabled = false;
   }
 
-  @action.bound toggleThumbnailTagOverlay() {
+  @action.bound toggleThumbnailTagOverlay(): void {
     this.isThumbnailTagOverlayEnabled = !this.isThumbnailTagOverlayEnabled;
   }
 
-  @action.bound toggleThumbnailFilenameOverlay() {
+  @action.bound toggleThumbnailFilenameOverlay(): void {
     this.isThumbnailFilenameOverlayEnabled = !this.isThumbnailFilenameOverlayEnabled;
   }
 
-  @action.bound toggleThumbnailResolutionOverlay() {
+  @action.bound toggleThumbnailResolutionOverlay(): void {
     this.isThumbnailResolutionOverlayEnabled = !this.isThumbnailResolutionOverlayEnabled;
   }
 
-  @action.bound toggleRememberSearchQuery() {
+  @action.bound toggleRememberSearchQuery(): void {
     this.isRememberSearchEnabled = !this.isRememberSearchEnabled;
   }
 
-  @action.bound openOutliner() {
+  @action.bound openOutliner(): void {
     this.setIsOutlinerOpen(true);
   }
 
-  @action.bound toggleOutliner() {
+  @action.bound toggleOutliner(): void {
     this.setIsOutlinerOpen(!this.isOutlinerOpen);
   }
 
-  @action.bound openPreviewWindow() {
+  @action.bound openPreviewWindow(): void {
     // Don't open when no files have been selected
     if (this.fileSelection.size === 0) {
       return;
@@ -317,7 +318,7 @@ class UiStore {
     }
   }
 
-  @action.bound openExternal(warnIfTooManyFiles: boolean = true) {
+  @action.bound openExternal(warnIfTooManyFiles: boolean = true): void {
     // Don't open when no files have been selected
     if (this.fileSelection.size === 0) {
       return;
@@ -332,114 +333,114 @@ class UiStore {
     absolutePaths.forEach((path) => shell.openExternal(`file://${path}`).catch(console.error));
   }
 
-  @action.bound toggleInspector() {
+  @action.bound toggleInspector(): void {
     this.isInspectorOpen = !this.isInspectorOpen;
   }
 
-  @action.bound openInspector() {
+  @action.bound openInspector(): void {
     this.isInspectorOpen = true;
   }
 
-  @action.bound toggleSettings() {
+  @action.bound toggleSettings(): void {
     this.isSettingsOpen = !this.isSettingsOpen;
   }
 
-  @action.bound closeSettings() {
+  @action.bound closeSettings(): void {
     this.isSettingsOpen = false;
   }
 
-  @action.bound toggleHelpCenter() {
+  @action.bound toggleHelpCenter(): void {
     this.isHelpCenterOpen = !this.isHelpCenterOpen;
   }
 
-  @action.bound closeHelpCenter() {
+  @action.bound closeHelpCenter(): void {
     this.isHelpCenterOpen = false;
   }
 
-  @action.bound toggleAbout() {
+  @action.bound toggleAbout(): void {
     this.isAboutOpen = !this.isAboutOpen;
   }
 
-  @action.bound closeAbout() {
+  @action.bound closeAbout(): void {
     this.isAboutOpen = false;
   }
 
-  @action.bound openToolbarFileRemover() {
+  @action.bound openToolbarFileRemover(): void {
     if (!this.rootStore.fileStore.showsMissingContent) {
       this.rootStore.fileStore.fetchMissingFiles();
     }
     this.isToolbarFileRemoverOpen = true;
   }
 
-  @action.bound closeToolbarFileRemover() {
+  @action.bound closeToolbarFileRemover(): void {
     this.isToolbarFileRemoverOpen = false;
   }
 
-  @action.bound openMoveFilesToTrash() {
+  @action.bound openMoveFilesToTrash(): void {
     this.isMoveFilesToTrashOpen = true;
   }
 
-  @action.bound closeMoveFilesToTrash() {
+  @action.bound closeMoveFilesToTrash(): void {
     this.isMoveFilesToTrashOpen = false;
   }
 
-  @action.bound closeManyExternalFiles() {
+  @action.bound closeManyExternalFiles(): void {
     this.isManyExternalFilesOpen = false;
   }
 
-  @action.bound toggleToolbarTagPopover() {
+  @action.bound toggleToolbarTagPopover(): void {
     this.isToolbarTagPopoverOpen = !this.isToolbarTagPopoverOpen;
   }
 
-  @action.bound openToolbarTagPopover() {
+  @action.bound openToolbarTagPopover(): void {
     if (this.fileSelection.size > 0) {
       this.isToolbarTagPopoverOpen = true;
     }
   }
 
-  @action.bound closeToolbarTagPopover() {
+  @action.bound closeToolbarTagPopover(): void {
     this.isToolbarTagPopoverOpen = false;
   }
 
-  @action.bound openLocationRecovery(locationId: ID) {
+  @action.bound openLocationRecovery(locationId: ID): void {
     this.isLocationRecoveryOpen = locationId;
   }
 
-  @action.bound closeLocationRecovery() {
+  @action.bound closeLocationRecovery(): void {
     this.isLocationRecoveryOpen = null;
   }
 
-  @action.bound closePreviewWindow() {
+  @action.bound closePreviewWindow(): void {
     this.isPreviewOpen = false;
   }
 
-  @action.bound setThumbnailDirectory(dir: string = '') {
+  @action.bound setThumbnailDirectory(dir: string = ''): void {
     this.thumbnailDirectory = dir;
   }
 
-  @action.bound setImportDirectory(dir: string) {
+  @action.bound setImportDirectory(dir: string): void {
     this.importDirectory = dir;
   }
 
-  @action.bound setTheme(theme: 'light' | 'dark' = 'dark') {
+  @action.bound setTheme(theme: 'light' | 'dark' = 'dark'): void {
     this.theme = theme;
     RendererMessenger.setTheme({ theme });
   }
 
-  @action.bound toggleAdvancedSearch() {
+  @action.bound toggleAdvancedSearch(): void {
     this.isAdvancedSearchOpen = !this.isAdvancedSearchOpen;
   }
 
-  @action.bound closeAdvancedSearch() {
+  @action.bound closeAdvancedSearch(): void {
     this.isAdvancedSearchOpen = false;
   }
 
-  @action.bound toggleSearchMatchAny() {
+  @action.bound toggleSearchMatchAny(): void {
     this.searchMatchAny = !this.searchMatchAny;
   }
 
   /////////////////// Selection actions ///////////////////
-  @action.bound selectFile(file: ClientFile, clear?: boolean) {
+  @action.bound selectFile(file: ClientFile, clear?: boolean): void {
     if (clear === true) {
       this.clearFileSelection();
     }
@@ -447,11 +448,11 @@ class UiStore {
     this.setFirstItem(this.rootStore.fileStore.getIndex(file.id));
   }
 
-  @action.bound deselectFile(file: ClientFile) {
+  @action.bound deselectFile(file: ClientFile): void {
     this.fileSelection.delete(file);
   }
 
-  @action.bound toggleFileSelection(file: ClientFile, clear?: boolean) {
+  @action.bound toggleFileSelection(file: ClientFile, clear?: boolean): void {
     if (this.fileSelection.has(file)) {
       this.fileSelection.delete(file);
     } else {
@@ -462,7 +463,7 @@ class UiStore {
     }
   }
 
-  @action.bound selectFileRange(start: number, end: number, additive?: boolean) {
+  @action.bound selectFileRange(start: number, end: number, additive?: boolean): void {
     if (!additive) {
       this.fileSelection.clear();
     }
@@ -471,26 +472,26 @@ class UiStore {
     }
   }
 
-  @action.bound selectAllFiles() {
+  @action.bound selectAllFiles(): void {
     this.fileSelection.replace(this.rootStore.fileStore.fileList);
   }
 
-  @action.bound clearFileSelection() {
+  @action.bound clearFileSelection(): void {
     this.fileSelection.clear();
   }
 
-  @action.bound selectTag(tag: ClientTag, clear?: boolean) {
+  @action.bound selectTag(tag: ClientTag, clear?: boolean): void {
     if (clear === true) {
       this.clearTagSelection();
     }
     this.tagSelection.add(tag);
   }
 
-  @action.bound deselectTag(tag: ClientTag) {
+  @action.bound deselectTag(tag: ClientTag): void {
     this.tagSelection.delete(tag);
   }
 
-  @action.bound toggleTagSelection(tag: ClientTag) {
+  @action.bound toggleTagSelection(tag: ClientTag): void {
     if (this.tagSelection.has(tag)) {
       this.tagSelection.delete(tag);
     } else {
@@ -499,7 +500,7 @@ class UiStore {
   }
 
   /** Selects a range of tags, where indices correspond to the flattened tag list. */
-  @action.bound selectTagRange(start: number, end: number, additive?: boolean) {
+  @action.bound selectTagRange(start: number, end: number, additive?: boolean): void {
     const tagTreeList = this.rootStore.tagStore.tagList;
     if (!additive) {
       this.tagSelection.replace(tagTreeList.slice(start, end + 1));
@@ -510,20 +511,20 @@ class UiStore {
     }
   }
 
-  @action.bound selectAllTags() {
+  @action.bound selectAllTags(): void {
     this.tagSelection.replace(this.rootStore.tagStore.tagList);
   }
 
-  @action.bound clearTagSelection() {
+  @action.bound clearTagSelection(): void {
     this.tagSelection.clear();
   }
 
-  @action.bound async removeSelectedTags() {
+  @action.bound async removeSelectedTags(): Promise<void> {
     const ctx = this.getTagContextItems();
     return this.rootStore.tagStore.deleteTags(ctx);
   }
 
-  @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string) {
+  @action.bound colorSelectedTagsAndCollections(activeElementId: ID, color: string): void {
     const ctx = this.getTagContextItems(activeElementId);
     const colorCollection = (tag: ClientTag) => {
       tag.setColor(color);
@@ -539,7 +540,7 @@ class UiStore {
    * @returns The collections and tags in the context. Tags belonging to collections in the context are not included,
    * but can be easily found by getting the tags from each collection.
    */
-  @action.bound getTagContextItems(activeItemId?: ID) {
+  @action.bound getTagContextItems(activeItemId?: ID): ClientTag[] {
     const { tagStore } = this.rootStore;
 
     // If no id was given, the context is the tag selection. Else, it might be a single tag/collection
@@ -570,7 +571,7 @@ class UiStore {
   /**
    * @param targetId Where to move the selection to
    */
-  @action.bound moveSelectedTagItems(id: ID, pos = 0) {
+  @action.bound moveSelectedTagItems(id: ID, pos = 0): void {
     const { tagStore } = this.rootStore;
 
     const target = tagStore.get(id);
@@ -586,7 +587,7 @@ class UiStore {
   }
 
   /////////////////// Search Actions ///////////////////
-  @action.bound clearSearchCriteriaList() {
+  @action.bound clearSearchCriteriaList(): void {
     if (this.searchCriteriaList.length > 0) {
       this.searchCriteriaList.forEach((c) => c.dispose());
       this.searchCriteriaList.clear();
@@ -594,17 +595,17 @@ class UiStore {
     }
   }
 
-  @action.bound addSearchCriteria(query: Exclude<ClientFileSearchCriteria, 'key'>) {
+  @action.bound addSearchCriteria(query: Exclude<ClientFileSearchCriteria, 'key'>): void {
     this.searchCriteriaList.push(query);
     this.viewQueryContent();
   }
 
-  @action.bound addSearchCriterias(queries: Exclude<ClientFileSearchCriteria[], 'key'>) {
+  @action.bound addSearchCriterias(queries: Exclude<ClientFileSearchCriteria[], 'key'>): void {
     this.searchCriteriaList.push(...queries);
     this.viewQueryContent();
   }
 
-  @action.bound toggleSearchCriterias(queries: Exclude<ClientFileSearchCriteria[], 'key'>) {
+  @action.bound toggleSearchCriterias(queries: Exclude<ClientFileSearchCriteria[], 'key'>): void {
     // TODO: can be improved
     const deepEqual = (a: any, b: any) => JSON.stringify(a) === JSON.stringify(b);
 
@@ -631,7 +632,7 @@ class UiStore {
     }
   }
 
-  @action.bound removeSearchCriteria(query: ClientFileSearchCriteria) {
+  @action.bound removeSearchCriteria(query: ClientFileSearchCriteria): void {
     query.dispose();
     this.searchCriteriaList.remove(query);
     if (this.searchCriteriaList.length > 0) {
@@ -641,11 +642,11 @@ class UiStore {
     }
   }
 
-  @action.bound replaceSearchCriteria(query: Exclude<ClientFileSearchCriteria, 'key'>) {
+  @action.bound replaceSearchCriteria(query: Exclude<ClientFileSearchCriteria, 'key'>): void {
     this.replaceSearchCriterias([query]);
   }
 
-  @action.bound replaceSearchCriterias(queries: Exclude<ClientFileSearchCriteria[], 'key'>) {
+  @action.bound replaceSearchCriterias(queries: Exclude<ClientFileSearchCriteria[], 'key'>): void {
     this.searchCriteriaList.forEach((c) => c.dispose());
 
     this.searchCriteriaList.replace(queries);
@@ -657,7 +658,7 @@ class UiStore {
     }
   }
 
-  @action.bound removeSearchCriteriaByIndex(i: number) {
+  @action.bound removeSearchCriteriaByIndex(i: number): void {
     const removedCrits = this.searchCriteriaList.splice(i, 1);
 
     removedCrits.forEach((c) => c.dispose());
@@ -669,7 +670,7 @@ class UiStore {
     }
   }
 
-  @action.bound addTagSelectionToCriteria() {
+  @action.bound addTagSelectionToCriteria(): void {
     const newCrits = Array.from(
       this.tagSelection,
       (tag) => new ClientTagSearchCriteria('tags', tag.id),
@@ -678,7 +679,7 @@ class UiStore {
     this.clearTagSelection();
   }
 
-  @action.bound replaceCriteriaWithTagSelection() {
+  @action.bound replaceCriteriaWithTagSelection(): void {
     this.replaceSearchCriterias(
       Array.from(this.tagSelection, (tag) => new ClientTagSearchCriteria('tags', tag.id)),
     );
@@ -688,7 +689,7 @@ class UiStore {
   @action.bound replaceCriteriaItem(
     oldCrit: ClientFileSearchCriteria,
     crit: ClientFileSearchCriteria,
-  ) {
+  ): void {
     const index = this.searchCriteriaList.indexOf(oldCrit);
     if (index !== -1) {
       this.searchCriteriaList[index].dispose();
@@ -697,17 +698,11 @@ class UiStore {
     }
   }
 
-  @action.bound getCriteriaByValue(value: any) {
-    return this.searchCriteriaList.find(
-      (c: any) => c.value === value || c.value?.includes?.(value),
-    );
-  }
-
-  @action.bound remapHotkey(action: keyof IHotkeyMap, combo: string) {
+  @action.bound remapHotkey(action: keyof IHotkeyMap, combo: string): void {
     this.hotkeyMap[action] = combo;
   }
 
-  @action.bound processGlobalShortCuts(e: KeyboardEvent) {
+  @action.bound processGlobalShortCuts(e: KeyboardEvent): void {
     if ((e.target as HTMLElement | null)?.matches('input')) {
       return;
     }
@@ -758,7 +753,7 @@ class UiStore {
     }
   }
 
-  @action.bound moveOutlinerSplitter(x: number, width: number) {
+  @action.bound moveOutlinerSplitter(x: number, width: number): void {
     if (this.isOutlinerOpen) {
       const w = clamp(x, UiStore.MIN_OUTLINER_WIDTH, width * 0.75);
       this.outlinerWidth = w;
@@ -772,7 +767,7 @@ class UiStore {
     }
   }
 
-  @action.bound moveInspectorSplitter(x: number, width: number) {
+  @action.bound moveInspectorSplitter(x: number, width: number): void {
     // The inspector is on the right side, so we need to calculate the offset.
     const offsetX = width - x;
     if (this.isInspectorOpen) {
@@ -788,7 +783,7 @@ class UiStore {
   }
 
   // Storing preferences
-  @action recoverPersistentPreferences() {
+  @action recoverPersistentPreferences(): void {
     const prefsString = localStorage.getItem(PREFERENCES_STORAGE_KEY);
     if (prefsString) {
       try {
@@ -884,12 +879,12 @@ class UiStore {
     return preferences;
   }
 
-  clearPersistentPreferences() {
+  clearPersistentPreferences(): void {
     localStorage.removeItem(PREFERENCES_STORAGE_KEY);
   }
 
   /////////////////// Helper methods ///////////////////
-  @action.bound clearSelection() {
+  @action.bound clearSelection(): void {
     this.tagSelection.clear();
     this.fileSelection.clear();
   }
@@ -912,11 +907,11 @@ class UiStore {
       : undefined;
   }
 
-  @action private viewAllContent() {
+  @action private viewAllContent(): void {
     this.rootStore.fileStore.fetchAllFiles();
   }
 
-  @action private viewQueryContent() {
+  @action private viewQueryContent(): void {
     this.rootStore.fileStore.fetchFilesByQuery();
   }
 

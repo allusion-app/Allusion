@@ -1,8 +1,9 @@
 import { action, makeObservable, observable } from 'mobx';
-import { DataStorage } from 'src/api/data-storage';
-import { generateId, ID } from 'src/api/id';
-import { ClientFileSearchCriteria } from 'src/entities/SearchCriteria';
-import { ClientFileSearchItem } from 'src/entities/SearchItem';
+
+import { DataStorage } from '../../api/data-storage';
+import { ID, generateId } from '../../api/id';
+import { ClientFileSearchCriteria } from '../entities/SearchCriteria';
+import { ClientFileSearchItem } from '../entities/SearchItem';
 import RootStore from './RootStore';
 
 /**
@@ -22,7 +23,7 @@ class SearchStore {
     makeObservable(this);
   }
 
-  async init() {
+  async init(): Promise<void> {
     try {
       const fetchedSearches = await this.backend.fetchSearches();
       fetchedSearches.sort((a, b) => a.index - b.index);
@@ -42,19 +43,19 @@ class SearchStore {
     return this.searchList.find((s) => s.id === search);
   }
 
-  @action.bound async create(search: ClientFileSearchItem) {
+  @action.bound async create(search: ClientFileSearchItem): Promise<ClientFileSearchItem> {
     this.searchList.push(search);
     await this.backend.createSearch(search.serialize(this.rootStore));
     return search;
   }
 
-  @action.bound async remove(search: ClientFileSearchItem) {
+  @action.bound async remove(search: ClientFileSearchItem): Promise<void> {
     // Do we need to dispose anything? There is no save handler, observable properties should be disposed automatically I believe
     this.searchList.remove(search);
     await this.backend.removeSearch(search.id);
   }
 
-  @action.bound async duplicate(search: ClientFileSearchItem) {
+  @action.bound async duplicate(search: ClientFileSearchItem): Promise<ClientFileSearchItem> {
     const newSearch = new ClientFileSearchItem(
       generateId(),
       `${search.name} (copy)`,
@@ -68,7 +69,7 @@ class SearchStore {
     return newSearch;
   }
 
-  @action.bound replaceWithActiveSearch(search: ClientFileSearchItem) {
+  @action.bound replaceWithActiveSearch(search: ClientFileSearchItem): void {
     search.setMatchAny(this.rootStore.uiStore.searchMatchAny);
     search.setCriteria(
       this.rootStore.uiStore.searchCriteriaList.map((c) =>
@@ -78,7 +79,7 @@ class SearchStore {
   }
 
   /** Source is moved to where Target currently is */
-  @action.bound reorder(source: ClientFileSearchItem, target: ClientFileSearchItem) {
+  @action.bound reorder(source: ClientFileSearchItem, target: ClientFileSearchItem): void {
     const sourceIndex = this.searchList.indexOf(source);
     const targetIndex = this.searchList.indexOf(target);
 
@@ -95,7 +96,7 @@ class SearchStore {
     }
   }
 
-  save(search: ClientFileSearchItem) {
+  save(search: ClientFileSearchItem): void {
     this.backend.saveSearch(search.serialize(this.rootStore));
   }
 }

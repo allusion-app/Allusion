@@ -1,4 +1,4 @@
-import { ClientFile } from 'src/entities/File';
+import { ClientFile } from '../../entities/File';
 import { ThumbnailSize } from '../../stores/UiStore';
 
 export type ContentRect = { width: number; height: number };

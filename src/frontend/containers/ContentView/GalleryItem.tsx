@@ -1,16 +1,17 @@
+import fse from 'fs-extra';
 import { action, when } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import fse from 'fs-extra';
-import { ClientFile } from 'src/entities/File';
+
 import { ellipsize, humanFileSize } from 'common/fmt';
 import { encodeFilePath } from 'common/fs';
 import { IconButton, IconSet, Tag } from 'widgets';
-import { ITransform } from './Masonry/layout-helpers';
-import { ClientTag } from 'src/entities/Tag';
-import { useStore } from 'src/frontend/contexts/StoreContext';
-import { usePromise } from 'src/frontend/hooks/usePromise';
+import { useStore } from '../../contexts/StoreContext';
+import { ClientFile } from '../../entities/File';
+import { ClientTag } from '../../entities/Tag';
+import { usePromise } from '../../hooks/usePromise';
 import { CommandDispatcher, MousePointerEvent } from './Commands';
+import { ITransform } from './Masonry/layout-helpers';
 
 interface ItemProps {
   file: ClientFile;

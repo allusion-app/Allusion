@@ -1,12 +1,11 @@
-import React from 'react';
 import { action, makeObservable, observable } from 'mobx';
 import { observer } from 'mobx-react-lite';
+import React from 'react';
 
-import { ID } from 'src/api/id';
-
+import { Button } from 'widgets/button';
 import { Toast } from 'widgets/notifications';
-import { Button } from 'widgets/Button';
 import { generateWidgetId } from 'widgets/utility';
+import { ID } from '../../api/id';
 
 class ToastManager {
   readonly toastList = observable(new Array<IdentifiableToast>());

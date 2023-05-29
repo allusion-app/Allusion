@@ -1,6 +1,5 @@
-import { ID } from 'src/api/id';
-import { ClientTag } from 'src/entities/Tag';
-
+import { ID } from '../../../../api/id';
+import { ClientTag } from '../../../entities/Tag';
 import { IAction, IExpansionState } from '../../types';
 
 const enum Flag {

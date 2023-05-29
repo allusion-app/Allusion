@@ -1,11 +1,20 @@
 import { computed } from 'mobx';
 import { observer } from 'mobx-react-lite';
-import React, { ForwardedRef, ReactElement, useCallback, useId, useMemo, useRef, useState } from 'react';
-import { ClientTag } from 'src/entities/Tag';
-import { IconButton, IconSet, Tag, Grid, Row, GridCell } from 'widgets';
-import { RowProps, useGridFocus } from 'widgets/Combobox/Grid';
+import React, {
+  ForwardedRef,
+  ReactElement,
+  useCallback,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+
+import { Grid, GridCell, IconButton, IconSet, Row, Tag } from 'widgets';
+import { RowProps, useGridFocus } from 'widgets/combobox/Grid';
 import { Flyout } from 'widgets/popovers';
 import { useStore } from '../contexts/StoreContext';
+import { ClientTag } from '../entities/Tag';
 import { useComputed } from '../hooks/mobx';
 
 export interface TagSelectorProps {

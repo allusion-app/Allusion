@@ -1,10 +1,11 @@
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
+
+import { IS_MAC } from 'common/process';
 import { WindowSystemButtonPress } from 'src/ipc/messages';
 import { RendererMessenger } from 'src/ipc/renderer';
-import { IconSet } from 'widgets/Icons';
+import { IconSet } from 'widgets/icons';
 import { useStore } from '../contexts/StoreContext';
-import { IS_MAC } from 'common/process';
 
 const WindowsTitlebar = () => {
   const [isFocused, setIsFocused] = useState(true);
