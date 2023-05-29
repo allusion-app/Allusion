@@ -32,7 +32,7 @@ export default class Backend implements DataStorage {
   #notifyChange: () => void;
 
   constructor(db: Dexie, notifyChange: () => void) {
-    console.info(`Initializing database "${db.name}"...`);
+    console.info(`IndexedDB: Initializing database "${db.name}"...`);
     // Initialize database tables
     this.#files = db.table('files');
     this.#tags = db.table('tags');
@@ -45,27 +45,30 @@ export default class Backend implements DataStorage {
   static async init(db: Dexie, notifyChange: () => void): Promise<Backend> {
     const backend = new Backend(db, notifyChange);
     // Create a root tag if it does not exist
-    const tagCount = await backend.#tags.count();
-    if (tagCount === 0) {
-      await backend.createTag({
-        id: ROOT_TAG_ID,
-        name: 'Root',
-        dateAdded: new Date(),
-        subTags: [],
-        color: '',
-        isHidden: false,
-      });
-    }
+    const tags = backend.#tags;
+    await db.transaction('rw', tags, async () => {
+      const tagCount = await tags.count();
+      if (tagCount === 0) {
+        await tags.put({
+          id: ROOT_TAG_ID,
+          name: 'Root',
+          dateAdded: new Date(),
+          subTags: [],
+          color: '',
+          isHidden: false,
+        });
+      }
+    });
     return backend;
   }
 
   async fetchTags(): Promise<TagDTO[]> {
-    console.info('Backend: Fetching tags...');
+    console.info('IndexedDB: Fetching tags...');
     return this.#tags.toArray();
   }
 
   async fetchFiles(order: OrderBy<FileDTO>, fileOrder: OrderDirection): Promise<FileDTO[]> {
-    console.info('Backend: Fetching files...');
+    console.info('IndexedDB: Fetching files...');
     if (order === 'random') {
       return shuffleArray(await this.#files.toArray());
     }
@@ -73,28 +76,32 @@ export default class Backend implements DataStorage {
     const collection = this.#files.orderBy(order);
     const items = await collection.toArray();
 
-    return fileOrder === OrderDirection.Desc ? items.reverse() : items;
+    if (fileOrder === OrderDirection.Desc) {
+      return items.reverse();
+    } else {
+      return items;
+    }
   }
 
   async fetchFilesByID(ids: ID[]): Promise<FileDTO[]> {
-    console.info('Backend: Fetching files by ID...');
+    console.info('IndexedDB: Fetching files by ID...');
     const files = await this.#files.bulkGet(ids);
     retainArray(files, (file) => file !== undefined);
     return files as FileDTO[];
   }
 
   async fetchFilesByKey(key: keyof FileDTO, value: IndexableType): Promise<FileDTO[]> {
-    console.info('Backend: Fetching files by key/value...', { key, value });
+    console.info('IndexedDB: Fetching files by key/value...', { key, value });
     return this.#files.where(key).equals(value).toArray();
   }
 
   async fetchLocations(): Promise<LocationDTO[]> {
-    console.info('Backend: Fetching locations...');
+    console.info('IndexedDB: Fetching locations...');
     return this.#locations.orderBy('dateAdded').toArray();
   }
 
   async fetchSearches(): Promise<FileSearchDTO[]> {
-    console.info('Backend: Fetching searches...');
+    console.info('IndexedDB: Fetching searches...');
     return this.#searches.toArray();
   }
 
@@ -104,65 +111,69 @@ export default class Backend implements DataStorage {
     fileOrder: OrderDirection,
     matchAny?: boolean,
   ): Promise<FileDTO[]> {
-    console.info('Backend: Searching files...', { criteria, matchAny });
+    console.info('IndexedDB: Searching files...', { criteria, matchAny });
     const criterias = Array.isArray(criteria) ? criteria : ([criteria] as [ConditionDTO<FileDTO>]);
     const collection = await filter(this.#files, criterias, matchAny ? 'or' : 'and');
 
     if (order === 'random') {
       return shuffleArray(await collection.toArray());
+    }
+    // table.reverse() can be an order of magnitude slower than a javascript .reverse() call
+    // (tested at ~5000 items, 500ms instead of 100ms)
+    // easy to verify here https://jsfiddle.net/dfahlander/xf2zrL4p
+    const items = await collection.sortBy(order);
+
+    if (fileOrder === OrderDirection.Desc) {
+      return items.reverse();
     } else {
-      // table.reverse() can be an order of magnitude slower than a javascript .reverse() call
-      // (tested at ~5000 items, 500ms instead of 100ms)
-      // easy to verify here https://jsfiddle.net/dfahlander/xf2zrL4p
-      const items = await collection.sortBy(order);
-      return fileOrder === OrderDirection.Desc ? items.reverse() : items;
+      return items;
     }
   }
 
   async createTag(tag: TagDTO): Promise<void> {
-    console.info('Backend: Creating tag...', tag);
+    console.info('IndexedDB: Creating tag...', tag);
     await this.#tags.add(tag);
     this.#notifyChange();
   }
 
   async createLocation(location: LocationDTO): Promise<void> {
-    console.info('Backend: Create location...', location);
+    console.info('IndexedDB: Creating location...', location);
     await this.#locations.add(location);
     this.#notifyChange();
   }
 
   async createSearch(search: FileSearchDTO): Promise<void> {
-    console.info('Backend: Create search...', search);
+    console.info('IndexedDB: Creating search...', search);
     await this.#searches.add(search);
     this.#notifyChange();
   }
 
   async saveTag(tag: TagDTO): Promise<void> {
-    console.info('Backend: Saving tag...', tag);
+    console.info('IndexedDB: Saving tag...', tag);
     await this.#tags.put(tag);
     this.#notifyChange();
   }
 
   async saveFiles(files: FileDTO[]): Promise<void> {
-    console.info('Backend: Saving files...', files);
+    console.info('IndexedDB: Saving files...', files);
     await this.#files.bulkPut(files);
     this.#notifyChange();
   }
 
   async saveLocation(location: LocationDTO): Promise<void> {
-    console.info('Backend: Saving location...', location);
+    console.info('IndexedDB: Saving location...', location);
     await this.#locations.put(location);
     this.#notifyChange();
   }
 
   async saveSearch(search: FileSearchDTO): Promise<void> {
-    console.info('Backend: Saving search...', search);
+    console.info('IndexedDB: Saving search...', search);
     await this.#searches.put(search);
     this.#notifyChange();
   }
 
   async removeTags(tags: ID[]): Promise<void> {
-    console.info('Backend: Removing tags...', tags);
+    console.info('IndexedDB: Removing tags...', tags);
     await this.#db.transaction('rw', this.#files, this.#tags, () => {
       const deletedTags = new Set(tags);
       retainArray(tags, (tag) => deletedTags.has(tag));
@@ -181,7 +192,7 @@ export default class Backend implements DataStorage {
   }
 
   async mergeTags(tagToBeRemoved: ID, tagToMergeWith: ID): Promise<void> {
-    console.info('Merging tags', tagToBeRemoved, tagToMergeWith);
+    console.info('IndexedDB: Merging tags...', tagToBeRemoved, tagToMergeWith);
     await this.#db.transaction('rw', this.#files, this.#tags, () => {
       // Replace tag on all files with the tag to be removed
       this.#files
@@ -206,13 +217,13 @@ export default class Backend implements DataStorage {
   }
 
   async removeFiles(files: ID[]): Promise<void> {
-    console.info('Backend: Removing files...', files);
+    console.info('IndexedDB: Removing files...', files);
     await this.#files.bulkDelete(files);
     this.#notifyChange();
   }
 
   async removeLocation(location: ID): Promise<void> {
-    console.info('Backend: Remove location...', location);
+    console.info('IndexedDB: Removing location...', location);
     await this.#db.transaction('rw', this.#files, this.#locations, () => {
       this.#files.where('locationId').equals(location).delete();
       this.#locations.delete(location);
@@ -221,13 +232,13 @@ export default class Backend implements DataStorage {
   }
 
   async removeSearch(search: ID): Promise<void> {
-    console.info('Backend: Removing search...', search);
+    console.info('IndexedDB: Removing search...', search);
     await this.#searches.delete(search);
     this.#notifyChange();
   }
 
   async countFiles(): Promise<[fileCount: number, untaggedFileCount: number]> {
-    console.info('Get number stats of files...');
+    console.info('IndexedDB: Getting number stats of files...');
     return this.#db.transaction('r', this.#files, async () => {
       const [fileCount, taggedFileCount] = await Promise.all([
         this.#files.count(),
@@ -249,7 +260,7 @@ export default class Backend implements DataStorage {
 
   // Creates many files at once, and checks for duplicates in the path they are in
   async createFilesFromPath(path: string, files: FileDTO[]): Promise<void> {
-    console.info('Backend: Creating files...', path, files);
+    console.info('IndexedDB: Creating files...', path, files);
     await this.#db.transaction('rw', this.#files, async () => {
       const existingFilePaths = new Set(
         await this.#files.where('absolutePath').startsWith(path).keys(),
@@ -264,7 +275,7 @@ export default class Backend implements DataStorage {
   }
 
   async clear(): Promise<void> {
-    console.info('Clearing database...');
+    console.info('IndexedDB: Clearing database...');
     Dexie.delete(this.#db.name);
   }
 }

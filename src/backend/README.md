@@ -7,5 +7,4 @@ The database is exposed to the web application through the `Backend.ts`, which a
 The idea behind this backend was to create a separation between the back- and frontend you usually find in web applications.
 If we ever want to change the type of database we use, this would make it relatively straightforward.
 
-All of the search logic lives in `DBRepository.ts`: A wrapper around a [Dexie.js](https://dexie.org/) table.
 This set-up is not optimal for performant fetching of large amounts of items from the database.

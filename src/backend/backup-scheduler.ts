@@ -3,9 +3,9 @@ import { exportDB, importDB, peakImportFile } from 'dexie-export-import';
 import fse from 'fs-extra';
 import path from 'path';
 
-import { debounce } from 'common/timeout';
-import { NUM_AUTO_BACKUPS, AUTO_BACKUP_TIMEOUT } from './config';
-import { DataBackup } from 'src/api/data-backup';
+import { debounce } from '../../common/timeout';
+import { DataBackup } from '../api/data-backup';
+import { AUTO_BACKUP_TIMEOUT, NUM_AUTO_BACKUPS } from './config';
 
 /** Returns the date at 00:00 today */
 function getToday(): Date {

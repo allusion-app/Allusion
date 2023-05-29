@@ -1,3 +1,6 @@
+/**
+ * The data storage backup system and scheduler.
+ */
 export interface DataBackup {
   schedule(): void;
   backupToFile(path: string): Promise<void>;
