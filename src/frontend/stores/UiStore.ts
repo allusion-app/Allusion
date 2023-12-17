@@ -4,6 +4,7 @@ import { action, computed, makeObservable, observable } from 'mobx';
 
 import { maxNumberOfExternalFilesBeforeWarning } from 'common/config';
 import { clamp, notEmpty } from 'common/core';
+import { encodeFilePath } from 'common/fs';
 import { ID } from '../../api/id';
 import { SearchCriteria } from '../../api/search-criteria';
 import { RendererMessenger } from '../../ipc/renderer';
@@ -315,6 +316,39 @@ class UiStore {
     // remove focus from element so closing preview with spacebar does not trigger any ui elements
     if (document.activeElement && document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
+    }
+  }
+
+  @action.bound async copyToClipboard(): Promise<void> {
+    if (this.fileSelection.size === 0) {
+      return;
+    }
+
+    const file = Array.from(this.fileSelection)[0];
+    if (file.isBroken) {
+      return;
+    }
+
+    try {
+      const src = await this.rootStore.imageLoader.getImageSrc(file);
+      if (src !== undefined) {
+        const image = new Image();
+        image.src = encodeFilePath(src);
+        const canvas = new OffscreenCanvas(image.width, image.height);
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const ctx2D = canvas.getContext('2d');
+        if (!ctx2D) {
+          throw new Error('Context2D not available!');
+        }
+        ctx2D.drawImage(image, 0, 0);
+        const blob = await canvas.convertToBlob({ type: 'image/png' });
+        navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      } else {
+        throw new Error('Failed to get image data.');
+      }
+    } catch (e) {
+      console.error('Could not copy image to clipboard', e);
     }
   }
 

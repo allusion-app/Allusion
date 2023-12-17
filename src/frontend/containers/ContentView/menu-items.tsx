@@ -169,8 +169,14 @@ export const SlideFileViewerMenuItems = observer(({ file }: { file: ClientFile }
     uiStore.openPreviewWindow();
   };
 
+  const handleCopyToClipboard = () => {
+    uiStore.selectFile(file, true);
+    uiStore.copyToClipboard();
+  };
+
   return (
     <>
+      <MenuItem onClick={handleCopyToClipboard} text="Copy" icon={IconSet.COPY} />
       <MenuItem
         onClick={handlePreviewWindow}
         text="Open In Preview Window"
