@@ -16,6 +16,7 @@ import { FileSearchDTO } from '../api/file-search';
 import { ID } from '../api/id';
 import { LocationDTO } from '../api/location';
 import { ROOT_TAG_ID, TagDTO } from '../api/tag';
+import Path from 'path';
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -427,12 +428,38 @@ function filterStringWhere<T>(
     'startsWith',
   ] as const;
 
+  // Special case for absolutePath equality: only match the directory part
+  if (
+    crit.key === 'absolutePath' &&
+    ['equals', 'equalsIgnoreCase', 'notEqual'].includes(crit.operator)
+  ) {
+    return filterDirectoryPath(crit);
+  }
+
   if ((dbStringOperators as readonly string[]).includes(crit.operator)) {
-    const funcName = crit.operator as unknown as (typeof dbStringOperators)[number];
+    const funcName = crit.operator as unknown as typeof dbStringOperators[number];
     return where[funcName](crit.value);
   }
   // Use normal string filter as fallback for functions not supported by the DB
   return filterStringLambda(crit);
+}
+
+// Filter directory path without filename
+function filterDirectoryPath<T>(crit: StringConditionDTO<T>): (t: any) => boolean {
+  const { key, value } = crit;
+  const valLow = value.toLowerCase();
+
+  switch (crit.operator) {
+    case 'equals':
+      return (t: any) => Path.relative(Path.dirname(t[key] as string), value) === '';
+    case 'equalsIgnoreCase':
+      return (t: any) => Path.relative(Path.dirname(t[key] as string).toLowerCase(), valLow) === '';
+    case 'notEqual':
+      return (t: any) => Path.relative(Path.dirname(t[key] as string), value) !== '';
+    default:
+      console.log('String operator not allowed:', crit.operator);
+      return () => false;
+  }
 }
 
 function filterStringLambda<T>(crit: StringConditionDTO<T>): (t: any) => boolean {
