@@ -57,7 +57,11 @@ console.log('Exif tool path: ', EXIF_TOOL_PATH);
 const ep = new exiftool.ExiftoolProcess(EXIF_TOOL_PATH);
 
 const defaultWriteArgs = [
-  'overwrite_original', // added this because it was leaving behind duplicate files (with _original appended to filename)
+  // overwrite_original to prevent duplicate files appearing.
+  // in_place to prevent changing the file's inode number,
+  // which would desync with the database
+  // and break detection of renamed files
+  'overwrite_original_in_place',
   'codedcharacterset=utf8', // needed for adobe products: https://www.npmjs.com/package/node-exiftool#writing-tags-for-adobe-in-utf8
   'P', // for preserving the modified date of files
 ];
