@@ -1,4 +1,4 @@
-import { shell } from 'electron';
+import { shell, clipboard, nativeImage } from 'electron';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React from 'react';
@@ -197,6 +197,12 @@ export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) =>
   const { uiStore } = useStore();
   return (
     <>
+      <MenuItem
+        onClick={() => clipboard.writeImage(nativeImage.createFromPath(file.absolutePath))}
+        text="Copy to Clipboard"
+        disabled={file.isBroken}
+        icon={IconSet.OPEN_EXTERNAL}
+      />
       <MenuItem
         onClick={() => uiStore.openExternal()}
         text="Open External"
