@@ -12,6 +12,10 @@
   white-space: nowrap;
   overflow: hidden;
 
+  &-header {
+    font-weight: bold;
+  }
+
   .label {
     overflow: clip visible;
     text-overflow: ellipsis;

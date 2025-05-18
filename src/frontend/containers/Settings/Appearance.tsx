@@ -81,6 +81,21 @@ export const Appearance = observer(() => {
           <Radio value="letterbox">Letterbox</Radio>
         </RadioGroup>
       </div>
+
+      <h3>Gallery Video Playback</h3>
+
+      <div className="vstack">
+        <RadioGroup
+          orientation="horizontal"
+          name="Playback Mode"
+          value={uiStore.galleryVideoPlaybackMode}
+          onChange={uiStore.setGalleryVideoPlaybackMode}
+        >
+          <Radio value="auto">Auto</Radio>
+          <Radio value="hover">Hover</Radio>
+          <Radio value="disabled">Disabled</Radio>
+        </RadioGroup>
+      </div>
     </>
   );
 });

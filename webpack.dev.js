@@ -42,6 +42,9 @@ let mainConfig = {
       },
     ],
   },
+  externals: {
+    fsevents: "require('fsevents')"
+  }
 };
 
 let rendererConfig = {
@@ -119,6 +122,9 @@ let rendererConfig = {
       template: path.resolve(__dirname, './src/index.html'),
     }),
   ],
+  externals: {
+    fsevents: "require('fsevents')"
+  }
 };
 
 module.exports = [mainConfig, rendererConfig];

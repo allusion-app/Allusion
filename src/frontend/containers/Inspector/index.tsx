@@ -7,6 +7,7 @@ import ImageInfo from '../../components/ImageInfo';
 import { IconButton, IconSet } from 'widgets';
 import { shell } from 'electron';
 import { IS_PREVIEW_WINDOW } from 'common/window';
+import FileScores from '../../components/ScoreEditor';
 
 const Inspector = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -20,13 +21,11 @@ const Inspector = observer(() => {
   }
 
   const first = fileStore.fileList[uiStore.firstItem];
-  const path = first.absolutePath;
+  const path = first ? first.absolutePath : '...';
 
   return (
     <aside id="inspector">
-      <section>
-        <ImageInfo file={first} />
-      </section>
+      <section>{first && <ImageInfo file={first} />}</section>
       <section>
         <header>
           <h2>Path to file</h2>
@@ -42,12 +41,20 @@ const Inspector = observer(() => {
       </section>
       {/* Modifying state in preview window is not supported (not in sync updated in main window) */}
       {!IS_PREVIEW_WINDOW && (
-        <section>
-          <header>
-            <h2>Tags</h2>
-          </header>
-          <FileTags file={first} />
-        </section>
+        <>
+          <section>
+            <header>
+              <h2>Tags</h2>
+            </header>
+            <FileTags file={first} />
+          </section>
+          <section>
+            <header>
+              <h2>Scores</h2>
+            </header>
+            <FileScores file={first} />
+          </section>
+        </>
       )}
     </aside>
   );

@@ -24,7 +24,7 @@ export const findDroppedFileMatches = action(
       (file) =>
         typeof file !== 'string' &&
         file.path &&
-        fs.fileList.find((f) => f.absolutePath === file.path),
+        fs.fileList.find((f) => f && f.absolutePath === file.path),
     );
     return matches.every((m): m is ClientFile => m instanceof ClientFile) ? matches : false;
   },

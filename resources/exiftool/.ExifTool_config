@@ -20,4 +20,10 @@
       ValueConv => '$val',
     },
   },
+  'Image::ExifTool::XMP::xmp' => {
+    Scores => {
+      Writable => 'string',
+      List => 'Bag',
+    },
+  },
 );

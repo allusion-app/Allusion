@@ -7,11 +7,12 @@ interface IToast {
   clickAction?: React.ReactNode;
   timeout: number;
   onDismiss: () => void;
+  type?: 'info' | 'success' | 'warning' | 'error';
 }
 
-export const Toast = ({ message, clickAction, onDismiss }: IToast) => {
+export const Toast = ({ message, clickAction, onDismiss, type = "info" }: IToast) => {
   return (
-    <div className="toast">
+    <div className={`toast toast-${type}`}>
       <span>{message}</span>
       {clickAction}
       <Button text="Dismiss" onClick={onDismiss} />

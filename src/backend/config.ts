@@ -2,6 +2,8 @@ import Dexie, { Transaction } from 'dexie';
 import fse from 'fs-extra';
 
 import { FileDTO } from '../api/file';
+import { TagDTO } from 'src/api/tag';
+import { ID } from '../api/id';
 
 // The name of the IndexedDB
 export const DB_NAME = 'Allusion';
@@ -92,6 +94,59 @@ const dbConfig: DBVersioningConfig[] = [
           } catch (e) {
             console.warn(`Could not get ino for ${file.absolutePath}`);
           }
+          return file;
+        });
+    },
+  },
+  {
+    version: 9,
+    collections: [
+      {
+        name: 'tags',
+        schema: '++id',
+      },
+    ],
+    upgrade: (tx: Transaction): void => {
+      tx.table('tags')
+        .toCollection()
+        .modify((tag: TagDTO) => {
+          tag.impliedTags = [];
+          return tag;
+        });
+    },
+  },
+  {
+    // Version 10, 6-3-25: Added scores and .scores to file
+    version: 10,
+    collections: [
+      {
+        name: 'scores',
+        schema: '++id, name, dateCreated, dateModified',
+      },
+      {
+        name: 'files',
+        schema:
+          '++id, ino, locationId, *tags, scores, relativePath, &absolutePath, name, extension, size, width, height, dateAdded, dateModified, dateCreated',
+      },
+    ],
+    upgrade: (tx: Transaction): void => {
+      tx.table('files')
+        .toCollection()
+        .modify((file: FileDTO) => {
+          file.scores = new Map<ID, number>();
+          return file;
+        });
+    },
+  },
+  {
+    // Version 11, 13-11-21: Added OrigDateModified date to File for recreating thumbnails and metadata
+    version: 11,
+    collections: [],
+    upgrade: (tx: Transaction): void => {
+      tx.table('files')
+        .toCollection()
+        .modify((file: FileDTO) => {
+          file.OrigDateModified = file.dateAdded;
           return file;
         });
     },

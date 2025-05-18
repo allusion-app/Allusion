@@ -122,7 +122,7 @@ class LocationStore {
       AppToaster.show(
         {
           message: `Looking for new images... [${i + 1} / ${len}]`,
-          timeout: 0,
+          timeout: 6000,
         },
         progressToastKey,
       );
@@ -133,8 +133,15 @@ class LocationStore {
       const readyTimeout = setTimeout(() => {
         AppToaster.show(
           {
+            message: `Looking for new images... [${i + 1} / ${len}]`,
+            timeout: 6000,
+          },
+          progressToastKey,
+        );
+        AppToaster.show(
+          {
             message: 'This appears to be taking longer than usual.',
-            timeout: 0,
+            timeout: 10000,
             clickAction: {
               onClick: RendererMessenger.reload,
               label: 'Retry?',
@@ -144,7 +151,7 @@ class LocationStore {
         );
       }, 20000);
 
-      console.groupCollapsed(`Initializing location ${location.name}`);
+      console.group(`Initializing location ${location.name}`);
       const diskFiles = await location.init();
       const diskFileMap = new Map<string, FileStats>(
         diskFiles?.map((f) => [f.absolutePath, f]) ?? [],
@@ -267,36 +274,7 @@ class LocationStore {
         await this.backend.createFilesFromPath(location.path, newFiles);
       }
 
-      // Also update files that have changed, e.g. when overwriting a file (with same filename)
-      // --> update metadata (resolution, size) and recreate thumbnail
-      // This can be accomplished by comparing the dateLastIndexed of the file in DB to dateModified of the file on disk
-      const updatedFiles: FileDTO[] = [];
-      const thumbnailDirectory = runInAction(() => this.rootStore.uiStore.thumbnailDirectory);
-      for (const dbFile of dbFiles) {
-        const diskFile = diskFileMap.get(dbFile.absolutePath);
-        if (
-          diskFile &&
-          dbFile.dateLastIndexed.getTime() < diskFile.dateModified.getTime() &&
-          diskFile.size !== dbFile.size
-        ) {
-          const newFile: FileDTO = {
-            ...dbFile,
-            // Recreate metadata which checks the resolution of the image
-            ...(await getMetaData(diskFile, this.rootStore.imageLoader)),
-            dateLastIndexed: new Date(),
-          };
-
-          // Delete thumbnail if size has changed, will be re-created automatically when needed
-          const thumbPath = getThumbnailPath(dbFile.absolutePath, thumbnailDirectory);
-          fse.remove(thumbPath).catch(console.error);
-
-          updatedFiles.push(newFile);
-        }
-      }
-      if (updatedFiles.length > 0) {
-        console.debug('Re-indexed files changed on disk', updatedFiles);
-        await this.backend.saveFiles(updatedFiles);
-      }
+      await this.updateChangedFiles(dbFiles, diskFileMap);
 
       console.groupEnd();
 
@@ -309,6 +287,71 @@ class LocationStore {
       AppToaster.dismiss(progressToastKey);
     }
     return foundNewFiles;
+  }
+
+  @action async updateChangedFiles(
+    dbFiles: FileDTO[],
+    diskFileMap: Map<string, FileStats>,
+  ): Promise<void> {
+    // Also update files that have changed, e.g. when overwriting a file (with same filename)
+    // --> update metadata (resolution, size) and recreate thumbnail
+    // This can be accomplished by comparing the dateLastIndexed of the file in DB to dateModified of the file on disk
+    const updatedFiles: FileDTO[] = [];
+    const thumbnailDirectory = runInAction(() => this.rootStore.uiStore.thumbnailDirectory);
+    for (const dbFile of dbFiles) {
+      const diskFile = diskFileMap.get(dbFile.absolutePath);
+      if (
+        diskFile &&
+        (((dbFile.dateLastIndexed.getTime() < diskFile.dateModified.getTime() ||
+          dbFile.OrigDateModified.getTime() !== diskFile.dateModified.getTime()) &&
+          diskFile.size !== dbFile.size) ||
+          diskFile.ino !== dbFile.ino)
+      ) {
+        const newFile: FileDTO = {
+          ...dbFile,
+          // Recreate metadata which checks the resolution of the image
+          ...(await getMetaData(diskFile, this.rootStore.imageLoader)),
+          ino: diskFile.ino,
+          OrigDateModified: diskFile.dateModified,
+          dateLastIndexed: new Date(),
+        };
+
+        console.debug(
+          `Updating modified file: ${JSON.stringify(
+            {
+              ino: dbFile.ino,
+              size: dbFile.size,
+              OrigDateModified: dbFile.OrigDateModified,
+              dateLastIndexed: dbFile.dateLastIndexed,
+              name: dbFile.absolutePath,
+            },
+            null,
+            2,
+          )} to ${JSON.stringify(
+            {
+              ino: newFile.ino,
+              size: newFile.size,
+              OrigDateModified: newFile.OrigDateModified,
+              dateLastIndexed: newFile.dateLastIndexed,
+              name: newFile.absolutePath,
+            },
+            null,
+            2,
+          )}`,
+        );
+
+        updatedFiles.push(newFile);
+
+        // Delete thumbnail if size has changed, will be re-created automatically when needed
+        const thumbPath = getThumbnailPath(dbFile.absolutePath, thumbnailDirectory);
+        await fse.remove(thumbPath).catch(console.error);
+        this.rootStore.fileStore.get(newFile.id)?.setThumbnailPath(thumbPath);
+      }
+    }
+    if (updatedFiles.length > 0) {
+      console.debug('Re-indexed files changed on disk', updatedFiles);
+      await this.backend.saveFiles(updatedFiles);
+    }
   }
 
   @action get(locationId: ID): ClientLocation | undefined {
@@ -463,24 +506,49 @@ class LocationStore {
     const file = await pathToIFile(fileStats, location, this.rootStore.imageLoader);
 
     // Check if file is being moved/renamed (which is detected as a "add" event followed by "remove" event)
-    const match = runInAction(() => fileStore.fileList.find((f) => f.ino === fileStats.ino));
+    const match = runInAction(() => fileStore.fileList.find((f) => f && f.ino === fileStats.ino));
     const dbMatch = match
       ? undefined
       : (await this.backend.fetchFilesByKey('ino', fileStats.ino))[0];
+    const dbMatchOverwrite = match
+      ? undefined
+      : (await this.backend.fetchFilesByKey('absolutePath', fileStats.absolutePath))[0];
 
     if (match) {
       if (fileStats.absolutePath === match.absolutePath) {
+        fileStore.debouncedRefetch();
         return;
       }
       fileStore.replaceMovedFile(match, file);
     } else if (dbMatch) {
       const newIFile = mergeMovedFile(dbMatch, file);
       this.rootStore.fileStore.save(newIFile);
+    } else if (dbMatchOverwrite) {
+      await this.updateChangedFiles(
+        [dbMatchOverwrite],
+        new Map<string, FileStats>([[fileStats.absolutePath, fileStats]]),
+      );
     } else {
       await this.backend.createFilesFromPath(fileStats.absolutePath, [file]);
 
       AppToaster.show({ message: 'New images have been detected.', timeout: 5000 }, 'new-images');
       // might be called a lot when moving many images into a folder, so debounce it
+    }
+    fileStore.debouncedRefetch();
+  }
+
+  @action async updateFile(fileStats: FileStats): Promise<void> {
+    const fileStore = this.rootStore.fileStore;
+    const dbMatchOverwrites = await this.backend.fetchFilesByKey(
+      'absolutePath',
+      fileStats.absolutePath,
+    );
+    const dbMatchOverwrite = dbMatchOverwrites.length > 0 ? dbMatchOverwrites[0] : undefined;
+    if (dbMatchOverwrite) {
+      await this.updateChangedFiles(
+        [dbMatchOverwrite],
+        new Map<string, FileStats>([[fileStats.absolutePath, fileStats]]),
+      );
       fileStore.debouncedRefetch();
     }
   }
@@ -490,7 +558,7 @@ class LocationStore {
     // Could also mean that a file was renamed or moved, in which case addFile was called already:
     // its path will have changed, so we won't find it here, which is fine, it'll be detected as missing later.
     const fileStore = this.rootStore.fileStore;
-    const clientFile = fileStore.fileList.find((f) => f.absolutePath === path);
+    const clientFile = fileStore.fileList.find((f) => f && f.absolutePath === path);
 
     if (clientFile) {
       fileStore.hideFile(clientFile);
@@ -561,8 +629,10 @@ export async function pathToIFile(
     id: generateId(),
     locationId: loc.id,
     tags: [],
+    scores: new Map<ID, number>(),
     dateAdded: now,
     dateModified: now,
+    OrigDateModified: stats.dateModified,
     dateLastIndexed: now,
     ...(await getMetaData(stats, imageLoader)),
   };

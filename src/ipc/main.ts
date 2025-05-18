@@ -52,6 +52,7 @@ import {
   WINDOW_MAXIMIZE,
   WINDOW_SYSTEM_BUTTON_PRESS,
   WINDOW_UNMAXIMIZE,
+  CONSOLE_MESSAGE,
 } from './messages';
 
 export class MainMessenger {
@@ -62,6 +63,8 @@ export class MainMessenger {
   static onClearDatabase = (cb: () => void) => ipcMain.on(CLEAR_DATABASE, cb);
 
   static onToggleDevTools = (cb: () => void) => ipcMain.on(TOGGLE_DEV_TOOLS, cb);
+
+  static f5Reload = (wc: WebContents, frontEndOnly?: boolean) => wc.send(RELOAD, frontEndOnly);
 
   static onReload = (cb: (frontEndOnly?: boolean) => void) =>
     ipcMain.on(RELOAD, (_, frontEndOnly) => cb(frontEndOnly));
@@ -183,4 +186,8 @@ export class MainMessenger {
 
   static onIsCheckUpdatesOnStartupEnabled = (cb: () => boolean) =>
     ipcMain.on(IS_CHECK_UPDATES_ON_STARTUP_ENABLED, (e) => (e.returnValue = cb()));
+
+  static onConsoleMessage = (
+    cb: (type: 'log' | 'info' | 'error' | 'warn' | 'debug', message: string) => void,
+  ) => ipcMain.on(CONSOLE_MESSAGE, (_, { type, message }) => cb(type, message));
 }

@@ -16,6 +16,9 @@ import { FileSearchDTO } from '../api/file-search';
 import { ID } from '../api/id';
 import { LocationDTO } from '../api/location';
 import { ROOT_TAG_ID, TagDTO } from '../api/tag';
+import { ScoreDTO } from '../api/score';
+
+const USE_TIMING_PROXY = true;
 
 /**
  * The backend of the application serves as an API, even though it runs on the same machine.
@@ -28,6 +31,7 @@ export default class Backend implements DataStorage {
   #tags: Table<TagDTO, ID>;
   #locations: Table<LocationDTO, ID>;
   #searches: Table<FileSearchDTO, ID>;
+  #scores: Table<ScoreDTO, ID>;
   #db: Dexie;
   #notifyChange: () => void;
 
@@ -38,6 +42,7 @@ export default class Backend implements DataStorage {
     this.#tags = db.table('tags');
     this.#locations = db.table('locations');
     this.#searches = db.table('searches');
+    this.#scores = db.table('scores');
     this.#db = db;
     this.#notifyChange = notifyChange;
   }
@@ -54,12 +59,13 @@ export default class Backend implements DataStorage {
           name: 'Root',
           dateAdded: new Date(),
           subTags: [],
+          impliedTags: [],
           color: '',
           isHidden: false,
         });
       }
     });
-    return backend;
+    return USE_TIMING_PROXY ? createTimingProxy(backend) : backend;
   }
 
   async fetchTags(): Promise<TagDTO[]> {
@@ -67,10 +73,20 @@ export default class Backend implements DataStorage {
     return this.#tags.toArray();
   }
 
-  async fetchFiles(order: OrderBy<FileDTO>, fileOrder: OrderDirection): Promise<FileDTO[]> {
+  async fetchFiles(
+    order: OrderBy<FileDTO>,
+    fileOrder: OrderDirection,
+    scoreId?: ID,
+  ): Promise<FileDTO[]> {
     console.info('IndexedDB: Fetching files...');
     if (order === 'random') {
       return shuffleArray(await this.#files.toArray());
+    }
+    if (order === 'score') {
+      order = 'dateAdded';
+      if (scoreId) {
+        return await orderByScore(this.#files.orderBy(order), scoreId, fileOrder);
+      }
     }
 
     const collection = this.#files.orderBy(order);
@@ -105,10 +121,16 @@ export default class Backend implements DataStorage {
     return this.#searches.toArray();
   }
 
+  async fetchScores(): Promise<ScoreDTO[]> {
+    console.info('IndexedDB: Fetching scores...');
+    return this.#scores.orderBy('name').toArray();
+  }
+
   async searchFiles(
     criteria: ConditionDTO<FileDTO> | [ConditionDTO<FileDTO>, ...ConditionDTO<FileDTO>[]],
     order: OrderBy<FileDTO>,
     fileOrder: OrderDirection,
+    scoreId?: ID,
     matchAny?: boolean,
   ): Promise<FileDTO[]> {
     console.info('IndexedDB: Searching files...', { criteria, matchAny });
@@ -117,6 +139,12 @@ export default class Backend implements DataStorage {
 
     if (order === 'random') {
       return shuffleArray(await collection.toArray());
+    }
+    if (order === 'score') {
+      order = 'dateAdded';
+      if (scoreId) {
+        return await orderByScore(collection, scoreId, fileOrder);
+      }
     }
     // table.reverse() can be an order of magnitude slower than a javascript .reverse() call
     // (tested at ~5000 items, 500ms instead of 100ms)
@@ -148,6 +176,12 @@ export default class Backend implements DataStorage {
     this.#notifyChange();
   }
 
+  async createScore(score: ScoreDTO): Promise<void> {
+    console.info('IndexedDB: Creating score...', score);
+    await this.#scores.add(score);
+    this.#notifyChange();
+  }
+
   async saveTag(tag: TagDTO): Promise<void> {
     console.info('IndexedDB: Saving tag...', tag);
     await this.#tags.put(tag);
@@ -169,6 +203,12 @@ export default class Backend implements DataStorage {
   async saveSearch(search: FileSearchDTO): Promise<void> {
     console.info('IndexedDB: Saving search...', search);
     await this.#searches.put(search);
+    this.#notifyChange();
+  }
+
+  async saveScore(score: ScoreDTO): Promise<void> {
+    console.info('IndexedDB: Saving score...', score);
+    await this.#scores.put(score);
     this.#notifyChange();
   }
 
@@ -237,6 +277,23 @@ export default class Backend implements DataStorage {
     this.#notifyChange();
   }
 
+  async removeScores(scores: ID[]): Promise<void> {
+    console.info('IndexedDB: Removing scores...', scores);
+    await this.#db.transaction('rw', this.#files, this.#scores, async () => {
+      await this.#files
+        .filter((file) => scores.some((scoreId) => file.scores.has(scoreId)))
+        .modify((file) => {
+          for (const scoreId of scores) {
+            file.scores.delete(scoreId);
+          }
+        });
+
+      await this.#scores.bulkDelete(scores);
+    });
+
+    this.#notifyChange();
+  }
+
   async countFiles(): Promise<[fileCount: number, untaggedFileCount: number]> {
     console.info('IndexedDB: Getting number stats of files...');
     return this.#db.transaction('r', this.#files, async () => {
@@ -278,6 +335,46 @@ export default class Backend implements DataStorage {
     console.info('IndexedDB: Clearing database...');
     Dexie.delete(this.#db.name);
   }
+}
+
+// Creates a proxy that wraps the Backend instance to log the execution time of its methods.
+function createTimingProxy(obj: Backend): Backend {
+  console.log('Creating timing proxy for Backend');
+  return new Proxy(obj, {
+    get(target, prop, receiver) {
+      const original = Reflect.get(target, prop, receiver);
+      if (typeof original === 'function') {
+        return (...args: any[]) => {
+          const startTime = performance.now();
+          const result = original.apply(target, args);
+          // Ensure both synchronous and asynchronous results are handled uniformly
+          return Promise.resolve(result).then((res) => {
+            const endTime = performance.now();
+            console.log(`[Timing] ${String(prop)} took ${(endTime - startTime).toFixed(2)}ms`);
+            return res;
+          });
+        };
+      }
+      return original;
+    },
+  });
+}
+
+async function orderByScore(
+  collection: Dexie.Collection<FileDTO, string>,
+  scoreID: ID,
+  fileOrder: OrderDirection,
+) {
+  const files = await collection.toArray();
+
+  files.sort((a, b) => {
+    const scoreA =
+      a.scores.get(scoreID) ?? (fileOrder === OrderDirection.Desc ? -Infinity : Infinity);
+    const scoreB =
+      b.scores.get(scoreID) ?? (fileOrder === OrderDirection.Desc ? -Infinity : Infinity);
+    return fileOrder === OrderDirection.Desc ? scoreB - scoreA : scoreA - scoreB;
+  });
+  return files;
 }
 
 type SearchConjunction = 'and' | 'or';

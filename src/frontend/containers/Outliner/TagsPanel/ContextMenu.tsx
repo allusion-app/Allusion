@@ -121,6 +121,12 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
         icon={IconSet.DELETE}
       />
       <MenuDivider />
+      <MenuItem
+        onClick={() => dispatch(Factory.enableModifyImpliedTags(tag))}
+        text="Modify implied tags"
+        icon={IconSet.TAG_GROUP}
+      />
+      <MenuDivider />
       <ColorPickerMenu tag={tag} />
       <MenuDivider />
       <MenuItem

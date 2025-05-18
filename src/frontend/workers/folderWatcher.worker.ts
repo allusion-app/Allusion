@@ -117,7 +117,24 @@ export class FolderWatcherWorker {
             }
           }
         })
-        // .on('change', (path: string) => console.debug(`File ${path} has been changed`))
+        .on('change', async (path, stats: Stats | BigIntStats) => {
+          if (this.isCancelled) {
+            console.log('Cancelling file watching');
+            await watcher.close();
+            this.isCancelled = false;
+          }
+          const ext = SysPath.extname(path).toLowerCase().split('.')[1];
+          if (extensions.includes(ext as IMG_EXTENSIONS_TYPE)) {
+            const fileStats: FileStats = {
+              absolutePath: path,
+              dateCreated: stats.birthtime,
+              dateModified: stats.mtime,
+              size: Number(stats.size),
+              ino: stats.ino.toString(),
+            };
+            ctx.postMessage({ type: 'update', value: fileStats });
+          }
+        })
         // TODO: on directory change: update location hierarchy list
         .on('unlink', (path: string) => ctx.postMessage({ type: 'remove', value: path }))
         .on('ready', () => {

@@ -30,7 +30,7 @@ export const Advanced = observer(() => {
     // Reset thumbnail paths for those that already have one
     runInAction(() => {
       for (const f of fileStore.fileList) {
-        if (f.thumbnailPath && f.thumbnailPath !== f.absolutePath) {
+        if (f && f.thumbnailPath && f.thumbnailPath !== f.absolutePath) {
           f.setThumbnailPath(getThumbnailPath(f.absolutePath, newDir));
         }
       }

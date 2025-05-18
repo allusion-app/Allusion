@@ -24,25 +24,53 @@ export async function getBlob(decoder: Decoder, path: string): Promise<string> {
   return URL.createObjectURL(blob);
 }
 
+const processingPaths = new Set<string>();
+const MAX_CONCURRENT_PATHS = 4;
+const RETRY_DELAY = 10000;
+const delay = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+
 export async function generateThumbnail(
   decoder: Decoder,
   inputPath: string,
   outputPath: string,
   thumbnailSize: number,
 ): Promise<void> {
+  if (processingPaths.has(inputPath)) {
+    console.debug(`Thumbnail generation already in progress for ${inputPath} Waiting ${RETRY_DELAY}ms`);
+    return await delay(RETRY_DELAY);
+  }
+  if (processingPaths.size >= MAX_CONCURRENT_PATHS) {
+    console.debug(`Max concurrent paths limit reached: ${processingPaths.size}/${MAX_CONCURRENT_PATHS}. Waiting ${RETRY_DELAY}ms`);
+    return await delay(RETRY_DELAY);
+  }
+
+  console.debug(`Adding ${inputPath} to processingPaths. Current size: ${processingPaths.size + 1}`);
+  processingPaths.add(inputPath);
   // TODO: merge this functionality with the thumbnail worker: it's basically duplicate code
-  const buffer = await fse.readFile(inputPath);
-  const data = await decoder.decode(buffer);
-  const sampledCanvas = getSampledCanvas(dataToCanvas(data), thumbnailSize);
-  const quality = computeQuality(sampledCanvas, thumbnailSize);
-  const blobBuffer = await new Promise<ArrayBuffer>((resolve, reject) =>
-    sampledCanvas.toBlob(
+  let buffer: Buffer | null = await fse.readFile(inputPath);
+  let data: ImageData | null = await decoder.decode(buffer);
+  let sampledCanvas: HTMLCanvasElement | null = getSampledCanvas(dataToCanvas(data), thumbnailSize);
+  let quality: number | null = computeQuality(sampledCanvas, thumbnailSize);
+  let blobBuffer: ArrayBuffer | null = await new Promise<ArrayBuffer>((resolve, reject) =>
+    sampledCanvas?.toBlob(
       (blob) => (blob !== null ? resolve(blob.arrayBuffer()) : reject()),
       `image/${thumbnailFormat}`,
       quality, // Allows to further compress image
     ),
   );
-  return fse.writeFile(outputPath, Buffer.from(blobBuffer));
+  // clearing variables
+  buffer.fill(0);
+  buffer = null;
+  data = null;
+  quality = null;
+  sampledCanvas.width = 0;
+  sampledCanvas.height = 0;
+  sampledCanvas = null;
+
+  await fse.outputFile(outputPath, Buffer.from(blobBuffer));
+  blobBuffer = null;
+  console.debug(`Finished generating thumbnail for ${inputPath}, removing from processingPaths.`);
+  processingPaths.delete(inputPath);
 }
 
 function dataToCanvas(data: ImageData): HTMLCanvasElement {

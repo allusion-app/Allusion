@@ -10,7 +10,7 @@ describe('Backend', () => {
   function test(name: string, test: (backend: Backend) => Promise<void>) {
     it(name, async () => {
       const db = dbInit(`Test_${TEST_DATABASE_ID_COUNTER++}`);
-      const backend = await Backend.init(db, () => {});
+      const backend = await Backend.init(db, () => { });
       await test(backend);
     });
   }
@@ -21,6 +21,7 @@ describe('Backend', () => {
     dateAdded: new Date(),
     color: '',
     subTags: [],
+    impliedTags: [],
     isHidden: false,
   };
 
@@ -41,11 +42,13 @@ describe('Backend', () => {
         dateAdded: new Date(),
         dateModified: new Date(),
         dateCreated: new Date(),
+        OrigDateModified: new Date(),
         dateLastIndexed: new Date(),
         extension: 'jpg',
         ino: index.toString(),
         id: index.toString(),
         tags: [],
+        scores: new Map(),
       });
     }
 

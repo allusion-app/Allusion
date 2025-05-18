@@ -43,6 +43,8 @@
   --accent-color-red: rgb(250, 52, 37);
   --accent-color-yellow: rgb(255, 193, 47);
   --accent-color-green: #7af2a6;
+  --accent-color-dark-green: #5cb85c;
+
   --box-shadow: 0.125rem 0.25rem 1rem rgba(0, 0, 0, 0.125);
   --accent-color: var(--accent-color-blue);
 
@@ -71,4 +73,6 @@
 
   color: var(--text-color);
   background: var(--background-color);
+
+  --thumbnail-radius: 0.25rem;
 }

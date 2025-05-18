@@ -30,6 +30,7 @@ const basePath = app.getPath('userData');
 
 const preferencesFilePath = path.join(basePath, 'preferences.json');
 const windowStateFilePath = path.join(basePath, 'windowState.json');
+const logFilePath = path.join(basePath, 'app.log');
 
 type PreferencesFile = {
   checkForUpdatesOnStartup?: boolean;
@@ -46,6 +47,8 @@ let tray: Tray | null = null;
 let clipServer: ClipServer | null = null;
 
 function initialize() {
+  console.log('Initializing Allusion...');
+
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     if (details.responseHeaders === undefined) {
       callback({});
@@ -227,7 +230,7 @@ function createWindow() {
       {
         label: 'Refresh',
         accelerator: 'F5',
-        click: (_, win) => win?.webContents.reload(),
+        click: (_, win) => (win ? MainMessenger.f5Reload(win.webContents, true) : undefined),
       },
       { role: 'toggleDevTools' },
       { type: 'separator' },
@@ -486,9 +489,8 @@ autoUpdater.on('update-available', async (info: UpdateInfo) => {
     return;
   }
 
-  const message = `Update available: ${
-    info.releaseName || info.version
-  }:\nDo you wish to update now?`;
+  const message = `Update available: ${info.releaseName || info.version
+    }:\nDo you wish to update now?`;
   // info.releaseNotes attribute is HTML, could show that in renderer at some point
 
   const dialogResult = await dialog.showMessageBox(mainWindow, {
@@ -501,7 +503,7 @@ autoUpdater.on('update-available', async (info: UpdateInfo) => {
   if (dialogResult.response === 0) {
     autoUpdater.downloadUpdate();
   } else if (dialogResult.response === 2) {
-    shell.openExternal('https://github.com/allusion-app/Allusion/releases/latest');
+    shell.openExternal('https://github.com/RafaUC/Allusion/releases/latest');
   }
 });
 
@@ -548,9 +550,8 @@ autoUpdater.on('download-progress', (progressObj: { percent: number }) => {
 process.on('uncaughtException', async (error) => {
   console.error('Uncaught exception', error);
 
-  const errorMessage = `An unexpected error occurred. Please file a bug report if you think this needs fixing!\n${
-    error.stack?.includes(error.message) ? '' : `${error.name}: ${error.message.slice(0, 200)}\n`
-  }\n${error.stack?.slice(0, 300)}`;
+  const errorMessage = `An unexpected error occurred. Please file a bug report if you think this needs fixing!\n${error.stack?.includes(error.message) ? '' : `${error.name}: ${error.message.slice(0, 200)}\n`
+    }\n${error.stack?.slice(0, 300)}`;
 
   try {
     if (mainWindow != null && !mainWindow.isDestroyed()) {

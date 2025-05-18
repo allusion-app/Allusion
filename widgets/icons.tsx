@@ -26,6 +26,7 @@ import CHROME_DEVTOOLS from 'resources/icons/chrome-devtools.svg';
 import CLEAR_DATABASE from 'resources/icons/clear-database.svg';
 import CLOSE from 'resources/icons/close.svg';
 import COLOR from 'resources/icons/color.svg';
+import COPY from 'resources/icons/copy.svg';
 import CHROME_CLOSE from 'resources/icons/chrome-close.svg';
 import CHROME_MAXIMIZE from 'resources/icons/chrome-maximize.svg';
 import CHROME_MINIMIZE from 'resources/icons/chrome-minimize.svg';
@@ -90,7 +91,7 @@ import SELECT from 'resources/icons/select.svg';
 import SELECT_CHECKED from 'resources/icons/select-checked.svg';
 import SETTINGS from 'resources/icons/settings.svg';
 // import SMALL_ARROW_DOWN from 'resources/icons/small-arrow-down.svg';
-// import SMALL_ARROW_RIGHT from 'resources/icons/small-arrow-right.svg';
+import SMALL_ARROW_RIGHT from 'resources/icons/small-arrow-right.svg';
 import SORT from 'resources/icons/sort.svg';
 import SORT_ALT from 'resources/icons/sort-alt.svg';
 import TAG_ADD from 'resources/icons/tag-add.svg';
@@ -130,6 +131,7 @@ const IconSet = {
   CLEAR_DATABASE: toSvg(CLEAR_DATABASE),
   CLOSE: toSvg(CLOSE),
   COLOR: toSvg(COLOR),
+  COPY: toSvg(COPY),
   CHROME_CLOSE: toSvg(CHROME_CLOSE),
   CHROME_MAXIMIZE: toSvg(CHROME_MAXIMIZE),
   CHROME_MINIMIZE: toSvg(CHROME_MINIMIZE),
@@ -194,7 +196,7 @@ const IconSet = {
   SELECT_CHECKED: toSvg(SELECT_CHECKED),
   SETTINGS: toSvg(SETTINGS),
   // SMALL_ARROW_DOWN: toSvg(SMALL_ARROW_DOWN),
-  // SMALL_ARROW_RIGHT: toSvg(SMALL_ARROW_RIGHT),
+  SMALL_ARROW_RIGHT: toSvg(SMALL_ARROW_RIGHT),
   SORT: toSvg(SORT),
   SORT_ALT: toSvg(SORT_ALT),
   // SPACER: toSvg(SPACER),

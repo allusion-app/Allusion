@@ -5,7 +5,7 @@ import { useStore } from './contexts/StoreContext';
 
 import ErrorBoundary from './containers/ErrorBoundary';
 import HelpCenter from './containers/HelpCenter';
-import { Toaster as CustomToaster } from './components/Toaster';
+import { AppToaster, Toaster as CustomToaster } from './components/Toaster';
 
 import AdvancedSearchDialog from './containers/AdvancedSearch';
 import Settings from './containers/Settings';

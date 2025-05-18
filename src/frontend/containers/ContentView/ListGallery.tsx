@@ -21,8 +21,9 @@ import { Row } from './ListItem';
 import { GalleryProps } from './utils';
 
 /** Generates a unique key for an element in the fileList */
-const getItemKey = action((index: number, data: ClientFile[]): string => {
-  return data[index].id;
+const getItemKey = action((index: number, data: (ClientFile | undefined)[]): string => {
+  const file = data[index];
+  return file?.id ?? `undefined-${index}`;
 });
 
 const ListGallery = observer(({ contentRect, select, lastSelectionIndex }: GalleryProps) => {

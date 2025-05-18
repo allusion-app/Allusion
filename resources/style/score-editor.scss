@@ -1,0 +1,207 @@
+.score-editor {
+
+  .floating-dialog & {
+    margin: 0.6rem;
+  }
+
+  .btn-content-text {
+    position: unset !important;
+    top: unset !important;
+    overflow: unset !important;
+    clip: unset !important;
+    width: unset !important;
+    height: unset !important;
+    white-space: unset !important;
+  }
+}
+
+.floating-dialog {
+  &.fresh-rendered {
+    transition: unset !important;
+    display: none !important;
+  }
+
+  &.opened {
+    box-shadow: 0 0 15px 5px var(--accent-color) !important;
+  }
+  
+  &:hover .floating-switch-side-button {
+    opacity: 1;
+  }
+
+  header {
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem 0 1rem;
+    background: var(--background-color);
+    outline: 0.0625rem solid var(--border-color);
+
+    h2 {
+      cursor: pointer;
+      flex-grow: 1;
+    }
+
+    [role='toolbar'] {
+      opacity: 0;
+    }
+
+    [role='toolbar']:focus-within {
+      opacity: 1;
+    }
+
+    .toolbar-floating-switch-side-button {
+      min-height: 1.5rem;
+      min-width: 1.5rem;
+
+      &[aria-pressed='true'],
+      &[aria-checked='true'] {
+        color: var(--accent-color);
+      }
+    }
+
+    .floating-switch-side-button {
+      opacity: 0;
+    }
+  }
+
+  
+}
+
+//prevents data-popovers to interfier when overflow is auto
+[data-popover="true"] [data-popover="true"],
+.score-editor [data-popover="true"] {
+  position: fixed !important;
+  overflow: visible;
+}
+
+.score-selector-pane {
+  width: 20rem;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  resize: vertical;
+
+  > input {
+    margin: 0.5rem;
+    width: auto;
+    height: auto;
+    min-height: fit-content; // prevents weird slight resize when checklist shrinks when resizing parent
+    background: var(--input-color);
+  }
+
+  // Checklist of all available tags
+  [role='grid'] {
+    flex: 1 1 auto;
+    border-top: 0.0625rem solid var(--border-color);
+    border-bottom: 0.0625rem solid var(--border-color);
+    max-width: unset;
+    max-height: unset;
+
+    [role='separator'] {
+      background: var(--text-color-muted);
+      height: 1px;
+      margin: 0.5rem 1rem;
+    }
+  }
+}
+
+[role="menu"]:has(.score-selector-pane) {
+  padding: 0;
+}
+
+.score-list-editor {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  align-items: center;
+  gap: 0px;
+  width: fit-content;
+  max-width: 100%;
+
+  .score-list-option {
+    display: contents;
+    color: var(--text-color-muted);
+    &:hover {
+      color: var(--text-color);
+    }
+  }
+  
+  .score-value {
+    user-select: text;
+  }
+  
+  .score-name {
+    padding: 0;
+    padding-left: 0.3rem;
+    font-weight: 500;
+    text-align: end;
+    vertical-align: middle;
+    width: auto;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  
+  .score-value {
+    padding: 0;
+    padding-left: 0.5rem;
+    word-break: break-word;
+    line-height: normal;
+  }
+
+  .label-container {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    width: 100%;
+  }
+  .count-hint {
+    padding-left: 0.5rem;
+    min-width: fit-content;
+    display: inline-block;
+    margin-left: auto;
+    vertical-align: middle;
+    font-size: smaller;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--accent-color)
+  }
+  .score-label {
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: clip;
+    text-align: start;
+    vertical-align: middle;
+  }
+
+  input {
+    color: var(--text-color);
+    margin-top: 2px;
+    margin-bottom: 2px;
+    margin-right: 2px;
+    height: fit-content;
+    width: 100%;
+  }
+
+  .score-value input {
+    width: 5rem;
+  }
+
+  .label-container input {
+    box-shadow: 0 0 0 0.125rem var(--accent-color); //only one label will be editable at the time, so this makes it look better when auto focus don't work
+  }
+}
+
+.floating-switch-side-button {
+  margin-left: auto;
+  .custom-icon {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+li.checked,
+.checked a {
+  color: var(--text-color-strong) !important;
+  background: var(--accent-color) !important;
+}

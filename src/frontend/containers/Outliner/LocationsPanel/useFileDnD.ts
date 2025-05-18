@@ -82,7 +82,7 @@ const handleMove = async (
 
         // - Remove the target file from the store
         // TODO: This removes the target file and its tags. Could merge them, but that's a bit more work
-        const dstFile = fileStore.fileList.find((f) => f.absolutePath === dst);
+        const dstFile = fileStore.definedFiles.find((f) => f.absolutePath === dst);
         if (dstFile) {
           await fileStore.deleteFiles([dstFile]);
         }

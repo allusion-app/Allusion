@@ -170,3 +170,8 @@ dialog[role='alertdialog'] {
     animation: hide 0.1s linear;
   }
 }
+
+#tag-remove-overview {
+  overflow-y: auto;
+  max-height: 300px;
+}

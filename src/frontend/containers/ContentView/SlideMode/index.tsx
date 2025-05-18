@@ -3,8 +3,7 @@ import { autorun, reaction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React, { useEffect, useMemo } from 'react';
-
-import { encodeFilePath } from 'common/fs';
+import { encodeFilePath, isFileExtensionVideo } from 'common/fs';
 import { Button, IconSet, Split } from 'widgets';
 import { useStore } from '../../../contexts/StoreContext';
 import { ClientFile } from '../../../entities/File';
@@ -54,14 +53,14 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
   // Go to the first selected image on load
   useEffect(() => {
     return reaction(
-      () => uiStore.firstSelectedFile?.id,
+      () => uiStore.firstFileInView?.id,
       (id, _, reaction) => {
         if (id !== undefined) {
           const index = fileStore.getIndex(id);
-          uiStore.setFirstItem(index);
 
           // Also, select only this file: makes more sense for the TagEditor overlay: shows tags on selected images
           if (index !== undefined) {
+            uiStore.setFirstItem(index);
             uiStore.selectFile(fileStore.fileList[index], true);
           }
 
@@ -123,18 +122,32 @@ const SlideView = observer(({ width, height }: SlideViewProps) => {
     let isEffectRunning = true;
     const dispose = autorun(() => {
       if (!isLast.get() && uiStore.firstItem + 1 < fileStore.fileList.length) {
-        const nextImg = new Image();
         const nextFile = fileStore.fileList[uiStore.firstItem + 1];
-        imageLoader
-          .getImageSrc(nextFile)
-          .then((src) => isEffectRunning && src && (nextImg.src = encodeFilePath(src)));
+        let nextImg: any;
+        if (nextFile && isFileExtensionVideo(nextFile.extension)) {
+          nextImg = document.createElement('video');
+        } else {
+          nextImg = new Image();
+        }
+        if (nextFile) {
+          imageLoader
+            .getImageSrc(nextFile)
+            .then((src) => isEffectRunning && src && (nextImg.src = encodeFilePath(src)));
+        }
       }
       if (!isFirst.get() && fileStore.fileList.length > 0) {
-        const prevImg = new Image();
         const prevFile = fileStore.fileList[uiStore.firstItem - 1];
-        imageLoader
-          .getImageSrc(prevFile)
-          .then((src) => isEffectRunning && src && (prevImg.src = encodeFilePath(src)));
+        let prevImg: any;
+        if (prevFile && isFileExtensionVideo(prevFile.extension)) {
+          prevImg = document.createElement('video');
+        } else {
+          prevImg = new Image();
+        }
+        if (prevFile) {
+          imageLoader
+            .getImageSrc(prevFile)
+            .then((src) => isEffectRunning && src && (prevImg.src = encodeFilePath(src)));
+        }
       }
     });
     return () => {
@@ -228,20 +241,34 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
     thumbnailSrc,
     imgWidth,
     imgHeight,
-    async (source, absolutePath, thumbnailSrc, imgWidth, imgHeight) => {
+    file.extension,
+    async (source, absolutePath, thumbnailSrc, imgWidth, imgHeight, fileExtension) => {
       if (source.tag === 'ready') {
         if ('ok' in source.value) {
           const src = source.value.ok;
           const dimension = await new Promise<{ src: string; dimension: Vec2 }>(
             (resolve, reject) => {
-              const img = new Image();
-              img.onload = function (this: any) {
-                // TODO: would be better to resolve once transition is complete: for large resolution images, the transition freezes for ~.4s bc of a re-paint task when the image changes
-                resolve({
-                  src,
-                  dimension: createDimension(this.naturalWidth, this.naturalHeight),
-                });
-              };
+              let img;
+              if (isFileExtensionVideo(fileExtension)) {
+                img = document.createElement('video');
+                img.onload = function (this: any) {
+                  // TODO: would be better to resolve once transition is complete: for large resolution images, the transition freezes for ~.4s bc of a re-paint task when the image changes
+                  resolve({
+                    src,
+                    dimension: createDimension(this.videoWidth, this.videoHeight),
+                  });
+                };
+              } else {
+                img = new Image();
+                img.onload = function (this: any) {
+                  // TODO: would be better to resolve once transition is complete: for large resolution images, the transition freezes for ~.4s bc of a re-paint task when the image changes
+                  resolve({
+                    src,
+                    dimension: createDimension(this.naturalWidth, this.naturalHeight),
+                  });
+                };
+              }
+
               img.onerror = reject;
               img.src = encodeFilePath(src);
             },
@@ -260,6 +287,7 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
   );
 
   if (image.tag === 'ready' && 'err' in image.value) {
+    console.log(image.value.err);
     return <ImageFallback error={image.value.err} absolutePath={absolutePath} />;
   } else {
     const { src, dimension } =
@@ -270,6 +298,38 @@ const ZoomableImage: React.FC<ZoomableImageProps> = ({
             dimension: createDimension(imgWidth, imgHeight),
           };
     const minScale = Math.min(0.1, Math.min(width / dimension[0], height / dimension[1]));
+
+    // Alternative case for videos
+    if (isFileExtensionVideo(file.extension)) {
+      return (
+        <ZoomPan
+          position="center"
+          initialScale="auto"
+          doubleTapBehavior="zoomOrReset"
+          imageDimension={dimension}
+          containerDimension={createDimension(width, height)}
+          minScale={minScale}
+          maxScale={5}
+          transitionStart={transitionStart}
+          transitionEnd={transitionEnd}
+          onClose={onClose}
+          upscaleMode={upscaleMode}
+        >
+          {(props) => (
+            <video
+              {...props}
+              src={encodeFilePath(src)}
+              width={dimension[0]}
+              height={dimension[1]}
+              controls
+              autoPlay
+              loop
+            />
+          )}
+        </ZoomPan>
+      );
+    }
+
     return (
       <ZoomPan
         position="center"

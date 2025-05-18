@@ -158,6 +158,7 @@ class ClipServer {
     filename: string,
     imgBase64: string,
     pageUrl?: string,
+    tagNames?: string[],
   ) {
     const downloadPath = await ClipServer.createDownloadPath(directory, filename);
     console.log('Downloading to', downloadPath);
@@ -170,7 +171,7 @@ class ClipServer {
 
     const item: IImportItem = {
       filePath: downloadPath,
-      tagNames: [],
+      tagNames: tagNames || [],
       dateAdded: new Date(),
     };
 
@@ -214,10 +215,11 @@ class ClipServer {
               // Check what kind of message has been sent
               if (req.url && req.url.endsWith('import-image')) {
                 const directory = this.preferences.importLocation;
-                const { filename, imgBase64, pageUrl } = JSON.parse(body);
+                const { filename, imgBase64, pageUrl, tagNames = [] } = JSON.parse(body);
+
                 console.log('Received file', filename);
 
-                await this.storeAndImportImage(directory, filename, imgBase64, pageUrl);
+                await this.storeAndImportImage(directory, filename, imgBase64, pageUrl, tagNames);
 
                 res.write(JSON.stringify({ message: 'OK!' }));
                 res.end();

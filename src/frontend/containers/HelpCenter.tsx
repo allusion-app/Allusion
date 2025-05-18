@@ -363,13 +363,36 @@ const PAGE_DATA: () => IPageData[] = () => [
         ),
       },
       {
+        title: 'implied tags and inherited tags',
+        content: (
+          <>
+            <p>
+              You can set implied relationships to a tag through the tag's contextual menu option
+              "Modify implied tags". When you tag a file, it also inherits all its ancestor tags and
+              implied tags and inherits those from them too automatically, to be used in search. For
+              example, if the tag dog implies mammal, and mammal implies animal, if you search for
+              animal, files with tag dog will also be included because of the implied relationship.
+            </p>
+            <p>
+              Inherited tags can't be removed from a file unless you remove all the tags that cause
+              them to be automatically inherited.
+            </p>
+            <p>
+              When exporting tags to file metadata, only the explicitly assigned tags get exported
+              to the file. The automatically inherited tags will not be included unless you
+              explicitly assign them to the file.
+            </p>
+          </>
+        ),
+      },
+      {
         title: 'How to Tag an Image',
         content: (
           <>
             <p>
               There are several ways to tag an image. First, you can drag a tag from the outliner
               onto an image. This also works on a selection of multiple images. Next, you can select
-              an image, press T to open the tag editor, and assign or remove tags from the list.
+              an image, press 3 to open the tag editor, and assign or remove tags from the list.
               This method also allows you to tag multiple images at once. Finally, you can add tags
               by adding them to the list in the inspector panel - the sidebar on the right when
               viewing images at at full size.
@@ -378,6 +401,23 @@ const PAGE_DATA: () => IPageData[] = () => [
               To remove tags from one or more images, you have to access either the tag editor or
               the inspector. In both places you will be able to remove individual tags or clear the
               entire set of tags on the selected image(s).
+            </p>
+            <p>
+              When using the tag editor, you can hold ALT + arrow keys to navigate through the
+              gallery items while keeping focus on the tag editor.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Navigation',
+        content: (
+          <>
+            <p>
+              When you have a large library of tags, it could be hard to find or remember where a
+              tag is in the hierarchy, so you can search for the tag on the tag editor panel or in
+              assigned tags in a file, and right-click them to show the option "Reveal in tags
+              panel."
             </p>
           </>
         ),
@@ -409,6 +449,7 @@ const PAGE_DATA: () => IPageData[] = () => [
               Allusion will search for child tags recursivly by default. You can use the advanced
               search to exclude child tags from the result.
             </p>
+            <p>You can also quickly refresh the gallery using the R shortcut.</p>
           </>
         ),
       },
@@ -439,6 +480,23 @@ const PAGE_DATA: () => IPageData[] = () => [
               between finding images that match all entered queries, or any of them. This toggle is
               available at the bottom of the advanced search panel, and at the right in the search
               bar when two or more queries have been entered.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Scores',
+        content: (
+          <>
+            <p>
+              You can define score categories and add values of them to files with the score editor
+              panel (key 4 shortcut) and with the inspector. Scores give you a way to assign values
+              of one or multiple categories to files and allow you to sort them based on those
+              values.
+            </p>
+            <p>
+              Scores get exported to metadata too when exporting tags to file metadata from the
+              settings import/export menu.
             </p>
           </>
         ),
@@ -475,8 +533,8 @@ const PAGE_DATA: () => IPageData[] = () => [
               is a panel that is shown when viewing the image at full size, which can be performed
               by choosing said option in the context menu of an image, or simply by double clicking
               on it. This panel will allow you to see relevant meta-data of the file as well as the
-              list of tags assigned to the image. If the inspector is not visible in the full size
-              view, find the information icon in the toolbar.
+              list of tags and scores assigned to the image. If the inspector is not visible in the
+              full size view, find the information icon in the toolbar.
             </p>
           </>
         ),

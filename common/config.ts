@@ -3,7 +3,7 @@ import os from 'os';
 // Randomly chosen, hopefully no conflicts with other apps/services
 export const SERVER_PORT = 5454;
 
-export const githubUrl = 'https://github.com/allusion-app/VisualLibrary';
+export const githubUrl = 'https://github.com/RafaUC/Allusion';
 
 export const chromeExtensionUrl =
   'https://chrome.google.com/webstore/detail/allusion-web-clipper/gjceheijjnmdfcolopodbopfoaicobna';

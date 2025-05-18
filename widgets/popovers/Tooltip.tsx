@@ -62,6 +62,7 @@ export const TooltipLayer = ({ document }: { document: Document }) => {
     document.addEventListener('focus', handleShow, true);
     document.addEventListener('blur', handleHide, true);
     document.addEventListener('keydown', handleEscape, true);
+    document.addEventListener('dragstart', handleHide, true);
 
     return () => {
       document.removeEventListener('mouseover', handleShow, true);
@@ -69,6 +70,7 @@ export const TooltipLayer = ({ document }: { document: Document }) => {
       document.removeEventListener('focus', handleShow, true);
       document.removeEventListener('blur', handleHide, true);
       document.removeEventListener('keydown', handleEscape, true);
+      document.removeEventListener('dragstart', handleHide, true);
     };
   }, [document, update, reference]);
 
@@ -84,8 +86,9 @@ export const TooltipLayer = ({ document }: { document: Document }) => {
       role="tooltip"
       data-popover
       data-open={isOpen}
+      dangerouslySetInnerHTML={{ __html: content.current }}
     >
-      {content.current}
+
     </div>
   );
 };

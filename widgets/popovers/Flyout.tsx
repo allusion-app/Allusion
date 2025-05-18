@@ -18,6 +18,7 @@ export interface FlyoutProps {
   /** When this specific element is focused, the FlyOut is not closed */
   ignoreCloseForElementOnBlur?: HTMLElement;
   placement?: Placement;
+  updateDependency?: any;
 }
 
 /**
@@ -34,6 +35,7 @@ export const Flyout = (props: FlyoutProps) => {
     target,
     children,
     placement,
+    updateDependency = children,
   } = props;
   const { style, reference, floating, update } = usePopover(placement);
 
@@ -41,7 +43,7 @@ export const Flyout = (props: FlyoutProps) => {
     if (isOpen) {
       update();
     }
-  }, [isOpen, update]);
+  }, [isOpen, update, updateDependency]);
 
   const handleBlur = (e: React.FocusEvent) => {
     if (e.relatedTarget === ignoreCloseForElementOnBlur) {

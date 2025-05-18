@@ -15,11 +15,12 @@ import { MoveFilesToTrashBin } from 'src/frontend/components/RemovalAlert';
 import { useAction } from 'src/frontend/hooks/mobx';
 import useIsWindowMaximized from 'src/frontend/hooks/useIsWindowMaximized';
 import { ManyOpenExternal } from 'src/frontend/components/WarningAlert';
+import ContentProgressBar from './ContentProgressBar';
 
 const ContentView = observer(() => {
   const {
     uiStore,
-    fileStore: { fileList },
+    fileStore: { fileList, fileDimensions },
   } = useStore();
 
   return (
@@ -27,7 +28,8 @@ const ContentView = observer(() => {
       id="content-view"
       className={`thumbnail-${uiStore.thumbnailSize} thumbnail-${uiStore.thumbnailShape}`}
     >
-      {fileList.length === 0 ? <Placeholder /> : <Content />}
+      <ContentProgressBar />
+      {fileList.length === 0 || fileDimensions.length === 0 ? <Placeholder /> : <Content />}
     </div>
   );
 });

@@ -1,9 +1,10 @@
 import { shell } from 'electron';
 import fse from 'fs-extra';
-import { action, computed, makeObservable, observable } from 'mobx';
+import { action, computed, makeObservable, observable, reaction } from 'mobx';
 
 import { maxNumberOfExternalFilesBeforeWarning } from 'common/config';
 import { clamp, notEmpty } from 'common/core';
+import { encodeFilePath } from 'common/fs';
 import { ID } from '../../api/id';
 import { SearchCriteria } from '../../api/search-criteria';
 import { RendererMessenger } from '../../ipc/renderer';
@@ -22,6 +23,7 @@ export const enum ViewMethod {
 export type ThumbnailSize = 'small' | 'medium' | 'large' | number;
 type ThumbnailShape = 'square' | 'letterbox';
 export type UpscaleMode = 'smooth' | 'pixelated';
+export type GalleryVideoPlaybackMode = 'auto' | 'hover' | 'disabled';
 export const PREFERENCES_STORAGE_KEY = 'preferences';
 
 export interface IHotkeyMap {
@@ -36,7 +38,6 @@ export interface IHotkeyMap {
 
   // Toolbar actions (these should only be active when the content area is focused)
   deleteSelection: string;
-  openTagEditor: string;
   selectAll: string;
   deselectAll: string;
   viewList: string;
@@ -45,7 +46,10 @@ export interface IHotkeyMap {
   viewMasonryHorizontal: string;
   viewSlide: string;
   search: string;
+  refreshSearch: string;
   advancedSearch: string;
+  openTagEditor: string;
+  toggleScoreEditor: string;
 
   // Other
   openPreviewWindow: string;
@@ -56,11 +60,12 @@ export interface IHotkeyMap {
 export const defaultHotkeyMap: IHotkeyMap = {
   toggleOutliner: '1',
   toggleInspector: '2',
-  replaceQuery: 'r',
+  openTagEditor: '3',
+  toggleScoreEditor: '4',
+  replaceQuery: 'q',
   toggleSettings: 's',
   toggleHelpCenter: 'h',
   deleteSelection: 'del',
-  openTagEditor: 't',
   selectAll: 'mod + a',
   deselectAll: 'mod + d',
   viewSlide: 'enter', // TODO: backspace and escape are hardcoded hotkeys to exist slide mode
@@ -69,6 +74,7 @@ export const defaultHotkeyMap: IHotkeyMap = {
   viewMasonryVertical: 'alt + 3',
   viewMasonryHorizontal: 'alt + 4',
   search: 'mod + f',
+  refreshSearch: 'r',
   advancedSearch: 'mod + shift + f',
   openPreviewWindow: 'space',
   openExternal: 'mod + enter',
@@ -97,17 +103,24 @@ type PersistentPreferenceFields =
   | 'theme'
   | 'isOutlinerOpen'
   | 'isInspectorOpen'
+  | 'isFloatingPanelToSide'
+  | 'isToolbarTagPopoverOpen'
+  | 'isScorePopoverOpen'
   | 'thumbnailDirectory'
   | 'importDirectory'
   | 'method'
   | 'thumbnailSize'
+  | 'masonryItemPadding'
   | 'thumbnailShape'
   | 'upscaleMode'
+  | 'galleryVideoPlaybackMode'
   | 'hotkeyMap'
   | 'isThumbnailTagOverlayEnabled'
   | 'isThumbnailFilenameOverlayEnabled'
   | 'isThumbnailResolutionOverlayEnabled'
   | 'outlinerWidth'
+  | 'outlinerExpansion'
+  | 'outlinerHeights'
   | 'inspectorWidth'
   | 'isRememberSearchEnabled'
   // the following are only restored when isRememberSearchEnabled is enabled
@@ -139,6 +152,8 @@ class UiStore {
   @observable isSlideMode: boolean = false;
   @observable isFullScreen: boolean = false;
   @observable outlinerWidth: number = UiStore.MIN_OUTLINER_WIDTH;
+  readonly outlinerExpansion = observable<boolean>([true, true, true]);
+  readonly outlinerHeights = observable<number>([0, 0, 0]);
   @observable inspectorWidth: number = UiStore.MIN_INSPECTOR_WIDTH;
   /** Whether to show the tags on images in the content view */
   @observable isThumbnailTagOverlayEnabled: boolean = true;
@@ -148,12 +163,19 @@ class UiStore {
   @observable isRememberSearchEnabled: boolean = true;
   /** Index of the first item in the viewport. Also acts as the current item shown in slide mode */
   // TODO: Might be better to store the ID to the file. I believe we were storing the index for performance, but we have instant conversion between index/ID now
+  // Changing the firstItem to store it's ID will make that if the file gets out of the FileList, the scroll position will be lost. This affects the refresh feature for example or when changing the query.
   @observable firstItem: number = 0;
   @observable thumbnailSize: ThumbnailSize | number = 'medium';
+  @observable masonryItemPadding: number = 8;
   @observable thumbnailShape: ThumbnailShape = 'square';
   @observable upscaleMode: UpscaleMode = 'smooth';
+  @observable galleryVideoPlaybackMode: GalleryVideoPlaybackMode = 'hover';
+  @observable isRefreshing: boolean = false;
 
+  @observable isFloatingPanelToSide: boolean = false;
   @observable isToolbarTagPopoverOpen: boolean = false;
+  @observable focusTagEditor: boolean = false;
+  @observable isScorePopoverOpen: boolean = false;
   /** Dialog for removing unlinked files from Allusion's database */
   @observable isToolbarFileRemoverOpen: boolean = false;
   /** Dialog for moving files to the system's trash bin, and removing from Allusion's database */
@@ -177,6 +199,28 @@ class UiStore {
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
     makeObservable(this);
+    this.initReactions();
+  }
+
+  /////////////////// UI Reactions /////////////////
+  initReactions(): void {
+    reaction(
+      () => this.isToolbarTagPopoverOpen,
+      (isOpen) => {
+        if (isOpen) {
+          this.isScorePopoverOpen = false;
+        }
+      },
+    );
+
+    reaction(
+      () => this.isScorePopoverOpen,
+      (isOpen) => {
+        if (isOpen) {
+          this.isToolbarTagPopoverOpen = false;
+        }
+      },
+    );
   }
 
   /////////////////// UI Actions ///////////////////
@@ -200,6 +244,12 @@ class UiStore {
     this.thumbnailSize = size;
   }
 
+  @action.bound setMasonryItemPadding(size: number): void {
+    // constrain between 0 to 20
+    const limitedValue = Math.max(0, Math.min(20, size));
+    this.masonryItemPadding = limitedValue;
+  }
+
   @action.bound setThumbnailShape(shape: ThumbnailShape): void {
     this.thumbnailShape = shape;
   }
@@ -216,9 +266,44 @@ class UiStore {
     this.upscaleMode = mode;
   }
 
+  @action.bound setGalleryVideoPlaybackModeAuto(): void {
+    this.setGalleryVideoPlaybackMode('auto');
+  }
+
+  @action.bound setGalleryVideoPlaybackModeHover(): void {
+    this.setGalleryVideoPlaybackMode('hover');
+  }
+
+  @action.bound setGalleryVideoPlaybackModeDisabled(): void {
+    this.setGalleryVideoPlaybackMode('disabled');
+  }
+
+  @action.bound setGalleryVideoPlaybackMode(mode: GalleryVideoPlaybackMode): void {
+    this.galleryVideoPlaybackMode = mode;
+  }
+
+  @action private setIsRefreshing(val: boolean) {
+    this.isRefreshing = val;
+  }
+
+  @action.bound async refresh(): Promise<void> {
+    if (this.isRefreshing) {
+      return;
+    }
+    this.setIsRefreshing(true);
+    // await to make mobx reaction take effect.
+    await new Promise((r) => setTimeout(r, 0));
+    this.setIsRefreshing(false);
+    await new Promise((r) => setTimeout(r, 0));
+    this.rootStore.fileStore.refetch();
+  }
+
   @action.bound setFirstItem(index: number = 0): void {
-    if (isFinite(index) && index < this.rootStore.fileStore.fileList.length) {
+    const maxIndex = this.rootStore.fileStore.fileList.length - 1;
+    if (isFinite(index) && index >= 0 && index <= maxIndex) {
       this.firstItem = index;
+    } else {
+      this.firstItem = Math.max(0, maxIndex);
     }
   }
 
@@ -318,6 +403,39 @@ class UiStore {
     }
   }
 
+  @action.bound async copyToClipboard(): Promise<void> {
+    if (this.fileSelection.size === 0) {
+      return;
+    }
+
+    const file = Array.from(this.fileSelection)[0];
+    if (file.isBroken) {
+      return;
+    }
+
+    try {
+      const src = await this.rootStore.imageLoader.getImageSrc(file);
+      if (src !== undefined) {
+        const image = new Image();
+        image.src = encodeFilePath(src);
+        const canvas = new OffscreenCanvas(image.width, image.height);
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const ctx2D = canvas.getContext('2d');
+        if (!ctx2D) {
+          throw new Error('Context2D not available!');
+        }
+        ctx2D.drawImage(image, 0, 0);
+        const blob = await canvas.convertToBlob({ type: 'image/png' });
+        navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      } else {
+        throw new Error('Failed to get image data.');
+      }
+    } catch (e) {
+      console.error('Could not copy image to clipboard', e);
+    }
+  }
+
   @action.bound openExternal(warnIfTooManyFiles: boolean = true): void {
     // Don't open when no files have been selected
     if (this.fileSelection.size === 0) {
@@ -330,7 +448,7 @@ class UiStore {
     }
 
     const absolutePaths = Array.from(this.fileSelection, (file) => file.absolutePath);
-    absolutePaths.forEach((path) => shell.openExternal(`file://${path}`).catch(console.error));
+    absolutePaths.forEach((path) => shell.openPath(`file://${path}`).catch(console.error));
   }
 
   @action.bound toggleInspector(): void {
@@ -388,18 +506,44 @@ class UiStore {
     this.isManyExternalFilesOpen = false;
   }
 
+  @action.bound toggleFloatingPanelToSide(): void {
+    this.isFloatingPanelToSide = !this.isFloatingPanelToSide;
+  }
+
+  @action.bound setFloatingPanelToSide(val: boolean): void {
+    this.isFloatingPanelToSide = val;
+  }
+
   @action.bound toggleToolbarTagPopover(): void {
     this.isToolbarTagPopoverOpen = !this.isToolbarTagPopoverOpen;
+    this.focusTagEditor = true;
   }
 
   @action.bound openToolbarTagPopover(): void {
-    if (this.fileSelection.size > 0) {
-      this.isToolbarTagPopoverOpen = true;
-    }
+    this.isToolbarTagPopoverOpen = true;
+    this.focusTagEditor = true;
   }
 
   @action.bound closeToolbarTagPopover(): void {
     this.isToolbarTagPopoverOpen = false;
+  }
+
+  @action.bound setFocusTagEditor(value: boolean): void {
+    this.focusTagEditor = value;
+  }
+
+  @action.bound toggleScorePopover(): void {
+    this.isScorePopoverOpen = !this.isScorePopoverOpen;
+  }
+
+  @action.bound openScorePopover(): void {
+    if (this.fileSelection.size > 0) {
+      this.isScorePopoverOpen = true;
+    }
+  }
+
+  @action.bound closeScorePopover(): void {
+    this.isScorePopoverOpen = false;
   }
 
   @action.bound openLocationRecovery(locationId: ID): void {
@@ -440,9 +584,12 @@ class UiStore {
   }
 
   /////////////////// Selection actions ///////////////////
-  @action.bound selectFile(file: ClientFile, clear?: boolean): void {
+  @action.bound selectFile(file?: ClientFile, clear?: boolean): void {
     if (clear === true) {
       this.clearFileSelection();
+    }
+    if (!file) {
+      return;
     }
     this.fileSelection.add(file);
     this.setFirstItem(this.rootStore.fileStore.getIndex(file.id));
@@ -468,12 +615,15 @@ class UiStore {
       this.fileSelection.clear();
     }
     for (let i = start; i <= end; i++) {
-      this.fileSelection.add(this.rootStore.fileStore.fileList[i]);
+      const file = this.rootStore.fileStore.fileList[i];
+      if (file) {
+        this.fileSelection.add(file);
+      }
     }
   }
 
   @action.bound selectAllFiles(): void {
-    this.fileSelection.replace(this.rootStore.fileStore.fileList);
+    this.fileSelection.replace(this.rootStore.fileStore.definedFiles);
   }
 
   @action.bound clearFileSelection(): void {
@@ -583,7 +733,7 @@ class UiStore {
     const ctx = this.getTagContextItems();
 
     // Move tags and collections
-    ctx.forEach((tag) => target.insertSubTag(tag, pos));
+    ctx.reverse().forEach((tag) => target.insertSubTag(tag, pos));
   }
 
   /////////////////// Search Actions ///////////////////
@@ -718,7 +868,11 @@ class UiStore {
     } else if (matches(hotkeyMap.toggleInspector)) {
       this.toggleInspector();
     } else if (matches(hotkeyMap.openTagEditor)) {
-      // Windows
+      this.openToolbarTagPopover();
+    } else if (matches(hotkeyMap.toggleScoreEditor)) {
+      this.toggleScorePopover();
+    } else if (matches(hotkeyMap.refreshSearch)) {
+      this.refresh();
     } else if (matches(hotkeyMap.toggleSettings)) {
       this.toggleSettings();
     } else if (matches(hotkeyMap.toggleHelpCenter)) {
@@ -767,6 +921,14 @@ class UiStore {
     }
   }
 
+  @action.bound setOutlinerExpansion(newVal: boolean[]): void {
+    this.outlinerExpansion.replace(newVal);
+  }
+
+  @action.bound setOutlinerHeights(newVal: number[]): void {
+    this.outlinerHeights.replace(newVal);
+  }
+
   @action.bound moveInspectorSplitter(x: number, width: number): void {
     // The inspector is on the right side, so we need to calculate the offset.
     const offsetX = width - x;
@@ -803,15 +965,30 @@ class UiStore {
         if (prefs.thumbnailSize) {
           this.setThumbnailSize(prefs.thumbnailSize);
         }
+        if ('masonryItemPadding' in prefs) {
+          this.setMasonryItemPadding(prefs.masonryItemPadding);
+        }
         if (prefs.thumbnailShape) {
           this.setThumbnailShape(prefs.thumbnailShape);
         }
         if (prefs.upscaleMode) {
           this.setUpscaleMode(prefs.upscaleMode);
         }
+        if (prefs.galleryVideoPlaybackMode) {
+          this.setGalleryVideoPlaybackMode(prefs.galleryVideoPlaybackMode);
+        }
+        if (prefs.outlinerExpansion) {
+          this.setOutlinerExpansion(prefs.outlinerExpansion);
+        }
+        if (prefs.outlinerHeights) {
+          this.setOutlinerHeights(prefs.outlinerHeights);
+        }
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
         this.isThumbnailFilenameOverlayEnabled = Boolean(prefs.isThumbnailFilenameOverlayEnabled ?? false); // eslint-disable-line prettier/prettier
         this.isThumbnailResolutionOverlayEnabled = Boolean(prefs.isThumbnailResolutionOverlayEnabled ?? false); // eslint-disable-line prettier/prettier
+        this.isFloatingPanelToSide = Boolean(prefs.isFloatingPanelToSide ?? false);
+        this.isToolbarTagPopoverOpen = Boolean(prefs.isToolbarTagPopoverOpen ?? false);
+        this.isScorePopoverOpen = Boolean(prefs.isScorePopoverOpen ?? false);
         this.outlinerWidth = Math.max(Number(prefs.outlinerWidth), UiStore.MIN_OUTLINER_WIDTH);
         this.inspectorWidth = Math.max(Number(prefs.inspectorWidth), UiStore.MIN_INSPECTOR_WIDTH);
         Object.entries<string>(prefs.hotkeyMap).forEach(
@@ -858,16 +1035,23 @@ class UiStore {
       theme: this.theme,
       isOutlinerOpen: this.isOutlinerOpen,
       isInspectorOpen: this.isInspectorOpen,
+      isFloatingPanelToSide: this.isFloatingPanelToSide,
+      isToolbarTagPopoverOpen: this.isToolbarTagPopoverOpen,
+      isScorePopoverOpen: this.isScorePopoverOpen,
       thumbnailDirectory: this.thumbnailDirectory,
       importDirectory: this.importDirectory,
       method: this.method,
       thumbnailSize: this.thumbnailSize,
+      masonryItemPadding: this.masonryItemPadding,
       thumbnailShape: this.thumbnailShape,
       upscaleMode: this.upscaleMode,
+      galleryVideoPlaybackMode: this.galleryVideoPlaybackMode,
       hotkeyMap: { ...this.hotkeyMap },
       isThumbnailFilenameOverlayEnabled: this.isThumbnailFilenameOverlayEnabled,
       isThumbnailTagOverlayEnabled: this.isThumbnailTagOverlayEnabled,
       isThumbnailResolutionOverlayEnabled: this.isThumbnailResolutionOverlayEnabled,
+      outlinerExpansion: this.outlinerExpansion.slice(),
+      outlinerHeights: this.outlinerHeights.slice(),
       outlinerWidth: this.outlinerWidth,
       inspectorWidth: this.inspectorWidth,
       isRememberSearchEnabled: this.isRememberSearchEnabled,
@@ -908,7 +1092,9 @@ class UiStore {
   }
 
   @action private viewAllContent(): void {
-    this.rootStore.fileStore.fetchAllFiles();
+    if (this.rootStore.fileStore.showsQueryContent) {
+      this.rootStore.fileStore.fetchAllFiles();
+    }
   }
 
   @action private viewQueryContent(): void {

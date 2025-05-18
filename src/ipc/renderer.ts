@@ -53,6 +53,7 @@ import {
   WINDOW_MAXIMIZE,
   WINDOW_SYSTEM_BUTTON_PRESS,
   WINDOW_UNMAXIMIZE,
+  CONSOLE_MESSAGE,
 } from './messages';
 
 export class RendererMessenger {
@@ -63,6 +64,9 @@ export class RendererMessenger {
   static toggleDevTools = () => ipcRenderer.send(TOGGLE_DEV_TOOLS);
 
   static reload = (frontEndOnly?: boolean) => ipcRenderer.send(RELOAD, frontEndOnly);
+
+  static onf5Reload = (cb: (frontEndOnly?: boolean) => void) =>
+    ipcRenderer.on(RELOAD, (_, frontEndOnly) => cb(frontEndOnly));
 
   static showOpenDialog = (
     options: Electron.OpenDialogOptions,
@@ -186,4 +190,7 @@ export class RendererMessenger {
     const userDataPath = await RendererMessenger.getPath('userData');
     return path.join(userDataPath, 'themes');
   };
+
+  static sendConsoleMessage = (type: 'log' | 'info' | 'error' | 'warn' | 'debug', message: string) =>
+    ipcRenderer.send(CONSOLE_MESSAGE, { type, message });
 }

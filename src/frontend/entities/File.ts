@@ -3,8 +3,10 @@ import {
   IReactionDisposer,
   makeObservable,
   observable,
+  computed,
   ObservableSet,
   reaction,
+  ObservableMap,
 } from 'mobx';
 import Path from 'path';
 
@@ -14,6 +16,7 @@ import ImageLoader from '../image/ImageLoader';
 import FileStore from '../stores/FileStore';
 import { FileStats } from '../stores/LocationStore';
 import { ClientTag } from './Tag';
+import { ClientScore } from './Score';
 
 /** Retrieved file meta data information */
 interface IMetaData {
@@ -27,6 +30,11 @@ interface IMetaData {
   height: number;
   /** Date when this file was created (from the OS, not related to Allusion) */
   dateCreated: Date;
+}
+
+export interface Dimensions {
+  width: number;
+  height: number;
 }
 
 /**
@@ -45,12 +53,14 @@ export class ClientFile {
   readonly relativePath: string;
   readonly absolutePath: string;
   readonly tags: ObservableSet<ClientTag>;
+  readonly scores: ObservableMap<ClientScore, number>;
   readonly size: number;
   readonly width: number;
   readonly height: number;
   readonly dateAdded: Date;
   readonly dateCreated: Date;
   readonly dateModified: Date;
+  readonly OrigDateModified: Date;
   readonly dateLastIndexed: Date;
   readonly name: string;
   readonly extension: IMG_EXTENSIONS_TYPE;
@@ -75,6 +85,7 @@ export class ClientFile {
     this.dateAdded = fileProps.dateAdded;
     this.dateCreated = fileProps.dateCreated;
     this.dateModified = fileProps.dateModified;
+    this.OrigDateModified = fileProps.OrigDateModified;
     this.dateLastIndexed = fileProps.dateLastIndexed;
     this.name = fileProps.name;
     this.extension = fileProps.extension;
@@ -86,6 +97,7 @@ export class ClientFile {
     this.filename = base.slice(0, base.lastIndexOf('.'));
 
     this.tags = observable(this.store.getTags(fileProps.tags));
+    this.scores = observable(this.store.getScores(fileProps.scores));
 
     // observe all changes to observable fields
     this.saveHandler = reaction(
@@ -104,8 +116,23 @@ export class ClientFile {
     makeObservable(this);
   }
 
+  //Gets his tags and all inherithed tags from parent and implied tags from his tags
+  @computed get inheritedTags(): Set<ClientTag> {
+    const inheritedTagSet = new Set<ClientTag>();
+    for (const tag of this.tags) {
+      if (!inheritedTagSet.has(tag)) {
+        for (const inheritedTag of tag.getImpliedAncestors()) {
+          if (!inheritedTagSet.has(inheritedTag)) {
+            inheritedTagSet.add(inheritedTag);
+          }
+        }
+      }
+    }
+    return inheritedTagSet;
+  }
+
   @action.bound setThumbnailPath(thumbnailPath: string): void {
-    this.thumbnailPath = thumbnailPath;
+    this.thumbnailPath = `${thumbnailPath.split('?')[0]}?v=${Date.now()}`;
   }
 
   @action.bound addTag(tag: ClientTag): void {
@@ -120,6 +147,10 @@ export class ClientFile {
     }
   }
 
+  @action.bound setScore(score: ClientScore, value: number = 0): void {
+    this.scores.set(score, value);
+  }
+
   @action.bound removeTag(tag: ClientTag): void {
     const hadTag = this.tags.delete(tag);
     if (hadTag) {
@@ -129,6 +160,10 @@ export class ClientFile {
         this.store.incrementNumUntaggedFiles();
       }
     }
+  }
+
+  @action.bound removeScore(score: ClientScore): void {
+    this.scores.delete(score);
   }
 
   @action.bound clearTags(): void {
@@ -148,6 +183,10 @@ export class ClientFile {
     this.tags.replace(tags);
   }
 
+  @action.bound updateScoresFromBackend(scores: Map<ClientScore, number>): void {
+    this.scores.replace(scores);
+  }
+
   serialize(): FileDTO {
     return {
       id: this.id,
@@ -156,12 +195,14 @@ export class ClientFile {
       relativePath: this.relativePath,
       absolutePath: this.absolutePath,
       tags: Array.from(this.tags, (t) => t.id), // removes observable properties from observable array
+      scores: new Map<ID, number>([...this.scores].map(([cs, value]) => [cs.id, value])),
       size: this.size,
       width: this.width,
       height: this.height,
       dateAdded: this.dateAdded,
       dateCreated: this.dateCreated,
       dateModified: this.dateModified,
+      OrigDateModified: this.OrigDateModified,
       dateLastIndexed: this.dateLastIndexed,
       name: this.name,
       extension: this.extension,

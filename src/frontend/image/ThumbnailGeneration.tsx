@@ -42,7 +42,7 @@ const listeners = new Map<ID, Callback[]>();
  * causing the image to update in the view where ever it is used
  **/
 export const generateThumbnailUsingWorker = action(
-  async (file: ClientFile, thumbnailFilePath: string, timeout = 10000) => {
+  async (file: ClientFile, thumbnailFilePath: string, timeoutReject = true, timeout = 10000) => {
     const msg: IThumbnailMessage = {
       filePath: file.absolutePath,
       thumbnailFilePath,
@@ -53,8 +53,16 @@ export const generateThumbnailUsingWorker = action(
     return new Promise<void>((resolve, reject) => {
       setTimeout(() => {
         if (listeners.has(msg.fileId)) {
-          reject();
+          // Remove the image from the queue when timeout occurs
+          workers[lastSubmittedWorker].postMessage({
+            type: 'cancel',
+            fileId: msg.fileId,
+          });
+          timeoutReject ? reject() : resolve();
           listeners.delete(msg.fileId);
+          console.debug(
+            `timeout: unable to generate thumbnail for ${file.name}, retrying: ${!timeoutReject}`,
+          );
         }
       }, timeout);
 

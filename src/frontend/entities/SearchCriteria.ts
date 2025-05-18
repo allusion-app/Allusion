@@ -23,6 +23,7 @@ import {
   TagOperatorType,
 } from '../../api/search-criteria';
 import RootStore from '../stores/RootStore';
+import { ROOT_TAG_ID } from '../../api/tag';
 
 // A dictionary of labels for (some of) the keys of the type we search for
 export type SearchKeyDict = Partial<Record<keyof FileDTO, string>>;
@@ -148,7 +149,7 @@ export class ClientTagSearchCriteria extends ClientFileSearchCriteria {
     let val = this.value ? [this.value] : [];
     if (val.length > 0 && op.includes('Recursively')) {
       const tag = rootStore.tagStore.get(val[0]);
-      val = tag !== undefined ? Array.from(tag.getSubTree(), (t) => t.id) : [];
+      val = tag !== undefined ? Array.from(tag.getImpliedSubTree(), (t) => t.id) : [];
     }
     if (op === 'containsNotRecursively') {
       op = 'notContains';
@@ -164,7 +165,6 @@ export class ClientTagSearchCriteria extends ClientFileSearchCriteria {
       value: val,
     };
   };
-
   toCondition = (rootStore: RootStore): ArrayConditionDTO<FileDTO, any> => {
     return this.serialize(rootStore) as ArrayConditionDTO<FileDTO, any>;
   };

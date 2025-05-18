@@ -30,6 +30,10 @@ export function useGridFocus(
     if (gridRef.current === null || gridRef.current.childElementCount === 0) {
       return;
     }
+    if (event.altKey) {
+      event.preventDefault();
+      return;
+    }
 
     const scrollOpts: ScrollIntoViewOptions = { block: 'nearest' };
     const options = gridRef.current.querySelectorAll(
@@ -117,9 +121,11 @@ export interface RowProps {
   onClick?: (event: React.MouseEvent<HTMLElement>) => void;
   children?: ReactElement<GridCellProps> | ReactElement<GridCellProps>[];
   tooltip?: string;
+  valueIsHtml?: boolean;
+  onContextMenu?: React.MouseEventHandler<HTMLSpanElement>;
 }
 
-export const Row = ({ id, value, selected, onClick, icon, tooltip, children }: RowProps) => (
+export const Row = ({ id, value, selected, onClick, icon, tooltip, children, valueIsHtml, onContextMenu }: RowProps) => (
   <div
     id={id}
     role="row"
@@ -127,12 +133,13 @@ export const Row = ({ id, value, selected, onClick, icon, tooltip, children }: R
     onClick={onClick}
     tabIndex={-1} // Important for focus handling!
     data-tooltip={tooltip}
+    onContextMenu={onContextMenu}
   >
     <GridCell>
       <span className="combobox-popup-option-icon" aria-hidden>
         {icon}
       </span>
-      {value}
+      {valueIsHtml ? <span dangerouslySetInnerHTML={{ __html: value }} /> : <span>{value}</span>}
     </GridCell>
     {children}
   </div>
@@ -144,11 +151,12 @@ interface GridCellProps {
   id?: string;
   className?: string;
   children?: ReactNode;
+  __html?: string;
 }
 
-export const GridCell = ({ id, className, children }: GridCellProps) => {
+export const GridCell = ({ id, className, children, __html }: GridCellProps) => {
   return (
-    <div id={id} role="gridcell" className={className}>
+    <div id={id} role="gridcell" className={className} dangerouslySetInnerHTML={__html ? { __html } : undefined}>
       {children}
     </div>
   );

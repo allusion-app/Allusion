@@ -9,10 +9,16 @@ export type FileDTO = {
   relativePath: string;
   absolutePath: string;
   tags: ID[];
+  scores: Map<ID, number>;
   /** When the file was imported into Allusion */
   dateAdded: Date;
   /** When the file was modified in Allusion, not related to OS modified date */
   dateModified: Date;
+  /** Original dateModified for checking when searching for overwritten files
+   * If the system's modified date is not the same, it means the file has been overwritten or another file with the same name
+   * overwritten in place of the previous one, and the thumbnail and metadata needs to be updated.
+   */
+  OrigDateModified: Date;
   /**
    * When the file was last indexed in Allusion: concerning the metadata and thumbnail.
    * If the system's modified date of the file exceeds this date, those properties shoudld be re-initialized
@@ -53,5 +59,8 @@ export const IMG_EXTENSIONS = [
   // 'avif',
   // 'heic', // not supported by Sharp out of the box https://github.com/lovell/sharp/issues/2871
   // TODO: 'blend', raw, etc.?
+  'mp4',
+  'webm',
+  'ogg',
 ] as const;
-export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
+export type IMG_EXTENSIONS_TYPE = (typeof IMG_EXTENSIONS)[number];

@@ -35,6 +35,22 @@
   align-items: center;
   justify-content: space-between;
 
+  &-info {
+    background: var(--accent-color-blue);
+  }
+
+  &-success {
+    background: var(--accent-color-dark-green);
+  }
+
+  &-warning {
+    background: var(--accent-color-yellow);
+  }
+
+  &-error {
+    background: var(--accent-color-red);
+  }
+
   span {
     min-height: 1rem;
     max-height: 2.5rem;

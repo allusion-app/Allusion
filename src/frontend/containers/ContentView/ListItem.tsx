@@ -10,7 +10,7 @@ import { Thumbnail, ThumbnailTags } from './GalleryItem';
 interface RowProps {
   index: number;
   style: CSSProperties;
-  data: ClientFile[];
+  data: (ClientFile | undefined)[];
   isScrolling?: boolean;
 }
 
@@ -20,7 +20,7 @@ export const Row = ({ index, style, data, isScrolling }: RowProps) => {
 
 interface ListItemProps {
   index: number;
-  data: ClientFile[];
+  data: (ClientFile | undefined)[];
   style: React.CSSProperties;
   isScrolling: boolean;
 }
@@ -31,7 +31,7 @@ export const ListItem = observer((props: ListItemProps) => {
   const row = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const file = data[index];
-  const eventManager = useMemo(() => new CommandDispatcher(file), [file]);
+  const eventManager = useMemo(() => (file ? new CommandDispatcher(file) : null), [file]);
 
   useEffect(() => {
     if (row.current !== null && !isScrolling) {
@@ -39,48 +39,52 @@ export const ListItem = observer((props: ListItemProps) => {
     }
   }, [isScrolling]);
 
+  const showData = !uiStore.isRefreshing;
+
   return (
     <div
       ref={row}
       role="row"
       aria-rowindex={index + 1}
-      aria-selected={uiStore.fileSelection.has(file)}
+      aria-selected={file ? uiStore.fileSelection.has(file) : false}
       style={style}
-      onClick={eventManager.select}
-      onDoubleClick={eventManager.preview}
-      onContextMenu={eventManager.showContextMenu}
-      onDragStart={eventManager.dragStart}
-      onDragEnter={eventManager.dragEnter}
-      onDragOver={eventManager.dragOver}
-      onDragLeave={eventManager.dragLeave}
-      onDrop={eventManager.drop}
-      onDragEnd={eventManager.dragEnd}
+      onClick={eventManager ? eventManager.select : undefined}
+      onDoubleClick={eventManager ? eventManager.preview : undefined}
+      onContextMenu={eventManager ? eventManager.showContextMenu : undefined}
+      onDragStart={eventManager ? eventManager.dragStart : undefined}
+      onDragEnter={eventManager ? eventManager.dragEnter : undefined}
+      onDragOver={eventManager ? eventManager.dragOver : undefined}
+      onDragLeave={eventManager ? eventManager.dragLeave : undefined}
+      onDrop={eventManager ? eventManager.drop : undefined}
+      onDragEnd={eventManager ? eventManager.dragEnd : undefined}
       draggable
     >
       {/* Filename */}
       <div role="gridcell" className="col-name">
-        <Thumbnail mounted={isMounted} file={file} />
-        {file.name}
+        {showData && file && <Thumbnail mounted={isMounted} file={file} />}
+        {showData && file?.name}
       </div>
 
       {/* Dimensions */}
       <div role="gridcell" className="col-dimensions">
-        {file.width} x {file.height}
+        {showData && file?.width} x {showData && file?.height}
       </div>
 
       {/* Import date */}
       <div role="gridcell" className="col-date-added">
-        {formatDateTime(file.dateAdded)}
+        {showData && file && formatDateTime(file.dateAdded)}
       </div>
 
       {/* Size */}
       <div role="gridcell" className="col-size">
-        {humanFileSize(file.size)}
+        {showData && file && humanFileSize(file.size)}
       </div>
 
       {/* Tags */}
       <div role="gridcell" className="col-tags">
-        <ThumbnailTags eventManager={eventManager} file={file} />
+        {showData && file && eventManager && (
+          <ThumbnailTags eventManager={eventManager} file={file} />
+        )}
       </div>
     </div>
   );

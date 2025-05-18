@@ -47,7 +47,7 @@
 }
 
 #tag-hierarchy,
-#location-list, 
+#location-list,
 #saved-searches-list {
   .btn-icon {
     display: none;
@@ -156,6 +156,10 @@
     overflow: clip visible;
     line-height: 1;
     padding-bottom: 0px;
+  }
+
+  &:has(> .label-text.label-header) {
+    font-weight: bold;
   }
 
   > .indicator {

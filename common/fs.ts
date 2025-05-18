@@ -43,6 +43,10 @@ export async function isDirEmpty(dir: string) {
   return dirContents.length === 0 || (dirContents.length === 1 && dirContents[0] === '.DS_Store');
 }
 
+export function isFileExtensionVideo(fileExtension: string) {
+  return (fileExtension === 'webm' || fileExtension === 'mp4' || fileExtension === 'ogg');
+}
+
 function hashString(s: string) {
   let hash = 0;
   let chr = 0;

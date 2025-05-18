@@ -49,10 +49,12 @@ export type MenuSubItemProps = {
   icon?: JSX.Element;
   text: string;
   disabled?: boolean;
+  accelerator?: JSX.Element;
+  checked?: boolean;
   children: React.ReactNode;
 };
 
-export const MenuSubItem = ({ text, icon, disabled, children }: MenuSubItemProps) => {
+export const MenuSubItem = ({ text, icon, disabled, children, accelerator, checked }: MenuSubItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { style, reference, floating, update } = usePopover('right-start', [
     'right',
@@ -118,12 +120,20 @@ export const MenuSubItem = ({ text, icon, disabled, children }: MenuSubItemProps
   return (
     <li
       role="none"
+      className={checked ? 'checked' : ''}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <MenuItemLink ref={reference} expanded={isOpen} text={text} icon={icon} disabled={disabled} />
+      <MenuItemLink
+        ref={reference}
+        expanded={isOpen}
+        text={text}
+        icon={icon}
+        disabled={disabled}
+        accelerator={accelerator}
+      />
       <ul
         ref={floating}
         data-popover

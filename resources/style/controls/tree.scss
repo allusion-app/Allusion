@@ -20,8 +20,19 @@
 [role='treeitem'] {
   padding: 0;
 
-  > .label {
+  &.tag-header .label {
+    font-weight: bold;
+    font-size: 0.95rem;
+    height: 1.6rem;
+  }
+
+  &:not(.tag-header) .label {
+    font-weight: normal;
+    font-size: 0.875rem;
     height: 1.5rem;
+  }
+
+  > .label {
     display: flex;
     align-items: center;
     padding-left: calc(var(--level) * var(--treeitem-identation) + var(--treeitem-offset));
@@ -67,7 +78,7 @@
     // to prevent content layout shifting when border is added on focus
     border: 2px solid transparent;
   }
-  &:focus  > .label {
+  &:focus > .label {
     // If focused, show an outline
     // If selected as well: do nothing special: keep the selected background color
     // hacky solution so outline shows both horizontal and vertical, and layout doesn't shift. I don't know what I"m doing

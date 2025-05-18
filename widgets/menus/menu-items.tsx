@@ -141,10 +141,11 @@ export type MenuItemLinkProps = {
   text: string;
   disabled?: boolean;
   expanded: boolean;
+  accelerator?: JSX.Element;
 };
 
 export const MenuItemLink = forwardRef(function MenuItemLink(
-  { expanded, disabled, icon, text }: MenuItemLinkProps,
+  { expanded, disabled, icon, text, accelerator }: MenuItemLinkProps,
   ref: ForwardedRef<HTMLAnchorElement>,
 ) {
   return (
@@ -161,7 +162,7 @@ export const MenuItemLink = forwardRef(function MenuItemLink(
         {icon}
       </span>
       <span className="item-label">{text}</span>
-      <span className="item-accelerator">{IconSet.ARROW_RIGHT}</span>
+      <span className="item-accelerator">{accelerator ? accelerator : IconSet.ARROW_RIGHT}</span>
     </a>
   );
 });

@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 
 import { Menu, MenuChildren } from './menus';
 import { usePopover } from '../popovers/usePopover';
+import { Placement } from '@floating-ui/core';
 
 export interface MenuButtonProps {
   id: string;
@@ -12,6 +13,8 @@ export interface MenuButtonProps {
   menuID: string;
   children: MenuChildren;
   disabled?: boolean;
+  placement?: Placement;
+  updateDependency?: any;
 }
 
 export const MenuButton = ({
@@ -23,10 +26,12 @@ export const MenuButton = ({
   disabled,
   menuID,
   children,
+  placement = 'bottom',
+  updateDependency = children,
 }: MenuButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const menu = useRef<HTMLUListElement>(null);
-  const { style, reference, floating, update } = usePopover('bottom');
+  const { style, reference, floating, update } = usePopover(placement);
 
   // Whenever the menu is opened, focus the first focusable menu item!
   useLayoutEffect(() => {
@@ -38,11 +43,15 @@ export const MenuButton = ({
       }
       update();
     }
-  }, [isOpen, update]);
+  }, [isOpen, update, updateDependency]);
 
   const handleBlur = (e: React.FocusEvent) => {
     const button = e.currentTarget.previousElementSibling as HTMLElement;
-    if (e.relatedTarget !== button && !e.currentTarget.contains(e.relatedTarget as Node)) {
+    if (
+      e.relatedTarget !== button &&
+      !e.currentTarget.contains(e.relatedTarget as Node) &&
+      !e.relatedTarget?.closest('[data-contextmenu="true"]')
+    ) {
       setIsOpen(false);
       button.focus();
     }
@@ -52,7 +61,9 @@ export const MenuButton = ({
     const menuItem = (e.target as HTMLElement).closest('[role^="menuitem"]') as HTMLElement | null;
     // Don't close when using slider
     const isSlider = (e.target as HTMLInputElement).type === 'range';
-    if (menuItem !== null && !isSlider) {
+    // Don't close when the item is an input
+    const isInput = (e.target as HTMLElement).tagName === 'INPUT';
+    if (menuItem !== null && !isSlider && !isInput) {
       setIsOpen(false);
     }
   };

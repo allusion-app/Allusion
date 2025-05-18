@@ -4,6 +4,7 @@ import React, {
   ForwardedRef,
   ReactElement,
   useCallback,
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -16,9 +17,12 @@ import { Flyout } from 'widgets/popovers';
 import { useStore } from '../contexts/StoreContext';
 import { ClientTag } from '../entities/Tag';
 import { useComputed } from '../hooks/mobx';
+import { debounce } from 'common/timeout';
+import { useGalleryInputKeydownHandler } from '../hooks/useHandleInputKeydown';
 
 export interface TagSelectorProps {
   selection: ClientTag[];
+  isNotInherithedList?: [ClientTag, boolean][];
   onSelect: (item: ClientTag) => void;
   onDeselect: (item: ClientTag) => void;
   onTagClick?: (item: ClientTag) => void;
@@ -30,12 +34,15 @@ export interface TagSelectorProps {
     resetTextBox: () => void,
   ) => ReactElement<RowProps> | ReactElement<RowProps>[];
   multiline?: boolean;
+  filter?: (tag: ClientTag) => boolean;
   showTagContextMenu?: (e: React.MouseEvent<HTMLElement>, tag: ClientTag) => void;
+  suggestionsUpdateDependency?: number;
 }
 
 const TagSelector = (props: TagSelectorProps) => {
   const {
     selection,
+    isNotInherithedList,
     onSelect,
     onDeselect,
     onTagClick,
@@ -45,11 +52,23 @@ const TagSelector = (props: TagSelectorProps) => {
     extraIconButtons,
     renderCreateOption,
     multiline,
+    filter,
+    suggestionsUpdateDependency,
   } = props;
   const gridId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [dobuncedQuery, setDebQuery] = useState('');
+
+  const debounceSetDebQuery = useRef(debounce(setDebQuery, 500)).current;
+  useEffect(() => {
+    if (query.length > 2) {
+      setDebQuery(query);
+    }
+    // allways call the debounced version to avoud old calls with outdated query values to be set
+    debounceSetDebQuery(query);
+  }, [debounceSetDebQuery, query]);
 
   const handleChange = useRef((e: React.ChangeEvent<HTMLInputElement>) => {
     setIsOpen(true);
@@ -69,6 +88,7 @@ const TagSelector = (props: TagSelectorProps) => {
 
   const gridRef = useRef<HTMLDivElement>(null);
   const [activeDescendant, handleGridFocus] = useGridFocus(gridRef);
+  const handleGalleryInput = useGalleryInputKeydownHandler();
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Backspace') {
@@ -83,10 +103,11 @@ const TagSelector = (props: TagSelectorProps) => {
         setQuery('');
         setIsOpen(false);
       } else {
+        handleGalleryInput(e);
         handleGridFocus(e);
       }
     },
-    [handleGridFocus, onDeselect, isInputEmpty, selection],
+    [handleGridFocus, onDeselect, isInputEmpty, selection, handleGalleryInput],
   );
 
   const handleBlur = useRef((e: React.FocusEvent<HTMLDivElement>) => {
@@ -121,6 +142,14 @@ const TagSelector = (props: TagSelectorProps) => {
     [onDeselect, onSelect],
   );
 
+  const selectionSummary = useMemo((): [ClientTag, boolean][] => {
+    if (isNotInherithedList) {
+      return isNotInherithedList;
+    } else {
+      return selection.map((t) => [t, true] as [ClientTag, boolean]);
+    }
+  }, [selection, isNotInherithedList]);
+
   return (
     <div
       role="combobox"
@@ -139,11 +168,11 @@ const TagSelector = (props: TagSelectorProps) => {
         target={(ref) => (
           <div ref={ref} className="multiautocomplete-input">
             <div className="input-wrapper">
-              {selection.map((t) => (
+              {selectionSummary.map((tt) => (
                 <SelectedTag
-                  key={t.id}
-                  tag={t}
-                  onDeselect={onDeselect}
+                  key={tt[0].id}
+                  tag={tt[0]}
+                  onDeselect={tt[1] ? onDeselect : undefined}
                   onTagClick={onTagClick}
                   showContextMenu={showTagContextMenu}
                 />
@@ -169,11 +198,13 @@ const TagSelector = (props: TagSelectorProps) => {
         <SuggestedTagsList
           ref={gridRef}
           id={gridId}
-          query={query}
+          filter={filter}
+          query={dobuncedQuery}
           selection={selection}
           toggleSelection={toggleSelection}
           resetTextBox={resetTextBox.current}
           renderCreateOption={renderCreateOption}
+          suggestionsUpdateDependency={suggestionsUpdateDependency}
         />
       </Flyout>
     </div>
@@ -184,7 +215,7 @@ export { TagSelector };
 
 interface SelectedTagProps {
   tag: ClientTag;
-  onDeselect: (item: ClientTag) => void;
+  onDeselect?: (item: ClientTag) => void;
   onTagClick?: (item: ClientTag) => void;
   showContextMenu?: (e: React.MouseEvent<HTMLElement>, item: ClientTag) => void;
 }
@@ -195,7 +226,7 @@ const SelectedTag = observer((props: SelectedTagProps) => {
     <Tag
       text={tag.name}
       color={tag.viewColor}
-      onRemove={() => onDeselect(tag)}
+      onRemove={onDeselect ? () => onDeselect(tag) : undefined}
       onClick={onTagClick !== undefined ? () => onTagClick(tag) : undefined}
       onContextMenu={showContextMenu !== undefined ? (e) => showContextMenu(e, tag) : undefined}
     />
@@ -206,12 +237,14 @@ interface SuggestedTagsListProps {
   id: string;
   query: string;
   selection: readonly ClientTag[];
+  filter?: (tag: ClientTag) => boolean;
   toggleSelection: (isSelected: boolean, tag: ClientTag) => void;
   resetTextBox: () => void;
   renderCreateOption?: (
     inputText: string,
     resetTextBox: () => void,
   ) => ReactElement<RowProps> | ReactElement<RowProps>[];
+  suggestionsUpdateDependency?: number;
 }
 
 const SuggestedTagsList = observer(
@@ -219,20 +252,36 @@ const SuggestedTagsList = observer(
     props: SuggestedTagsListProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) {
-    const { id, query, selection, toggleSelection, resetTextBox, renderCreateOption } = props;
+    const {
+      id,
+      query,
+      selection,
+      filter = () => true,
+      toggleSelection,
+      resetTextBox,
+      renderCreateOption,
+      suggestionsUpdateDependency,
+    } = props;
     const { tagStore } = useStore();
 
     const suggestions = useMemo(
       () =>
         computed(() => {
           if (query.length === 0) {
-            return tagStore.tagList;
+            if (tagStore.count > 50) {
+              return selection;
+            } else {
+              return tagStore.tagList.filter(filter);
+            }
           } else {
             const textLower = query.toLowerCase();
-            return tagStore.tagList.filter((t) => t.name.toLowerCase().includes(textLower));
+            return tagStore.tagList
+              .filter((t) => t.name.toLowerCase().includes(textLower))
+              .filter(filter);
           }
         }),
-      [query, tagStore],
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [query, tagStore.tagList, filter, suggestionsUpdateDependency],
     ).get();
 
     return (
@@ -249,7 +298,10 @@ const SuggestedTagsList = observer(
             />
           );
         })}
-        {suggestions.length === 0 && renderCreateOption?.(query, resetTextBox)}
+        {suggestions.length === 0 &&
+          (query.length > 0
+            ? renderCreateOption?.(query, resetTextBox)
+            : tagStore.count > 50 && <span>Type to select tags</span>)}
       </Grid>
     );
   }),
@@ -260,25 +312,41 @@ interface TagOptionProps {
   tag: ClientTag;
   selected?: boolean;
   toggleSelection: (isSelected: boolean, tag: ClientTag) => void;
+  onContextMenu?: (e: React.MouseEvent<HTMLElement>, tag: ClientTag) => void;
 }
 
-export const TagOption = observer(({ id, tag, selected, toggleSelection }: TagOptionProps) => {
-  const [path, hint] = useComputed(() => {
-    const path = tag.path.join(' › ');
-    const hint = path.slice(0, Math.max(0, path.length - tag.name.length - 3));
-    return [path, hint];
-  }).get();
+export const TagOption = observer(
+  ({ id, tag, selected, toggleSelection, onContextMenu }: TagOptionProps) => {
+    const [path, hint] = useComputed(() => {
+      const path = tag.path
+        .map((v) => (v.startsWith('#') ? '&nbsp;<b>' + v.slice(1) + '</b>&nbsp;' : v))
+        .join(' › ');
+      const hint = path.slice(
+        0,
+        Math.max(0, path.length - tag.name.length - (tag.name.startsWith('#') ? 18 : 3)),
+      );
+      return [path, hint];
+    }).get();
 
-  return (
-    <Row
-      id={id}
-      value={tag.name}
-      selected={selected}
-      icon={<span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>}
-      onClick={() => toggleSelection(selected ?? false, tag)}
-      tooltip={path}
-    >
-      {hint.length > 0 ? <GridCell className="tag-option-hint">{hint}</GridCell> : <GridCell />}
-    </Row>
-  );
-});
+    const isHeader = useMemo(() => tag.name.startsWith('#'), [tag.name]);
+
+    return (
+      <Row
+        id={id}
+        value={isHeader ? '<b>' + tag.name.slice(1) + '</b>' : tag.name}
+        selected={selected}
+        icon={<span style={{ color: tag.viewColor }}>{IconSet.TAG}</span>}
+        onClick={() => toggleSelection(selected ?? false, tag)}
+        tooltip={path}
+        onContextMenu={onContextMenu !== undefined ? (e) => onContextMenu(e, tag) : undefined}
+        valueIsHtml
+      >
+        {hint.length > 0 ? (
+          <GridCell className="tag-option-hint" __html={hint}></GridCell>
+        ) : (
+          <GridCell />
+        )}
+      </Row>
+    );
+  },
+);

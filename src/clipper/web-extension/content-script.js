@@ -54,3 +54,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     });
   }
 });
+
+// Add a div to the top of the page with a data-ext-id attribute
+// This is used to detect if the extension is installed
+const extId = chrome.runtime.id;
+const div = document.createElement('div');
+div.style.display = 'none';
+div.dataset.allusionExtId = extId;
+document.body.appendChild(div);

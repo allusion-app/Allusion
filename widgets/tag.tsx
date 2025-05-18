@@ -24,16 +24,18 @@ const Tag = (props: TagProps) => {
     [color],
   );
 
+  const isHeader = useMemo(() => text.startsWith('#'), [text]);
+
   return (
     <span
-      className={`tag ${className || ''}`}
+      className={`tag ${className || ''} ${isHeader ? 'tag-header' : ''}`}
       data-tooltip={tooltip}
       onClick={onClick}
       style={style}
       onContextMenu={props.onContextMenu}
     >
       <span className="label" title={text}>
-        {text}
+        {isHeader ? text.slice(1) : text}
       </span>
       {onRemove ? (
         <IconButton

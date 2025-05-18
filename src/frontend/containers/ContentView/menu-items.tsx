@@ -17,6 +17,7 @@ import {
 import { ClientTag } from '../../entities/Tag';
 import { LocationTreeItemRevealer } from '../Outliner/LocationsPanel';
 import { TagsTreeItemRevealer } from '../Outliner/TagsPanel/TagsTree';
+import { ClientScore } from 'src/frontend/entities/Score';
 
 export const MissingFileMenuItems = observer(() => {
   const { uiStore, fileStore } = useStore();
@@ -169,8 +170,14 @@ export const SlideFileViewerMenuItems = observer(({ file }: { file: ClientFile }
     uiStore.openPreviewWindow();
   };
 
+  const handleCopyToClipboard = () => {
+    uiStore.selectFile(file, true);
+    uiStore.copyToClipboard();
+  };
+
   return (
     <>
+      <MenuItem onClick={handleCopyToClipboard} text="Copy" icon={IconSet.COPY} />
       <MenuItem
         onClick={handlePreviewWindow}
         text="Open In Preview Window"
@@ -224,18 +231,72 @@ export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) =>
   );
 });
 
-export const FileTagMenuItems = observer(({ file, tag }: { file: ClientFile; tag: ClientTag }) => (
+export const FileTagMenuItems = observer(({ file, tag }: { file?: ClientFile; tag: ClientTag }) => (
   <>
     <MenuItem
       onClick={() => TagsTreeItemRevealer.instance.revealTag(tag)}
       text="Reveal in Tags Panel"
       icon={IconSet.TREE_LIST}
-      disabled={file.isBroken}
+      disabled={file ? file.isBroken : false}
     />
     <MenuItem
-      onClick={() => file.removeTag(tag)}
+      onClick={() => file && file.removeTag(tag)}
       text="Unassign Tag from File"
       icon={IconSet.TAG_BLANCO}
     />
   </>
 ));
+
+export const EditorTagSummaryItems = ({
+  tag,
+  beforeSelect,
+}: {
+  tag: ClientTag;
+  beforeSelect: () => void;
+}) => {
+  return (
+    <>
+      <MenuItem
+        onClick={() => {
+          beforeSelect();
+          TagsTreeItemRevealer.instance.revealTag(tag);
+        }}
+        text="Reveal in Tags Panel"
+        icon={IconSet.TREE_LIST}
+      />
+    </>
+  );
+};
+
+export const FileScoreMenuItems = observer(
+  ({
+    score,
+    onDelete,
+    onRemove,
+    onRename,
+  }: {
+    score: ClientScore;
+    onDelete: (score: ClientScore) => void;
+    onRemove: (score: ClientScore) => void;
+    onRename: (score: ClientScore) => void;
+  }) => {
+    const { uiStore } = useStore();
+
+    const isMultiple = uiStore.fileSelection.size > 1;
+    return (
+      <>
+        <MenuItem
+          onClick={() => onRemove(score)}
+          text={`Remove score from ${isMultiple ? 'files' : 'file'}`}
+          icon={IconSet.META_INFO}
+        />
+        <MenuItem onClick={() => onRename(score)} text="Rename" icon={IconSet.EDIT} />
+        <MenuItem
+          onClick={() => onDelete(score)}
+          text="Delete score and remove it from all files"
+          icon={IconSet.DELETE}
+        />
+      </>
+    );
+  },
+);

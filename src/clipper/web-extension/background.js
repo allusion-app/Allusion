@@ -10,8 +10,9 @@ let errCount = 0;
  * @param {string} filename The filename of the image, e.g. my-image.jpg
  * @param {string} url The url of the image, e.g. https://pbs.twimg.com/media/ASDF1234?format=jpg&name=small
  * @param {string} pageUrl The url of the page where the image is on, e.g. https://twitter.com/User/status/12345
+ * @param {string[]} tagNames The tags to assign to the image, e.g. ['cat', 'cute']
  */
-async function importImage(filename, url, pageUrl) {
+async function importImage(filename, url, pageUrl, tagNames = []) {
   // We could just send the URL, but in some cases you need permission to view an image (e.g. pixiv)
   // Therefore we send it base64 encoded
 
@@ -31,7 +32,7 @@ async function importImage(filename, url, pageUrl) {
       filename: filenameWithExtension,
       url,
       imgBase64: base64,
-      tagNames: [],
+      tagNames: tagNames || [],
       pageUrl,
       error: false,
     };
@@ -203,3 +204,111 @@ chrome.commands.onCommand.addListener((command) => {
     });
   }
 });
+
+/// Add support for the following:
+/// Allow a normal web page to emit a specific event ('send-allusion-image') to send a specific image to Allusion
+chrome.runtime.onMessageExternal.addListener(async function (message, sender, sendResponse) {
+  console.log('Received external message', message, sender, sendResponse);
+  if (message.type === 'send-allusion-image') {
+    const { src, alt, pageUrl = '', prompt = undefined } = message.payload;
+    console.log('Received data.');
+    console.log('Src', src);
+    console.log('Alt', alt);
+    console.log('PageURL', pageUrl);
+    const filename = filenameFromUrl(src, sender.tab?.title || alt);
+    console.log('Generated filename', filename);
+
+    // Get all of the tags that exist
+    const existingTags = await fetch(`${apiUrl}/tags`)
+      .then((response) => response.json())
+      .then((tags) => tags.map((tag) => tag.name));
+
+    let promptTags = [];
+
+    // If the prompt is set, then we automatically assign all tags that are in the prompt
+    if (prompt) {
+      // Prompt is multi-line and could contain commented out lines (starting with #, but keep #!allusion lines)
+      // We remove those lines
+      let promptLines = prompt
+        .split('\n')
+        .filter((line) => !line.trim().startsWith('#') || line.trim().startsWith('#!allusion '));
+
+      promptLines = promptLines.map(
+        (line) => line.replace('#!allusion ', '') /* Remove the "#!allusion" from all lines */,
+      );
+
+      // Some tags can be combined into groups (example: "(cat, cute:1.2)"), or simply have added weights (example: "cat:1.2")
+      // We have to make sure that the parentheses and the weights are removed, so the tags get parsed correctly, we do want to keep the tags though
+      promptLines = promptLines.map((line) => {
+        // Replace escaped parentheses with temporary placeholders
+        let cleanedLine = line
+          .replace(/\\\(/g, 'TEMP_OPEN_PAREN')
+          .replace(/\\\)/g, 'TEMP_CLOSE_PAREN');
+
+        // Remove actual parentheses
+        cleanedLine = cleanedLine.replace(/[()]/g, '');
+
+        // Restore the placeholders to normal parentheses
+        cleanedLine = cleanedLine
+          .replace(/TEMP_OPEN_PAREN/g, '(')
+          .replace(/TEMP_CLOSE_PAREN/g, ')');
+
+        // Remove any weights indicated by a colon followed by numbers
+        cleanedLine = cleanedLine.replace(/:\d+(\.\d+)?/g, '');
+
+        // Split any remaining parts inside parentheses into separate tags
+        const parts = cleanedLine
+          .split(', ')
+          .flatMap((part) => part.split(/ \(|\)/).filter(Boolean));
+
+        // Generate permutations for multi-word tags and join them
+        const processedParts = parts.flatMap((part) => {
+          const words = part.trim().split(' ');
+          if (words.length > 1) {
+            return permute(words).map((perm) => perm.join(' '));
+          }
+          return [part];
+        });
+
+        return processedParts.join(', ');
+      });
+
+      const filteredPrompt = promptLines.join(', ');
+
+      console.log('Received Prompt', prompt);
+      console.log('Prompt filtered to', filteredPrompt);
+
+      promptTags = filteredPrompt
+        .split(',') // Split the prompt by comma and space to get individual tag names
+        .map((tagName) => tagName.trim().toLowerCase()) // Trim and convert tag names to lowercase
+        .filter((value, index, self) => self.indexOf(value) === index) // Remove duplicate tag names
+        .filter((tagName) => tagName.length > 0) // Remove empty tag names
+        .map((tagName) => {
+          let existingTag = existingTags.find((tag) => tag.toLowerCase() === tagName); // Check if the tag already exists
+          if (existingTag) {
+            return existingTag; // Return the tag name if it already exists
+          } else return null; // Return null if the tag doesn't exist
+        })
+        .filter((tagName) => tagName !== null); // Remove null values from the array
+
+      console.log('Applying tags', promptTags);
+      console.log('Existing tags', existingTags);
+    }
+
+    importImage(filename, src, pageUrl, promptTags);
+    console.log('Imported image.');
+    sendResponse({ status: 'ok' });
+  }
+});
+
+const permute = (arr) => {
+  if (arr.length <= 1) return [arr];
+  const permutations = [];
+  for (let i = 0; i < arr.length; i++) {
+    const rest = permute(arr.slice(0, i).concat(arr.slice(i + 1)));
+    for (const perm of rest) {
+      permutations.push([arr[i], ...perm]);
+    }
+  }
+  return permutations;
+};

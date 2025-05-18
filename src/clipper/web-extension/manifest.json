@@ -33,6 +33,10 @@
     }
   },
 
+  "externally_connectable": {
+    "matches": ["http://localhost:8188/*", "http://127.0.0.1:8188/*"]
+  },
+
   "manifest_version": 2,
   "name": "Allusion Web Clipper",
   "version": "1.2.1",
@@ -47,6 +51,7 @@
     "notifications",
     "activeTab",
     "storage",
+    "tabs",
     "http://localhost:5454/*",
     "<all_urls>"
   ]

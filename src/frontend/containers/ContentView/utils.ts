@@ -7,7 +7,7 @@ export interface GalleryProps {
   contentRect: ContentRect;
   /** The index of the currently selected image, or the "last selected" image when a range is selected */
   lastSelectionIndex: React.MutableRefObject<number | undefined>;
-  select: (file: ClientFile, selectAdditive: boolean, selectRange: boolean) => void;
+  select: (file: ClientFile | undefined, selectAdditive: boolean, selectRange: boolean) => void;
 }
 
 const PADDING = 8;

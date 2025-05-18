@@ -11,7 +11,7 @@ import { ClientTag } from '../entities/Tag';
 import { TagSelector } from './TagSelector';
 
 interface IFileTagProp {
-  file: ClientFile;
+  file?: ClientFile;
 }
 
 const FileTags = observer(({ file }: IFileTagProp) => {
@@ -26,7 +26,9 @@ const FileTags = observer(({ file }: IFileTagProp) => {
         icon={IconSet.TAG_ADD}
         onClick={async () => {
           const tag = await tagStore.create(tagStore.root, tagName);
-          file.addTag(tag);
+          if (file) {
+            file.addTag(tag);
+          }
           resetTextBox();
         }}
       />
@@ -49,10 +51,19 @@ const FileTags = observer(({ file }: IFileTagProp) => {
     [file, show],
   );
 
+  if (!file) {
+    return <></>;
+  }
+
+  const isNotInherithedMap = [
+    ...Array.from(file.inheritedTags).map((t) => [t, file.tags.has(t)] as [ClientTag, boolean]),
+  ];
+
   return (
     <TagSelector
       disabled={file.isBroken}
       selection={Array.from(file.tags)}
+      isNotInherithedList={isNotInherithedMap}
       onClear={file.clearTags}
       onDeselect={file.removeTag}
       onSelect={file.addTag}

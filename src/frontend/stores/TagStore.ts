@@ -1,4 +1,4 @@
-import { action, computed, makeObservable, observable } from 'mobx';
+import { action, computed, makeObservable, observable, runInAction } from 'mobx';
 
 import { DataStorage } from '../../api/data-storage';
 import { generateId, ID } from '../../api/id';
@@ -7,6 +7,7 @@ import { ClientFile } from '../entities/File';
 import { ClientTagSearchCriteria } from '../entities/SearchCriteria';
 import { ClientTag } from '../entities/Tag';
 import RootStore from './RootStore';
+import { AppToaster, IToastProps } from '../components/Toaster';
 
 /**
  * Based on https://mobx.js.org/best/store.html
@@ -29,15 +30,18 @@ class TagStore {
     try {
       const fetchedTags = await this.backend.fetchTags();
       this.createTagGraph(fetchedTags);
+      this.fixStrayTags();
     } catch (err) {
       console.log('Could not load tags', err);
     }
   }
 
-  @action.bound initializeFileCounts(files: ClientFile[]): void {
+  @action.bound initializeFileCounts(files: (ClientFile | undefined)[]): void {
     for (const file of files) {
-      for (const fileTag of file.tags) {
-        fileTag.incrementFileCount();
+      if (file) {
+        for (const fileTag of file.tags) {
+          fileTag.incrementFileCount();
+        }
       }
     }
   }
@@ -88,7 +92,7 @@ class TagStore {
 
   @action.bound async create(parent: ClientTag, tagName: string): Promise<ClientTag> {
     const id = generateId();
-    const tag = new ClientTag(this, id, tagName, new Date(), '', false);
+    const tag = new ClientTag(this, id, tagName, new Date(), undefined, false);
     this.tagGraph.set(tag.id, tag);
     tag.setParent(parent);
     parent.subTags.push(tag);
@@ -107,6 +111,12 @@ class TagStore {
     } = this;
     const ids: ID[] = [];
     tag.parent.subTags.remove(tag);
+    for (const t of tag.impliedByTags.slice()) {
+      t.removeImpliedTag(tag);
+    }
+    for (const t of tag.impliedTags.slice()) {
+      tag.removeImpliedTag(t);
+    }
     for (const t of tag.getSubTree()) {
       t.dispose();
       tagGraph.delete(t.id);
@@ -125,6 +135,12 @@ class TagStore {
     const ids: ID[] = [];
     const remove = action((tag: ClientTag): ID[] => {
       tag.parent.subTags.remove(tag);
+      for (const t of tag.impliedByTags.slice()) {
+        t.removeImpliedTag(tag);
+      }
+      for (const t of tag.impliedTags.slice()) {
+        tag.removeImpliedTag(t);
+      }
       for (const t of tag.getSubTree()) {
         t.dispose();
         tagGraph.delete(t.id);
@@ -169,8 +185,8 @@ class TagStore {
       this.tagGraph.set(tag.id, tag);
     }
 
-    // Set parent and add sub tags
-    for (const { id, subTags } of backendTags) {
+    // Set parent and add sub and implied tags
+    for (const { id, subTags, impliedTags } of backendTags) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const tag = this.tagGraph.get(id)!;
 
@@ -181,8 +197,85 @@ class TagStore {
           tag.subTags.push(subTag);
         }
       }
+
+      for (const id of impliedTags) {
+        const impliedTag = this.get(id);
+        if (impliedTag !== undefined) {
+          impliedTag.addImpliedByTag(tag);
+          tag.impliedTags.push(impliedTag);
+        }
+      }
     }
     this.root.setParent(this.root);
+  }
+
+  @action private fixStrayTags(): void {
+    const verifiedTags = new Set<ClientTag>(this.tagList);
+    verifiedTags.add(this.root);
+    if (verifiedTags.size === this.tagGraph.size) {
+      console.debug('No stray tags detected.');
+      return;
+    }
+
+    console.debug('Stray tags detected, attempting to insert them into the root tag.');
+    for (const [, tag] of this.tagGraph) {
+      if (verifiedTags.has(tag)) {
+        continue;
+      }
+      const ancestors = Array.from(tag.getAncestors());
+      const subroot = ancestors.at(-1);
+      if (subroot) {
+        const subtree = Array.from(subroot.getSubTree());
+        for (const subtag of subtree) {
+          verifiedTags.add(subtag);
+        }
+      }
+
+      if (subroot && !this.root.subTags.includes(subroot)) {
+        this.root.subTags.push(subroot);
+        subroot.setParent(this.root);
+        console.warn(
+          `Tag "${subroot.name}" was disconnected from the main tree and has been added under the root.`,
+          subroot,
+        );
+        this.showTagToast(
+          subroot,
+          'was disconnected from the main tree and has been added under the root.',
+          'stray-tag',
+          'warning',
+          20000,
+        );
+      } else {
+        console.error(
+          `Tag "${tag.name}" was disconnected from the main tree and could not be added under the root.`,
+          tag,
+        );
+      }
+    }
+  }
+
+  showTagToast(
+    tag: ClientTag,
+    context: string,
+    toastId: string,
+    type?: IToastProps['type'],
+    timeout = 10000,
+  ): void {
+    if (tag.id === ROOT_TAG_ID) {
+      return;
+    }
+    setTimeout(() => {
+      runInAction(() => {
+        AppToaster.show(
+          {
+            message: `Tag "${tag.name}" ( ${tag.path.join(' › ')} ) ${context}`,
+            timeout: timeout,
+            type: type,
+          },
+          `${toastId}-${tag.id}`,
+        );
+      });
+    });
   }
 }
 
