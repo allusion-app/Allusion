@@ -1,10 +1,22 @@
 {
   "app": {
-    "sort": "並び替え",
-    "view": "表示",
+    "title": "Allusion",
+    "settings": "設定",
+    "helpCenter": "ヘルプセンター",
+    "about": "このアプリについて",
+    "more": "その他",
+    "checkForUpdates": "アップデートを確認",
+    "openExternal": "外部アプリケーションで開く",
+    "openInPreview": "プレビューで開く",
+    "openRecoveryPanel": "復元パネルを開く",
+    "openTagSelector": "タグセレクターを開く",
+    "openInFileBrowser": "ファイルブラウザで開く",
     "revealInLocationsPanel": "ロケーションパネルで表示",
-    "revealInTagsPanel": "タグパネルで表示"
+    "revealInTagsPanel": "タグパネルで表示",
+    "sort": "並び替え",
+    "view": "表示"
   },
+
   "button": {
     "close": "閉じる",
     "cancel": "キャンセル",

@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Allusion",
+    "title": "Anspielung",
     "settings": "Einstellungen",
     "helpCenter": "Hilfezentrum",
     "about": "Über",
@@ -52,7 +52,6 @@
     "retry": "Erneut versuchen",
     "recover": "Wiederherstellen"
   },
-
   "placeholder": {
     "loading": "Lädt...",
     "unexpected": "Das sollte nicht passieren...",
@@ -72,7 +71,6 @@
     "bugTitle": "Ein Fehler ist aufgetreten!",
     "bugMsg": "Bitte melden Sie diesen Fehler den Maintainer*innen!"
   },
-
   "imageInfo": {
     "imageSaved": "Bilddatei gespeichert !",
     "couldNotSave": "Bilddatei konnte nicht gespeichert werden",
@@ -89,16 +87,13 @@
       "modified": "Geändert"
     }
   },
-
   "inspector": {
     "noImageSelected": "Kein Bild ausgewählt"
   },
-
   "warning": {
     "openExternalTitle": "Möchten Sie wirklich {{count}} Bilder in ihrer Standardanwendung öffnen?",
     "openExternalBody": "Dies kann Ihren Computer stark verlangsamen, bis er nicht mehr reagiert."
   },
-
   "removal": {
     "deleteLocation": "Möchten Sie den Standort \"{{name}}\" wirklich löschen?",
     "deleteLocationInfo": "Dies entfernt den Standort und alle mit seinen Bildern verknüpften Daten dauerhaft aus Allusion.",
@@ -117,35 +112,34 @@
     "someFilesCouldNotBeDeleted": "Einige Dateien konnten nicht gelöscht werden.",
     "moreInfo": "Weitere Informationen"
   },
-
   "exif": {
-    "ColorMode": "Color Mode",
-    "BitDepth": "Bit Depth",
-    "CreationSoftware": "Creation Software",
-    "Creator": "Creator",
-    "CreatorURL": "Creator URL",
-    "Description": "Description",
-    "Parameters": "Parameters",
+    "ColorMode": "Farbmodus",
+    "BitDepth": "Bittiefe",
+    "CreationSoftware": "Erstellungssoftware",
+    "Creator": "Schöpfer",
+    "CreatorURL": "Ersteller-URL",
+    "Description": "Beschreibung",
+    "Parameters": "Parameter",
     "Copyright": "Copyright",
-    "CameraManufacturer": "Camera Manufacturer",
-    "CameraModel": "Camera Model",
-    "Megapixels": "Megapixels",
-    "ExposureTime": "Exposure Time",
-    "FStop": "F-stop",
-    "FocalLength": "Focal Length",
-    "GPSLatitude": "GPS Latitude",
-    "GPSLongitude": "GPS Longitude"
+    "CameraManufacturer": "Kamerahersteller",
+    "CameraModel": "Kameramodell",
+    "Megapixels": "Megapixel",
+    "ExposureTime": "Expositionszeit",
+    "FStop": "Blende",
+    "FocalLength": "Brennweite",
+    "GPSLatitude": "GPS-Breitengrad",
+    "GPSLongitude": "GPS-Längengrad"
   },
   "error": {
-    "initializationFailed": "An error has occurred, check the console for more details",
-    "clearDatabase": "Clear Database",
-    "confirmClear": "Are you sure you want to clear the database?",
-    "clearDbWarning": "This is intended as a last resort. All imported images and created tags will be permanently removed.",
-    "willNotDelete": "This will not delete your images on your system!",
-    "somethingWentWrong": "Something went wrong",
-    "tryOptions": "You can try one of the following options or contact the maintainers.",
-    "toggleDevTools": "Toggle DevTools",
-    "createIssue": "Create Issue"
+    "initializationFailed": "Es ist ein Fehler aufgetreten. Weitere Informationen finden Sie in der Konsole",
+    "clearDatabase": "Datenbank löschen",
+    "confirmClear": "Sind Sie sicher, dass Sie die Datenbank löschen möchten?",
+    "clearDbWarning": "Dies ist als letztes Mittel gedacht. Alle importierten Bilder und erstellten Tags werden dauerhaft entfernt.",
+    "willNotDelete": "Dadurch werden Ihre Bilder auf Ihrem System nicht gelöscht!",
+    "somethingWentWrong": "Etwas ist schief gelaufen",
+    "tryOptions": "Sie können eine der folgenden Optionen ausprobieren oder sich an die Betreuer wenden.",
+    "toggleDevTools": "DevTools umschalten",
+    "createIssue": "Problem erstellen"
   },
   "content": {
     "searchSimilar": "Ähnliche Bilder suchen...",
@@ -166,332 +160,329 @@
     "imageLoadError": "Konnte das Bild {{full}} nicht laden",
     "openExternal": "In externer Anwendung öffnen"
   },
-
   "toolbar": {
     "selectAllTooltip": "Wählt alle Bilder aus oder hebt die Auswahl auf",
     "sortTooltip": "Inhaltsbereich sortieren",
     "viewTooltip": "Ansichtsmodus des Inhaltsbereichs ändern"
   },
-
   "sort": {
     "name": "Name",
-    "path": "Path",
-    "fileType": "File type",
-    "fileSize": "File size",
-    "dateAdded": "Date added",
-    "dateModified": "Date modified",
-    "dateCreated": "Date created",
-    "random": "Random"
+    "path": "Pfad",
+    "fileType": "Dateityp",
+    "fileSize": "Dateigröße",
+    "dateAdded": "Hinzugefügt am",
+    "dateModified": "Geändert am",
+    "dateCreated": "Erstellt am",
+    "random": "Zufällig"
   },
   "layout": {
-    "list": "List",
-    "grid": "Grid",
-    "verticalMasonry": "Vertical Masonry",
-    "horizontalMasonry": "Horizontal Masonry"
+    "list": "Liste",
+    "grid": "Raster",
+    "verticalMasonry": "Vertikale Masonry",
+    "horizontalMasonry": "Horizontale Masonry"
   },
   "list": {
     "columns": {
       "name": "Name",
-      "dimensions": "Dimensions",
-      "dateAdded": "Date added",
-      "size": "Size",
-      "tags": "Tags"
+      "dimensions": "Abmessungen",
+      "dateAdded": "Hinzugefügt am",
+      "size": "Größe",
+      "tags": "Schlagworte"
     },
-    "resizeColumn": "Resize column {{title}}"
+    "resizeColumn": "Spalte {{title}} anpassen"
   },
   "thumbnail": {
-    "size": "Thumbnail size",
-    "small": "Small",
-    "medium": "Medium",
-    "large": "Large"
+    "size": "Vorschaubildgröße",
+    "small": "Klein",
+    "medium": "Mittel",
+    "large": "Groß"
   },
   "tag": {
-    "createWithName": "Create Tag \"{{name}}\"",
-    "noTagsYet": "No tags added yet",
-    "title": "Tags",
-    "unassignFromFile": "Unassign Tag from File"
+    "createWithName": "Tag \"{{name}}\" erstellen",
+    "noTagsYet": "Noch keine Tags hinzugefügt",
+    "title": "Schlagworte",
+    "unassignFromFile": "Tag von Datei entfernen"
   },
   "search": {
-    "searchInPath": "Search in file paths for \"{{query}}\"",
-    "advanced": "Advanced search",
-    "matchAny": "Search using any queries",
-    "matchAll": "Search using all queries",
-    "dialogTitle": "Search: \"{{name}}\"",
+    "searchInPath": "In Dateipfaden nach \"{{query}}\" suchen",
+    "advanced": "Erweiterte Suche",
+    "matchAny": "Mit beliebigen Suchanfragen suchen",
+    "matchAll": "Mit allen Suchanfragen suchen",
+    "dialogTitle": "Suche: \"{{name}}\"",
     "nameLabel": "Name",
     "keys": {
-      "tags": "Tags",
-      "fileName": "File Name",
-      "filePath": "File Path",
-      "fileExtension": "File Extension",
-      "fileSizeMB": "File Size (MB)",
-      "width": "Width",
-      "height": "Height",
-      "dateAdded": "Date Added"
+      "tags": "Schlagworte",
+      "fileName": "Dateiname",
+      "filePath": "Dateipfad",
+      "fileExtension": "Dateierweiterung",
+      "fileSizeMB": "Dateigröße (MB)",
+      "width": "Breite",
+      "height": "Höhe",
+      "dateAdded": "Hinzugefügt am"
     },
-    "queryEditor": "Query Editor",
+    "queryEditor": "Abfrage-Editor",
     "queryInfo": {
-      "part1": "A query is a list of criterias.",
-      "part2": "In the editor you can edit already added criterias by changing the inputs or delete one by pressing the icon button next to the inputs.",
-      "part3": "icon button next to the inputs.",
-      "part4": "Additionally, there is a Match option that decides whether all criterias must match or just one."
+      "part1": "Eine Abfrage ist eine Liste von Kriterien.",
+      "part2": "Im Editor können Sie bereits hinzugefügte Kriterien bearbeiten, indem Sie die Eingaben ändern oder ein Kriterium löschen, indem Sie die Symbolschaltfläche neben den Eingaben drücken.",
+      "part3": "Symbolschaltfläche neben den Eingaben.",
+      "part4": "Zusätzlich gibt es eine Übereinstimmung-Option, die festlegt, ob alle Kriterien oder nur eines übereinstimmen müssen."
     },
     "emptyQuery": {
-      "header": "Empty Query",
-      "body": "Your query is currently empty. Create a criteria above to enable the {{action}} button."
+      "header": "Leere Abfrage",
+      "body": "Ihre Abfrage ist derzeit leer. Erstellen Sie ein Kriterium oben, um die Schaltfläche {{action}} zu aktivieren."
     },
     "table": {
-      "key": "Key",
+      "key": "Schlüssel",
       "operator": "Operator",
-      "value": "Value",
-      "remove": "Remove"
+      "value": "Wert",
+      "remove": "Entfernen"
     },
-    "removeCriteria": "Remove Criteria",
+    "removeCriteria": "Kriterium entfernen",
     "match": {
-      "any": "Any",
-      "all": "All"
+      "any": "Beliebig",
+      "all": "Alle"
     }
   },
   "outliner": {
     "savedSearches": {
-      "title": "Saved Searches",
-      "saveCurrent": "Save current search",
-      "saveTooltip": "Save the current search as a new saved search",
-      "clickPlus": "Click + to save your current search criteria."
+      "title": "Gespeicherte Suchen",
+      "saveCurrent": "Aktuelle Suche speichern",
+      "saveTooltip": "Die aktuelle Suche als neue gespeicherte Suche speichern",
+      "clickPlus": "Klicken Sie auf +, um Ihre aktuellen Suchkriterien zu speichern."
     },
     "tags": {
-      "title": "Tags",
-      "inheritParentColor": "Inherit Parent Color",
-      "pickColor": "Pick Color",
-      "new": "New Tag",
-      "newTagDefaultName": "New Tag",
-      "newTooltip": "Add a new tag",
-      "rename": "Rename",
-      "hideTaggedImages": "Hide Tagged Images",
-      "mergeWith": "Merge with",
-      "delete": "Delete",
-      "addToSearch": "Add to Search",
-      "replaceSearch": "Replace Search",
-      "moveUp": "Move Up",
-      "moveDown": "Move Down",
-      "clearTooltip": "Clear Selection",
-      "none": "None",
+      "title": "Schlagworte",
+      "inheritParentColor": "Elternfarbe übernehmen",
+      "pickColor": "Farbe wählen",
+      "new": "Neuer Tag",
+      "newTagDefaultName": "Neuer Tag",
+      "newTooltip": "Neuen Tag hinzufügen",
+      "rename": "Umbenennen",
+      "hideTaggedImages": "Markierte Bilder ausblenden",
+      "mergeWith": "Zusammenführen mit",
+      "delete": "Löschen",
+      "addToSearch": "Zur Suche hinzufügen",
+      "replaceSearch": "Suche ersetzen",
+      "moveUp": "Nach oben",
+      "moveDown": "Nach unten",
+      "clearTooltip": "Auswahl löschen",
+      "none": "Keine",
       "merge": {
-        "title": "Merge Tag{{plur}} With",
-        "info": "This will replace all uses of the chosen tag{{plur}} with the tag you select below.",
-        "legend": "Merge tag{{plur}} with",
-        "overview": "Tag{{plur}} to merge",
-        "label": "Merge with",
-        "cantMergeSelf": "You cannot merge a tag with itself.",
-        "action": "Merge"
+        "title": "Tag{{plur}} mit zusammenführen",
+        "info": "Dadurch werden alle Verwendungen des ausgewählten Tags{{plur}} durch das unten ausgewählte Tag ersetzt.",
+        "legend": "Tag{{plur}} mit zusammenführen",
+        "overview": "Zusammenzuführende Tag{{plur}}",
+        "label": "Zusammenführen mit",
+        "cantMergeSelf": "Sie können einen Tag nicht mit sich selbst zusammenführen.",
+        "action": "Zusammenführen"
       }
     },
     "locations": {
-      "addToSearch": "Add to Search Query",
-      "replaceSearch": "Replace Search Query",
-      "exclude": "Exclude",
-      "reinclude": "Re-include",
-      "openInFileBrowser": "Open in File Browser",
-      "openRecoveryPanel": "Open Recovery Panel",
-      "newLocation": "New Location",
-      "refresh": "Refresh",
-      "title": "Locations",
-      "addLocationTooltip": "Add new Location",
-      "emptyCallout": "Click + to choose a location.",
-      "addTitle": "Add Location {{name}}",
-      "addIntro": "You can configure the location {{name}} by including only certain subdirectories from the directory.",
-      "includedSubdirs": "Included Subdirectories of {{name}}",
-      "loading": "loading...",
-      "noSubdirs": "No subdirectories found."
+      "addToSearch": "Zur Suchabfrage hinzufügen",
+      "replaceSearch": "Suchabfrage ersetzen",
+      "exclude": "Ausschließen",
+      "reinclude": "Wieder einschließen",
+      "openInFileBrowser": "Im Dateimanager öffnen",
+      "openRecoveryPanel": "Wiederherstellungsbereich öffnen",
+      "newLocation": "Neuer Speicherort",
+      "refresh": "Aktualisieren",
+      "title": "Speicherorte",
+      "addLocationTooltip": "Neuen Speicherort hinzufügen",
+      "emptyCallout": "Klicken Sie auf +, um einen Speicherort auszuwählen.",
+      "addTitle": "Speicherort {{name}} hinzufügen",
+      "addIntro": "Sie können den Speicherort {{name}} konfigurieren, indem Sie nur bestimmte Unterordner aus dem Verzeichnis einbeziehen.",
+      "includedSubdirs": "Eingeschlossene Unterordner von {{name}}",
+      "loading": "wird geladen...",
+      "noSubdirs": "Keine Unterordner gefunden."
     }
   },
   "savedSearch": {
-    "edit": "Edit",
-    "replaceWithCurrent": "Replace with current search",
-    "duplicate": "Duplicate",
-    "delete": "Delete"
+    "edit": "Bearbeiten",
+    "replaceWithCurrent": "Durch aktuelle Suche ersetzen",
+    "duplicate": "Duplizieren",
+    "delete": "Löschen"
   },
   "settings": {
     "tabs": {
-      "general": "General",
-      "appearance": "Appearance",
-      "language": "Language",
-      "keyboardShortcuts": "Keyboard Shortcuts",
-      "imageFormats": "Image Formats",
+      "general": "Allgemein",
+      "appearance": "Erscheinungsbild",
+      "language": "Sprache",
+      "keyboardShortcuts": "Tastaturkürzel",
+      "imageFormats": "Bildformate",
       "importExport": "Import/Export",
-      "backgroundProcesses": "Background Processes",
-      "advanced": "Advanced"
+      "backgroundProcesses": "Hintergrundprozesse",
+      "advanced": "Erweitert"
     },
     "appearance": {
-      "theme": "Theme",
-      "colorScheme": "Color Scheme",
-      "light": "Light",
-      "dark": "Dark",
-      "customTheme": "Custom Theme",
-      "none": "None",
-      "display": "Display",
-      "showFullScreen": "Show full screen",
-      "scaleImages": "Scale images...",
-      "smooth": "Smooth",
-      "pixelated": "Pixelated",
-      "thumbnail": "Thumbnail",
-      "showAssignedTags": "Show assigned tags",
-      "showFilename": "Show filename",
-      "showResolution": "Show resolution",
-      "shape": "Shape",
-      "square": "Square",
-      "letterbox": "Letterbox",
-      "openThemeDir": "Open the directory containing the theme files",
-      "reloadThemes": "Reload the list of themes and current theme"
+      "theme": "Thema",
+      "colorScheme": "Farbschema",
+      "light": "Hell",
+      "dark": "Dunkel",
+      "customTheme": "Benutzerdefiniertes Thema",
+      "none": "Keine",
+      "display": "Anzeige",
+      "showFullScreen": "Vollbild anzeigen",
+      "scaleImages": "Bilder skalieren...",
+      "smooth": "Glatt",
+      "pixelated": "Verpixelte",
+      "thumbnail": "Vorschaubild",
+      "showAssignedTags": "Zugewiesene Tags anzeigen",
+      "showFilename": "Dateinamen anzeigen",
+      "showResolution": "Auflösung anzeigen",
+      "shape": "Form",
+      "square": "Quadratisch",
+      "letterbox": "Briefkasten",
+      "openThemeDir": "Ordner mit den Theme-Dateien öffnen",
+      "reloadThemes": "Liste der Themen und aktuelles Thema neu laden"
     },
     "zoom": {
       "label": "Zoom",
       "percent": "{{pct}}%"
     },
     "shortcuts": {
-      "intro": "Click on a key combination to modify it. After typing your new combination, press Enter to confirm or Escape to cancel.",
-      "keyInUse": "Key combination already in use!"
+      "intro": "Klicken Sie auf eine Tastenkombination, um sie zu ändern. Nachdem Sie Ihre neue Kombination eingegeben haben, drücken Sie Enter zur Bestätigung oder Escape zum Abbrechen.",
+      "keyInUse": "Tastenkombination wird bereits verwendet!"
     },
     "imageFormat": {
-      "legend": "Image formats to be discovered by Allusion in your Locations",
-      "removeAfterSave": "Remove images with disabled file extensions after save",
-      "restartNotice": "Allusion will restart to load your new preferences.",
-      "exrWarning": "Experimental: May slow down the application when enabled (disabled by default)"
+      "legend": "Bildformate, die Allusion in Ihren Speicherorten entdecken soll",
+      "removeAfterSave": "Bilder mit deaktivierten Dateierweiterungen nach dem Speichern entfernen",
+      "restartNotice": "Allusion wird neu gestartet, um Ihre neuen Einstellungen zu laden.",
+      "exrWarning": "Experimentell: Kann die Anwendung verlangsamen, wenn sie aktiviert ist (standardmäßig deaktiviert)"
     },
     "advanced": {
-      "confirmNonEmptyDir": "The directory you picked is not empty. Allusion might delete any files inside of it. Do you still wish to pick this directory?\n\nYou picked: {{directory}}",
-      "defaultThumbIntro": "By default thumbnails are stored in the",
-      "tempFilesDir": "temporary files directory",
-      "thumbnailDirectory": "Thumbnail Directory",
-      "development": "Development",
-      "toggleDevTools": "Toggle DevTools"
+      "confirmNonEmptyDir": "Der ausgewählte Ordner ist nicht leer. Allusion könnte Dateien darin löschen. Möchten Sie diesen Ordner trotzdem auswählen?\n\nSie haben ausgewählt: {{directory}}",
+      "defaultThumbIntro": "Vorschaubilder werden standardmäßig im",
+      "tempFilesDir": "Ordner für temporäre Dateien",
+      "thumbnailDirectory": "Vorschaubilder-Ordner",
+      "development": "Entwicklung",
+      "toggleDevTools": "Entwicklerwerkzeuge umschalten"
     },
     "general": {
-      "restoreSearch": "Restore last submitted search query on startup",
-      "checkForUpdates": "Check for updates"
+      "restoreSearch": "Letzte übermittelte Suchabfrage beim Start wiederherstellen",
+      "checkForUpdates": "Nach Updates suchen"
     },
     "language": {
-      "languageHeading": "Language",
-      "language": "Language",
+      "languageHeading": "Sprache",
+      "language": "Sprache",
       "languages": {
-        "zh": "Chinese",
-        "ja": "Japanese",
-        "ko": "Korean",
-        "id": "Indonesian",
-        "ms": "Malay",
-        "vi": "Vietnamese",
-        "th": "Thai",
-        "my": "Burmese",
-        "tl": "Filipino",
+        "zh": "Chinesisch",
+        "ja": "Japanisch",
+        "ko": "Koreanisch",
+        "id": "Indonesisch",
+        "ms": "Malaiisch",
+        "vi": "Vietnamesisch",
+        "th": "Thailändisch",
+        "my": "Birmanisch",
+        "tl": "Philippinisch",
         "km": "Khmer",
-        "bn": "Bengali",
+        "bn": "Bengalisch",
         "ur": "Urdu",
         "pa": "Punjabi",
         "te": "Telugu",
         "mr": "Marathi",
-        "ta": "Tamil",
+        "ta": "Tamilisch",
         "gu": "Gujarati",
         "kn": "Kannada",
         "ml": "Malayalam",
-        "fa": "Persian",
-        "ps": "Pashto",
-        "uz": "Uzbek",
-        "kk": "Kazakh",
-        "si": "Sinhala",
-        "ne": "Nepali",
-        "en": "English",
-        "es": "Spanish",
-        "fr": "French",
-        "de": "German",
-        "pt": "Portuguese",
-        "ru": "Russian",
-        "it": "Italian",
-        "pl": "Polish",
-        "uk": "Ukrainian",
-        "ro": "Romanian",
-        "nl": "Dutch",
-        "el": "Greek",
-        "cs": "Czech",
-        "hu": "Hungarian",
-        "sv": "Swedish",
-        "bg": "Bulgarian",
-        "sr": "Serbian",
-        "hr": "Croatian",
-        "be": "Belarusian",
-        "ar": "Arabic",
-        "tr": "Turkish",
-        "sw": "Swahili",
+        "fa": "Persisch",
+        "ps": "Paschtunisch",
+        "uz": "Usbekisch",
+        "kk": "Kasachisch",
+        "si": "Singhalesisch",
+        "ne": "Nepalesisch",
+        "en": "Englisch",
+        "es": "Spanisch",
+        "fr": "Französisch",
+        "de": "Deutsch",
+        "pt": "Portugiesisch",
+        "ru": "Russisch",
+        "it": "Italienisch",
+        "pl": "Polnisch",
+        "uk": "Ukrainisch",
+        "ro": "Rumänisch",
+        "nl": "Niederländisch",
+        "el": "Griechisch",
+        "cs": "Tschechisch",
+        "hu": "Ungarisch",
+        "sv": "Schwedisch",
+        "bg": "Bulgarisch",
+        "sr": "Serbisch",
+        "hr": "Kroatisch",
+        "be": "Weißrussisch",
+        "ar": "Arabisch",
+        "tr": "Türkisch",
+        "sw": "Suaheli",
         "ha": "Hausa",
         "yo": "Yoruba",
         "ig": "Igbo",
-        "am": "Amharic",
+        "am": "Amharisch",
         "om": "Oromo",
-        "so": "Somali",
+        "so": "somali",
         "zu": "Zulu",
         "xh": "Xhosa",
         "rw": "Kinyarwanda",
         "ln": "Lingala",
-        "mg": "Malagasy",
+        "mg": "Madagassisch",
         "sn": "Shona",
-        "az": "Azerbaijani"
+        "az": "Aserbaidschanisch"
       }
     },
     "importExport": {
-      "fileMetadataTitle": "Datei-Metadaten",
-      "fileMetadataDesc": "Diese Option ist nützlich zum Importieren/Exportieren von Tags zu/aus anderer Software. Wenn Sie einen Dienst wie Dropbox oder Google verwenden, können Sie Ihre Tags auf einem Gerät in die Dateien schreiben und auf anderen Geräten lesen.",
-      "separatorIntro": "Der Trenner wird verwendet, um die Tag-Metadaten zu formatieren. Beispielsweise wird eine Datei mit den zugewiesenen Tags Food, Fruit und Apple mit dem derzeit ausgewählten Trenner wie folgt formatiert",
+      "fileMetadataTitle": "Dateimetadaten",
+      "fileMetadataDesc": "Diese Option ist nützlich, um Tags aus anderer Software zu importieren/exportieren. Wenn Sie einen Dienst wie Dropbox oder Google verwenden, können Sie Ihre Tags auf einem Gerät in Dateien schreiben und auf anderen Geräten lesen.",
+      "separatorIntro": "Der Trenner wird verwendet, um Tag-Metadaten zu formatieren. Beispielsweise wird eine Datei mit den Tags Food, Fruit und Apple mit dem aktuell ausgewählten Trenner formatiert als",
       "hierarchicalSeparator": "Hierarchischer Trenner",
       "importFromMetadata": "Tags aus Dateimetadaten importieren",
       "exportToMetadata": "Tags in Dateimetadaten exportieren",
-      "confirmOverwriteTitle": "Möchten Sie die Tags Ihrer Dateien wirklich überschreiben?",
-      "overwriteInfo": "Dadurch werden vorhandene Tags (auch als Schlüsselwörter bezeichnet) in diesen Dateien durch die Tags von Allusion überschrieben. Es wird empfohlen, zunächst alle Tags zu importieren, bevor neue Tags geschrieben werden.",
+      "confirmOverwriteTitle": "Möchten Sie die Tags in Ihren Dateien wirklich überschreiben?",
+      "overwriteInfo": "Dadurch werden vorhandene Tags (Schlüsselwörter) in diesen Dateien mit Allusion-Tags überschrieben. Es wird empfohlen, alle Tags zu importieren, bevor neue Tags geschrieben werden.",
       "export": "Exportieren",
-      "backupTitle": "Datenbank als Datei sichern",
-      "automaticBackupsIntro": "Automatische Sicherungen werden alle 10 Minuten in folgendem Ordner erstellt:",
-      "backupDirectory": "Sicherungsordner",
-      "backupToFile": "Datenbank in Datei sichern",
-      "restoreFromFile": "Datenbank aus Datei wiederherstellen",
-      "backupInfo": "Das Backup enthält {{numTags}} Tags (aktuell {{tagCount}}) und {{numFiles}} Bilder (aktuell {{fileCount}}).",
-      "restoreConfirmTitle": "Möchten Sie die Datenbank wirklich aus einer Sicherung wiederherstellen?",
+      "backupTitle": "Datenbank in eine Datei sichern",
+      "automaticBackupsIntro": "Automatische Sicherungen werden alle 10 Minuten erstellt im",
+      "backupDirectory": "Sicherungsverzeichnis",
+      "backupToFile": "Datenbank in eine Datei sichern",
+      "restoreFromFile": "Datenbank aus einer Datei wiederherstellen",
+      "backupInfo": "Das Backup enthält {{numTags}} Tags (derzeit {{tagCount}}) und {{numFiles}} Bilder (derzeit {{fileCount}}).",
+      "restoreConfirmTitle": "Möchten Sie die Datenbank wirklich aus einem Backup wiederherstellen?",
       "import": "Importieren",
-      "restoring": "Datenbank wird wiederhergestellt... Allusion wird neu gestartet",
-      "restoreFailed": "Wiederherstellung der Datenbank fehlgeschlagen!",
-      "restoreWarning": "Dies ersetzt Ihre aktuelle Tag-Hierarchie und alle Tags, die Bildern zugewiesen sind, daher wird empfohlen, vorher ein Backup zu erstellen."
+      "restoring": "Datenbank wird wiederhergestellt... Allusion wird neu starten",
+      "restoreFailed": "Die Wiederherstellung der Datenbank ist fehlgeschlagen!",
+      "restoreWarning": "Dadurch wird Ihre aktuelle Tag-Hierarchie und alle Tags, die Bildern zugewiesen sind, ersetzt. Es wird empfohlen, zuvor ein Backup zu erstellen."
     },
-
     "background": {
-      "runInBackground": "Run in background",
-      "browserExtension": "Browser Extension",
-      "installExtensionIntro": "You need to install the browser extension from either the",
+      "runInBackground": "Im Hintergrund ausführen",
+      "browserExtension": "Browser-Erweiterung",
+      "installExtensionIntro": "Sie müssen die Browser-Erweiterung von einem der folgenden Orte installieren:",
       "chromeWebStore": "Chrome Web Store",
-      "firefoxAddOns": "Firefox Browser Add-Ons",
-      "or": "or",
-      "keepWorkingWhenClosed": "To keep the browser extension working even when Allusion is closed, you must enable the Run in background option.",
-      "chooseDownloadFolder": "For the browser extension to work, choose a download folder that is in one of your locations already added to Allusion.",
-      "chooseDownloadDirAlert": "Please choose a download directory first.",
-      "runBrowserExtension": "Run browser extension",
-      "change": "Change...",
-      "downloadDirectory": "Download Directory",
-      "notSet": "Not set",
-      "chooseLocationAlert": "Please choose a location or any of its subfolders.",
-      "chooseLocationClipboard": "Please choose a location (Settings > Background Processes > Browse) to paste images from the clipboard."
+      "firefoxAddOns": "Firefox Browser-Add-ons",
+      "or": "oder",
+      "keepWorkingWhenClosed": "Damit die Browser-Erweiterung auch funktioniert, wenn Allusion geschlossen ist, müssen Sie die Option Im Hintergrund ausführen aktivieren.",
+      "chooseDownloadFolder": "Damit die Browser-Erweiterung funktioniert, wählen Sie einen Download-Ordner, der sich in einem Ihrer bereits zu Allusion hinzugefügten Speicherorte befindet.",
+      "chooseDownloadDirAlert": "Bitte wählen Sie zuerst einen Download-Ordner.",
+      "runBrowserExtension": "Browser-Erweiterung ausführen",
+      "change": "Ändern...",
+      "downloadDirectory": "Download-Ordner",
+      "notSet": "Nicht festgelegt",
+      "chooseLocationAlert": "Bitte wählen Sie einen Speicherort oder einen seiner Unterordner.",
+      "chooseLocationClipboard": "Bitte wählen Sie einen Speicherort (Einstellungen > Hintergrundprozesse > Durchsuchen), um Bilder aus der Zwischenablage einzufügen."
     },
     "locations": {
       "recovery": {
-        "ok": "The location has been recovered, all files were found in the specified directory!",
-        "notFound": "The location {{name}} could not be found on your system.",
-        "explainRelocate": "If it has been moved to a different directory, you can relocate the location by choosing its new path to recover information Allusion has stored about your images",
-        "originalPath": "Original path:",
-        "noMatches": "The location could not be recovered since no images of this location were found in the specified directory.",
-        "partial": "Only {{match}} out of {{total}} images were found in the specified directory. By recovering the location, the missing files would be lost. Do you still want to recover the location using this directory?",
-        "recoveredMessage": "Recovered Location {{path}}!",
-        "recoverTitle": "Recover Location {{name}}"
+        "ok": "Der Speicherort wurde wiederhergestellt, alle Dateien wurden im angegebenen Ordner gefunden!",
+        "notFound": "Der Speicherort {{name}} konnte auf Ihrem System nicht gefunden werden.",
+        "explainRelocate": "Falls er in einen anderen Ordner verschoben wurde, können Sie den Speicherort neu zuordnen, indem Sie seinen neuen Pfad auswählen, um Informationen wiederherzustellen, die Allusion über Ihre Bilder gespeichert hat.",
+        "originalPath": "Originaler Pfad:",
+        "noMatches": "Der Speicherort konnte nicht wiederhergestellt werden, da keine Bilder dieses Speicherorts im angegebenen Ordner gefunden wurden.",
+        "partial": "Es wurden nur {{match}} von {{total}} Bildern im angegebenen Ordner gefunden. Durch die Wiederherstellung des Speicherorts würden die fehlenden Dateien verloren gehen. Möchten Sie den Speicherort trotzdem mit diesem Ordner wiederherstellen?",
+        "recoveredMessage": "Speicherort {{path}} wiederhergestellt!",
+        "recoverTitle": "Speicherort {{name}} wiederherstellen"
       }
     }
   },
   "help": {
-    "previous": "Previous",
-    "next": "Next",
-    "toggleIndex": "Toggle Index"
+    "previous": "Vorherige",
+    "next": "Nächste",
+    "toggleIndex": "Index umschalten"
   },
   "about": {
     "version": "Version",
