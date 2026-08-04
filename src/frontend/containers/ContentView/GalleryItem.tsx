@@ -7,6 +7,7 @@ import { ellipsize, humanFileSize } from 'common/fmt';
 import { encodeFilePath } from 'common/fs';
 import { IconButton, IconSet, Tag } from 'widgets';
 import { useStore } from '../../contexts/StoreContext';
+import { useTranslation } from 'react-i18next';
 import { ClientFile } from '../../entities/File';
 import { ClientTag } from '../../entities/Tag';
 import { usePromise } from '../../hooks/usePromise';
@@ -32,6 +33,7 @@ export const MasonryCell = observer(
     forceNoThumbnail,
     transform: [width, height, top, left],
   }: MasonryItemProps) => {
+    const { t } = useTranslation();
     const { uiStore, fileStore } = useStore();
     const style = { height, width, transform: `translate(${left}px,${top}px)` };
     const eventManager = useMemo(() => new CommandDispatcher(file), [file]);
@@ -61,7 +63,10 @@ export const MasonryCell = observer(
               e.preventDefault();
               await fileStore.fetchMissingFiles();
             }}
-            text="This image could not be found. Open the recovery view."
+            text={t(
+              'content.missingImageRecovery',
+              'This image could not be found. Open the recovery view.',
+            )}
           />
         )}
 

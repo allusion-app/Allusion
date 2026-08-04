@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ID } from 'src/api/id';
 import { IconSet } from 'widgets/icons';
@@ -21,30 +22,29 @@ export const QueryEditor = memo(function QueryEditor({
   setQuery,
   submissionButtonText = 'Search',
 }: QueryEditorProps) {
+  const { t } = useTranslation();
+
   return (
     <fieldset aria-labelledby="query-editor-container-label">
       <div style={{ display: 'flex' }}>
-        <legend id="query-editor-container-label">Query Editor</legend>
+        <legend id="query-editor-container-label">{t('search.queryEditor')}</legend>
         <InfoButton>
-          A query is a list of criterias.
+          {t('search.queryInfo.part1')}
           <br />
           <br />
-          In the editor you can edit already added criterias by changing the inputs or delete one by
-          pressing the{' '}
+          {t('search.queryInfo.part2')}
           <span aria-label="remove criteria" style={{ verticalAlign: 'middle' }}>
             {IconSet.DELETE}
           </span>{' '}
-          icon button next to the inputs.
+          {t('search.queryInfo.part3')}
           <br />
           <br />
-          Additionally, there is <b>Match</b> option that decides whether all criterias must match
-          or just one.
+          {t('search.queryInfo.part4')}
         </InfoButton>
       </div>
       {query.size === 0 ? (
-        <Callout icon={IconSet.INFO} header="Empty Query">
-          Your query is currently empty. Create a criteria above to enable the{' '}
-          <b>{submissionButtonText}</b> button.
+        <Callout icon={IconSet.INFO} header={t('search.emptyQuery.header')}>
+          {t('search.emptyQuery.body', { action: submissionButtonText })}
         </Callout>
       ) : undefined}
       <div id="query-editor-container">
@@ -52,10 +52,10 @@ export const QueryEditor = memo(function QueryEditor({
           <thead className="visually-hidden">
             <tr>
               <td></td>
-              <th id="col-key">Key</th>
-              <th id="col-operator">Operator</th>
-              <th id="col-value">Value</th>
-              <th id="col-remove">Remove</th>
+              <th id="col-key">{t('search.table.key')}</th>
+              <th id="col-operator">{t('search.table.operator')}</th>
+              <th id="col-value">{t('search.table.value')}</th>
+              <th id="col-remove">{t('search.table.remove')}</th>
             </tr>
           </thead>
           <tbody>
@@ -127,7 +127,7 @@ export const EditableCriteria = ({ index, id, criteria, dispatch }: EditableCrit
           }
         >
           {IconSet.DELETE}
-          <span className="visually-hidden">Remove Criteria</span>
+          <span className="visually-hidden">{t('search.removeCriteria')}</span>
         </button>
       </td>
     </tr>
@@ -140,6 +140,7 @@ type QueryMatchProps = {
 };
 
 export const QueryMatch: React.FC<QueryMatchProps> = ({ searchMatchAny, toggle }) => {
+  const { t } = useTranslation();
   return (
     <RadioGroup
       name="Match"
@@ -147,8 +148,8 @@ export const QueryMatch: React.FC<QueryMatchProps> = ({ searchMatchAny, toggle }
       value={String(searchMatchAny)}
       onChange={toggle}
     >
-      <Radio value="true">Any</Radio>
-      <Radio value="false">All</Radio>
+      <Radio value="true">{t('search.match.any')}</Radio>
+      <Radio value="false">{t('search.match.all')}</Radio>
     </RadioGroup>
   );
 };

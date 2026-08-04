@@ -23,7 +23,7 @@ export const TooltipLayer = ({ document }: { document: Document }) => {
 
     const handleShow = (e: MouseEvent | FocusEvent): HTMLElement | undefined => {
       const target = e.target as any;
-      if (target === null || !("dataset" in target) || !(target.dataset as any)['tooltip']) {
+      if (target === null || !('dataset' in target) || !(target.dataset as any)['tooltip']) {
         return;
       }
       content.current = target.dataset['tooltip'];

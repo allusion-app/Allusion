@@ -3,7 +3,7 @@ import { FileDTO } from './file';
 import { NumberOperatorType, StringOperatorType } from './data-storage-search';
 
 export const BinaryOperators = ['equals', 'notEqual'] as const;
-export type BinaryOperatorType = typeof BinaryOperators[number];
+export type BinaryOperatorType = (typeof BinaryOperators)[number];
 
 export const TagOperators = [
   'contains',
@@ -11,7 +11,7 @@ export const TagOperators = [
   'containsRecursively',
   'containsNotRecursively',
 ] as const;
-export type TagOperatorType = typeof TagOperators[number];
+export type TagOperatorType = (typeof TagOperators)[number];
 
 export type OperatorType =
   | TagOperatorType

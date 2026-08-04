@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import PopupWindow from '../components/PopupWindow';
 import { useStore } from '../contexts/StoreContext';
 
@@ -8,6 +9,7 @@ import { RendererMessenger } from 'src/ipc/renderer';
 import ExternalLink from '../components/ExternalLink';
 
 const About = observer(() => {
+  const { t } = useTranslation();
   const { uiStore } = useStore();
 
   if (!uiStore.isAboutOpen) {
@@ -18,28 +20,27 @@ const About = observer(() => {
       <div id="about" className="light">
         <img src={Logo_About} alt="Logo" />
         <small>
-          Version <strong>{RendererMessenger.getVersion()}</strong>
+          {t('about.version')}: <strong>{RendererMessenger.getVersion()}</strong>
         </small>
         <p>
-          This application was made by a small team of individuals who gathered due to common
-          interest in art, design and software.
+          {t('about.description')}
           <br />
-          It&apos;s completely <b>free and open source</b>! Find out more at
+          {t('about.freeAndOpen')}
         </p>
         <span>
-          <ExternalLink url="https://allusion-app.github.io/">allusion-app.github.io</ExternalLink>.
+          <ExternalLink url="https://allusion-app.github.io/">{t('about.website')}</ExternalLink>.
         </span>
         <ul>
-          <li>General information</li>
-          <li>Download the latest version</li>
+          <li>{t('about.generalInfo')}</li>
+          <li>{t('about.downloadLatest')}</li>
         </ul>
         <ExternalLink url="https://github.com/allusion-app/Allusion">
-          github.com/allusion-app/Allusion
+          {t('about.repo')}
         </ExternalLink>
         <ul>
-          <li>🤓 View the source code</li>
-          <li>🐛 Provide feedback and report bugs</li>
-          <li>👥 Learn about contributing</li>
+          <li>{t('about.viewSource')}</li>
+          <li>{t('about.provideFeedback')}</li>
+          <li>{t('about.contributing')}</li>
         </ul>
         {/* TODO: Licensing info here? */}
       </div>

@@ -1,5 +1,6 @@
 import { action } from 'mobx';
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { IconSet } from 'widgets/icons';
 import { Menu, MenuDivider, MenuSubItem, useContextMenu } from 'widgets/menus';
@@ -148,6 +149,7 @@ export function useCommandHandler(
   const dndData = useTagDnD();
   const { uiStore } = useStore();
   const show = useContextMenu();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const showContextMenu = (
@@ -162,10 +164,10 @@ export function useCommandHandler(
         <Menu>
           {fileMenu}
           <MenuDivider />
-          <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
+          <MenuSubItem icon={IconSet.VIEW_GRID} text={t('content.viewMethod', 'View method...')}>
             <LayoutMenuItems />
           </MenuSubItem>
-          <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
+          <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text={t('content.sortBy', 'Sort by...')}>
             <SortMenuItems />
           </MenuSubItem>
           <MenuDivider />

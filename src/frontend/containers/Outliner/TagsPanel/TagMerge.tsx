@@ -1,6 +1,7 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Button, GridCombobox, GridOption, GridOptionCell, IconSet, Tag } from 'widgets';
 import { Dialog } from 'widgets/popovers';
@@ -33,22 +34,22 @@ export const TagMerge = observer(({ tag, onClose }: TagMergeProps) => {
 
   const plur = ctxTags.length === 1 ? '' : 's';
 
+  const { t } = useTranslation();
+
   return (
     <Dialog
       open
-      title={`Merge Tag${plur} With`}
+      title={t('outliner.tags.merge.title', { plur })}
       icon={IconSet.TAG_GROUP}
       onCancel={onClose}
       describedby="merge-info"
     >
-      <p id="merge-info">
-        This will replace all uses of the chosen tag{plur} with the tag you select below.
-      </p>
+      <p id="merge-info">{t('outliner.tags.merge.info', { plur })}</p>
       <form method="dialog" onSubmit={(e) => e.preventDefault()}>
         <fieldset>
-          <legend>Merge tag{plur} with</legend>
+          <legend>{t('outliner.tags.merge.legend', { plur })}</legend>
           <div id="tag-merge-overview">
-            <span>Tag{plur} to merge</span>
+            <span>{t('outliner.tags.merge.overview', { plur })}</span>
             <br />
             {ctxTags.map((tag) => (
               <Tag key={tag.id} text={tag.name} color={tag.viewColor} />
@@ -57,7 +58,7 @@ export const TagMerge = observer(({ tag, onClose }: TagMergeProps) => {
 
           <br />
 
-          <label htmlFor="tag-merge-picker">Merge with</label>
+          <label htmlFor="tag-merge-picker">{t('outliner.tags.merge.label')}</label>
           <GridCombobox
             textboxId="tag-merge-picker"
             autoFocus
@@ -72,13 +73,13 @@ export const TagMerge = observer(({ tag, onClose }: TagMergeProps) => {
             colcount={2}
           />
           {mergingWithSelf && (
-            <span className="form-error">You cannot merge a tag with itself.</span>
+            <span className="form-error">{t('outliner.tags.merge.cantMergeSelf')}</span>
           )}
         </fieldset>
 
         <fieldset className="dialog-actions">
           <Button
-            text="Merge"
+            text={t('outliner.tags.merge.action')}
             styling="filled"
             onClick={merge}
             disabled={selectedTag === undefined || mergingWithSelf}

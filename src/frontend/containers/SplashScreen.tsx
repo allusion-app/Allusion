@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import PreloadIcon from 'resources/icons/preload.svg';
 import { SVG } from 'widgets/icons';
@@ -28,6 +29,8 @@ const SplashScreen = () => {
     "Open Sans", "Helvetica Neue", "Icons16", sans-serif',
     WebkitFontSmoothing: 'antialiased',
   };
+
+  const { t } = useTranslation();
 
   return (
     <div style={splashScreenContainerStyles} id="splash-screen">
@@ -66,7 +69,7 @@ const SplashScreen = () => {
           style={{ fill: '#fff', width: '42px', height: '36px' }}
         />
 
-        <p style={textStyles}>Allusion</p>
+        <p style={textStyles}>{t('app.title')}</p>
       </div>
     </div>
   );

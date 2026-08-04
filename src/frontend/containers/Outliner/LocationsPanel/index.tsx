@@ -10,6 +10,7 @@ import { Menu, MenuDivider, MenuItem, useContextMenu } from 'widgets/menus';
 import { Callout } from 'widgets/notifications';
 import { Toolbar, ToolbarButton } from 'widgets/toolbar';
 import { ITreeItem, createBranchOnKeyDown } from 'widgets/tree';
+import { useTranslation } from 'react-i18next';
 import { RendererMessenger } from '../../../../ipc/renderer';
 import { LocationRemoval, SubLocationExclusion } from '../../../components/RemovalAlert';
 import { AppToaster } from '../../../components/Toaster';
@@ -73,10 +74,6 @@ export class LocationTreeItemRevealer extends TreeItemRevealer {
 }
 
 // Tooltip info
-const enum Tooltip {
-  Location = 'Add new Location',
-  Refresh = 'Refresh directories',
-}
 
 interface ITreeData {
   expansion: IExpansionState;
@@ -158,12 +155,17 @@ const DirectoryMenu = observer(
       [path, uiStore],
     );
 
+    const { t } = useTranslation();
     return (
       <>
-        <MenuItem onClick={handleAddToSearch} text="Add to Search Query" icon={IconSet.SEARCH} />
+        <MenuItem
+          onClick={handleAddToSearch}
+          text={t('outliner.locations.addToSearch')}
+          icon={IconSet.SEARCH}
+        />
         <MenuItem
           onClick={handleReplaceSearch}
-          text="Replace Search Query"
+          text={t('outliner.locations.replaceSearch')}
           icon={IconSet.REPLACE}
         />
         <MenuDivider />
@@ -171,13 +173,17 @@ const DirectoryMenu = observer(
           <MenuItem
             // Only show alert when excluding, not when re-including
             onClick={location.isExcluded ? location.toggleExcluded : () => onExclude(location)}
-            text={location.isExcluded ? 'Re-include' : 'Exclude'}
+            text={
+              location.isExcluded
+                ? t('outliner.locations.reinclude')
+                : t('outliner.locations.exclude')
+            }
             icon={!location.isExcluded ? IconSet.HIDDEN : IconSet.PREVIEW}
           />
         )}
         <MenuItem
           onClick={handleOpenFileExplorer}
-          text="Open in File Browser"
+          text={t('outliner.locations.openInFileBrowser')}
           icon={IconSet.FOLDER_CLOSE}
         />
       </>
@@ -196,15 +202,17 @@ const LocationTreeContextMenu = observer(({ location, onDelete, onExclude }: ICo
 
   const openDeleteDialog = useCallback(() => onDelete(location), [location, onDelete]);
 
+  const { t } = useTranslation();
+
   if (location.isBroken) {
     return (
       <Menu>
         <MenuItem
-          text="Open Recovery Panel"
+          text={t('outliner.locations.openRecoveryPanel')}
           onClick={() => uiStore.openLocationRecovery(location.id)}
           icon={IconSet.WARNING_BROKEN_LINK}
         />
-        <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
+        <MenuItem text={t('button.delete')} onClick={openDeleteDialog} icon={IconSet.DELETE} />
       </Menu>
     );
   }
@@ -213,7 +221,7 @@ const LocationTreeContextMenu = observer(({ location, onDelete, onExclude }: ICo
     <Menu>
       <DirectoryMenu location={location} onExclude={onExclude} />
       <MenuDivider />
-      <MenuItem text="Delete" onClick={openDeleteDialog} icon={IconSet.DELETE} />
+      <MenuItem text={t('button.delete')} onClick={openDeleteDialog} icon={IconSet.DELETE} />
     </Menu>
   );
 });
@@ -569,38 +577,39 @@ const LocationsPanel = observer((props: Partial<MultiSplitPaneProps>) => {
   // Detect file dropping and show a blue outline around location panel
   const { isDropping } = useContext(DropContext);
 
+  const { t } = useTranslation();
   // FIXME: something is broken with the isDropping detection. there was "isEmpty || isDropping" in here before
   return (
     <MultiSplitPane
       id="locations"
-      title="Locations"
+      title={t('outliner.locations.title')}
       className={`${isEmpty ? 'attention' : ''} ${isDropping ? 'info' : ''}`}
       headerToolbar={
         <Toolbar controls="location-list" isCompact>
           {locationStore.locationList.length > 0 && (
             <ToolbarButton
               icon={IconSet.RELOAD_COMPACT}
-              text="Refresh"
+              text={t('outliner.locations.refresh')}
               onClick={action(() =>
                 locationStore.locationList.forEach((loc) =>
                   loc.refreshSublocations().catch(console.error),
                 ),
               )}
-              tooltip={Tooltip.Refresh}
+              tooltip={t('outliner.locations.refresh')}
             />
           )}
           <ToolbarButton
             icon={IconSet.PLUS}
-            text="New Location"
+            text={t('outliner.locations.newLocation')}
             onClick={handleChooseWatchedDir}
-            tooltip={Tooltip.Location}
+            tooltip={t('outliner.locations.addLocationTooltip')}
           />
         </Toolbar>
       }
       {...props}
     >
       <LocationsTree onDelete={setDeletableLocation} onExclude={setExcludableSubLocation} />
-      {isEmpty && <Callout icon={IconSet.INFO}>Click + to choose a location.</Callout>}
+      {isEmpty && <Callout icon={IconSet.INFO}>{t('outliner.locations.emptyCallout')}</Callout>}
 
       <LocationRecoveryDialog />
 

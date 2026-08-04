@@ -1,15 +1,16 @@
 import { observer } from 'mobx-react-lite';
 import React, { useState } from 'react';
-import { useLazy } from 'src/frontend/hooks/useLazy';
+import { useTranslation } from 'react-i18next';
 import PopupWindow from '../../components/PopupWindow';
 import { useStore } from '../../contexts/StoreContext';
 import { Advanced } from './Advanced';
 import { Appearance } from './Appearance';
 import { BackgroundProcesses } from './BackgroundProcesses';
+import { General } from './General';
 import { ImageFormatPicker } from './ImageFormatPicker';
 import { ImportExport } from './ImportExport';
+import { Language } from './Language';
 import { Shortcuts } from './Shortcuts';
-import { StartupBehavior } from './StartupBehavior';
 
 const Settings = () => {
   const { uiStore } = useStore();
@@ -40,47 +41,52 @@ type TabItem = {
 };
 
 const Tabs = () => {
-  const SETTINGS_TABS = useLazy<TabItem[]>(() => [
+  const { t } = useTranslation();
+
+  const SETTINGS_TABS: TabItem[] = [
     {
-      label: 'Appearance',
+      label: t('settings.tabs.general'),
+      content: General,
+    },
+    {
+      label: t('settings.tabs.appearance'),
       content: Appearance,
     },
     {
-      label: 'Keyboard Shortcuts',
+      label: t('settings.tabs.language'),
+      content: Language,
+    },
+    {
+      label: t('settings.tabs.keyboardShortcuts'),
       content: Shortcuts,
     },
     {
-      label: 'Startup Behavior',
-      content: StartupBehavior,
-    },
-    {
-      label: 'Image Formats',
+      label: t('settings.tabs.imageFormats'),
       content: ImageFormatPicker,
     },
     {
-      label: 'Import/Export',
+      label: t('settings.tabs.importExport'),
       content: ImportExport,
     },
     {
-      label: 'Background Processes',
+      label: t('settings.tabs.backgroundProcesses'),
       content: BackgroundProcesses,
     },
     {
-      label: 'Advanced',
+      label: t('settings.tabs.advanced'),
       content: Advanced,
     },
-  ]);
+  ];
 
   const [selection, setSelection] = useState(0);
 
-  const handleKeydown = useLazy(() => (event: React.KeyboardEvent) => {
+  const handleKeydown = (event: React.KeyboardEvent) => {
     if (event.key === 'ArrowDown') {
       setSelection((id) => Math.min(id + 1, SETTINGS_TABS.length - 1));
     } else if (event.key === 'ArrowUp') {
       setSelection((id) => Math.max(id - 1, 0));
     }
-  });
-
+  };
   return (
     <div className="tabs">
       <div

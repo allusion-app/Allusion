@@ -10,6 +10,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FixedSizeList, ListOnScrollProps } from 'react-window';
 
 import { debouncedThrottle } from 'common/timeout';
@@ -146,18 +147,18 @@ const Body = forwardRef(function Body(
 });
 
 interface ColumnHeaderData {
-  title: string;
+  titleKey: string;
   // Also indicates whether this column _can_ be sorted on
   sortKey?: keyof FileDTO;
   // cellContent: (props: ICellContentProps) => ReactNode;
 }
 
 const COLUMN_HEADERS: ColumnHeaderData[] = [
-  { title: 'Name', sortKey: 'name' },
-  { title: 'Dimensions' },
-  { title: 'Date added', sortKey: 'dateAdded' },
-  { title: 'Size', sortKey: 'size' },
-  { title: 'Tags' },
+  { titleKey: 'list.columns.name', sortKey: 'name' },
+  { titleKey: 'list.columns.dimensions' },
+  { titleKey: 'list.columns.dateAdded', sortKey: 'dateAdded' },
+  { titleKey: 'list.columns.size', sortKey: 'size' },
+  { titleKey: 'list.columns.tags' },
 ];
 
 const Header = () => {
@@ -170,21 +171,23 @@ const Header = () => {
     }
   }).current;
 
+  const { t } = useTranslation();
   return (
     <div ref={header} id="list-header" role="rowgroup">
       <div role="row">
-        {COLUMN_HEADERS.map(({ sortKey, title }) => {
+        {COLUMN_HEADERS.map(({ sortKey, titleKey }) => {
+          const title = t(titleKey);
           if (sortKey !== undefined) {
             return (
               <SortableHeader
-                key={title}
+                key={titleKey}
                 sortKey={sortKey}
                 title={title}
                 setColumnWidth={setColumnWidth}
               />
             );
           } else {
-            return <ColumnHeader key={title} title={title} setColumnWidth={setColumnWidth} />;
+            return <ColumnHeader key={titleKey} title={title} setColumnWidth={setColumnWidth} />;
           }
         })}
       </div>
@@ -202,11 +205,12 @@ const ColumnHeader = memo(function ColumnHeader({ title, setColumnWidth }: Colum
   const name = title.toLowerCase().replaceAll(' ', '-');
   const handleMouseDown = useHeaderResize(header, name, setColumnWidth);
 
+  const { t } = useTranslation();
   return (
     <div ref={header} role="columnheader" className={`col-${name} unsortable-header`} key={title}>
       {title}
       <button className="column-resizer" onMouseDown={handleMouseDown}>
-        <span className="visually-hidden">Resize column {title}</span>
+        <span className="visually-hidden">{t('list.resizeColumn', { title })}</span>
       </button>
     </div>
   );
@@ -233,13 +237,14 @@ const SortableHeader = observer(({ title, sortKey, setColumnWidth }: SortableHea
   const name = title.toLowerCase().replaceAll(' ', '-');
   const handleMouseDown = useHeaderResize(header, name, setColumnWidth);
 
+  const { t } = useTranslation();
   return (
     <div ref={header} role="columnheader" aria-sort={sortOrder} className={`col-${name}`}>
       <button className="sort-button" onClick={handleClick}>
         {title}
       </button>
       <button className="column-resizer" onMouseDown={handleMouseDown}>
-        <span className="visually-hidden">Resize column {title}</span>
+        <span className="visually-hidden">{t('list.resizeColumn', { title })}</span>
       </button>
     </div>
   );

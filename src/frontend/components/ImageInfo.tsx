@@ -1,5 +1,6 @@
 import fse from 'fs-extra';
 import React, { ReactNode, useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { formatDateTime, humanFileSize } from 'common/fmt';
 import { IconSet } from 'widgets/icons';
@@ -20,26 +21,25 @@ type CommonMetadata = {
   modified: string;
 };
 
-const commonMetadataLabels: Record<keyof CommonMetadata, string> = {
-  name: 'Filename',
-  dimensions: 'Dimensions',
-  size: 'Size',
-  imported: 'Imported',
-  // TODO: modified in allusion vs modified in system?
-  created: 'Created',
-  modified: 'Modified',
-};
+const commonMetadataKeys: Array<keyof CommonMetadata> = [
+  'name',
+  'dimensions',
+  'size',
+  'imported',
+  'created',
+  'modified',
+];
 
-type ExifField = { label: string; modifiable?: boolean; format?: (val: string) => ReactNode };
+type ExifField = { labelKey: string; modifiable?: boolean; format?: (val: string) => ReactNode };
 
 // Details: https://www.vcode.no/web/resource.nsf/ii2lnug/642.htm
 const exifFields: Record<string, ExifField> = {
-  PhotometricInterpretation: { label: 'Color Mode' },
-  BitsPerSample: { label: 'Bit Depth' },
-  Software: { label: 'Creation Software', modifiable: true },
-  Artist: { label: 'Creator', modifiable: true },
+  PhotometricInterpretation: { labelKey: 'exif.ColorMode' },
+  BitsPerSample: { labelKey: 'exif.BitDepth' },
+  Software: { labelKey: 'exif.CreationSoftware', modifiable: true },
+  Artist: { labelKey: 'exif.Creator', modifiable: true },
   CreatorWorkURL: {
-    label: 'Creator URL',
+    labelKey: 'exif.CreatorURL',
     modifiable: true,
     format: function CreatorURL(url?: string) {
       if (!url) {
@@ -48,17 +48,17 @@ const exifFields: Record<string, ExifField> = {
       return <ExternalLink url={url}>{url}</ExternalLink>;
     },
   },
-  ImageDescription: { label: 'Description', modifiable: true },
-  Parameters: { label: 'Parameters' },
-  Copyright: { label: 'Copyright', modifiable: true },
-  Make: { label: 'Camera Manufacturer' },
-  Model: { label: 'Camera Model' },
-  Megapixels: { label: 'Megapixels' },
-  ExposureTime: { label: 'Exposure Time' },
-  FNumber: { label: 'F-stop' },
-  FocalLength: { label: 'Focal Length' },
-  GPSLatitude: { label: 'GPS Latitude' },
-  GPSLongitude: { label: 'GPS Longitude' },
+  ImageDescription: { labelKey: 'exif.Description', modifiable: true },
+  Parameters: { labelKey: 'exif.Parameters' },
+  Copyright: { labelKey: 'exif.Copyright', modifiable: true },
+  Make: { labelKey: 'exif.CameraManufacturer' },
+  Model: { labelKey: 'exif.CameraModel' },
+  Megapixels: { labelKey: 'exif.Megapixels' },
+  ExposureTime: { labelKey: 'exif.ExposureTime' },
+  FNumber: { labelKey: 'exif.FStop' },
+  FocalLength: { labelKey: 'exif.FocalLength' },
+  GPSLatitude: { labelKey: 'exif.GPSLatitude' },
+  GPSLongitude: { labelKey: 'exif.GPSLongitude' },
 };
 
 const exifTags = Object.keys(exifFields);
@@ -71,6 +71,7 @@ interface ImageInfoProps {
 
 const ImageInfo = ({ file }: ImageInfoProps) => {
   const { exifTool } = useStore();
+  const { t } = useTranslation();
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -140,17 +141,25 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
       // TODO: this doesn't update the modified time of the file. Maybe it should? See ExifIO internals
       exifTool
         .writeData(file.absolutePath, data)
-        .then(() => AppToaster.show({ message: 'Image file saved!', timeout: 3000 }))
+        .then(() =>
+          AppToaster.show({
+            message: t('imageInfo.imageSaved', 'Image file saved!'),
+            timeout: 3000,
+          }),
+        )
         .catch((err) => {
           AppToaster.show({
-            message: 'Could not save image file',
-            clickAction: { label: 'View', onClick: RendererMessenger.toggleDevTools },
+            message: t('imageInfo.couldNotSave', 'Could not save image file'),
+            clickAction: {
+              label: t('imageInfo.view', 'View'),
+              onClick: RendererMessenger.toggleDevTools,
+            },
             timeout: 6000,
           });
           console.error('Could not update file', err);
         });
     },
-    [exifStats, exifTool, file.absolutePath],
+    [exifStats, exifTool, file.absolutePath, t],
   );
 
   // Todo: Would be nice to also add tooltips explaining what these mean (e.g. diff between dimensions & resolution)
@@ -158,22 +167,22 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
   return (
     <form onSubmit={handleEditSubmit} onReset={() => setIsEditing(false)}>
       <header>
-        <h2>Information</h2>
+        <h2>{t('imageInfo.information', 'Information')}</h2>
         <Toolbar controls="file-info" isCompact>
           {isEditing ? (
             <>
               <ToolbarButton
                 key="cancel"
                 icon={IconSet.CLOSE}
-                text="Cancel"
-                tooltip="Cancel changes"
+                text={t('button.cancel')}
+                tooltip={t('button.cancel')}
                 type="reset"
               />
               <ToolbarButton
                 key="submit"
                 icon={IconSet.SELECT_CHECKED}
-                text="Save"
-                tooltip="Save changes"
+                text={t('button.save', 'Save')}
+                tooltip={t('button.save', 'Save changes')}
                 type="submit"
               />
             </>
@@ -181,9 +190,9 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
             <ToolbarButton
               key="edit"
               icon={IconSet.EDIT}
-              text="Edit"
+              text={t('button.edit', 'Edit')}
               onClick={() => setIsEditing(true)}
-              tooltip="Edit Exif data"
+              tooltip={t('imageInfo.editExif', 'Edit Exif data')}
               type="button"
             />
           )}
@@ -191,10 +200,10 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
       </header>
       <table id="file-info">
         <tbody>
-          {Object.entries(commonMetadataLabels).map(([field, label]) => (
+          {commonMetadataKeys.map((field) => (
             <tr key={field}>
-              <th scope="row">{label}</th>
-              <td>{fileStats[field as keyof CommonMetadata]}</td>
+              <th scope="row">{t(`imageInfo.common.${field}`)}</th>
+              <td>{fileStats[field]}</td>
             </tr>
           ))}
           {Object.entries(exifFields).map(([key, field]) => {
@@ -205,7 +214,7 @@ const ImageInfo = ({ file }: ImageInfoProps) => {
             }
             return (
               <tr key={key}>
-                <th scope="row">{field.label}</th>
+                <th scope="row">{t(field.labelKey)}</th>
 
                 <td>
                   {!isEditingMode ? (

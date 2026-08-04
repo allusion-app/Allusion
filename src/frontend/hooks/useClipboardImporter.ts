@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { RendererMessenger } from 'src/ipc/renderer';
+import i18n from '../../i18n';
 import { AppToaster } from '../components/Toaster';
 import UiStore from '../stores/UiStore';
 
@@ -29,7 +30,7 @@ export function useClipboardImporter(uiStore: UiStore) {
       const directory = uiStore.importDirectory;
       if (!directory) {
         AppToaster.show({
-          message: 'Please choose a location. Settings>BackgroundProcesses>Browse',
+          message: i18n.t('settings.background.chooseLocationClipboard'),
           timeout: 5000,
         });
         return;

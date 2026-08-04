@@ -11,6 +11,7 @@ import React, {
 } from 'react';
 
 import { Grid, GridCell, IconButton, IconSet, Row, Tag } from 'widgets';
+import { useTranslation } from 'react-i18next';
 import { RowProps, useGridFocus } from 'widgets/combobox/Grid';
 import { Flyout } from 'widgets/popovers';
 import { useStore } from '../contexts/StoreContext';
@@ -50,6 +51,7 @@ const TagSelector = (props: TagSelectorProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const { t } = useTranslation();
 
   const handleChange = useRef((e: React.ChangeEvent<HTMLInputElement>) => {
     setIsOpen(true);
@@ -162,7 +164,7 @@ const TagSelector = (props: TagSelectorProps) => {
               />
             </div>
             {extraIconButtons}
-            <IconButton icon={IconSet.CLOSE} text="Clear" onClick={clearSelection} />
+            <IconButton icon={IconSet.CLOSE} text={t('button.clear')} onClick={clearSelection} />
           </div>
         )}
       >

@@ -1,6 +1,7 @@
 import { action, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { formatTagCountText } from 'common/fmt';
 import { IconSet, Tree } from 'widgets';
@@ -560,10 +561,12 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
     }
   });
 
+  const { t } = useTranslation();
+
   return (
     <MultiSplitPane
       id="tags"
-      title="Tags"
+      title={t('outliner.tags.title')}
       onKeyDown={handleKeyDown}
       headerProps={{
         onDragOver: handleDragOverAndLeave,
@@ -575,16 +578,16 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
           {uiStore.tagSelection.size > 0 ? (
             <ToolbarButton
               icon={IconSet.CLOSE}
-              text="Clear"
+              text={t('button.clear')}
               onClick={uiStore.clearTagSelection}
-              tooltip="Clear Selection"
+              tooltip={t('outliner.tags.clearTooltip')}
             />
           ) : (
             <ToolbarButton
               icon={IconSet.PLUS}
-              text="New Tag"
+              text={t('outliner.tags.new')}
               onClick={handleRootAddTag}
-              tooltip="Add a new tag"
+              tooltip={t('outliner.tags.newTooltip')}
             />
           )}
         </Toolbar>
@@ -595,7 +598,7 @@ const TagsTree = observer((props: Partial<MultiSplitPaneProps>) => {
         <div className="tree-content-label" style={{ padding: '0.25rem' }}>
           {/* <span className="pre-icon">{IconSet.INFO}</span> */}
           {/* No tags or collections created yet */}
-          <i style={{ marginLeft: '1em' }}>None</i>
+          <i style={{ marginLeft: '1em' }}>{t('outliner.tags.none')}</i>
         </div>
       ) : (
         <Tree

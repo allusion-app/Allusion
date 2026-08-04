@@ -2,6 +2,7 @@ import fse from 'fs-extra';
 import { observer } from 'mobx-react-lite';
 import Path from 'path';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Button, IconSet } from 'widgets';
 import { Dialog } from 'widgets/popovers';
@@ -88,41 +89,33 @@ interface IRecoveryInfoProps {
 }
 
 const RecoveryInfo = observer(({ location, status, match }: IRecoveryInfoProps) => {
+  const { t } = useTranslation();
   switch (status) {
     case Status.Ok:
-      return (
-        <p>The location has been recovered, all files were found in the specified directory!</p>
-      );
+      return <p>{t('outliner.locations.recovery.ok')}</p>;
 
     case Status.InvalidPath:
       return (
         <>
-          <p>The location {location.name} could not be found on your system.</p>
-          <p>
-            If it has been moved to a different directory, you can relocate the location by choosing
-            its new path to recover information Allusion has stored about your images
-          </p>
-          <p>Original path:</p>
+          <p>{t('outliner.locations.recovery.notFound', { name: location.name })}</p>
+          <p>{t('outliner.locations.recovery.explainRelocate')}</p>
+          <p>{t('outliner.locations.recovery.originalPath')}</p>
           <pre>{location.path}</pre>
         </>
       );
 
     case Status.NoMatches:
-      return (
-        <p>
-          The location could not be recovered since no images of this location were found in the
-          specified directory.
-        </p>
-      );
+      return <p>{t('outliner.locations.recovery.noMatches')}</p>;
 
     // TODO: Should also warn about new images in the folder that were not in the location before (status.directoryImageCount)
     case Status.PartialRecovery:
       if (match) {
         return (
           <p>
-            Only {match.matchCount} out of {match.locationImageCount} images were found in the
-            specified directory. By recovering the location, the missing files would be lost. Do you
-            still want to recover the location using this directory?
+            {t('outliner.locations.recovery.partial', {
+              match: match.matchCount,
+              total: match.locationImageCount,
+            })}
           </p>
         );
       }
@@ -144,19 +137,20 @@ interface IRecoveryActionsProps {
 const RecoveryActions = observer(
   ({ status, locate, rescan, retry, save }: IRecoveryActionsProps) => {
     const { uiStore } = useStore();
+    const { t } = useTranslation();
 
     switch (status) {
       case Status.InvalidPath:
         return (
           <>
-            <Button key="locate" styling="filled" onClick={locate} text="Locate" />
+            <Button key="locate" styling="filled" onClick={locate} text={t('button.locate')} />
             {/* Re-scan option, e.g. for when you mount a drive */}
-            <Button key="rescan" styling="outlined" onClick={rescan} text="Re-Scan" />
+            <Button key="rescan" styling="outlined" onClick={rescan} text={t('button.rescan')} />
             <Button
               key="cancel"
               styling="outlined"
               onClick={uiStore.closeLocationRecovery}
-              text="Cancel"
+              text={t('button.cancel')}
             />
           </>
         );
@@ -164,12 +158,12 @@ const RecoveryActions = observer(
       case Status.NoMatches:
         return (
           <>
-            <Button key="retry" styling="outlined" onClick={retry} text="Retry" />
+            <Button key="retry" styling="outlined" onClick={retry} text={t('button.retry')} />
             <Button
               key="cancel"
               styling="filled"
               onClick={uiStore.closeLocationRecovery}
-              text="Cancel"
+              text={t('button.cancel')}
             />
           </>
         );
@@ -177,13 +171,13 @@ const RecoveryActions = observer(
       case Status.PartialRecovery:
         return (
           <>
-            <Button key="retry" styling="outlined" onClick={retry} text="Retry" />
-            <Button key="recover" styling="outlined" onClick={save} text="Recover" />
+            <Button key="retry" styling="outlined" onClick={retry} text={t('button.retry')} />
+            <Button key="recover" styling="outlined" onClick={save} text={t('button.recover')} />
             <Button
               key="cancel"
               styling="filled"
               onClick={uiStore.closeLocationRecovery}
-              text="Cancel"
+              text={t('button.cancel')}
             />
           </>
         );
@@ -195,7 +189,7 @@ const RecoveryActions = observer(
             key="close"
             styling="filled"
             onClick={uiStore.closeLocationRecovery}
-            text="Close"
+            text={t('button.close')}
           />
         );
     }
@@ -204,6 +198,7 @@ const RecoveryActions = observer(
 
 const LocationRecoveryDialog = () => {
   const { uiStore, locationStore, fileStore } = useStore();
+  const { t } = useTranslation();
   const { isLocationRecoveryOpen } = uiStore;
 
   const [match, setMatch] = useState<IMatch>();
@@ -219,7 +214,10 @@ const LocationRecoveryDialog = () => {
 
   const handleChangeLocationPath = (location: ClientLocation, path: string) => {
     locationStore.changeLocationPath(location, path);
-    AppToaster.show({ message: `Recovered Location ${path}!`, timeout: 5000 });
+    AppToaster.show({
+      message: t('outliner.locations.recovery.recoveredMessage', { path }),
+      timeout: 5000,
+    });
   };
 
   const handleLocate = async () => {
@@ -264,7 +262,7 @@ const LocationRecoveryDialog = () => {
   return (
     <Dialog
       open
-      title={`Recover Location ${location.name}`}
+      title={t('outliner.locations.recoverTitle', { name: location.name })}
       icon={IconSet.FOLDER_CLOSE}
       describedby="location-recovery-info"
       onCancel={uiStore.closeLocationRecovery}

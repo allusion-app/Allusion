@@ -1,6 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import { observer } from 'mobx-react-lite';
 import React, { memo, useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { chromeExtensionUrl, firefoxExtensionUrl } from 'common/config';
 import { clamp } from 'common/core';
@@ -134,16 +135,24 @@ interface IPage {
 const Page = (props: IPage) => {
   const { toolbar, pages, pageIndex, openPage } = props;
 
+  const { t } = useTranslation();
   const buttons = [];
   if (pageIndex > 0) {
     const previousPage = () => openPage(pageIndex - 1);
     buttons.push(
-      <Button key="previous" styling="outlined" onClick={previousPage} text="Previous" />,
+      <Button
+        key="previous"
+        styling="outlined"
+        onClick={previousPage}
+        text={t('help.previous', 'Previous')}
+      />,
     );
   }
   if (pageIndex < pages.length - 1) {
     const nextPage = () => openPage(pageIndex + 1);
-    buttons.push(<Button key="next" styling="outlined" onClick={nextPage} text="Next" />);
+    buttons.push(
+      <Button key="next" styling="outlined" onClick={nextPage} text={t('help.next', 'Next')} />,
+    );
   }
 
   return (
@@ -169,10 +178,11 @@ interface IPageToolbar {
 }
 
 const PageToolbar = ({ isIndexOpen, toggleIndex, controls }: IPageToolbar) => {
+  const { t } = useTranslation();
   return (
     <div role="toolbar" className="doc-page-toolbar" data-compact>
       <ToolbarButton
-        text="Toggle Index"
+        text={t('help.toggleIndex', 'Toggle Index')}
         icon={isIndexOpen ? IconSet.DOUBLE_CARET : IconSet.MENU_HAMBURGER}
         pressed={isIndexOpen}
         controls={controls}

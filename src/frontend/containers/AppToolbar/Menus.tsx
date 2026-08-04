@@ -1,5 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
+import { useTranslation } from 'react-i18next';
 
 import { OrderBy, OrderDirection } from 'src/api/data-storage-search';
 import { FileDTO } from 'src/api/file';
@@ -16,11 +17,12 @@ const enum Tooltip {
 }
 
 export const SortCommand = () => {
+  const { t } = useTranslation();
   return (
     <MenuButton
       icon={IconSet.SORT}
-      text="Sort"
-      tooltip={Tooltip.Filter}
+      text={t('app.sort', 'Sort')}
+      tooltip={t('toolbar.sortTooltip', Tooltip.Filter)}
       id="__sort-menu"
       menuID="__sort-options"
     >
@@ -30,11 +32,12 @@ export const SortCommand = () => {
 };
 
 export const ViewCommand = () => {
+  const { t } = useTranslation();
   return (
     <MenuButton
       icon={IconSet.THUMB_BG}
-      text="View"
-      tooltip={Tooltip.View}
+      text={t('app.view', 'View')}
+      tooltip={t('toolbar.viewTooltip', Tooltip.View)}
       id="__layout-menu"
       menuID="__layout-options"
     >
@@ -65,9 +68,21 @@ const sortMenuData: Array<{
 ];
 
 export const SortMenuItems = observer(() => {
+  const { t } = useTranslation();
   const { fileStore } = useStore();
   const { orderDirection: fileOrder, orderBy, orderFilesBy, switchOrderDirection } = fileStore;
   const orderIcon = fileOrder === OrderDirection.Desc ? IconSet.ARROW_DOWN : IconSet.ARROW_UP;
+
+  const keyMap: Record<string, string> = {
+    name: 'sort.name',
+    absolutePath: 'sort.path',
+    extension: 'sort.fileType',
+    size: 'sort.fileSize',
+    dateAdded: 'sort.dateAdded',
+    dateModified: 'sort.dateModified',
+    dateCreated: 'sort.dateCreated',
+    random: 'sort.random',
+  };
 
   return (
     <MenuRadioGroup>
@@ -75,7 +90,7 @@ export const SortMenuItems = observer(() => {
         <MenuRadioItem
           key={prop}
           icon={icon}
-          text={text}
+          text={t(keyMap[prop] || 'sort.name', text)}
           checked={orderBy === prop}
           accelerator={orderBy === prop && !hideDirection ? orderIcon : undefined}
           onClick={() => (orderBy === prop ? switchOrderDirection() : orderFilesBy(prop))}
@@ -97,20 +112,21 @@ const thumbnailSizeOptions = [
 
 export const LayoutMenuItems = observer(() => {
   const { uiStore } = useStore();
+  const { t } = useTranslation();
   return (
     <MenuRadioGroup>
       <MenuRadioItem
         icon={IconSet.VIEW_LIST}
         onClick={uiStore.setMethodList}
         checked={uiStore.isList}
-        text="List"
+        text={t('layout.list', 'List')}
         accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewList} />}
       />
       <MenuRadioItem
         icon={IconSet.VIEW_GRID}
         onClick={uiStore.setMethodGrid}
         checked={uiStore.isGrid}
-        text="Grid"
+        text={t('layout.grid', 'Grid')}
         accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewGrid} />}
       />
       <MenuRadioItem
@@ -118,14 +134,14 @@ export const LayoutMenuItems = observer(() => {
         onClick={uiStore.setMethodMasonryVertical}
         checked={uiStore.isMasonryVertical}
         // TODO: "masonry" might not ring a bell to some people. Suggestions for a better name? "Flow", "Stream"?
-        text="Vertical Masonry"
+        text={t('layout.verticalMasonry', 'Vertical Masonry')}
         accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewMasonryVertical} />}
       />
       <MenuRadioItem
         icon={IconSet.VIEW_MASONRY_H}
         onClick={uiStore.setMethodMasonryHorizontal}
         checked={uiStore.isMasonryHorizontal}
-        text="Horizontal Masonry"
+        text={t('layout.horizontalMasonry', 'Horizontal Masonry')}
         accelerator={<KeyCombo combo={uiStore.hotkeyMap.viewMasonryHorizontal} />}
       />
     </MenuRadioGroup>
@@ -134,13 +150,20 @@ export const LayoutMenuItems = observer(() => {
 
 export const ThumbnailSizeSliderMenuItem = observer(() => {
   const { uiStore } = useStore();
+  const { t } = useTranslation();
+
+  const options = thumbnailSizeOptions.map((o) => ({
+    ...o,
+    label: o.label ? t(`thumbnail.${o.label.toLowerCase()}`, o.label) : undefined,
+  }));
+
   return (
     <MenuSliderItem
       value={getThumbnailSize(uiStore.thumbnailSize)}
-      label="Thumbnail size"
+      label={t('thumbnail.size', 'Thumbnail size')}
       onChange={uiStore.setThumbnailSize}
       id="thumbnail-sizes"
-      options={thumbnailSizeOptions}
+      options={options}
       min={thumbnailSizeOptions[0].value}
       max={thumbnailSizeOptions[thumbnailSizeOptions.length - 1].value}
       step={20}

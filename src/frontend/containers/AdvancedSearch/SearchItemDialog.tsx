@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from 'widgets/button';
 import { IconSet } from 'widgets/icons';
@@ -57,10 +58,12 @@ const SearchItemDialog = observer<ISearchItemDialogProps>(({ searchItem, onClose
     onClose();
   }, [name, onClose, query, searchItem, searchMatchAny, searchStore, tagStore]);
 
+  const { t } = useTranslation();
+
   return (
     <Dialog
       open
-      title={`Search: "${searchItem.name}"`}
+      title={t('search.dialogTitle', { name: searchItem.name })}
       icon={IconSet.SEARCH_EXTENDED}
       onCancel={onClose}
     >
@@ -73,7 +76,7 @@ const SearchItemDialog = observer<ISearchItemDialogProps>(({ searchItem, onClose
           handleSubmit();
         }}
       >
-        <label id="name">Name</label>
+        <label id="name">{t('search.nameLabel')}</label>
         <input
           className="input"
           defaultValue={searchItem.name}
@@ -87,15 +90,20 @@ const SearchItemDialog = observer<ISearchItemDialogProps>(({ searchItem, onClose
 
         <CriteriaBuilder keySelector={keySelector} dispatch={setQuery} />
 
-        <QueryEditor query={query} setQuery={setQuery} submissionButtonText="Save" />
+        <QueryEditor query={query} setQuery={setQuery} submissionButtonText={t('button.save')} />
 
         <QueryMatch toggle={toggle} searchMatchAny={searchMatchAny} />
 
         <fieldset className="dialog-actions">
-          <Button styling="outlined" text="Close" icon={IconSet.CLOSE} onClick={onClose} />
+          <Button
+            styling="outlined"
+            text={t('button.close')}
+            icon={IconSet.CLOSE}
+            onClick={onClose}
+          />
           <Button
             styling="filled"
-            text="Save"
+            text={t('search.save')}
             icon={IconSet.SELECT_CHECKED}
             onClick={handleSubmit}
             disabled={query.size === 0}

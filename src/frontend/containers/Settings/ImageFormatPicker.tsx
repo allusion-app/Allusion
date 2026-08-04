@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React, { ReactNode, useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { IMG_EXTENSIONS, IMG_EXTENSIONS_TYPE } from 'src/api/file';
 import { RendererMessenger } from 'src/ipc/renderer';
 import { Button, Checkbox, IconSet, Toggle } from 'widgets';
@@ -27,6 +28,8 @@ export const ImageFormatPicker = observer(() => {
     [newEnabledFileExtensions],
   );
 
+  const { t } = useTranslation();
+
   const onSubmit = useCallback(async () => {
     if (removeDisabledImages) {
       const extensionsToDelete = IMG_EXTENSIONS.filter((ext) => !newEnabledFileExtensions.has(ext));
@@ -38,16 +41,29 @@ export const ImageFormatPicker = observer(() => {
 
     locationStore.setSupportedImageExtensions(newEnabledFileExtensions);
 
-    window.alert('Allusion will restart to load your new preferences.');
+    window.alert(t('settings.imageFormat.restartNotice'));
 
     RendererMessenger.reload();
-  }, [fileStore, locationStore, newEnabledFileExtensions, removeDisabledImages]);
+  }, [fileStore, locationStore, newEnabledFileExtensions, removeDisabledImages, t]);
 
   // TODO: group extensions by type: JPG+JPEG+JFIF, TIF+TIFF, etc
+
+  const imageFormatInts: Partial<Record<IMG_EXTENSIONS_TYPE, ReactNode>> = {
+    exr: (
+      <span
+        // TODO: Get TooltipLayer working in PopupWindow: tried a bunch of things but no bueno
+        title={t('settings.imageFormat.exrWarning')}
+        className="info-icon"
+      >
+        {IconSet.WARNING}
+      </span>
+    ),
+  };
+
   return (
     <>
       <fieldset>
-        <legend>Image formats to be discovered by Allusion in your Locations</legend>
+        <legend>{t('settings.imageFormat.legend')}</legend>
         <div className="checkbox-set-container">
           {IMG_EXTENSIONS.map((ext) => (
             <Checkbox
@@ -63,15 +79,15 @@ export const ImageFormatPicker = observer(() => {
       </fieldset>
 
       <Toggle checked={removeDisabledImages} onChange={toggleRemoveDisabledImages}>
-        Remove images with disabled file extensions after save
+        {t('settings.imageFormat.removeAfterSave')}
       </Toggle>
 
       <Button
-        text="Reset"
+        text={t('button.reset')}
         onClick={() => setNewEnabledFileExtensions(new Set(locationStore.enabledFileExtensions))}
       />
       <Button
-        text="Save"
+        text={t('button.save')}
         styling="filled"
         onClick={onSubmit}
         disabled={
@@ -86,15 +102,3 @@ export const ImageFormatPicker = observer(() => {
     </>
   );
 });
-
-const imageFormatInts: Partial<Record<IMG_EXTENSIONS_TYPE, ReactNode>> = {
-  exr: (
-    <span
-      // TODO: Get TooltipLayer working in PopupWindow: tried a bunch of things but no bueno
-      title="Experimental: May slow down the application when enabled (disabled by default)"
-      className="info-icon"
-    >
-      {IconSet.WARNING}
-    </span>
-  ),
-};

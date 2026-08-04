@@ -2,6 +2,7 @@ import { getThumbnailPath, isDirEmpty } from 'common/fs';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import FileInput from 'src/frontend/components/FileInput';
 import { RendererMessenger } from 'src/ipc/renderer';
 import { Button, ButtonGroup, IconSet } from 'widgets';
@@ -19,6 +20,8 @@ export const Advanced = observer(() => {
   useEffect(() => {
     RendererMessenger.getDefaultThumbnailDirectory().then(setDefaultThumbnailDir);
   }, []);
+
+  const { t } = useTranslation();
 
   const changeThumbnailDirectory = async (newDir: string) => {
     const oldDir = thumbnailDirectory;
@@ -39,11 +42,7 @@ export const Advanced = observer(() => {
 
   const browseThumbnailDirectory = async ([newDir]: [string, ...string[]]) => {
     if (!(await isDirEmpty(newDir))) {
-      if (
-        window.confirm(
-          `The directory you picked is not empty. Allusion might delete any files inside of it. Do you still wish to pick this directory?\n\nYou picked: ${newDir}`,
-        )
-      ) {
+      if (window.confirm(t('settings.advanced.confirmNonEmptyDir', { directory: newDir }))) {
         changeThumbnailDirectory(newDir);
       }
     } else {
@@ -56,8 +55,9 @@ export const Advanced = observer(() => {
       {/* Todo: Add support to toggle this */}
       {/* <Switch checked={true} onChange={() => alert('Not supported yet')} label="Generate thumbnails" /> */}
       <Callout icon={IconSet.INFO}>
-        By default thumbnails are stored in the{' '}
-        <ExternalLink url={defaultThumbnailDir}>temporary files directory</ExternalLink>.
+        {t('settings.advanced.defaultThumbIntro')}{' '}
+        <ExternalLink url={defaultThumbnailDir}>{t('settings.advanced.tempFilesDir')}</ExternalLink>
+        .
       </Callout>
       <div className="filepicker">
         <FileInput
@@ -68,20 +68,20 @@ export const Advanced = observer(() => {
           }}
           onChange={browseThumbnailDirectory}
         >
-          Change...
+          {t('button.change')}
         </FileInput>
-        <h3 className="filepicker-label">Thumbnail Directory</h3>
+        <h3 className="filepicker-label">{t('settings.advanced.thumbnailDirectory')}</h3>
         <div className="filepicker-path">{thumbnailDirectory}</div>
       </div>
 
-      <h3>Development</h3>
+      <h3>{t('settings.advanced.development')}</h3>
       <ButtonGroup>
         <ClearDbButton />
         <Button
           onClick={RendererMessenger.toggleDevTools}
           styling="outlined"
           icon={IconSet.CHROME_DEVTOOLS}
-          text="Toggle DevTools"
+          text={t('settings.advanced.toggleDevTools')}
         />
       </ButtonGroup>
     </>

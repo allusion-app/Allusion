@@ -2,6 +2,7 @@ import { shell } from 'electron';
 import { observer } from 'mobx-react-lite';
 import SysPath from 'path';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { IconSet } from 'widgets';
 import { MenuItem, MenuRadioItem, MenuSubItem } from 'widgets/menus';
@@ -19,21 +20,27 @@ import { LocationTreeItemRevealer } from '../Outliner/LocationsPanel';
 import { TagsTreeItemRevealer } from '../Outliner/TagsPanel/TagsTree';
 
 export const MissingFileMenuItems = observer(() => {
+  const { t } = useTranslation();
   const { uiStore, fileStore } = useStore();
   return (
     <>
       <MenuItem
         onClick={fileStore.fetchMissingFiles}
-        text="Open Recovery Panel"
+        text={t('app.openRecoveryPanel')}
         icon={IconSet.WARNING_BROKEN_LINK}
         disabled={fileStore.showsMissingContent}
       />
-      <MenuItem onClick={uiStore.openToolbarFileRemover} text="Delete" icon={IconSet.DELETE} />
+      <MenuItem
+        onClick={uiStore.openToolbarFileRemover}
+        text={t('button.delete')}
+        icon={IconSet.DELETE}
+      />
     </>
   );
 });
 
 export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
+  const { t } = useTranslation();
   const { uiStore, locationStore } = useStore();
 
   const handleViewFullSize = () => {
@@ -61,18 +68,21 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
 
   return (
     <>
-      <MenuItem onClick={handleViewFullSize} text="View at Full Size" icon={IconSet.SEARCH} />
+      <MenuItem onClick={handleViewFullSize} text={t('button.fullSize')} icon={IconSet.SEARCH} />
       <MenuItem
         onClick={handlePreviewWindow}
-        text="Open In Preview Window"
+        text={t('app.openInPreview')}
         icon={IconSet.PREVIEW}
       />
       <MenuItem
         onClick={uiStore.openToolbarTagPopover}
-        text="Open Tag Selector"
+        text={t('app.openTagSelector')}
         icon={IconSet.TAG}
       />
-      <MenuSubItem text="Search Similar Images..." icon={IconSet.MORE}>
+      <MenuSubItem
+        text={t('content.searchSimilar', 'Search Similar Images...')}
+        icon={IconSet.MORE}
+      >
         <MenuItem
           onClick={(e) =>
             handleSearchSimilar(
@@ -80,7 +90,7 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
               file.tags.toJSON().map((t) => new ClientTagSearchCriteria('tags', t.id, 'contains')),
             )
           }
-          text="Same Tags"
+          text={t('content.sameTags', 'Same Tags')}
           icon={IconSet.TAG}
         />
         <MenuItem
@@ -94,7 +104,7 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
               ),
             )
           }
-          text="Same Directory"
+          text={t('content.sameDirectory', 'Same Directory')}
           icon={IconSet.FOLDER_CLOSE}
         />
         <MenuItem
@@ -108,7 +118,7 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
               ),
             )
           }
-          text="Same Location"
+          text={t('content.sameLocation', 'Same Location')}
         />
         <MenuItem
           onClick={(e) =>
@@ -117,7 +127,7 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
               new ClientStringSearchCriteria('extension', file.extension, 'equals'),
             )
           }
-          text="Same File Type"
+          text={t('content.sameFileType', 'Same File Type')}
           icon={IconSet.FILTER_FILE_TYPE}
         />
         <MenuItem
@@ -127,14 +137,14 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
               new ClientNumberSearchCriteria('height', file.height, 'equals'),
             ])
           }
-          text="Same Resolution"
+          text={t('content.sameResolution', 'Same Resolution')}
           icon={IconSet.ARROW_RIGHT}
         />
         <MenuItem
           onClick={(e) =>
             handleSearchSimilar(e, new ClientNumberSearchCriteria('size', file.size, 'equals'))
           }
-          text="Same File Size"
+          text={t('content.sameFileSize', 'Same File Size')}
           icon={IconSet.FILTER_FILTER_DOWN}
         />
         <MenuItem
@@ -144,7 +154,7 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
               new ClientDateSearchCriteria('dateCreated', file.dateCreated, 'equals'),
             )
           }
-          text="Same Creation Date"
+          text={t('content.sameCreationDate', 'Same Creation Date')}
           icon={IconSet.FILTER_DATE}
         />
         <MenuItem
@@ -154,7 +164,7 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
               new ClientDateSearchCriteria('dateModified', file.dateModified, 'equals'),
             )
           }
-          text="Same Modification Date"
+          text={t('content.sameModificationDate', 'Same Modification Date')}
         />
       </MenuSubItem>
     </>
@@ -162,6 +172,7 @@ export const FileViewerMenuItems = ({ file }: { file: ClientFile }) => {
 };
 
 export const SlideFileViewerMenuItems = observer(({ file }: { file: ClientFile }) => {
+  const { t } = useTranslation();
   const { uiStore } = useStore();
 
   const handlePreviewWindow = () => {
@@ -173,20 +184,23 @@ export const SlideFileViewerMenuItems = observer(({ file }: { file: ClientFile }
     <>
       <MenuItem
         onClick={handlePreviewWindow}
-        text="Open In Preview Window"
+        text={t('app.openInPreview')}
         icon={IconSet.PREVIEW}
       />
 
-      <MenuSubItem text="Upscale filtering..." icon={IconSet.VIEW_GRID}>
+      <MenuSubItem
+        text={t('content.upscaleFiltering', 'Upscale filtering...')}
+        icon={IconSet.VIEW_GRID}
+      >
         <MenuRadioItem
           onClick={uiStore.setUpscaleModeSmooth}
           checked={uiStore.upscaleMode === 'smooth'}
-          text="Smooth"
+          text={t('content.upscaleSmooth', 'Smooth')}
         />
         <MenuRadioItem
           onClick={uiStore.setUpscaleModePixelated}
           checked={uiStore.upscaleMode === 'pixelated'}
-          text="Pixelated"
+          text={t('content.upscalePixelated', 'Pixelated')}
         />
       </MenuSubItem>
     </>
@@ -194,12 +208,13 @@ export const SlideFileViewerMenuItems = observer(({ file }: { file: ClientFile }
 });
 
 export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) => {
+  const { t } = useTranslation();
   const { uiStore } = useStore();
   return (
     <>
       <MenuItem
         onClick={() => uiStore.openExternal()}
-        text="Open External"
+        text={t('app.openExternal')}
         icon={IconSet.OPEN_EXTERNAL}
         disabled={file.isBroken}
       />
@@ -207,17 +222,21 @@ export const ExternalAppMenuItems = observer(({ file }: { file: ClientFile }) =>
         onClick={() =>
           LocationTreeItemRevealer.instance.revealSubLocation(file.locationId, file.absolutePath)
         }
-        text="Reveal in Locations Panel"
+        text={t('app.revealInLocationsPanel', 'Reveal in Locations Panel')}
         icon={IconSet.TREE_LIST}
       />
       <MenuItem
         onClick={() => shell.showItemInFolder(file.absolutePath)}
-        text="Reveal in File Browser"
+        text={t('app.openInFileBrowser')}
         icon={IconSet.FOLDER_CLOSE}
       />
       <MenuItem
         onClick={uiStore.openMoveFilesToTrash}
-        text={`Delete file${uiStore.fileSelection.size > 1 ? 's' : ''}`}
+        text={
+          uiStore.fileSelection.size > 1
+            ? t('button.deleteFiles', 'Delete files')
+            : t('button.deleteFile', 'Delete file')
+        }
         icon={IconSet.DELETE}
       />
     </>
@@ -228,13 +247,13 @@ export const FileTagMenuItems = observer(({ file, tag }: { file: ClientFile; tag
   <>
     <MenuItem
       onClick={() => TagsTreeItemRevealer.instance.revealTag(tag)}
-      text="Reveal in Tags Panel"
+      text={t('app.revealInTagsPanel', 'Reveal in Tags Panel')}
       icon={IconSet.TREE_LIST}
       disabled={file.isBroken}
     />
     <MenuItem
       onClick={() => file.removeTag(tag)}
-      text="Unassign Tag from File"
+      text={t('tag.unassignFromFile', 'Unassign Tag from File')}
       icon={IconSet.TAG_BLANCO}
     />
   </>

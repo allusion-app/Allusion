@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { IconSet, Toggle } from 'widgets';
 import { ContextMenuLayer } from 'widgets/menus';
@@ -11,6 +12,7 @@ import { useWorkerListener } from './image/ThumbnailGeneration';
 
 const PreviewApp = observer(() => {
   const { uiStore, fileStore } = useStore();
+  const { t } = useTranslation();
 
   // Listen to responses of Web Workers
   useWorkerListener();
@@ -40,21 +42,26 @@ const PreviewApp = observer(() => {
       className={`${uiStore.theme} ${isInitializing ? 'preview-window-initializing' : ''}`}
     >
       <ErrorBoundary>
-        <Toolbar id="toolbar" label="Preview Command Bar" controls="content-view" isCompact>
+        <Toolbar
+          id="toolbar"
+          label={t('app.more', 'Preview Command Bar')}
+          controls="content-view"
+          isCompact
+        >
           <ToolbarButton
             icon={IconSet.ARROW_LEFT}
-            text="Previous Image"
+            text={t('button.previousImage', 'Previous Image')}
             onClick={handleLeftButton}
             disabled={uiStore.firstItem === 0}
           />
           <ToolbarButton
             icon={IconSet.ARROW_RIGHT}
-            text="Next Image"
+            text={t('button.nextImage', 'Next Image')}
             onClick={handleRightButton}
             disabled={uiStore.firstItem === fileStore.fileList.length - 1}
           />
           <Toggle onChange={uiStore.toggleSlideMode} checked={!uiStore.isSlideMode}>
-            Full size
+            {t('button.fullSize', 'Full size')}
           </Toggle>
 
           <div className="spacer" />
@@ -63,8 +70,8 @@ const PreviewApp = observer(() => {
             icon={IconSet.INFO}
             onClick={uiStore.toggleInspector}
             checked={uiStore.isInspectorOpen}
-            text="Toggle the inspector panel"
-            tooltip="Toggle the inspector panel"
+            text={t('button.toggleInspector', 'Toggle the inspector panel')}
+            tooltip={t('button.toggleInspector', 'Toggle the inspector panel')}
           />
         </Toolbar>
 

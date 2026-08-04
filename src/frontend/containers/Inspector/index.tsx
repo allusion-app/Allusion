@@ -1,5 +1,6 @@
 import React from 'react';
 import { observer } from 'mobx-react-lite';
+import { useTranslation } from 'react-i18next';
 
 import { useStore } from '../../contexts/StoreContext';
 import FileTags from '../../components/FileTag';
@@ -9,6 +10,7 @@ import { shell } from 'electron';
 import { IS_PREVIEW_WINDOW } from 'common/window';
 
 const Inspector = observer(() => {
+  const { t } = useTranslation();
   const { uiStore, fileStore } = useStore();
 
   if (uiStore.firstItem >= fileStore.fileList.length || !uiStore.isInspectorOpen) {
@@ -29,14 +31,14 @@ const Inspector = observer(() => {
       </section>
       <section>
         <header>
-          <h2>Path to file</h2>
+          <h2>{t('imageInfo.pathToFile', 'Path to file')}</h2>
         </header>
         <div className="input-file">
           <input readOnly className="input input-file-value" value={path} />
           <IconButton
             icon={IconSet.FOLDER_CLOSE}
             onClick={() => shell.showItemInFolder(path)}
-            text="Open in file explorer"
+            text={t('app.openInFileBrowser')}
           />
         </div>
       </section>
@@ -44,7 +46,7 @@ const Inspector = observer(() => {
       {!IS_PREVIEW_WINDOW && (
         <section>
           <header>
-            <h2>Tags</h2>
+            <h2>{t('tag.title', 'Tags')}</h2>
           </header>
           <FileTags file={first} />
         </section>
@@ -56,10 +58,11 @@ const Inspector = observer(() => {
 export default Inspector;
 
 const Placeholder = () => {
+  const { t } = useTranslation();
   return (
     <section>
       <header>
-        <h2>No image selected</h2>
+        <h2>{t('inspector.noImageSelected', 'No image selected')}</h2>
       </header>
     </section>
   );

@@ -1,4 +1,5 @@
 import React, { RefObject, memo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { IconButton } from 'widgets/button';
 import { IconSet } from 'widgets/icons';
@@ -21,38 +22,44 @@ const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: Qu
     keySelector.current?.focus();
   };
 
+  const { t } = useTranslation();
+
   return (
     <fieldset aria-labelledby="criteria-builder-label">
       <legend id="criteria-builder-label">
-        Criteria Builder
+        {t('search.criteriaBuilder.title')}
         <InfoButton>
-          A criteria is made of three components:
+          <div>{t('search.criteriaBuilder.helpIntro')}</div>
           <ul>
             <li>
-              <b>key</b> (a property of the image file),
+              <b>{t('search.criteriaBuilder.helpKeyTitle')}</b>{' '}
+              {t('search.criteriaBuilder.helpKey')}
             </li>
             <li>
-              <b>operator</b> (decides how the property value is compared) and
+              <b>{t('search.criteriaBuilder.helpOperatorTitle')}</b>{' '}
+              {t('search.criteriaBuilder.helpOperator')}
             </li>
             <li>
-              the matching <b>value</b>.
+              {t('search.criteriaBuilder.helpValueIntro')}{' '}
+              <b>{t('search.criteriaBuilder.helpValue')}</b>.
             </li>
           </ul>
-          Every image that matches the criteria is shown.
+          <div>{t('search.criteriaBuilder.everyMatch')}</div>
           <br />
           <br />
-          You can edit the inputs for each component and add the criteria to the query by pressing
-          the{' '}
-          <span aria-label="add criteria" style={{ verticalAlign: 'middle' }}>
-            {IconSet.ADD}
-          </span>{' '}
-          icon button next to the inputs.
+          <div>
+            {t('search.criteriaBuilder.addInstruction')}{' '}
+            <span aria-label="add criteria" style={{ verticalAlign: 'middle' }}>
+              {IconSet.ADD}
+            </span>{' '}
+            {t('search.criteriaBuilder.addInstruction2')}
+          </div>
         </InfoButton>
       </legend>
       <div id="criteria-builder">
-        <label id="builder-key">Key</label>
-        <label id="builder-operator">Operator</label>
-        <label id="builder-value">Value</label>
+        <label id="builder-key">{t('search.criteriaBuilder.labelKey')}</label>
+        <label id="builder-operator">{t('search.criteriaBuilder.labelOperator')}</label>
+        <label id="builder-value">{t('search.criteriaBuilder.labelValue')}</label>
         <span></span>
 
         <KeySelector
@@ -73,7 +80,7 @@ const CriteriaBuilder = memo(function QueryBuilder({ keySelector, dispatch }: Qu
           value={criteria.value}
           dispatch={setCriteria}
         />
-        <IconButton text="Add Criteria" icon={IconSet.ADD} onClick={add} />
+        <IconButton text={t('search.criteriaBuilder.add')} icon={IconSet.ADD} onClick={add} />
       </div>
     </fieldset>
   );

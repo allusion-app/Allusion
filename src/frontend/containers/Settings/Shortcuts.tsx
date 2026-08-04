@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import { comboMatches, getKeyComboString, parseKeyCombo } from '../../hotkeyParser';
+import { useTranslation } from 'react-i18next';
 
 import { useStore } from '../../contexts/StoreContext';
 import { defaultHotkeyMap, IHotkeyMap } from '../../stores/UiStore';
@@ -9,12 +10,10 @@ import { camelCaseToSpaced } from 'common/fmt';
 import { Button, IconSet, keyComboToString } from 'widgets';
 
 export const Shortcuts = observer(() => {
+  const { t } = useTranslation();
   return (
     <>
-      <p>
-        Click on a key combination to modify it. After typing your new combination, press Enter to
-        confirm or Escape to cancel.
-      </p>
+      <p>{t('settings.shortcuts.intro')}</p>
       <HotkeyMapper />
     </>
   );
@@ -75,6 +74,7 @@ interface IKeyComboEditor {
 
 const KeyComboEditor = observer(
   ({ actionKey, setEditableKey, isChanging, textDispatch, combo, onKeyDown }: IKeyComboEditor) => {
+    const { t } = useTranslation(); // ◀︎ 追加しました
     const { uiStore } = useStore();
     const hotkeyMap = uiStore.hotkeyMap;
     const [text, setText] = textDispatch;
@@ -107,12 +107,12 @@ const KeyComboEditor = observer(
           />
           {text.length > 0 && isInvalidCombo(text, actionKey, hotkeyMap) && (
             <div className="key-combo-input-warning">
-              {IconSet.WARNING_FILL} Key combination already in use!
+              {IconSet.WARNING_FILL} {t('settings.shortcuts.keyInUse')}
             </div>
           )}
         </div>
         <Button
-          text={isChanging ? 'Save' : 'Edit'}
+          text={isChanging ? t('button.save') : t('button.edit')}
           onClick={() => {
             if (isEditable.current) {
               setEditableKey(actionKey);
@@ -126,7 +126,7 @@ const KeyComboEditor = observer(
         <Button
           icon={IconSet.RELOAD}
           onClick={() => uiStore.remapHotkey(actionKey, defaultCombo)}
-          text="Reset"
+          text={t('button.reset')}
           disabled={comboMatches(parseKeyCombo(combo), parseKeyCombo(defaultCombo))}
         />
       </div>

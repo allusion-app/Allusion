@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React, { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useStore } from '../../contexts/StoreContext';
 
@@ -66,12 +67,14 @@ const QuickSearchList = observer(() => {
     }
   });
 
+  const { t } = useTranslation();
+
   const renderCreateOption = useRef((query: string, resetTextBox: () => void) => {
     return [
       <Row
         id="search-in-path-option"
         key="search-in-path"
-        value={`Search in file paths for "${query}"`}
+        value={t('search.searchInPath', { query })}
         onClick={() => {
           resetTextBox();
           uiStore.addSearchCriteria(new ClientStringSearchCriteria('absolutePath', query));
@@ -80,7 +83,7 @@ const QuickSearchList = observer(() => {
       <Row
         id="advanced-search-option"
         key="advanced-search"
-        value="Advanced search"
+        value={t('search.advanced')}
         onClick={uiStore.toggleAdvancedSearch}
         icon={IconSet.SEARCH_EXTENDED}
       />,
@@ -102,6 +105,7 @@ const QuickSearchList = observer(() => {
 
 const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
   const { fileStore, uiStore } = useStore();
+  const { t } = useTranslation();
 
   const handleClick = useRef((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -112,7 +116,7 @@ const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
   return (
     <IconButton
       icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
-      text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
+      text={uiStore.searchMatchAny ? t('search.matchAny') : t('search.matchAll')}
       onClick={handleClick}
       className="btn-icon-large"
       disabled={disabled}
@@ -123,6 +127,7 @@ const SearchMatchButton = observer(({ disabled }: { disabled: boolean }) => {
 const CriteriaList = observer(() => {
   const rootStore = useStore();
   const { fileStore, uiStore } = rootStore;
+  const { t } = useTranslation();
   return (
     <div className="input" onClick={uiStore.toggleAdvancedSearch}>
       <div className="multiautocomplete-input">
@@ -143,7 +148,7 @@ const CriteriaList = observer(() => {
         {uiStore.searchCriteriaList.length > 1 ? (
           <IconButton
             icon={uiStore.searchMatchAny ? IconSet.SEARCH_ANY : IconSet.SEARCH_ALL}
-            text={`Search using ${uiStore.searchMatchAny ? 'any' : 'all'} queries`}
+            text={uiStore.searchMatchAny ? t('search.matchAny') : t('search.matchAll')}
             onClick={(e) => {
               uiStore.toggleSearchMatchAny();
               fileStore.refetch();
@@ -159,7 +164,7 @@ const CriteriaList = observer(() => {
 
         <IconButton
           icon={IconSet.CLOSE}
-          text="Clear"
+          text={t('button.clear')}
           onClick={(e) => {
             uiStore.clearSearchCriteriaList();
             e.stopPropagation();

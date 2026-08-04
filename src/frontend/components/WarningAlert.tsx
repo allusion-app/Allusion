@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { observer } from 'mobx-react-lite';
 import { action } from 'mobx';
 
@@ -7,6 +8,7 @@ import { IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
 
 export const ManyOpenExternal = observer(() => {
+  const { t } = useTranslation();
   const { uiStore } = useStore();
   const selection = uiStore.fileSelection;
 
@@ -18,10 +20,10 @@ export const ManyOpenExternal = observer(() => {
   return (
     <Alert
       open={uiStore.isManyExternalFilesOpen}
-      title={`Are you sure you want to open ${selection.size} images in their default application?`}
+      title={t('warning.openExternalTitle', { count: selection.size })}
       icon={IconSet.WARNING}
       type="warning"
-      primaryButtonText="Confirm"
+      primaryButtonText={t('button.confirm')}
       defaultButton={DialogButton.PrimaryButton}
       onClick={(button) => {
         if (button !== DialogButton.CloseButton) {
@@ -30,7 +32,7 @@ export const ManyOpenExternal = observer(() => {
         uiStore.closeManyExternalFiles();
       }}
     >
-      <p>This may severely slow down your computer, to the point of it becoming unresponsive.</p>
+      <p>{t('warning.openExternalBody')}</p>
       <div className="deletion-confirmation-list">
         {Array.from(selection).map((f) => (
           <div key={f.id}>{f.absolutePath}</div>

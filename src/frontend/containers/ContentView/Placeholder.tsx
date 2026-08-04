@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
+import { useTranslation } from 'react-i18next';
 import LOGO_FC from 'resources/logo/svg/full-color/allusion-logomark-fc.svg';
 import { IS_PREVIEW_WINDOW } from 'common/window';
 
@@ -47,9 +48,11 @@ const PreviewWindowPlaceholder = observer(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fileStore.fileListLastModified]);
 
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
-      <ContentPlaceholder title="Loading..." icon={<SVG src={LOGO_FC} />}>
+      <ContentPlaceholder title={t('placeholder.loading')} icon={<SVG src={LOGO_FC} />}>
         {IconSet.LOADING}
       </ContentPlaceholder>
     );
@@ -58,14 +61,14 @@ const PreviewWindowPlaceholder = observer(() => {
   // There should always be images to preview.
   // If the placeholder is shown, something went wrong (probably the DB of the preview window is out of sync with the main window)
   return (
-    <ContentPlaceholder title="That's not supposed to happen..." icon={<SVG src={LOGO_FC} />}>
-      <p>Something went wrong while previewing the selected images</p>
+    <ContentPlaceholder title={t('placeholder.unexpected')} icon={<SVG src={LOGO_FC} />}>
+      <p>{t('placeholder.previewError')}</p>
 
       <div className="divider" />
 
       <Button
         styling="outlined"
-        text="Reload Allusion"
+        text={t('button.reload')}
         onClick={() => RendererMessenger.reload()}
       />
     </ContentPlaceholder>
@@ -74,58 +77,62 @@ const PreviewWindowPlaceholder = observer(() => {
 
 const Welcome = () => {
   const { uiStore } = useStore();
+  const { t } = useTranslation();
   return (
-    <ContentPlaceholder title="Welcome to Allusion" icon={<SVG src={LOGO_FC} />}>
-      <p>
-        Allusion is a tool designed to help you organize your Visual Library, so you can easily find
-        what you need throughout your creative process.
-      </p>
-      <p>
-        Allusion needs to know where to find your images.
-        <br />
-        Add a Location to get started.
-      </p>
+    <ContentPlaceholder title={t('placeholder.welcomeTitle')} icon={<SVG src={LOGO_FC} />}>
+      <p>{t('placeholder.welcomeDescription1')}</p>
+      <p>{t('placeholder.welcomeDescription2')}</p>
 
       <div className="divider" />
 
-      <p>New to Allusion?</p>
-      <Button styling="outlined" text="Open Help Center" onClick={uiStore.toggleHelpCenter} />
+      <p>{t('placeholder.newToAllusion')}</p>
+      <Button
+        styling="outlined"
+        text={t('button.openHelpCenter')}
+        onClick={uiStore.toggleHelpCenter}
+      />
 
       <br />
       <br />
       <br />
 
       {/* Mention principles (?) */}
-      <small>Allusion is a read-only application. We&rsquo;ll never touch your files</small>
+      <small>{t('placeholder.readOnlyNote')}</small>
     </ContentPlaceholder>
   );
 };
 
 const NoContentFound = () => {
   const { uiStore } = useStore();
+  const { t } = useTranslation();
   return (
-    <ContentPlaceholder title="No images" icon={IconSet.MEDIA}>
-      <p>Images can be added from the outliner</p>
-      <Button onClick={uiStore.toggleOutliner} text="Toggle outliner" styling="outlined" />
+    <ContentPlaceholder title={t('placeholder.noImagesTitle')} icon={IconSet.MEDIA}>
+      <p>{t('placeholder.noImagesMsg')}</p>
+      <Button
+        onClick={uiStore.toggleOutliner}
+        text={t('button.toggleOutliner')}
+        styling="outlined"
+      />
     </ContentPlaceholder>
   );
 };
 
 const NoQueryContent = () => {
   const { fileStore } = useStore();
+  const { t } = useTranslation();
   return (
-    <ContentPlaceholder title="No images found" icon={IconSet.SEARCH}>
-      <p>Try searching for something else.</p>
+    <ContentPlaceholder title={t('placeholder.noImagesFoundTitle')} icon={IconSet.SEARCH}>
+      <p>{t('placeholder.trySearching')}</p>
       {/* TODO: when search includes a Hidden tag, remind the user that's what might be causing them to see no results */}
       <ButtonGroup align="center">
         <Button
-          text="All images"
+          text={t('button.allImages')}
           icon={IconSet.MEDIA}
           onClick={fileStore.fetchAllFiles}
           styling="outlined"
         />
         <Button
-          text="Untagged"
+          text={t('button.untagged')}
           icon={IconSet.TAG_BLANCO}
           onClick={fileStore.fetchUntaggedFiles}
           styling="outlined"
@@ -137,11 +144,12 @@ const NoQueryContent = () => {
 
 const NoUntaggedContent = () => {
   const { fileStore } = useStore();
+  const { t } = useTranslation();
   return (
-    <ContentPlaceholder title="No untagged images" icon={IconSet.TAG}>
-      <p>All images have been tagged. Nice work!</p>
+    <ContentPlaceholder title={t('placeholder.noUntaggedTitle')} icon={IconSet.TAG}>
+      <p>{t('placeholder.allTaggedMsg')}</p>
       <Button
-        text="All Images"
+        text={t('button.allImagesCap')}
         icon={IconSet.MEDIA}
         onClick={fileStore.fetchAllFiles}
         styling="outlined"
@@ -152,18 +160,19 @@ const NoUntaggedContent = () => {
 
 const NoMissingContent = () => {
   const { fileStore } = useStore();
+  const { t } = useTranslation();
   return (
-    <ContentPlaceholder title="No missing images" icon={IconSet.WARNING_BROKEN_LINK}>
-      <p>Try searching for something else.</p>
+    <ContentPlaceholder title={t('placeholder.noMissingTitle')} icon={IconSet.WARNING_BROKEN_LINK}>
+      <p>{t('placeholder.trySearching')}</p>
       <ButtonGroup align="center">
         <Button
-          text="All images"
+          text={t('button.allImages')}
           icon={IconSet.MEDIA}
           onClick={fileStore.fetchAllFiles}
           styling="outlined"
         />
         <Button
-          text="Untagged"
+          text={t('button.untagged')}
           icon={IconSet.TAG_BLANCO}
           onClick={fileStore.fetchUntaggedFiles}
           styling="outlined"
@@ -174,9 +183,10 @@ const NoMissingContent = () => {
 };
 
 const BugReport = () => {
+  const { t } = useTranslation();
   return (
-    <ContentPlaceholder title="You encountered a bug!" icon={IconSet.WARNING_FILL}>
-      <p>Please report this bug to the maintainers!</p>
+    <ContentPlaceholder title={t('placeholder.bugTitle')} icon={IconSet.WARNING_FILL}>
+      <p>{t('placeholder.bugMsg')}</p>
     </ContentPlaceholder>
   );
 };

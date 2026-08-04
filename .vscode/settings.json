@@ -1,7 +1,7 @@
 {
   "editor.codeActionsOnSave": {
-    "source.fixAll": true
-  },
+    "source.fixAll": "explicit"
+},
   "prettier.configPath": ".prettierrc.json",
   "search.exclude": {
     "resources/exiftool/exiftool.pl": true,

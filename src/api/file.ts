@@ -54,4 +54,4 @@ export const IMG_EXTENSIONS = [
   // 'heic', // not supported by Sharp out of the box https://github.com/lovell/sharp/issues/2871
   // TODO: 'blend', raw, etc.?
 ] as const;
-export type IMG_EXTENSIONS_TYPE = typeof IMG_EXTENSIONS[number];
+export type IMG_EXTENSIONS_TYPE = (typeof IMG_EXTENSIONS)[number];

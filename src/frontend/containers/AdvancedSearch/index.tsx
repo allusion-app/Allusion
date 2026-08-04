@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ID } from 'src/api/id';
 import { useStore } from 'src/frontend/contexts/StoreContext';
 import { useAutorun } from 'src/frontend/hooks/mobx';
@@ -37,10 +38,12 @@ export const AdvancedSearchDialog = observer(() => {
 
   const reset = useRef(() => setQuery(new Map())).current;
 
+  const { t } = useTranslation();
+
   return (
     <Dialog
       open={uiStore.isAdvancedSearchOpen}
-      title="Advanced Search"
+      title={t('search.advanced')}
       icon={IconSet.SEARCH_EXTENDED}
       onCancel={uiStore.closeAdvancedSearch}
     >
@@ -52,10 +55,15 @@ export const AdvancedSearchDialog = observer(() => {
         <QueryMatch searchMatchAny={uiStore.searchMatchAny} toggle={uiStore.toggleSearchMatchAny} />
 
         <fieldset className="dialog-actions">
-          <Button styling="outlined" text="Reset" icon={IconSet.CLOSE} onClick={reset} />
+          <Button
+            styling="outlined"
+            text={t('button.reset')}
+            icon={IconSet.CLOSE}
+            onClick={reset}
+          />
           <Button
             styling="filled"
-            text="Search"
+            text={t('button.search')}
             icon={IconSet.SEARCH}
             onClick={search}
             disabled={query.size === 0}

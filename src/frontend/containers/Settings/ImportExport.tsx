@@ -11,8 +11,10 @@ import { Alert, DialogButton } from 'widgets/popovers';
 import { useStore } from '../../contexts/StoreContext';
 import ExternalLink from 'src/frontend/components/ExternalLink';
 import FileInput from 'src/frontend/components/FileInput';
+import { useTranslation } from 'react-i18next';
 
 export const ImportExport = observer(() => {
+  const { t } = useTranslation();
   const rootStore = useStore();
   const { fileStore, tagStore, exifTool } = rootStore;
   const [isConfirmingMetadataExport, setConfirmingMetadataExport] = useState(false);
@@ -30,7 +32,12 @@ export const ImportExport = observer(() => {
       const [numTags, numFiles] = await rootStore.peekDatabaseFile(path);
       setConfirmingFileImport({
         path,
-        info: `Backup contains ${numTags} tags (currently ${tagStore.count}) and ${numFiles} images (currently ${fileStore.numTotalFiles}).`,
+        info: t('settings.importExport.backupInfo', {
+          numTags,
+          tagCount: tagStore.count,
+          numFiles,
+          fileCount: fileStore.numTotalFiles,
+        }),
       });
     } catch (e) {
       console.log(e);
@@ -61,16 +68,11 @@ export const ImportExport = observer(() => {
 
   return (
     <>
-      <h3>File Metadata</h3>
+      <h3>{t('settings.importExport.fileMetadataTitle')}</h3>
 
-      <p>
-        This option is useful for importing/exporting tags from/to other software. If you use a
-        service like Dropbox or Google, you can write your tags to your files on one device and read
-        them on other devices.
-      </p>
+      <p>{t('settings.importExport.fileMetadataDesc')}</p>
       <Callout icon={IconSet.INFO}>
-        The separator is used to format the tags metadata. For example a file with the assigned tags
-        Food, Fruit and Apple will be formatted with the currently selected separator as{' '}
+        {t('settings.importExport.separatorIntro')}{' '}
         <pre style={{ display: 'inline' }}>
           {['Food', 'Fruit', 'Apple'].join(exifTool.hierarchicalSeparator)}
         </pre>
@@ -78,7 +80,7 @@ export const ImportExport = observer(() => {
       </Callout>
       <div className="vstack">
         <label>
-          Hierarchical separator
+          {t('settings.importExport.hierarchicalSeparator')}
           <select
             value={exifTool.hierarchicalSeparator}
             onChange={(e) => exifTool.setHierarchicalSeparator(e.target.value)}
@@ -93,19 +95,19 @@ export const ImportExport = observer(() => {
 
         <ButtonGroup>
           <Button
-            text="Import tags from file metadata"
+            text={t('settings.importExport.importFromMetadata')}
             onClick={fileStore.readTagsFromFiles}
             styling="outlined"
           />
           <Button
-            text="Export tags to file metadata"
+            text={t('settings.importExport.exportToMetadata')}
             onClick={() => setConfirmingMetadataExport(true)}
             styling="outlined"
           />
           <Alert
             open={isConfirmingMetadataExport}
-            title="Are you sure you want to overwrite your files' tags?"
-            primaryButtonText="Export"
+            title={t('settings.importExport.confirmOverwriteTitle')}
+            primaryButtonText={t('settings.importExport.export')}
             onClick={(button) => {
               if (button === DialogButton.PrimaryButton) {
                 fileStore.writeTagsToFiles();
@@ -113,19 +115,16 @@ export const ImportExport = observer(() => {
               setConfirmingMetadataExport(false);
             }}
           >
-            <p>
-              This will overwrite any existing tags (a.k.a. keywords) in those files with
-              Allusion&#39;s tags. It is recommended to import all tags before writing new tags.
-            </p>
+            <p>{t('settings.importExport.overwriteInfo')}</p>
           </Alert>
         </ButtonGroup>
       </div>
 
-      <h3>Backup Database as File</h3>
+      <h3>{t('settings.importExport.backupTitle')}</h3>
 
       <Callout icon={IconSet.INFO}>
-        Automatic back-ups are created every 10 minutes in the{' '}
-        <ExternalLink url={backupDir}>backup directory</ExternalLink>.
+        {t('settings.importExport.automaticBackupsIntro')}{' '}
+        <ExternalLink url={backupDir}>{t('settings.importExport.backupDirectory')}</ExternalLink>.
       </Callout>
       <ButtonGroup>
         <FileInput
@@ -137,10 +136,10 @@ export const ImportExport = observer(() => {
           }}
           onChange={handleChooseImportDir}
         >
-          {IconSet.IMPORT} Restore database from file
+          {IconSet.IMPORT} {t('settings.importExport.restoreFromFile')}
         </FileInput>
         <Button
-          text="Backup database to file"
+          text={t('settings.importExport.backupToFile')}
           onClick={handleCreateExport}
           icon={IconSet.OPEN_EXTERNAL}
           styling="outlined"
@@ -148,12 +147,12 @@ export const ImportExport = observer(() => {
 
         <Alert
           open={Boolean(isConfirmingFileImport)}
-          title="Are you sure you want to restore the database from a backup?"
-          primaryButtonText="Import"
+          title={t('settings.importExport.restoreConfirmTitle')}
+          primaryButtonText={t('settings.importExport.import')}
           onClick={async (button) => {
             if (isConfirmingFileImport && button === DialogButton.PrimaryButton) {
               AppToaster.show({
-                message: 'Restoring database... Allusion will restart',
+                message: t('settings.importExport.restoring'),
                 timeout: 5000,
               });
               try {
@@ -162,7 +161,7 @@ export const ImportExport = observer(() => {
               } catch (e) {
                 console.error('Could not restore backup', e);
                 AppToaster.show({
-                  message: 'Restoring database failed!',
+                  message: t('settings.importExport.restoreFailed'),
                   timeout: 5000,
                 });
               }
@@ -170,10 +169,7 @@ export const ImportExport = observer(() => {
             setConfirmingFileImport(undefined);
           }}
         >
-          <p>
-            This will replace your current tag hierarchy and any tags assigned to images, so it is
-            recommended you create a backup first.
-          </p>
+          <p>{t('settings.importExport.restoreWarning')}</p>
           <p>{isConfirmingFileImport?.info}</p>
         </Alert>
       </ButtonGroup>

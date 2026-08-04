@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { HexColorPicker } from 'react-colorful';
+import { useTranslation } from 'react-i18next';
 
 import { IconSet } from 'widgets';
 import { Menu, MenuCheckboxItem, MenuDivider, MenuItem, MenuSubItem } from 'widgets/menus';
@@ -35,15 +36,16 @@ const ColorPickerMenu = observer(({ tag }: { tag: ClientTag }) => {
   };
   const color = tag.color;
 
+  const { t } = useTranslation();
   return (
     <>
       {/* Rainbow gradient icon? */}
       <MenuCheckboxItem
         checked={color === 'inherit'}
-        text="Inherit Parent Color"
+        text={t('outliner.tags.inheritParentColor')}
         onClick={() => handleChange(color === 'inherit' ? '' : 'inherit')}
       />
-      <MenuSubItem text="Pick Color" icon={IconSet.COLOR}>
+      <MenuSubItem text={t('outliner.tags.pickColor')} icon={IconSet.COLOR}>
         <HexColorPicker color={color || undefined} onChange={handleChange} />
         <button
           key="none"
@@ -92,32 +94,32 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
       <MenuItem
         onClick={() =>
           tagStore
-            .create(tag, 'New Tag')
-            .then((t) => dispatch(Factory.insertNode(tag.id, t.id)))
+            .create(tag, t('outliner.tags.newTagDefaultName'))
+            .then((created) => dispatch(Factory.insertNode(tag.id, created.id)))
             .catch((err) => console.log('Could not create tag', err))
         }
-        text="New Tag"
+        text={t('outliner.tags.new')}
         icon={IconSet.TAG_ADD}
       />
       <MenuItem
         onClick={() => dispatch(Factory.enableEditing(tag.id))}
-        text="Rename"
+        text={t('outliner.tags.rename')}
         icon={IconSet.EDIT}
       />
       <MenuItem
         icon={!tag.isHidden ? IconSet.HIDDEN : IconSet.PREVIEW}
-        text="Hide Tagged Images"
+        text={t('outliner.tags.hideTaggedImages')}
         onClick={tag.toggleHidden}
       />
       <MenuItem
         onClick={() => dispatch(Factory.confirmMerge(tag))}
-        text="Merge with"
+        text={t('outliner.tags.mergeWith')}
         icon={IconSet.TAG_GROUP}
         disabled={ctxTags.some((tag) => tag.subTags.length > 0)}
       />
       <MenuItem
         onClick={() => dispatch(Factory.confirmDeletion(tag))}
-        text="Delete"
+        text={t('outliner.tags.delete')}
         icon={IconSet.DELETE}
       />
       <MenuDivider />
@@ -129,7 +131,7 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
             ? uiStore.addTagSelectionToCriteria()
             : uiStore.addSearchCriteria(new ClientTagSearchCriteria('tags', tag.id))
         }
-        text="Add to Search"
+        text={t('outliner.tags.addToSearch')}
         icon={IconSet.SEARCH}
       />
       <MenuItem
@@ -138,19 +140,19 @@ export const TagItemContextMenu = observer((props: IContextMenuProps) => {
             ? uiStore.replaceCriteriaWithTagSelection()
             : uiStore.replaceSearchCriteria(new ClientTagSearchCriteria('tags', tag.id))
         }
-        text="Replace Search"
+        text={t('outliner.tags.replaceSearch')}
         icon={IconSet.REPLACE}
       />
       <MenuDivider />
       <MenuItem
         onClick={() => tag.parent.insertSubTag(tag, pos - 2)}
-        text="Move Up"
+        text={t('outliner.tags.moveUp')}
         icon={IconSet.ITEM_MOVE_UP}
         disabled={pos === 1}
       />
       <MenuItem
         onClick={() => tag.parent.insertSubTag(tag, pos + 1)}
-        text="Move Down"
+        text={t('outliner.tags.moveDown')}
         icon={IconSet.ITEM_MOVE_DOWN}
         disabled={pos === tag.parent.subTags.length}
       />

@@ -1,6 +1,7 @@
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import MultiSplitPane, { MultiSplitPaneProps } from 'widgets/MultiSplit/MultiSplitPane';
 import { IconSet } from 'widgets/icons';
@@ -114,16 +115,29 @@ interface IContextMenuProps {
 
 const SearchItemContextMenu = observer(
   ({ searchItem, onDelete, onDuplicate, onReplace, onEdit }: IContextMenuProps) => {
+    const { t } = useTranslation();
     return (
       <Menu>
-        <MenuItem text="Edit" onClick={() => onEdit(searchItem)} icon={IconSet.EDIT} />
         <MenuItem
-          text="Replace with current search"
+          text={t('savedSearch.edit', 'Edit')}
+          onClick={() => onEdit(searchItem)}
+          icon={IconSet.EDIT}
+        />
+        <MenuItem
+          text={t('savedSearch.replaceWithCurrent', 'Replace with current search')}
           onClick={() => onReplace(searchItem)}
           icon={IconSet.REPLACE}
         />
-        <MenuItem text="Duplicate" onClick={() => onDuplicate(searchItem)} icon={IconSet.PLUS} />
-        <MenuItem text="Delete" onClick={() => onDelete(searchItem)} icon={IconSet.DELETE} />
+        <MenuItem
+          text={t('savedSearch.duplicate', 'Duplicate')}
+          onClick={() => onDuplicate(searchItem)}
+          icon={IconSet.PLUS}
+        />
+        <MenuItem
+          text={t('savedSearch.delete', 'Delete')}
+          onClick={() => onDelete(searchItem)}
+          icon={IconSet.DELETE}
+        />
       </Menu>
     );
   },
@@ -382,18 +396,19 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
 
   const data = useRef(observable({ source: undefined }));
 
+  const { t } = useTranslation();
   return (
     <SearchDnDProvider value={data.current}>
       <MultiSplitPane
         id="saved-searches"
-        title="Saved Searches"
+        title={t('outliner.savedSearches.title', 'Saved Searches')}
         headerToolbar={
           <Toolbar controls="saved-searches-list" isCompact>
             <ToolbarButton
               icon={IconSet.PLUS}
-              text="Save current search"
+              text={t('outliner.savedSearches.saveCurrent', 'Save current search')}
               onClick={saveCurrentSearch}
-              tooltip={Tooltip.Create}
+              tooltip={t('outliner.savedSearches.saveTooltip', Tooltip.Create)}
             />
           </Toolbar>
         }
@@ -406,7 +421,9 @@ const SavedSearchesPanel = observer((props: Partial<MultiSplitPaneProps>) => {
           onReplace={searchStore.replaceWithActiveSearch}
         />
         {isEmpty && (
-          <Callout icon={IconSet.INFO}>Click + to save your current search criteria.</Callout>
+          <Callout icon={IconSet.INFO}>
+            {t('outliner.savedSearches.clickPlus', 'Click + to save your current search criteria.')}
+          </Callout>
         )}
 
         {editableSearch && (

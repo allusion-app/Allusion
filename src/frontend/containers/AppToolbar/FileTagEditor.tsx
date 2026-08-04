@@ -9,6 +9,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { debounce } from 'common/timeout';
 import { Grid, Tag } from 'widgets';
@@ -26,14 +27,15 @@ const POPUP_ID = 'tag-editor-popup';
 
 const FileTagEditor = observer(() => {
   const { uiStore } = useStore();
+  const { t } = useTranslation();
   return (
     <>
       <ToolbarButton
         icon={IconSet.TAG_LINE}
         disabled={uiStore.fileSelection.size === 0 && !uiStore.isToolbarTagPopoverOpen}
         onClick={uiStore.toggleToolbarTagPopover}
-        text="Tag selected files"
-        tooltip="Add or remove tags from selected images"
+        text={t('button.tagSelected', 'Tag selected files')}
+        tooltip={t('button.tagSelectedTooltip', 'Add or remove tags from selected images')}
       />
       <FloatingPanel>
         <TagEditor />
@@ -254,7 +256,7 @@ const CreateOption = ({ inputText, hasMatches, resetTextBox }: CreateOptionProps
       <Row
         id="tag-editor-create-option"
         selected={false}
-        value={`Create Tag "${inputText}"`}
+        value={t('tag.createWithName', { name: inputText })}
         onClick={createTag}
         icon={IconSet.TAG_ADD}
       />
@@ -275,6 +277,7 @@ const TagSummary = observer(({ counter, removeTag }: TagSummaryProps) => {
     .sort((a, b) => b[1] - a[1])
     .map((pair) => pair[0]);
 
+  const { t } = useTranslation();
   return (
     <div>
       {sortedTags.map((t) => (
@@ -285,7 +288,7 @@ const TagSummary = observer(({ counter, removeTag }: TagSummaryProps) => {
           onRemove={() => removeTag(t)}
         />
       ))}
-      {sortedTags.length === 0 && <i>No tags added yet</i>}
+      {sortedTags.length === 0 && <i>{t('tag.noTagsYet', 'No tags added yet')}</i>}
     </div>
   );
 });

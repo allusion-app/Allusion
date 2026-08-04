@@ -1,6 +1,7 @@
 import { shell } from 'electron';
 import fse from 'fs-extra';
 import { action, computed, makeObservable, observable } from 'mobx';
+import i18n from '../../i18n';
 
 import { maxNumberOfExternalFilesBeforeWarning } from 'common/config';
 import { clamp, notEmpty } from 'common/core';
@@ -114,7 +115,8 @@ type PersistentPreferenceFields =
   | 'isSlideMode'
   | 'firstItem'
   | 'searchMatchAny'
-  | 'searchCriteriaList';
+  | 'searchCriteriaList'
+  | 'language';
 
 class UiStore {
   static MIN_OUTLINER_WIDTH = 192; // default of 12 rem
@@ -144,6 +146,7 @@ class UiStore {
   @observable isThumbnailTagOverlayEnabled: boolean = true;
   @observable isThumbnailFilenameOverlayEnabled: boolean = false;
   @observable isThumbnailResolutionOverlayEnabled: boolean = false;
+  @observable language: string = i18n.language || 'en';
   /** Whether to restore the last search query on start-up */
   @observable isRememberSearchEnabled: boolean = true;
   /** Index of the first item in the viewport. Also acts as the current item shown in slide mode */
@@ -420,6 +423,13 @@ class UiStore {
 
   @action.bound setImportDirectory(dir: string): void {
     this.importDirectory = dir;
+  }
+
+  @action.bound setLanguage(language: string): void {
+    this.language = language;
+    localStorage.setItem('i18nextLng', language);
+    localStorage.setItem('appLanguage', language);
+    i18n.changeLanguage(language).catch(console.error);
   }
 
   @action.bound setTheme(theme: 'light' | 'dark' = 'dark'): void {
@@ -809,6 +819,9 @@ class UiStore {
         if (prefs.upscaleMode) {
           this.setUpscaleMode(prefs.upscaleMode);
         }
+        if (prefs.language) {
+          this.setLanguage(String(prefs.language));
+        }
         this.isThumbnailTagOverlayEnabled = Boolean(prefs.isThumbnailTagOverlayEnabled ?? true);
         this.isThumbnailFilenameOverlayEnabled = Boolean(prefs.isThumbnailFilenameOverlayEnabled ?? false); // eslint-disable-line prettier/prettier
         this.isThumbnailResolutionOverlayEnabled = Boolean(prefs.isThumbnailResolutionOverlayEnabled ?? false); // eslint-disable-line prettier/prettier
@@ -865,6 +878,7 @@ class UiStore {
       thumbnailShape: this.thumbnailShape,
       upscaleMode: this.upscaleMode,
       hotkeyMap: { ...this.hotkeyMap },
+      language: this.language,
       isThumbnailFilenameOverlayEnabled: this.isThumbnailFilenameOverlayEnabled,
       isThumbnailTagOverlayEnabled: this.isThumbnailTagOverlayEnabled,
       isThumbnailResolutionOverlayEnabled: this.isThumbnailResolutionOverlayEnabled,

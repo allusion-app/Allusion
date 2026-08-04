@@ -1,6 +1,7 @@
 import { when } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from 'widgets';
 import { Checkbox } from 'widgets/checkbox';
@@ -147,17 +148,18 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
     };
   }, [location]);
 
+  const { t } = useTranslation();
+
   return (
     <Dialog
       open
-      title={`Add Location ${location.name}`}
+      title={t('outliner.locations.addTitle', { name: location.name })}
       icon={IconSet.FOLDER_CLOSE}
       describedby="location-add-info"
       onCancel={handleCancel}
     >
       <p id="location-add-info">
-        You can configure the location {location.name} by including only certain subdirectories from
-        the directory.
+        {t('outliner.locations.addIntro', { name: location.name })}
         {/* TODO: Switch for importing folder structure as tags */}
         {/* <p>Would you like to create tags from the folder structure of this Location?</p>
         <div style={{ marginLeft: '1rem' }}>
@@ -171,19 +173,21 @@ const LocationCreationDialog = ({ location, onClose }: LocationCreationDialogPro
       </p>
       <form method="dialog" onSubmit={(e) => e.preventDefault()}>
         <fieldset>
-          <legend>Included Subdirectories of {location.name}</legend>
+          <legend>{t('outliner.locations.includedSubdirs', { name: location.name })}</legend>
           {!sublocationsLoaded ? (
-            <i>{IconSet.LOADING} loading...</i>
+            <i>
+              {IconSet.LOADING} {t('outliner.locations.loading')}
+            </i>
           ) : location.subLocations.length === 0 ? (
-            <p>No subdirectories found.</p>
+            <p>{t('outliner.locations.noSubdirs')}</p>
           ) : (
             <SubLocationInclusionTree location={location} />
           )}
         </fieldset>
 
         <fieldset className="dialog-actions">
-          <Button styling="filled" text="Confirm" onClick={handleSubmit} />
-          <Button styling="outlined" onClick={handleCancel} text="Cancel" />
+          <Button styling="filled" text={t('button.confirm')} onClick={handleSubmit} />
+          <Button styling="outlined" onClick={handleCancel} text={t('button.cancel')} />
         </fieldset>
       </form>
     </Dialog>

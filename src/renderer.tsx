@@ -5,8 +5,10 @@
 // Import the styles here to let Webpack know to include them
 // in the HTML file
 import './style.scss';
+import './i18n';
 
 import Dexie from 'dexie';
+import i18n from './i18n';
 import fse from 'fs-extra';
 import { autorun, reaction, runInAction } from 'mobx';
 import React from 'react';
@@ -238,7 +240,7 @@ main()
   .then(() => console.info('Successfully initialized Allusion!'))
   .catch((err) => {
     console.error('Could not initialize Allusion!', err);
-    window.alert('An error has occurred, check the console for more details');
+    window.alert(i18n.t('error.initializationFailed'));
 
     // In dev mode, the console is already automatically opened: only open in non-dev mode here
     if (!IS_DEV) {

@@ -1,5 +1,6 @@
 import { action } from 'mobx';
 import React, { ForwardedRef, forwardRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { camelCaseToSpaced } from 'common/fmt';
 import { NumberOperators, StringOperators } from '../../../api/data-storage-search';
@@ -23,6 +24,7 @@ export const KeySelector = forwardRef(function KeySelector(
   { labelledby, keyValue, dispatch }: IKeySelector,
   ref: ForwardedRef<HTMLSelectElement>,
 ) {
+  const { t } = useTranslation();
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const key = e.target.value as Key;
     dispatch((criteria) => {
@@ -45,28 +47,28 @@ export const KeySelector = forwardRef(function KeySelector(
       value={keyValue}
     >
       <option key="tags" value="tags">
-        Tags
+        {t('search.keys.tags')}
       </option>
       <option key="name" value="name">
-        File Name
+        {t('search.keys.fileName')}
       </option>
       <option key="absolutePath" value="absolutePath">
-        File Path
+        {t('search.keys.filePath')}
       </option>
       <option key="extension" value="extension">
-        File Extension
+        {t('search.keys.fileExtension')}
       </option>
       <option key="size" value="size">
-        File Size (MB)
+        {t('search.keys.fileSizeMB')}
       </option>
       <option key="width" value="width">
-        Width
+        {t('search.keys.width')}
       </option>
       <option key="height" value="height">
-        Height
+        {t('search.keys.height')}
       </option>
       <option key="dateAdded" value="dateAdded">
-        Date Added
+        {t('search.keys.dateAdded')}
       </option>
     </select>
   );
@@ -112,7 +114,8 @@ export const ValueInput = ({ labelledby, keyValue, value, dispatch }: FieldInput
   } else if (keyValue === 'dateAdded') {
     return <DateAddedInput labelledby={labelledby} value={value as Date} dispatch={dispatch} />;
   }
-  return <p>This should never happen.</p>;
+  const { t } = useTranslation();
+  return <p>{t('placeholder.unexpected')}</p>;
 };
 
 type ValueInput<V> = Omit<FieldInput<V>, 'keyValue'>;

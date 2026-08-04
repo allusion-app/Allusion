@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { shell } from 'electron';
 import { mapStackTrace } from 'sourcemapped-stacktrace';
+import i18n from 'i18next';
 
 import { RendererMessenger } from 'src/ipc/renderer';
 import { createBugReport, githubUrl } from 'common/config';
@@ -9,24 +10,26 @@ import { useStore } from '../contexts/StoreContext';
 
 import { Button, ButtonGroup, IconSet } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
+import { useTranslation } from 'react-i18next';
 
 export const ClearDbButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const rootStore = useStore();
+  const { t } = useTranslation();
 
   return (
     <>
       <Button
         styling="outlined"
         icon={IconSet.CLEAR_DATABASE}
-        text="Clear Database"
+        text={t('error.clearDatabase', 'Clear Database')}
         onClick={() => setIsOpen(!isOpen)}
       />
       <Alert
         open={isOpen}
         icon={IconSet.CLEAR_DATABASE}
-        title="Are you sure you want to clear the database?"
-        primaryButtonText="Clear"
+        title={t('error.confirmClear', 'Are you sure you want to clear the database?')}
+        primaryButtonText={t('button.clear', 'Clear')}
         onClick={async (button) => {
           if (button === DialogButton.CloseButton) {
             setIsOpen(false);
@@ -37,10 +40,12 @@ export const ClearDbButton = () => {
         }}
       >
         <p>
-          This is intended as a last resort. All imported images and created tags will be
-          permanently removed.
+          {t(
+            'error.clearDbWarning',
+            'This is intended as a last resort. All imported images and created tags will be permanently removed.',
+          )}
         </p>
-        <p>This will not delete your images on your system!</p>
+        <p>{t('error.willNotDelete', 'This will not delete your images on your system!')}</p>
       </Alert>
     </>
   );
@@ -110,27 +115,32 @@ class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBoundaryS
       return (
         <div className="error-boundary">
           <span className="custom-icon-64">{IconSet.DB_ERROR}</span>
-          <h2>Something went wrong</h2>
-          <p>You can try one of the following options or contact the maintainers.</p>
+          <h2>{i18n.t('error.somethingWentWrong', 'Something went wrong')}</h2>
+          <p>
+            {i18n.t(
+              'error.tryOptions',
+              'You can try one of the following options or contact the maintainers.',
+            )}
+          </p>
           <ButtonGroup align="center">
             <Button
               onClick={this.reloadApplication}
               styling="outlined"
               icon={IconSet.RELOAD}
-              text="Reload"
+              text={i18n.t('button.reload', 'Reload')}
             />
             <Button
               onClick={this.viewInspector}
               styling="outlined"
               icon={IconSet.CHROME_DEVTOOLS}
-              text="Toggle DevTools"
+              text={i18n.t('error.toggleDevTools', 'Toggle DevTools')}
             />
             <ClearDbButton />
             <Button
               styling="outlined"
               onClick={this.openIssueURL}
               icon={IconSet.GITHUB}
-              text="Create Issue"
+              text={i18n.t('error.createIssue', 'Create Issue')}
             />
           </ButtonGroup>
           <p className="message">{error.toString()}</p>

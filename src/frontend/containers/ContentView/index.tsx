@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
+import { useTranslation } from 'react-i18next';
 
 import { useStore } from '../../contexts/StoreContext';
 
@@ -40,6 +41,7 @@ const Content = observer(() => {
   const container = useRef<HTMLDivElement>(null);
   const isMaximized = useIsWindowMaximized();
 
+  const { t } = useTranslation();
   const show = useContextMenu();
   const handleContextMenu = useAction((e: React.MouseEvent) => {
     if (!uiStore.isSlideMode) {
@@ -47,10 +49,10 @@ const Content = observer(() => {
         e.clientX,
         e.clientY,
         <Menu>
-          <MenuSubItem icon={IconSet.VIEW_GRID} text="View method...">
+          <MenuSubItem icon={IconSet.VIEW_GRID} text={t('content.viewMethod')}>
             <LayoutMenuItems />
           </MenuSubItem>
-          <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text="Sort by...">
+          <MenuSubItem icon={IconSet.FILTER_NAME_DOWN} text={t('content.sortBy')}>
             <SortMenuItems />
           </MenuSubItem>
         </Menu>,

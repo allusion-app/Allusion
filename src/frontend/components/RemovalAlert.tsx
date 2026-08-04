@@ -1,6 +1,7 @@
 import { action } from 'mobx';
 import { observer } from 'mobx-react-lite';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { IconSet, Tag } from 'widgets';
 import { Alert, DialogButton } from 'widgets/popovers';
@@ -16,27 +17,31 @@ interface IRemovalProps<T> {
   onClose: () => void;
 }
 
-export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => (
-  <RemovalAlert
-    open
-    title={`Are you sure you want to delete the location "${props.object.name}"?`}
-    information="This will permanently remove the location and all data linked to its images in Allusion."
-    onCancel={props.onClose}
-    onConfirm={() => {
-      props.onClose();
-      props.object.delete();
-    }}
-  />
-);
+export const LocationRemoval = (props: IRemovalProps<ClientLocation>) => {
+  const { t } = useTranslation();
+  return (
+    <RemovalAlert
+      open
+      title={t('removal.deleteLocation', { name: props.object.name })}
+      information={t('removal.deleteLocationInfo')}
+      onCancel={props.onClose}
+      onConfirm={() => {
+        props.onClose();
+        props.object.delete();
+      }}
+    />
+  );
+};
 
 export const SubLocationExclusion = (props: IRemovalProps<ClientSubLocation>) => {
+  const { t } = useTranslation();
   return (
     <Alert
       open
-      title={`Are you sure you want to exclude the directory "${props.object.name}"?`}
+      title={t('removal.excludeDirTitle', { name: props.object.name })}
       icon={IconSet.WARNING}
       type="warning"
-      primaryButtonText="Exclude"
+      primaryButtonText={t('removal.exclude')}
       defaultButton={DialogButton.PrimaryButton}
       onClick={(button) => {
         if (button !== DialogButton.CloseButton) {
@@ -45,7 +50,7 @@ export const SubLocationExclusion = (props: IRemovalProps<ClientSubLocation>) =>
         props.onClose();
       }}
     >
-      <p>Any tags saved on images in that directory will be lost.</p>
+      <p>{t('removal.excludeInfo')}</p>
     </Alert>
   );
 };
@@ -58,17 +63,18 @@ export const TagRemoval = observer((props: IRemovalProps<ClientTag>) => {
     (t) => <Tag key={t.id} text={t.name} color={t.viewColor} />,
   );
 
-  const text = `Are you sure you want to delete the tag "${object.name}"?`;
+  const { t } = useTranslation();
+  const text = t('removal.deleteTag', { name: object.name });
 
   return (
     <RemovalAlert
       open
       title={text}
-      information="Deleting tags or collections will permanently remove them from Allusion."
+      information={t('removal.deleteTagInfo')}
       body={
         tagsToRemove.length > 0 && (
           <div id="tag-remove-overview">
-            <p>Selected Tags</p>
+            <p>{t('removal.selectedTags')}</p>
             {tagsToRemove}
           </div>
         )
@@ -97,13 +103,12 @@ export const FileRemoval = observer(() => {
     fileStore.deleteFiles(files);
   });
 
+  const { t } = useTranslation();
   return (
     <RemovalAlert
       open={uiStore.isToolbarFileRemoverOpen}
-      title={`Are you sure you want to delete ${selection.size} missing file${
-        selection.size > 1 ? 's' : ''
-      }?`}
-      information="Deleting files will permanently remove them from Allusion, so any tags saved on them will be lost. If you move files back into their location, they will be automatically detected by Allusion."
+      title={t('removal.deleteMissingFiles', { count: selection.size })}
+      information={t('removal.deleteMissingFilesInfo')}
       body={
         <div className="deletion-confirmation-list">
           {Array.from(selection).map((f) => (
@@ -138,10 +143,10 @@ export const MoveFilesToTrashBin = observer(() => {
     fileStore.deleteFiles(files);
     if (files.length !== selection.size) {
       AppToaster.show({
-        message: 'Some files could not be deleted.',
+        message: t('removal.someFilesCouldNotBeDeleted'),
         clickAction: {
           onClick: () => RendererMessenger.toggleDevTools(),
-          label: 'More info',
+          label: t('removal.moreInfo'),
         },
         timeout: 8000,
       });
@@ -150,15 +155,12 @@ export const MoveFilesToTrashBin = observer(() => {
 
   const isMulti = selection.size > 1;
 
+  const { t } = useTranslation();
   return (
     <RemovalAlert
       open={uiStore.isMoveFilesToTrashOpen}
-      title={`Are you sure you want to delete ${selection.size} file${isMulti ? 's' : ''}?`}
-      information={`You will be able to recover ${
-        isMulti ? 'them' : 'it'
-      } from your system's trash bin, but all assigned tags to ${
-        isMulti ? 'them' : 'it'
-      } in Allusion will be lost.`}
+      title={t('removal.deleteFiles', { count: selection.size })}
+      information={t('removal.deleteFilesInfo', { plural: isMulti ? 'them' : 'it' })}
       body={
         <div className="deletion-confirmation-list">
           {Array.from(selection).map((f) => (
@@ -174,11 +176,12 @@ export const MoveFilesToTrashBin = observer(() => {
 
 export const SavedSearchRemoval = observer((props: IRemovalProps<ClientFileSearchItem>) => {
   const { searchStore } = useStore();
+  const { t } = useTranslation();
   return (
     <RemovalAlert
       open
-      title="Search item removal"
-      information={`Are you sure you want to delete the search item "${props.object.name}"?`}
+      title={t('removal.searchItemRemoval')}
+      information={t('removal.searchItemRemovalInfo', { name: props.object.name })}
       onCancel={props.onClose}
       onConfirm={() => {
         props.onClose();
@@ -198,19 +201,22 @@ interface IRemovalAlertProps {
   body?: React.ReactNode;
 }
 
-const RemovalAlert = (props: IRemovalAlertProps) => (
-  <Alert
-    open={props.open}
-    title={props.title}
-    icon={IconSet.WARNING}
-    type="danger"
-    primaryButtonText="Delete"
-    defaultButton={DialogButton.PrimaryButton}
-    onClick={(button) =>
-      button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
-    }
-  >
-    <p>{props.information}</p>
-    {props.body}
-  </Alert>
-);
+const RemovalAlert = (props: IRemovalAlertProps) => {
+  const { t } = useTranslation();
+  return (
+    <Alert
+      open={props.open}
+      title={props.title}
+      icon={IconSet.WARNING}
+      type="danger"
+      primaryButtonText={t('button.delete')}
+      defaultButton={DialogButton.PrimaryButton}
+      onClick={(button) =>
+        button === DialogButton.CloseButton ? props.onCancel() : props.onConfirm()
+      }
+    >
+      <p>{props.information}</p>
+      {props.body}
+    </Alert>
+  );
+};
